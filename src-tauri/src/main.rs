@@ -61,8 +61,8 @@ fn get_file(media_url: String) -> Vec<u8> {
     return bytes;
 }
 
-#[tauri::command]
-fn get_playlist() -> Vec<Channel> {
+#[tauri::command(async)]
+fn get_playlist(url: String) -> Vec<Channel> {
     //Todo: add param for path
     let regex_name = Regex::new( r#"tvg-name="{1}(?P<name>[^=]*)"{1}"#).unwrap();
     let regex_logo = Regex::new(r#"tvg-logo="{1}(?P<logo>[^=]*)"{1}"#).unwrap();
@@ -72,7 +72,7 @@ fn get_playlist() -> Vec<Channel> {
         r#"tvg-logo="{1}(?P<logo>[^=]*)"{1}"#,
         r#"group-title="{1}(?P<group>[^=]*)"{1}"#,
     ]).unwrap();
-    let mut file = read_lines("/Users/fredericlachapelle/Downloads/test.m3u").unwrap();
+    let mut file = read_lines(url).unwrap();
     let mut channels: Vec<Channel> = Vec::new();
     file.next();
     while let Some(line_res) = file.next() {

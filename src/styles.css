@@ -1,1 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
+@import url("./assets/bootstrap.min.css");
+body {
+    background-color: #202124;
+    color: white;
+}

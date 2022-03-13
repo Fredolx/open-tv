@@ -1,6 +1,4 @@
 import { Component } from '@angular/core';
-import { invoke } from '@tauri-apps/api/tauri'
-import { Channel } from './models/channel'
 
 @Component({
   selector: 'app-root',
