@@ -20,6 +20,8 @@ export class SetupComponent implements OnInit {
 
   async getFile(){
     this.url = (await open() as string);
+    if(!this.url.endsWith("m3u"))
+      return;
     this.loading = true;
     this.memory.Channels = await invoke("get_playlist", {url: this.url});
     this.loading = false;
