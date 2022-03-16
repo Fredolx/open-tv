@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { invoke } from '@tauri-apps/api';
 import { Channel } from '../models/channel';
 
 @Component({
@@ -13,6 +14,10 @@ export class ChannelTileComponent implements OnInit {
   @Input() channel?: Channel;
 
   ngOnInit(): void {
+  }
+
+  async click(){
+    await invoke("play_channel", {link: this.channel?.url});
   }
 
 }

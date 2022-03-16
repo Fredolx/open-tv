@@ -1,3 +1,15 @@
 .channel {
-    border-radius: 5%;
+    border-radius: 0.25rem;
+    background-color: #343a40;
+    height: 3em;
+    width: 100%;
+}
+
+.channel-title {
+    font-size: 700
+}
+
+.channel:hover {
+    background: #007bff;
+    cursor: pointer;
 }

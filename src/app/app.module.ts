@@ -6,17 +6,18 @@ import { AppComponent } from './app.component';
 import { SetupComponent } from './setup/setup.component';
 import { HomeComponent } from './home/home.component';
 import { ChannelTileComponent } from './channel-tile/channel-tile.component';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
     AppComponent,
     SetupComponent,
     HomeComponent,
-    ChannelTileComponent
+    ChannelTileComponent,
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

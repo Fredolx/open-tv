@@ -19,7 +19,6 @@ use serde::{Deserialize, Serialize};
 struct State(Mutex<StateContent>);
 struct StateContent {
     processes: Vec<Child>,
-    media_url: String
 }
 #[derive(Serialize, Deserialize)]
 struct Channel {
@@ -31,10 +30,8 @@ struct Channel {
 
 fn main() {
     let vec: Vec<Child> = Vec::new();
-    let url = "".to_string();
     let state = State(Mutex::new(StateContent {
-        processes: vec,
-        media_url: url,
+        processes: vec
     }));
     tauri::Builder::default()
         .manage(state)
@@ -45,13 +42,14 @@ fn main() {
 
 #[tauri::command]
 fn play_channel(link: String, state: tauri::State<State>) {
+    println!("{}", link);
     let processes = &mut state.0.lock().unwrap().processes;
     if processes.len() > 0 {
         terminate_all(processes);
     }
     let child = Command::new("sh")
         .arg("-c")
-        .arg(format!("mpv {}", link))
+        .arg(format!("mpv --fs {}", link))
         .spawn()
         .expect("Failed to get child process");
     processes.push(child);
