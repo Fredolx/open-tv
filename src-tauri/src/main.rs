@@ -47,8 +47,14 @@ fn play_channel(link: String, state: tauri::State<State>) {
     if processes.len() > 0 {
         terminate_all(processes);
     }
-    let child = Command::new("sh")
-        .arg("-c")
+    let mut shell: &str = "sh";
+    let mut firstArg: &str = "-c";
+    if cfg!(windows) {
+        shell = "cmd";
+        firstArg = "/C";
+    }
+    let child = Command::new(shell)
+        .arg(firstArg)
         .arg(format!("mpv --fs {}", link))
         .spawn()
         .expect("Failed to get child process");

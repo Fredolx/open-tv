@@ -1,7 +1,10 @@
 <div class="container mt-5">
-    <div class="mx-auto mb-5" style="width: 35%;">
-        <input type="text" #search style="width: 100%;" class="form-control" placeholder="Type to search...">
+    <div class="row mb-5">
+        <div class="mx-auto col-xl-6 col-lg-6 col-md-8 col-12">
+            <input type="text" #search style="width: 100%;" class="form-control" placeholder="Type to search...">
+        </div>
     </div>
+   
     <div class="row gy-3">
         <app-channel-tile *ngFor="let channel of channels" class="col-xl-3 col-lg-4 col-md-4" [channel]="channel"></app-channel-tile>
     </div>

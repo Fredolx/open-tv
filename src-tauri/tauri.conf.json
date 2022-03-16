@@ -13,7 +13,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.tauri.dev",
+      "identifier": "dev.fredol",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -54,7 +54,7 @@
     },
     "windows": [
       {
-        "title": "Open TV",
+        "title": "Open TV (Made by Frédéric Lachapelle)",
         "width": 800,
         "height": 600,
         "resizable": true,
