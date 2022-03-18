@@ -16,6 +16,12 @@ export class ChannelTileComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  getName(){
+    if(this.channel?.name?.length! > 33)
+      return this.channel?.name.substring(0, 33);
+    return this.channel?.name;
+  }
+
   async click(){
     await invoke("play_channel", {link: this.channel?.url});
   }

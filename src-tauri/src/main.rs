@@ -91,6 +91,7 @@ fn get_playlist(url: String) -> Vec<Channel> {
 
 #[tauri::command(async)]
 fn get_cache() -> Option<Vec<Channel>>{
+    println!("get_cache");
     let cache_path = get_cache_path();
     if Path::exists(&cache_path) {
         let file = fs::read_to_string(cache_path).unwrap();
@@ -109,7 +110,6 @@ fn save_to_cache(channels: &Vec<Channel>) {
 
 fn get_cache_path() -> std::path::PathBuf{
     let path = ProjectDirs::from("", "fredolx", "open-tv").unwrap().cache_dir().join("cache.json");
-    println!("{}", path.to_str().unwrap());
     return path;
 }
 

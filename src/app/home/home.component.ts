@@ -16,15 +16,19 @@ export class HomeComponent implements OnInit {
   @ViewChild('search') search!: ElementRef;
 
   constructor(private router: Router, public memory: MemoryService) {
-
-    invoke("get_cache").then(x => {
-      if (x) {
-        this.memory.Channels = x as Channel[];
-        this.channels = this.memory.Channels.splice(0, 36);
-      }
-      if (memory.Channels?.length == 0)
-        router.navigateByUrl("setup");
-    });
+    if (this.memory.Channels.length > 0){
+      this.channels = this.memory.Channels.splice(0, 36);
+    }
+    else {
+      invoke("get_cache").then(x => {
+        if (x) {
+          this.memory.Channels = x as Channel[];
+          this.channels = this.memory.Channels.splice(0, 36);
+        }
+        if (memory.Channels?.length == 0)
+          router.navigateByUrl("setup");
+      });
+    }      
   }
 
   ngAfterViewInit(): void {
