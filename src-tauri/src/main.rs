@@ -42,7 +42,7 @@ fn main() {
 
 #[tauri::command]
 fn play_channel(link: String, state: tauri::State<State>) {
-    println!("{}", link);
+    println!("Playing {}", link);
     let processes = &mut state.0.lock().unwrap().processes;
     if processes.len() > 0 {
         terminate_all(processes);
@@ -91,7 +91,6 @@ fn get_playlist(url: String) -> Vec<Channel> {
 
 #[tauri::command(async)]
 fn get_cache() -> Option<Vec<Channel>>{
-    println!("get_cache");
     let cache_path = get_cache_path();
     if Path::exists(&cache_path) {
         let file = fs::read_to_string(cache_path).unwrap();
