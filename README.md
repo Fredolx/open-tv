@@ -4,6 +4,8 @@ Simple Rust IPTV Front-end and alternative to Hypnotix. Made with Tauri.
 This is my first app in Rust as a C# Developer, if you see anything that could
 be improved, feel free to contribute.
 
+![alt text](https://github.com/Fredolx/open-tv/blob/main/demo.png)
+
 ## Why
 
 - Lack of good open source IPTV apps
