@@ -18,6 +18,13 @@ be improved, feel free to contribute.
 - Various optimizations
 - Xtream support
 
+## Prerequisites
+```
+sudo dnf install mpv #Fedora
+sudo pacman -Syu mpv #Arch
+sudo apt install mpv #Ubuntu
+choco install mpv # Windows
+```
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
 
