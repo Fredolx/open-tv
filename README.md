@@ -1,27 +1,35 @@
-# OpenTv
+# Open-TV
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.2.5.
+Simple Rust IPTV Front-end and alternative to Hypnotix. Made with Tauri.
+This is my first app in Rust as a C# Developer, if you see anything that could
+be improved, feel free to contribute.
 
-## Development server
+## Why
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+- Lack of good open source IPTV apps
+- Faster and much more stable than the alternatives
 
-## Code scaffolding
+## Planned features
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- Recording channels
+- Clearing cache via GUI and/or multiple sources support
+- Various optimizations
+- Xtream support
 
-## Build
+## Install
+You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Build/Dev
 
-## Running unit tests
+```
+npm install
+npm run tauri dev 
+#or
+npm run tauri build
+```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
-## Running end-to-end tests
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
 
-## Further help
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
