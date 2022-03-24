@@ -7,6 +7,7 @@ import { SetupComponent } from './setup/setup.component';
 import { HomeComponent } from './home/home.component';
 import { ChannelTileComponent } from './channel-tile/channel-tile.component';
 import { FormsModule } from '@angular/forms';
+import { NgbModule, NgbTooltip, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import { FormsModule } from '@angular/forms';
   imports: [
     BrowserModule,
     AppRoutingModule,
+    NgbTooltipModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

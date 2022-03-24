@@ -22,6 +22,10 @@ export class ChannelTileComponent implements OnInit {
     return this.channel?.name;
   }
 
+  isNameTooLong(){
+    return this.channel?.name?.length! > 33;
+  }
+
   async click(){
     await invoke("play_channel", {link: this.channel?.url});
   }
