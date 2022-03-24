@@ -22,7 +22,7 @@ be improved, feel free to contribute.
 ```
 sudo dnf install mpv #Fedora
 sudo pacman -Syu mpv #Arch
-sudo apt install mpv #Ubuntu
+sudo apt install mpv #Debian/Ubuntu
 choco install mpv # Windows
 ```
 ## Install
