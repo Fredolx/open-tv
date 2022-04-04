@@ -3,10 +3,18 @@
     background-color: #343a40;
     height: 3em;
     width: 100%;
+    overflow-y: hidden;
 }
 
 .channel-title {
-    font-size: 700
+    margin-left: 10px; 
+    margin-right: 10px;
+}
+
+.channel-image {
+    width: 25%; 
+    height: auto; 
+    object-fit: fill
 }
 
 .channel:hover {

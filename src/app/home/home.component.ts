@@ -38,7 +38,6 @@ export class HomeComponent implements OnInit {
       })
       , debounceTime(300)
       , distinctUntilChanged()
-      // subscription for response
     ).subscribe((term: string) => {
       this.channels = this.memory.Channels.filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1).slice(0, 36)
     });

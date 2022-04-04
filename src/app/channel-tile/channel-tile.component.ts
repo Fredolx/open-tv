@@ -12,22 +12,17 @@ export class ChannelTileComponent implements OnInit {
   constructor() { }
 
   @Input() channel?: Channel;
+  showImage: boolean = true;
 
   ngOnInit(): void {
   }
 
-  getName(){
-    if(this.channel?.name?.length! > 33)
-      return this.channel?.name.substring(0, 33);
-    return this.channel?.name;
-  }
-
-  isNameTooLong(){
-    return this.channel?.name?.length! > 33;
-  }
-
   async click(){
     await invoke("play_channel", {link: this.channel?.url});
+  }
+
+  onError(event: Event) {
+    this.showImage = false;
   }
 
 }

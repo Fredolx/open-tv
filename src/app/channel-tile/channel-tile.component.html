@@ -1,4 +1,4 @@
-<div placement="top" ngbTooltip="{{isNameTooLong() ? channel?.name : null}}"  (click)="click()" class="channel d-inline-flex">
-    <img *ngIf="channel?.logo" height="100%" width="32%" src="{{channel?.logo}}">
-    <div class="channel-title my-auto" style="margin-left: 10px;">{{getName()}}</div>
+<div placement="top" [ngbTooltip]="channel?.name" (click)="click()" class="channel d-inline-flex">
+    <img #test (error)="showImage = false" class="channel-image" *ngIf="channel?.logo && showImage" src="{{channel?.logo}}">
+    <div class="channel-title my-auto">{{channel?.name}}</div>
 </div>
