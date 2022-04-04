@@ -27,7 +27,6 @@ export class ChannelTileComponent implements OnInit {
 
   onError(event: Event) {
     this.showImage = false;
-    console.log("test");
   }
 
 }
