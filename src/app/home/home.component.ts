@@ -14,16 +14,17 @@ export class HomeComponent implements OnInit {
 
   channels: Channel[] = [];
   @ViewChild('search') search!: ElementRef;
+  readonly elementsToRetrieve = 36;
 
   constructor(private router: Router, public memory: MemoryService) {
     if (this.memory.Channels.length > 0){
-      this.channels = this.memory.Channels.splice(0, 36);
+      this.getChannels();
     }
     else {
       invoke("get_cache").then(x => {
         if (x) {
           this.memory.Channels = x as Channel[];
-          this.channels = this.memory.Channels.splice(0, 36);
+          this.getChannels();
         }
         if (memory.Channels?.length == 0)
           router.navigateByUrl("setup");
@@ -39,8 +40,18 @@ export class HomeComponent implements OnInit {
       , debounceTime(300)
       , distinctUntilChanged()
     ).subscribe((term: string) => {
-      this.channels = this.memory.Channels.filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1).slice(0, 36)
+      this.filterChannels(term);
     });
+  }
+
+  getChannels(){
+    this.channels = this.memory.Channels.slice(0, this.elementsToRetrieve);
+  }
+
+  filterChannels(term: string){
+    this.channels = this.memory.Channels
+      .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1)
+      .slice(0, this.elementsToRetrieve)
   }
 
   ngOnInit(): void {
