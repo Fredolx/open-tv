@@ -7,7 +7,9 @@ import { SetupComponent } from './setup/setup.component';
 import { HomeComponent } from './home/home.component';
 import { ChannelTileComponent } from './channel-tile/channel-tile.component';
 import { FormsModule } from '@angular/forms';
-import { NgbModule, NgbTooltip, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModalModule, NgbModule, NgbTooltip, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+import { SettingsComponent } from './settings/settings.component';
+import { LoadingComponent } from './loading/loading.component';
 
 @NgModule({
   declarations: [
@@ -15,11 +17,14 @@ import { NgbModule, NgbTooltip, NgbTooltipModule } from '@ng-bootstrap/ng-bootst
     SetupComponent,
     HomeComponent,
     ChannelTileComponent,
+    SettingsComponent,
+    LoadingComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     NgbTooltipModule,
+    NgbModalModule
   ],
   providers: [],
   bootstrap: [AppComponent]
