@@ -4,7 +4,6 @@
 )]
 
 use directories::ProjectDirs;
-use directories::UserDirs;
 use std::{
     fs::{self, File},
     io::{self, BufRead, Read},
@@ -35,7 +34,7 @@ fn main() {
     }));
     tauri::Builder::default()
         .manage(state)
-        .invoke_handler(tauri::generate_handler![play_channel, get_playlist, get_cache])
+        .invoke_handler(tauri::generate_handler![play_channel, get_playlist, get_cache, delete_cache])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -60,12 +59,7 @@ fn get_playlist(url: String) -> Vec<Channel> {
     let regex_name = Regex::new(r#"tvg-name="{1}(?P<name>[^=]*)"{1}"#).unwrap();
     let regex_logo = Regex::new(r#"tvg-logo="{1}(?P<logo>[^=]*)"{1}"#).unwrap();
     let regex_group = Regex::new(r#"group-title="{1}(?P<group>[^=]*)"{1}"#).unwrap();
-    let set = RegexSet::new(&[
-        r#"tvg-name="{1}(?P<name>[^=]*)"{1}"#,
-        r#"tvg-logo="{1}(?P<logo>[^=]*)"{1}"#,
-        r#"group-title="{1}(?P<group>[^=]*)"{1}"#,
-    ])
-    .unwrap();
+    
     let mut file = read_lines(url).unwrap();
     let mut channels: Vec<Channel> = Vec::new();
     file.next();
@@ -97,6 +91,12 @@ fn get_cache() -> Option<Vec<Channel>>{
         return serde_json::from_str(&file).unwrap();
     }
     return None;
+}
+
+#[tauri::command(async)]
+fn delete_cache() {
+    let cache_path = get_cache_path();
+    fs::remove_file(cache_path).expect("Could not delete cache");
 }
 
 fn save_to_cache(channels: &Vec<Channel>) {

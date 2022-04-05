@@ -1,9 +1,11 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { invoke } from '@tauri-apps/api/tauri';
 import { debounceTime, distinctUntilChanged, filter, fromEvent, map, Subject, tap } from 'rxjs';
 import { MemoryService } from '../memory.service';
 import { Channel } from '../models/channel';
+import { SettingsComponent } from '../settings/settings.component';
 
 @Component({
   selector: 'app-home',
@@ -52,6 +54,10 @@ export class HomeComponent implements OnInit {
     this.channels = this.memory.Channels
       .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1)
       .slice(0, this.elementsToRetrieve)
+  }
+
+  openSettings(){
+    this.router.navigateByUrl("settings");
   }
 
   ngOnInit(): void {

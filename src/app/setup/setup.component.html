@@ -6,7 +6,5 @@
             <button class="btn btn-primary" (click)="getFile()">Select file</button>
         </div>
     </ng-container>
-    <div *ngIf="loading">
-        <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-    </div>
+    <app-loading *ngIf="loading" [center]="false"></app-loading>
 </div>
