@@ -10,6 +10,8 @@ import { FormsModule } from '@angular/forms';
 import { NgbModalModule, NgbModule, NgbTooltip, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { SettingsComponent } from './settings/settings.component';
 import { LoadingComponent } from './loading/loading.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
 
 @NgModule({
   declarations: [
@@ -24,7 +26,9 @@ import { LoadingComponent } from './loading/loading.component';
     BrowserModule,
     AppRoutingModule,
     NgbTooltipModule,
-    NgbModalModule
+    NgbModalModule,
+    BrowserAnimationsModule,
+    ToastrModule.forRoot()
   ],
   providers: [],
   bootstrap: [AppComponent]

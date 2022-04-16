@@ -9,9 +9,10 @@ use std::{
     io::{self, BufRead, Read},
     path::Path,
     process::{Child, Command},
-    sync::Mutex,
+    sync::Mutex, error::{Error, self},
 };
-
+extern crate custom_error;
+use custom_error::custom_error;
 use regex::{Regex, RegexSet};
 use serde::{Deserialize, Serialize};
 
@@ -25,6 +26,11 @@ struct Channel {
     group: String,
     logo: Option<String>,
     url: String
+}
+
+custom_error!{ProcessM3uError
+    StringEmptyErr = "Line # of provided file was empty",
+    IOErr {source: std::io::Error} = "Test"
 }
 
 fn main() {
@@ -55,17 +61,31 @@ fn play_channel(link: String, state: tauri::State<State>) {
 }
 
 #[tauri::command(async)]
-fn get_playlist(url: String) -> Vec<Channel> {
+fn get_playlist(url: String) -> Option<Vec<Channel>> {
+    let mut file = read_lines(url).unwrap();   
+    let channels = match process_m3u(&mut file) {
+        Ok(r) => r,
+        Err(e) => return Option::None,
+    };
+    save_to_cache(&channels);
+    return Some(channels);
+}
+
+fn process_m3u(file: &mut std::io::Lines<std::io::BufReader<std::fs::File>>) -> Result<Vec<Channel>, ProcessM3uError> {
     let regex_name = Regex::new(r#"tvg-name="{1}(?P<name>[^=]*)"{1}"#).unwrap();
     let regex_logo = Regex::new(r#"tvg-logo="{1}(?P<logo>[^=]*)"{1}"#).unwrap();
     let regex_group = Regex::new(r#"group-title="{1}(?P<group>[^=]*)"{1}"#).unwrap();
-    
-    let mut file = read_lines(url).unwrap();
     let mut channels: Vec<Channel> = Vec::new();
+
     file.next();
     while let Some(line_res) = file.next() {
-        let line2 = file.next().unwrap().unwrap();
-        let line = line_res.unwrap();
+        let line2 = file.next();
+        if line2.is_none() {
+            return Err(ProcessM3uError::StringEmptyErr)
+        }
+        let line2 = line2.unwrap()?;
+
+        let line = line_res?;
         let name = regex_name.captures(&line).unwrap()["name"].to_string();
         let group = regex_group.captures(&line).unwrap()["group"].to_string();
         let res_logo = regex_logo
@@ -79,8 +99,8 @@ fn get_playlist(url: String) -> Vec<Channel> {
         };
         channels.push(channel);
     }
-    save_to_cache(&channels);
-    return channels;
+
+    Ok(channels)
 }
 
 #[tauri::command(async)]
