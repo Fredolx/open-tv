@@ -30,8 +30,8 @@ struct Channel {
 
 custom_error!{ProcessM3uError
     StringEmptyErr {line: usize} = "Line #{line} was empty",
-    MissingName {line: usize} = "Missing name for line #",
-    IOErr {source: std::io::Error} = "Test"
+    MissingName {line: usize} = "Missing tvg-name for line #{line}",
+    IOErr {source: std::io::Error} = "{source}"
 }
 
 fn main() {
