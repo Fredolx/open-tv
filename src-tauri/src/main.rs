@@ -23,13 +23,14 @@ struct StateContent {
 #[derive(Serialize, Deserialize)]
 struct Channel {
     name: String,
-    group: String,
+    group: Option<String>,
     logo: Option<String>,
     url: String
 }
 
 custom_error!{ProcessM3uError
-    StringEmptyErr = "Line # of provided file was empty",
+    StringEmptyErr {line: usize} = "Line #{line} was empty",
+    MissingName {line: usize} = "Missing name for line #",
     IOErr {source: std::io::Error} = "Test"
 }
 
@@ -65,7 +66,10 @@ fn get_playlist(url: String) -> Option<Vec<Channel>> {
     let mut file = read_lines(url).unwrap();   
     let channels = match process_m3u(&mut file) {
         Ok(r) => r,
-        Err(e) => return Option::None,
+        Err(e) => {
+            println!("{}", e);
+            return Option::None;
+        },
     };
     save_to_cache(&channels);
     return Some(channels);
@@ -77,17 +81,21 @@ fn process_m3u(file: &mut std::io::Lines<std::io::BufReader<std::fs::File>>) -> 
     let regex_group = Regex::new(r#"group-title="{1}(?P<group>[^=]*)"{1}"#).unwrap();
     let mut channels: Vec<Channel> = Vec::new();
 
+    let mut file = file.enumerate();
     file.next();
     while let Some(line_res) = file.next() {
-        let line2 = file.next();
-        if line2.is_none() {
-            return Err(ProcessM3uError::StringEmptyErr)
+        let line2_res = match file.next() {
+            None => return Err(ProcessM3uError::StringEmptyErr {line: line_res.0}),
+            Some(l) => l 
+        };
+        let line = line_res.1?;
+        let line2 = line2_res.1?;
+        let name = regex_name.captures(&line);
+        if name.is_none() {
+            return Err(ProcessM3uError::MissingName { line: line_res.0 });
         }
-        let line2 = line2.unwrap()?;
-
-        let line = line_res?;
-        let name = regex_name.captures(&line).unwrap()["name"].to_string();
-        let group = regex_group.captures(&line).unwrap()["group"].to_string();
+        let name = name.unwrap()["name"].to_string();
+        let group = regex_group.captures(&line).map(|group| group["group"].to_string());
         let res_logo = regex_logo
             .captures(&line)
             .map(|logo| logo["logo"].to_string());
