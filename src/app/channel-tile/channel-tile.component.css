@@ -12,7 +12,7 @@
 }
 
 .channel-image {
-    width: 25%; 
+    width: 75px; 
     height: auto; 
     object-fit: fill
 }
