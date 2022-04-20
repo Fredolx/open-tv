@@ -12,7 +12,7 @@ import { SettingsComponent } from '../settings/settings.component';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements AfterViewInit  {
 
   channels: Channel[] = [];
   @ViewChild('search') search!: ElementRef;
@@ -59,9 +59,4 @@ export class HomeComponent implements OnInit {
   openSettings(){
     this.router.navigateByUrl("settings");
   }
-
-  ngOnInit(): void {
-
-  }
-
 }

@@ -1,4 +1,4 @@
-<div *ngIf="this.channels.length > 0">
+<div [hidden]="this.channels.length == 0">
     <div class="mdi mdi-cog settings" (click)="openSettings()"></div>
     <div class="container" style="margin-top: 5rem;">
         <div class="row mb-5">
@@ -12,8 +12,6 @@
         </div>
     </div>
 </div>
-<ng-container *ngIf="this.channels.length == 0">
-    <app-loading [center]="true"></app-loading>
-</ng-container>
+<app-loading [hidden]="this.channels.length != 0" [center]="true"></app-loading>
 
 
