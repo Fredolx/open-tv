@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { invoke } from '@tauri-apps/api';
+import { MemoryService } from '../memory.service';
 import { Channel } from '../models/channel';
 
 @Component({
@@ -9,7 +10,7 @@ import { Channel } from '../models/channel';
 })
 export class ChannelTileComponent implements OnInit {
 
-  constructor() { }
+  constructor(private memory: MemoryService) { }
 
   @Input() channel?: Channel;
   showImage: boolean = true;
@@ -19,6 +20,11 @@ export class ChannelTileComponent implements OnInit {
 
   async click(){
     await invoke("play_channel", {link: this.channel?.url});
+    this.memory.CurrentChannel = this.channel?.url
+  }
+
+  isCurrentChannel(){
+    return this.memory.CurrentChannel === this.channel?.url;
   }
 
   onError(event: Event) {

@@ -8,7 +8,7 @@ use std::{
     fs::{self, File},
     io::{self, BufRead, Read},
     path::Path,
-    process::{Child, Command},
+    process::{Child, Command, self},
     sync::Mutex, error::{Error, self},
 };
 extern crate custom_error;
@@ -41,7 +41,7 @@ fn main() {
     }));
     tauri::Builder::default()
         .manage(state)
-        .invoke_handler(tauri::generate_handler![play_channel, get_playlist, get_cache, delete_cache])
+        .invoke_handler(tauri::generate_handler![play_channel, get_playlist, get_cache, delete_cache, any_threads_active])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -117,6 +117,21 @@ fn get_cache() -> Option<Vec<Channel>>{
     if Path::exists(&cache_path) {
         let file = fs::read_to_string(cache_path).unwrap();
         return serde_json::from_str(&file).unwrap();
+    }
+    return None;
+}
+
+#[tauri::command(async)]
+fn any_threads_active(state: tauri::State<State>) -> Option<i32> {
+    let processes = &mut state.0.lock().unwrap().processes;
+    for child in processes.iter_mut(){
+        match child.try_wait() {
+            Ok(v) => match v {
+                Some(z) => return z.code(),
+                None => return None
+            },
+            Err(e) => e
+        };
     }
     return None;
 }
