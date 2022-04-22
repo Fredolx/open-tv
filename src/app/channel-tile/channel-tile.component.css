@@ -23,7 +23,7 @@
 }
 
 .playing {
-    background: darkblue;
+    background: #0048ff;
     animation-name: pulse;
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
@@ -31,7 +31,7 @@
 }
 
 .playing:hover {
-    background: darkblue;
+    background: #0048ff;
 }
 
 @keyframes pulse {
