@@ -33,7 +33,7 @@
     "@angular-devkit/build-angular": "~13.3.0",
     "@angular/cli": "~13.3.0",
     "@angular/compiler-cli": "~13.3.0",
-    "@tauri-apps/cli": "^1.0.0-rc.8",
+    "@tauri-apps/cli": "^1.0.2",
     "@types/jasmine": "~3.10.0",
     "@types/node": "^12.11.1",
     "jasmine-core": "~4.0.0",
