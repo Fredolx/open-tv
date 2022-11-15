@@ -77,6 +77,7 @@ fn get_playlist(url: String) -> Option<Vec<Channel>> {
 
 fn process_m3u(file: &mut std::io::Lines<std::io::BufReader<std::fs::File>>) -> Result<Vec<Channel>, ProcessM3uError> {
     let regex_name = Regex::new(r#"tvg-name="{1}(?P<name>[^=]*)"{1}"#).unwrap();
+    let regex_id = Regex::new(r#"tvg-id="{1}(?P<name>[^=]*)"{1}"#).unwrap();
     let regex_logo = Regex::new(r#"tvg-logo="{1}(?P<logo>[^=]*)"{1}"#).unwrap();
     let regex_group = Regex::new(r#"group-title="{1}(?P<group>[^=]*)"{1}"#).unwrap();
     let mut channels: Vec<Channel> = Vec::new();
@@ -90,9 +91,12 @@ fn process_m3u(file: &mut std::io::Lines<std::io::BufReader<std::fs::File>>) -> 
         };
         let line = line_res.1?;
         let line2 = line2_res.1?;
-        let name = regex_name.captures(&line);
+        let mut name = regex_name.captures(&line);
         if name.is_none() {
-            return Err(ProcessM3uError::MissingName { line: line_res.0 });
+            name = regex_id.captures(&line);
+            if name.is_none() {
+                return Err(ProcessM3uError::MissingName { line: line_res.0 });
+            }
         }
         let name = name.unwrap()["name"].to_string();
         let group = regex_group.captures(&line).map(|group| group["group"].to_string());
