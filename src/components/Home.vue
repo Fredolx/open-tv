@@ -1,15 +1,26 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, reactive } from 'vue';
 import { ChannelService } from '../services/channelService';
 import { useRouter } from "vue-router"
 import ChannelTile from './ChannelTile.vue'
+import { Channel } from '../../shared/channel';
+
+interface IHomeState {
+  channels: Array<Channel>
+}
 
 const electron: any = (window as any).electronAPI;
 const router = useRouter();
+const state: IHomeState = reactive({
+    channels: []
+});
 onMounted(async () => {
     ChannelService.channels = await electron.getCache();
     if (ChannelService.channels.length == 0)
         router.replace("/setup");
+    else {
+        state.channels = ChannelService.channels.slice(0,10);
+    }
 })
 </script>
 <template>
@@ -23,7 +34,9 @@ onMounted(async () => {
             </div>
 
             <div class="row gy-3">
-                <ChannelTile class="col-xl-3 col-lg-4 col-md-4" :data="ChannelService.channels[1]"></ChannelTile>
+                <div v-for="channel in state.channels" class="col-xl-3 col-lg-4 col-md-4" >
+                    <ChannelTile :data="channel"></ChannelTile>
+                </div>
             </div>
         </div>
     </div>

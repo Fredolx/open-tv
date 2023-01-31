@@ -1,29 +1,42 @@
 <script setup lang="ts">
 import { reactive } from 'vue';
 import { Channel } from '../../shared/channel';
-defineProps({
+import { ChannelService } from '../services/channelService';
+const props = defineProps({
     data: Channel
 });
+const electron: any = (window as any).electronAPI;
 const state = reactive({
-    show: true
+    show: true,
+    starting: false
 })
 function getClass() {
     return {
-        'playing': false
+        'starting': state.starting,
+        'disabled': !state.starting && ChannelService.channelStarting
     }
 }
-function click() {
-    return true;
+async function click() {
+    if(ChannelService.channelStarting === true)
+        return;
+    state.starting = true;
+    ChannelService.channelStarting = true;
+    await electron.playChannel(props.data?.url);
+    state.starting = false;
+    ChannelService.channelStarting = false;
 }
 </script>
 <template>
-    <div v-tooltip="data?.name" v-bind:class="getClass()" @click="click" class="channel d-inline-flex">
+    <div v-tooltip="data?.name" v-bind:class="getClass()" @click="click" class="channel d-inline-flex p-1">
         <img @error="state.show = false" class="channel-image" v-if="data?.image && state.show" :src="data?.image">
         <div class="channel-title my-auto">{{ data?.name }}</div>
     </div>
 </template>
 
 <style scoped>
+.disabled {
+    opacity: 20%;
+}
 .channel {
     border-radius: 0.25rem;
     background-color: #343a40;
@@ -33,6 +46,7 @@ function click() {
 }
 
 .channel-title {
+    font-size: 0.9rem;
     margin-left: 10px;
     margin-right: 10px;
 }
@@ -48,7 +62,7 @@ function click() {
     cursor: pointer;
 }
 
-.playing {
+.starting {
     background: #0048ff;
     animation-name: pulse;
     animation-timing-function: ease-in-out;
@@ -56,7 +70,7 @@ function click() {
     animation-duration: 2s;
 }
 
-.playing:hover {
+.starting:hover {
     background: #0048ff;
 }
 

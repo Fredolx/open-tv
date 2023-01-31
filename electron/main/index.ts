@@ -1,10 +1,11 @@
 import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
-import { createReadStream, existsSync} from 'node:fs'
+import { createReadStream, existsSync } from 'node:fs'
 import { readFile, open, writeFile, mkdir } from 'node:fs/promises'
 import * as readLine from 'node:readline'
 import { Channel } from '../../shared/dist/channel'
+import { spawn } from 'node:child_process'
 // The built directory structure
 //
 // ├─┬ dist-electron
@@ -15,6 +16,9 @@ import { Channel } from '../../shared/dist/channel'
 // ├─┬ dist
 // │ └── index.html    > Electron-Renderer
 //
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+var mpvProcesses = [];
+
 process.env.DIST_ELECTRON = join(__dirname, '..')
 process.env.DIST = join(process.env.DIST_ELECTRON, '../dist')
 process.env.PUBLIC = process.env.VITE_DEV_SERVER_URL
@@ -96,6 +100,7 @@ app.on('activate', () => {
 
 ipcMain.handle("selectFile", selectFile);
 ipcMain.handle("getCache", getCache);
+ipcMain.handle("playChannel", async (event, url) => await playChannel(url));
 
 async function selectFile(): Promise<Array<Channel>> {
   let dialogResult = await dialog.showOpenDialog({ properties: ['openFile'] });
@@ -107,9 +112,9 @@ async function selectFile(): Promise<Array<Channel>> {
 
 async function getCache(): Promise<Array<Channel>> {
   let cachePath = `${getHomeDirectory()}/cache.json`;
-  if (!existsSync(cachePath)) 
+  if (!existsSync(cachePath))
     return [];
-  let json = await readFile(cachePath, {encoding: "utf-8"});
+  let json = await readFile(cachePath, { encoding: "utf-8" });
   return JSON.parse(json);
 }
 
@@ -117,21 +122,21 @@ async function SaveToCache(channels: Array<Channel>) {
   let json = JSON.stringify(channels);
   let path = getHomeDirectory();
   let cachePath = `${path}/cache.json`
-  if(!existsSync(path))
-    mkdir(path, {recursive: true});
+  if (!existsSync(path))
+    mkdir(path, { recursive: true });
   await writeFile(cachePath, json);
 }
 
-function getHomeDirectory(){
-  let appdataPath = process.env.APPDATA || 
-  (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' : 
-  process.env.HOME + "/.local/share")
+function getHomeDirectory() {
+  let appdataPath = process.env.APPDATA ||
+    (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' :
+      process.env.HOME + "/.local/share")
   return `${appdataPath}/open-tv`;
 }
 
 async function parsePlaylist(filePath: string) {
   const nameRegExp = /tvg-name="{1}(?<name>[^"]*)"{1}/;
-  const logoRegExp = /tvg-logo="{1}(?<logo>[^"]*)"{1}/;  
+  const logoRegExp = /tvg-logo="{1}(?<logo>[^"]*)"{1}/;
   const groupRegExp = /group-title="{1}(?<group>[^"]*)"{1}/;
 
   const inputStream = createReadStream(filePath);
@@ -143,22 +148,50 @@ async function parsePlaylist(filePath: string) {
   let twoLines: Array<string> = [];
   let channels: Array<Channel> = [];
   for await (const line of lineReader) {
-    if(!skippedFirstLine) {
+    if (!skippedFirstLine) {
       skippedFirstLine = true;
       continue;
     }
     twoLines.push(line);
     if (twoLines.length === 2) {
-        let firstLine = twoLines[0];
-        let secondLine = twoLines[1];
-        channels.push({
-          name: firstLine.match(nameRegExp).groups.name,
-          image: firstLine.match(logoRegExp).groups.logo,
-          group: firstLine.match(groupRegExp).groups.group,
-          url: secondLine
-        });
-        twoLines = [];
+      let firstLine = twoLines[0];
+      let secondLine = twoLines[1];
+      channels.push({
+        name: firstLine.match(nameRegExp).groups.name,
+        image: firstLine.match(logoRegExp).groups.logo,
+        group: firstLine.match(groupRegExp).groups.group,
+        url: secondLine
+      });
+      twoLines = [];
     }
   }
   return channels;
+}
+
+async function playChannel(url: string): Promise<boolean> {
+  mpvProcesses.forEach(x => x.kill());
+  let child = await spawn('mpv', [url, "--fs"]);
+  mpvProcesses.push(child);
+  await waitForProcessStart(child);
+  return true;
+}
+
+function waitForProcessStart(proc): Promise<boolean> {
+  return new Promise(function (resolve, reject) {
+    const timeout = 20000;
+    const timer = setTimeout(() => {
+      reject(new Error(`Promise timed out after ${timeout} ms`));
+    }, timeout);
+    proc.stdout.on('data', function (data) {
+      clearTimeout(timer);
+      let line = data.toString();
+      if (line.includes("AO") || line.includes("VO") || line.includes("AV")) {
+        resolve(true);
+      }
+    });
+    proc.on('close', function (code) {
+      clearTimeout(timer);
+      reject(code);
+    });
+  })
 }
