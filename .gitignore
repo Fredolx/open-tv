@@ -145,3 +145,5 @@ Cargo.lock
 *.pdb
 
 .angular/cache
+dist-electron
+shared/dist
