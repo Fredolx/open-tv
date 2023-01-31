@@ -152,9 +152,9 @@ async function parsePlaylist(filePath: string) {
         let firstLine = twoLines[0];
         let secondLine = twoLines[1];
         channels.push({
-          name: firstLine.match(nameRegExp)[0],
-          image: firstLine.match(logoRegExp)[0],
-          group: firstLine.match(groupRegExp)[0],
+          name: firstLine.match(nameRegExp).groups.name,
+          image: firstLine.match(logoRegExp).groups.logo,
+          group: firstLine.match(groupRegExp).groups.group,
           url: secondLine
         });
         twoLines = [];

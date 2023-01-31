@@ -2,7 +2,7 @@
 import { onMounted } from 'vue';
 import { ChannelService } from '../services/channelService';
 import { useRouter } from "vue-router"
-import { channel } from 'diagnostics_channel';
+import ChannelTile from './ChannelTile.vue'
 
 const electron: any = (window as any).electronAPI;
 const router = useRouter();
@@ -23,7 +23,7 @@ onMounted(async () => {
             </div>
 
             <div class="row gy-3">
-
+                <ChannelTile class="col-xl-3 col-lg-4 col-md-4" :data="ChannelService.channels[1]"></ChannelTile>
             </div>
         </div>
     </div>
