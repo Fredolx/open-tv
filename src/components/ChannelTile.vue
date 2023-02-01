@@ -2,9 +2,9 @@
 import { reactive } from 'vue';
 import { Channel } from '../../shared/channel';
 import { ChannelService } from '../services/channelService';
-const props = defineProps({
-    data: Channel
-});
+const props = defineProps<{
+  data: Channel
+}>()
 const electron: any = (window as any).electronAPI;
 const state = reactive({
     show: true,

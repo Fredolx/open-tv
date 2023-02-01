@@ -2,7 +2,7 @@ import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import { createReadStream, existsSync } from 'node:fs'
-import { readFile, open, writeFile, mkdir } from 'node:fs/promises'
+import { readFile, open, writeFile, mkdir, unlink } from 'node:fs/promises'
 import * as readLine from 'node:readline'
 import { Channel } from '../../shared/dist/channel'
 import { spawn } from 'node:child_process'
@@ -17,6 +17,7 @@ import { spawn } from 'node:child_process'
 // │ └── index.html    > Electron-Renderer
 //
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const cacheFileName = "cache.json";
 var mpvProcesses = [];
 
 process.env.DIST_ELECTRON = join(__dirname, '..')
@@ -101,6 +102,12 @@ app.on('activate', () => {
 ipcMain.handle("selectFile", selectFile);
 ipcMain.handle("getCache", getCache);
 ipcMain.handle("playChannel", async (event, url) => await playChannel(url));
+ipcMain.handle("deleteCache", deleteCache)
+
+async function deleteCache() {
+  let cachePath = `${getHomeDirectory()}/${cacheFileName}`;
+  await unlink(cachePath);
+}
 
 async function selectFile(): Promise<Array<Channel>> {
   let dialogResult = await dialog.showOpenDialog({ properties: ['openFile'] });
@@ -111,7 +118,7 @@ async function selectFile(): Promise<Array<Channel>> {
 }
 
 async function getCache(): Promise<Array<Channel>> {
-  let cachePath = `${getHomeDirectory()}/cache.json`;
+  let cachePath = `${getHomeDirectory()}/${cacheFileName}`;
   if (!existsSync(cachePath))
     return [];
   let json = await readFile(cachePath, { encoding: "utf-8" });
@@ -121,7 +128,7 @@ async function getCache(): Promise<Array<Channel>> {
 async function SaveToCache(channels: Array<Channel>) {
   let json = JSON.stringify(channels);
   let path = getHomeDirectory();
-  let cachePath = `${path}/cache.json`
+  let cachePath = `${path}/${cacheFileName}`
   if (!existsSync(path))
     mkdir(path, { recursive: true });
   await writeFile(cachePath, json);
@@ -168,12 +175,11 @@ async function parsePlaylist(filePath: string) {
   return channels;
 }
 
-async function playChannel(url: string): Promise<boolean> {
+async function playChannel(url: string) {
   mpvProcesses.forEach(x => x.kill());
   let child = await spawn('mpv', [url, "--fs"]);
   mpvProcesses.push(child);
   await waitForProcessStart(child);
-  return true;
 }
 
 function waitForProcessStart(proc): Promise<boolean> {

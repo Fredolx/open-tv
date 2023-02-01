@@ -16,31 +16,36 @@ const state: IHomeState = reactive({
     channels: [],
     searchValue: ""
 });
-var elementsToShow = 12;
+var elementsToShow = 24;
 
 function debounce(fn: Function, ms = 300) {
-  let timeoutId: ReturnType<typeof setTimeout>;
-  return function (this: any, ...args: any[]) {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn.apply(this, args), ms);
-  };
+    let timeoutId: ReturnType<typeof setTimeout>;
+    return function (this: any, ...args: any[]) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn.apply(this, args), ms);
+    };
 }
 
 function filterChannels() {
-    console.log("test");
     state.channels = ChannelService.channels
         .filter(y => y.name.toLowerCase().indexOf(state.searchValue.toLowerCase()) > -1)
         .slice(0, elementsToShow);
 }
 
-function searchInput(event:any) {
+function searchInput(event: any) {
     state.searchValue = event.target.value;
     debounce(() => filterChannels(), 500)();
 }
 
+function navigateToSettings() {
+    router.replace("/settings");
+}
+
 onMounted(async () => {
-    ChannelService.channels = await electron.getCache();
-    if (ChannelService.channels.length == 0)
+    state.channels = [];
+    if (ChannelService.channels?.length == 0)
+        ChannelService.channels = await electron.getCache();
+    if (ChannelService.channels?.length == 0)
         router.replace("/setup");
     else {
         state.channels = ChannelService.channels.slice(0, elementsToShow);
@@ -48,8 +53,8 @@ onMounted(async () => {
 })
 </script>
 <template>
-    <div v-if="ChannelService.channels.length > 0">
-        <img src="../assets/cog.svg" class="settings" />
+    <div v-if="ChannelService.channels?.length > 0">
+        <img src="../assets/cog.svg" @click="navigateToSettings()" class="settings" />
         <div class="container" style="margin-top: 5rem;">
             <div class="row mb-5">
                 <div class="mx-auto col-xl-6 col-lg-6 col-md-8 col-12">
@@ -65,7 +70,4 @@ onMounted(async () => {
             </div>
         </div>
     </div>
-
-
-
 </template>
