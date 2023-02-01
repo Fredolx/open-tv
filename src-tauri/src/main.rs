@@ -10,8 +10,9 @@ use std::{
     io::{self, BufRead, BufReader, Read},
     path::Path,
     process::{self, Child, Command, Stdio},
+    string,
     sync::Mutex,
-    time::SystemTime, string,
+    time::SystemTime,
 };
 extern crate custom_error;
 use custom_error::custom_error;
@@ -97,7 +98,7 @@ fn get_playlist(url: String) -> Option<Vec<Channel>> {
     let mut twoLines: Vec<String> = vec![];
     let mut firstLinePassed = false;
     while let Ok(_) = reader.read_until(b'\n', &mut buf) {
-        if !firstLinePassed{
+        if !firstLinePassed {
             firstLinePassed = true;
             continue;
         }
