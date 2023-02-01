@@ -59,7 +59,7 @@ fn play_channel(link: String, state: tauri::State<State>) {
         terminate_all(processes);
     }
     let mut child = Command::new("mpv")
-        .arg("--geometry=25%")
+        .arg("--fs")
         .arg(&link)
         .stdout(Stdio::piped())
         .spawn()
