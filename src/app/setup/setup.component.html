@@ -1,0 +1,10 @@
+<div class="container text-center mt-5">
+    <div>Welcome to Open-TV</div>
+    <ng-container *ngIf="!loading">
+        <div>Please select a m3u file to begin</div>
+        <div class="mt-2">
+            <button class="btn btn-primary" (click)="getFile()">Select file</button>
+        </div>
+    </ng-container>
+    <app-loading *ngIf="loading" [center]="false"></app-loading>
+</div>

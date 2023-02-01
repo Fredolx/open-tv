@@ -1,6 +1,8 @@
 # Open-TV
 
-Simple IPTV Front-end and alternative to Hypnotix. Made with VueJS and Electron.
+Simple Rust IPTV Front-end and alternative to Hypnotix. Made with Tauri.
+This is my first app in Rust as a C# Developer, if you see anything that could
+be improved, feel free to contribute.
 
 ![alt text](https://github.com/Fredolx/open-tv/blob/main/demo.png)
 
@@ -12,7 +14,7 @@ Simple IPTV Front-end and alternative to Hypnotix. Made with VueJS and Electron.
 ## Planned features
 
 - Recording channels
-- Multiple sources support (currently, only one m3u can be selected at a time)
+- Clearing cache via GUI and/or multiple sources support
 - Various optimizations
 - Xtream support
 
@@ -22,7 +24,6 @@ sudo dnf install mpv #Fedora
 sudo pacman -Syu mpv #Arch
 sudo apt install mpv #Debian/Ubuntu
 choco install mpv # Windows
-scoop install mpv # Windows alt
 ```
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
@@ -31,9 +32,9 @@ You can install the latest version from [Releases](https://github.com/Fredolx/op
 
 ```
 npm install
-npm run dev 
+npm run tauri dev 
 #or
-npm run build
+npm run tauri build
 ```
 
 

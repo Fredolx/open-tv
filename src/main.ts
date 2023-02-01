@@ -1,12 +1,12 @@
-import { createApp } from 'vue'
-import "./style.css"
-import App from './App.vue'
-import router from './router'
-import { VTooltip } from 'floating-vue'
-import 'floating-vue/dist/style.css'
+import { enableProdMode } from '@angular/core';
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
-const app = createApp(App)
+import { AppModule } from './app/app.module';
+import { environment } from './environments/environment';
 
-app.use(router)
-app.directive('tooltip', VTooltip)
-app.mount('#app')
+if (environment.production) {
+  enableProdMode();
+}
+
+platformBrowserDynamic().bootstrapModule(AppModule)
+  .catch(err => console.error(err));
