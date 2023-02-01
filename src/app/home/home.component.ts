@@ -47,6 +47,7 @@ export class HomeComponent implements AfterViewInit  {
   }
 
   getChannels(){
+    console.log("test");
     this.channels = this.memory.Channels.slice(0, this.elementsToRetrieve);
   }
 

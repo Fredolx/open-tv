@@ -10,22 +10,22 @@ import { Channel } from '../models/channel';
 })
 export class ChannelTileComponent implements OnInit {
 
-  constructor(private memory: MemoryService) { }
+  constructor(public memory: MemoryService) { }
 
   @Input() channel?: Channel;
   showImage: boolean = true;
-
+  starting: boolean = false;
   ngOnInit(): void {
   }
 
   async click(){
-    await invoke("play_channel", {link: this.channel?.url});
-    this.memory.CurrentChannel = this.channel?.url
+    this.starting = true;
+    this.memory.startingChannel = true;
+    await invoke("play_channel", {link: this.channel?.url});    
+    this.starting = false;
+    this.memory.startingChannel = false;
   }
 
-  isCurrentChannel(){
-    return this.memory.CurrentChannel === this.channel?.url;
-  }
 
   onError(event: Event) {
     this.showImage = false;
