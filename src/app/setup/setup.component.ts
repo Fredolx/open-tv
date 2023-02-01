@@ -24,8 +24,9 @@ export class SetupComponent implements OnInit {
     if (!this.url)
       return;
     this.loading = true;
-    let result = await invoke("get_playlist", { url: this.url });
+    let result: Channel[] = await invoke("get_playlist", { url: this.url });
     if (result){
+      this.memory.Channels = result;
       this.nav.navigateByUrl("");
     }
     else
