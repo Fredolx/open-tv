@@ -1,6 +1,6 @@
 {
   "name": "open-tv",
-  "version": "0.4",
+  "version": "0.5.0",
   "main": "dist-electron/main/index.js",
   "description": "An IPTV app based on Vue, Electron and mpv.js",
   "author": "Frédéric Lachapelle",

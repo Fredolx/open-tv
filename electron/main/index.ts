@@ -163,12 +163,16 @@ async function parsePlaylist(filePath: string) {
     if (twoLines.length === 2) {
       let firstLine = twoLines[0];
       let secondLine = twoLines[1];
-      channels.push({
-        name: firstLine.match(nameRegExp).groups.name,
-        image: firstLine.match(logoRegExp).groups.logo,
-        group: firstLine.match(groupRegExp).groups.group,
-        url: secondLine
-      });
+      try {
+        channels.push({
+          name: firstLine.match(nameRegExp).groups.name,
+          image: firstLine.match(logoRegExp).groups.logo,
+          group: firstLine.match(groupRegExp).groups.group,
+          url: secondLine
+        });
+      }
+      catch(e) {}
+      
       twoLines = [];
     }
   }

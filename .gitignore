@@ -147,3 +147,4 @@ Cargo.lock
 .angular/cache
 dist-electron
 shared/dist
+release
