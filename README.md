@@ -24,6 +24,7 @@ sudo dnf install mpv #Fedora
 sudo pacman -Syu mpv #Arch
 sudo apt install mpv #Debian/Ubuntu
 choco install mpv # Windows
+scoop install mpv # Windows alt
 ```
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
