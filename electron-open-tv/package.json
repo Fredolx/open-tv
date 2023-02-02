@@ -1,6 +1,6 @@
 {
-  "name": "electron-open-tv",
-  "productName": "electron-open-tv",
+  "name": "open-tv",
+  "productName": "Open TV",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": "./.webpack/main", 

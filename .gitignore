@@ -60,3 +60,4 @@ aio/content/examples/.DS_Store
 .webpack
 ng-open-tv/.angular/cache
 ng-open-tv/dist
+electron-open-tv/out
