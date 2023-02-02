@@ -87,7 +87,7 @@ app.on('activate', () => {
 ipcMain.handle("selectFile", selectFile);
 ipcMain.handle("getCache", getCache);
 ipcMain.handle("playChannel", async (event, url) => await playChannel(url));
-ipcMain.handle("deleteCache", deleteCache)
+ipcMain.handle("deleteCache", deleteCache);
 
 async function deleteCache() {
   let cachePath = `${getHomeDirectory()}/${cacheFileName}`;

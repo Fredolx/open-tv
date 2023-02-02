@@ -9,6 +9,8 @@ import { NgbActiveModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 })
 export class SettingsComponent {
   loading = false;
+  electron: any = (window as any).electronAPI;
+
   constructor(private router: Router) { }
 
   ngOnInit(): void {
@@ -16,7 +18,7 @@ export class SettingsComponent {
 
   async deleteCache(){
     this.loading = true;
-    // await invoke("delete_cache");
+    await this.electron.deleteCache();
     this.loading = false;
     this.router.navigateByUrl("setup");
   }
