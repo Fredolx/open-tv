@@ -16,6 +16,10 @@ module.exports = {
 					from: '../ng-open-tv/dist/ng-open-tv',
 					noErrorOnMissing: true,
 				},
+        {
+          from: '../../libs',
+          to: "../libs"
+        }
 			],
 		}),
 	],

@@ -3,7 +3,7 @@
   "productName": "Open TV",
   "version": "0.6.0",
   "description": "My Electron application description",
-  "main": "./.webpack/main", 
+  "main": "./.webpack/main",
   "scripts": {
     "start": "DEVMODE=true electron-forge start",
     "startWindows": "set \"DEVMODE=true\" && electron-forge start",
@@ -20,7 +20,8 @@
   "license": "MIT",
   "dependencies": {
     "copy-webpack-plugin": "^11.0.0",
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-squirrel-startup": "^1.0.0",
+    "lookpath": "^1.2.2"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.4",

@@ -5,6 +5,7 @@ import { createReadStream, existsSync } from 'node:fs'
 import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises'
 import * as readLine from 'node:readline'
 import { exec } from 'node:child_process'
+import { lookpath } from 'lookpath'
 
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -191,11 +192,17 @@ function waitForProcessStart(proc) {
   })
 }
 
-function fixMPV() {
+async function fixMPV() {
   if (process.platform == 'darwin') {
     if (existsSync("/opt/homebrew/bin/mpv"))
       mpvPath = "/opt/homebrew/bin/mpv";
     else if (existsSync("/opt/local/mpv"))
       mpvPath = "/opt/local/mpv";
+  }
+  if (process.platform == "win32") {
+    let mpvExists = await lookpath("mpv");
+    if (!mpvExists) {
+      mpvPath = join(__dirname, '..', 'libs', 'mpv.exe');
+    }
   }
 }
