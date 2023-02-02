@@ -1,10 +1,10 @@
-const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
-const { release } = require('node:os')
-const { join, dirname } = require('node:path')
-const { createReadStream, existsSync, exists } = require('node:fs')
-const { readFile, writeFile, mkdir, unlink } = require('node:fs/promises');
-const { readLine } = require('node:readline')
-const { exec } = require('node:child_process');
+import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
+import { release } from 'node:os'
+import { join, dirname } from 'node:path'
+import { createReadStream, existsSync } from 'node:fs'
+import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises'
+import * as readLine from 'node:readline'
+import { exec } from 'node:child_process'
 
 if (require('electron-squirrel-startup')) {
   app.quit();

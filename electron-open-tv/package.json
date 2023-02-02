@@ -6,6 +6,7 @@
   "main": "./.webpack/main", 
   "scripts": {
     "start": "DEVMODE=true electron-forge start",
+    "startWindows": "set \"DEVMODE=true\" && electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
