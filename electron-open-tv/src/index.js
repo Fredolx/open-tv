@@ -40,7 +40,7 @@ const indexHtml = join(__dirname, 'index.html');
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: 'Open-TV (made by Frédéric Lachapelle)',
+    autoHideMenuBar: true,
     webPreferences: {
       preload,
       nodeIntegration: false,

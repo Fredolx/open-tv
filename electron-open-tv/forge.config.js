@@ -4,7 +4,10 @@ module.exports = {
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        authors: 'Frédéric Lachapelle',
+        description: "IPTV app based on Electron and Angular"
+      },
     },
     {
       name: '@electron-forge/maker-zip',
