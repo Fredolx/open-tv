@@ -17,7 +17,6 @@ export class HomeComponent {
   readonly elementsToRetrieve = 36;
 
   constructor(private router: Router, public memory: MemoryService) {
-    console.dir(this.electron);
     if (this.memory.Channels.length > 0){
       this.getChannels();
     }

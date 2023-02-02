@@ -20,7 +20,6 @@ export class SetupComponent {
   async getFile() {
     this.loading = true;
     let result = await this.electron.selectFile();
-    console.dir(result);
     if (result){
       this.memory.Channels = result;
       this.nav.navigateByUrl("");
