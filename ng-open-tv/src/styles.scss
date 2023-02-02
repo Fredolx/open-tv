@@ -1,0 +1,9 @@
+/* You can add global styles to this file, and also import other style files */
+@import './assets/css/bootstrap.min.css';
+@import 'ngx-toastr/toastr';
+@import './assets/css/materialdesignicons.min.css';
+
+body {
+    background-color: #202124;
+    color: white;
+}

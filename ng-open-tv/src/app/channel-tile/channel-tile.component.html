@@ -1,0 +1,6 @@
+<div placement="top" [ngClass]="{'playing': starting, 'disabled': !starting && memory.startingChannel}" [ngbTooltip]="channel?.name" (click)="click()"
+    class="channel d-inline-flex">
+    <img (error)="showImage = false" class="channel-image" *ngIf="channel?.image && showImage"
+        src="{{channel?.image}}">
+    <div class="channel-title my-auto">{{channel?.name}}</div>
+</div>
