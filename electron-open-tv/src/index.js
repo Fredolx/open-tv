@@ -165,9 +165,13 @@ async function parsePlaylist(filePath) {
   return channels;
 }
 
-async function playChannel(url) {
+function clearMpvProcesses() {
   mpvProcesses.forEach(x => x.kill());
-  let child = await exec(`${mpvPath} ${url} --fs --loop`);
+  mpvProcesses = [];
+}
+async function playChannel(url) {
+  clearMpvProcesses();
+  let child = await exec(`${mpvPath} ${url} --fs`);
   mpvProcesses.push(child);
   await waitForProcessStart(child);
 }
