@@ -5,3 +5,13 @@
     font-size: 2rem; 
     cursor: pointer;
 }
+
+.reserve-settings-space {
+    margin-top: 2rem;
+}
+
+@media screen and (max-width: 627px) {
+    .reserve-settings-space {
+        margin-top: 5rem;
+    }
+}

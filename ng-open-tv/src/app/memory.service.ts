@@ -7,5 +7,6 @@ import { Channel } from './models/channel';
 export class MemoryService {
   constructor() { }
   public Channels: Channel[] = [];
+  public FavChannels: Channel[] = [];
   public startingChannel: boolean = false;
 }

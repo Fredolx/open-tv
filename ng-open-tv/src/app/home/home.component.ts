@@ -4,6 +4,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { debounceTime, distinctUntilChanged, filter, fromEvent, map, Subject, tap } from 'rxjs';
 import { MemoryService } from '../memory.service';
 import { Channel } from '../models/channel';
+import { ViewMode } from '../models/viewMode';
 
 @Component({
   selector: 'app-home',
@@ -12,8 +13,12 @@ import { Channel } from '../models/channel';
 })
 export class HomeComponent {
   channels: Channel[] = [];
+  favChannels: Channel[] = [];
+  viewMode = ViewMode.All;
+  ViewModeEnum = ViewMode;
   electron: any = (window as any).electronAPI;
   @ViewChild('search') search!: ElementRef;
+  @ViewChild('searchFavs') searchFavs!: ElementRef;
   readonly elementsToRetrieve = 36;
 
   constructor(private router: Router, public memory: MemoryService) {
@@ -40,7 +45,17 @@ export class HomeComponent {
       , debounceTime(300)
       , distinctUntilChanged()
     ).subscribe((term: string) => {
-      this.filterChannels(term);
+      this.filterChannels(term, this.memory.Channels, this.channels);
+    });
+
+    fromEvent(this.searchFavs.nativeElement, 'keyup').pipe(
+      map((event: any) => {
+        return event.target.value;
+      })
+      , debounceTime(300)
+      , distinctUntilChanged()
+    ).subscribe((term: string) => {
+      this.filterChannels(term, this.memory.FavChannels, this.favChannels);
     });
   }
 
@@ -48,8 +63,8 @@ export class HomeComponent {
     this.channels = this.memory.Channels.slice(0, this.elementsToRetrieve);
   }
 
-  filterChannels(term: string){
-    this.channels = this.memory.Channels
+  filterChannels(term: string, source: Channel[], target: Channel[]){
+    target = source
       .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1)
       .slice(0, this.elementsToRetrieve)
   }
