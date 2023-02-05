@@ -22,7 +22,7 @@ export class HomeComponent {
   readonly elementsToRetrieve = 36;
 
   constructor(private router: Router, public memory: MemoryService) {
-    if (this.memory.Channels.length > 0){
+    if (this.memory.Channels.length > 0) {
       this.getChannels();
     }
     else {
@@ -34,7 +34,7 @@ export class HomeComponent {
         if (memory.Channels?.length == 0)
           router.navigateByUrl("setup");
       });
-    }      
+    }
   }
 
   ngAfterViewInit(): void {
@@ -45,7 +45,7 @@ export class HomeComponent {
       , debounceTime(300)
       , distinctUntilChanged()
     ).subscribe((term: string) => {
-      this.filterChannels(term, this.memory.Channels, this.channels);
+      this.channels = this.filterChannels(term, this.memory.Channels);
     });
 
     fromEvent(this.searchFavs.nativeElement, 'keyup').pipe(
@@ -55,21 +55,21 @@ export class HomeComponent {
       , debounceTime(300)
       , distinctUntilChanged()
     ).subscribe((term: string) => {
-      this.filterChannels(term, this.memory.FavChannels, this.favChannels);
+      this.favChannels = this.filterChannels(term, this.memory.FavChannels);
     });
   }
 
-  getChannels(){
+  getChannels() {
     this.channels = this.memory.Channels.slice(0, this.elementsToRetrieve);
   }
 
-  filterChannels(term: string, source: Channel[], target: Channel[]){
-    target = source
+  filterChannels(term: string, source: Channel[]) {
+    return source
       .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1)
-      .slice(0, this.elementsToRetrieve)
+      .slice(0, this.elementsToRetrieve);
   }
 
-  openSettings(){
+  openSettings() {
     this.router.navigateByUrl("settings");
   }
 }

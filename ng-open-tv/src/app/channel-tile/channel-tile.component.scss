@@ -10,16 +10,15 @@
 .channel-title {
   margin-left: 10px;
   margin-right: 10px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
 }
 
 .channel-image {
-  width: 50px;
-  height: auto;
-  object-fit: fill
+  max-width: 50px;
+  max-height: 2em;
 }
 
 .channel:hover {
