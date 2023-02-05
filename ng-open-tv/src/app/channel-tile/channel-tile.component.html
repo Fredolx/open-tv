@@ -1,7 +1,21 @@
 <div placement="top" [ngClass]="{'playing': starting, 'disabled': !starting && memory.startingChannel}"
-    [ngbTooltip]="channel?.name" (click)="click()" class="channel d-inline-flex p-2 align-items-center">
+    [ngbTooltip]="channel?.name" (click)="click()" class="channel d-inline-flex p-2 align-items-center" (contextmenu)="onRightClick($event)">
     <div style="height: 100%; min-width: 50px;">
         <img (error)="showImage = false" class="channel-image" *ngIf="channel?.image && showImage" src="{{channel?.image}}">
     </div>
     <div class="channel-title">{{channel?.name}}</div>
 </div>
+
+<div style="visibility: hidden; position: fixed;"
+[style.left.px]="menuTopLeftPosition.x"
+[style.top.px]="menuTopLeftPosition.y"
+[matMenuTriggerFor]="rightMenu"></div>
+
+<mat-menu #rightMenu="matMenu">
+	<ng-template matMenuContent let-item="item">
+		<button mat-menu-item (click)="favorite()">
+            <ng-container *ngIf="alreadyExistsInFav">Unfavorite</ng-container>
+            <ng-container *ngIf="!alreadyExistsInFav">Favorite</ng-container>
+        </button>
+	</ng-template>
+</mat-menu>

@@ -26,12 +26,16 @@ export class HomeComponent {
       this.getChannels();
     }
     else {
-      this.electron.getCache().then((x: any) => {
-        if (x) {
-          this.memory.Channels = x as Channel[];
+      this.electron.getCache().then((x: {cache: Channel[], favs: Channel[]}) => {
+        if (x.cache && x.cache.length > 0) {
+          this.memory.Channels = x.cache;
+          this.memory.FavChannels = x.favs;
           this.getChannels();
+          this.memory.needToRefreshFavorites.subscribe(x => {
+            this.favChannels = this.memory.FavChannels;
+          });
         }
-        if (memory.Channels?.length == 0)
+        else
           router.navigateByUrl("setup");
       });
     }
@@ -61,6 +65,7 @@ export class HomeComponent {
 
   getChannels() {
     this.channels = this.memory.Channels.slice(0, this.elementsToRetrieve);
+    this.favChannels = this.memory.FavChannels;
   }
 
   filterChannels(term: string, source: Channel[]) {

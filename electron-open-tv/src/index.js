@@ -12,7 +12,9 @@ if (require('electron-squirrel-startup')) {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const cacheFileName = "cache.json";
+const homeDirectory = getHomeDirectory();
+const cachePath = `${homeDirectory}/cache.json`;
+const favsPath = `${homeDirectory}/favs.json`;
 var mpvPath = "mpv";
 var mpvProcesses = [];
 
@@ -89,10 +91,11 @@ ipcMain.handle("selectFile", selectFile);
 ipcMain.handle("getCache", getCache);
 ipcMain.handle("playChannel", async (event, url) => await playChannel(url));
 ipcMain.handle("deleteCache", deleteCache);
+ipcMain.handle("saveFavs", async (event, favs) => saveFavs(favs));
 
 async function deleteCache() {
-  let cachePath = `${getHomeDirectory()}/${cacheFileName}`;
   await unlink(cachePath);
+  await unlink(favsPath);
 }
 
 async function selectFile() {
@@ -104,19 +107,22 @@ async function selectFile() {
 }
 
 async function getCache() {
-  let cachePath = `${getHomeDirectory()}/${cacheFileName}`;
   if (!existsSync(cachePath))
     return [];
-  let json = await readFile(cachePath, { encoding: "utf-8" });
-  return JSON.parse(json);
+  let cacheJson = await readFile(cachePath, { encoding: "utf-8" });
+  let cache = JSON.parse(cacheJson);
+  let favs = [];
+  if (existsSync(favsPath)) {
+    let favsJson = await readFile(favsPath, { encoding: "utf-8" });
+    favs = JSON.parse(favsJson);
+  }
+  return { cache: cache, favs: favs };
 }
 
 async function SaveToCache(channels) {
   let json = JSON.stringify(channels);
-  let path = getHomeDirectory();
-  let cachePath = `${path}/${cacheFileName}`
-  if (!existsSync(path))
-    mkdir(path, { recursive: true });
+  if (!existsSync(homeDirectory))
+    mkdir(homeDirectory, { recursive: true });
   await writeFile(cachePath, json);
 }
 
@@ -194,6 +200,10 @@ function waitForProcessStart(proc) {
       reject(code);
     });
   })
+}
+
+async function saveFavs(favs) {
+  await writeFile(favsPath, JSON.stringify(favs));
 }
 
 async function fixMPV() {

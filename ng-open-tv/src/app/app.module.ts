@@ -11,6 +11,7 @@ import { ChannelTileComponent } from './channel-tile/channel-tile.component';
 import { LoadingComponent } from './loading/loading.component';
 import { SettingsComponent } from './settings/settings.component';
 import { SetupComponent } from './setup/setup.component';
+import { MatMenuModule } from '@angular/material/menu'
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import { SetupComponent } from './setup/setup.component';
     BrowserAnimationsModule,
     AppRoutingModule,
     NgbTooltipModule,
-    ToastrModule.forRoot()
+    ToastrModule.forRoot(),
+    MatMenuModule
   ],
   providers: [],
   bootstrap: [AppComponent]
