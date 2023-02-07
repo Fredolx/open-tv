@@ -95,7 +95,8 @@ ipcMain.handle("saveFavs", async (event, favs) => saveFavs(favs));
 
 async function deleteCache() {
   await unlink(cachePath);
-  await unlink(favsPath);
+  if (existsSync(favsPath))
+    await unlink(favsPath);
 }
 
 async function selectFile() {
