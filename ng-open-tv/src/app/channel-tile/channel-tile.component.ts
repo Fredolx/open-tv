@@ -23,6 +23,8 @@ export class ChannelTileComponent {
   }
 
   async click() {
+    if (this.memory.startingChannel)
+      return;
     this.starting = true;
     this.memory.startingChannel = true;
     this.electron.playChannel(this.channel?.url).then(() => {
