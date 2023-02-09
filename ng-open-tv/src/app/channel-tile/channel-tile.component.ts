@@ -53,7 +53,7 @@ export class ChannelTileComponent {
       this.memory.FavChannels.push(this.channel!);
     }
     else
-      this.memory.FavChannels.splice(index);
+      this.memory.FavChannels.splice(index, 1);
     this.memory.needToRefreshFavorites.next(true);
     this.electron.saveFavs(this.memory.FavChannels);
   }
