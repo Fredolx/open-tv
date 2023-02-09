@@ -1,4 +1,4 @@
-<div [hidden]="this.memory.Channels.length == 0">
+<div [hidden]="this.memory.Channels.length == 0" class="mb-5">
     <div class="mdi mdi-cog settings" (click)="openSettings()"></div>
     <div class="container reserve-settings-space">
         <div class="row mb-3">
@@ -26,5 +26,6 @@
                 [channel]="channel"></app-channel-tile>
         </div>
     </div>
+    <button *ngIf="channelsLeft > 0 && viewMode != ViewModeEnum.Favorites" (click)="loadMore()" class="btn btn-outline-primary mx-auto d-block mt-3">Load More</button>
 </div>
 <app-loading [hidden]="this.memory.Channels.length != 0" [center]="true"></app-loading>

@@ -136,6 +136,7 @@ function getHomeDirectory() {
 
 async function parsePlaylist(filePath) {
   const nameRegExp = /tvg-name="{1}(?<name>[^"]*)"{1}/;
+  const idRegExp = /tvg-id="{1}(?<id>[^"]*)"{1}/;
   const logoRegExp = /tvg-logo="{1}(?<logo>[^"]*)"{1}/;
   const groupRegExp = /group-title="{1}(?<group>[^"]*)"{1}/;
 
@@ -157,12 +158,19 @@ async function parsePlaylist(filePath) {
       let firstLine = twoLines[0];
       let secondLine = twoLines[1];
       try {
-        channels.push({
-          name: firstLine.match(nameRegExp).groups.name,
-          image: firstLine.match(logoRegExp).groups.logo,
-          group: firstLine.match(groupRegExp).groups.group,
+        let channel = {
+          name: firstLine.match(nameRegExp)?.groups?.name,
+          image: firstLine.match(logoRegExp)?.groups?.logo,
+          group: firstLine.match(groupRegExp)?.groups?.group,
           url: secondLine
-        });
+        }
+        if (!channel.name || !channel.name?.trim())
+          channel.name = firstLine.match(idRegExp)?.groups?.id;
+          
+        if (channel.name && channel.name?.trim() && channel.url && channel.url?.trim()) {
+          channels.push(channel);
+        }
+        channel = null;
       }
       catch (e) { }
 
@@ -176,9 +184,13 @@ function clearMpvProcesses() {
   mpvProcesses.forEach(x => x.kill());
   mpvProcesses = [];
 }
+
 async function playChannel(url) {
   clearMpvProcesses();
-  let child = await exec(`${mpvPath} ${url} --fs`);
+  let command = `${mpvPath} ${url} --fs`
+  if (url.endsWith(".mp4") || url.endsWith(".mkv"))
+    command += " --save-position-on-quit";
+  let child = await exec(command);
   mpvProcesses.push(child);
   await waitForProcessStart(child);
 }

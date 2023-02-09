@@ -1,7 +1,6 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { debounceTime, distinctUntilChanged, filter, fromEvent, map, Subject, tap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, fromEvent, last, map, Subject, tap } from 'rxjs';
 import { MemoryService } from '../memory.service';
 import { Channel } from '../models/channel';
 import { ViewMode } from '../models/viewMode';
@@ -17,16 +16,19 @@ export class HomeComponent {
   viewMode = ViewMode.All;
   ViewModeEnum = ViewMode;
   electron: any = (window as any).electronAPI;
+  lastTerm?: string;
   @ViewChild('search') search!: ElementRef;
   @ViewChild('searchFavs') searchFavs!: ElementRef;
-  readonly elementsToRetrieve = 36;
+  defaultElementsToRetrieve: number = 36;
+  elementsToRetrieve: number = this.defaultElementsToRetrieve;
+  channelsLeft: number = 0;
 
   constructor(private router: Router, public memory: MemoryService) {
     if (this.memory.Channels.length > 0) {
       this.getChannels();
     }
     else {
-      this.electron.getCache().then((x: {cache: Channel[], favs: Channel[]}) => {
+      this.electron.getCache().then((x: { cache: Channel[], favs: Channel[] }) => {
         if (x.cache && x.cache.length > 0) {
           this.memory.Channels = x.cache;
           this.memory.FavChannels = x.favs;
@@ -41,6 +43,22 @@ export class HomeComponent {
     }
   }
 
+  loadMore() {
+    this.elementsToRetrieve += 36;
+    if (this.lastTerm) {
+      this.channels = this.filterChannels(this.lastTerm!, this.memory.Channels);
+    }
+    else
+      this.channels = this.memory.Channels.slice(0, this.elementsToRetrieve);
+  }
+
+  @HostListener('window:scroll', ['$event'])
+  scroll(event: any) {
+    if (window.innerHeight + window.scrollY - window.document.documentElement.offsetHeight == 0 && this.channelsLeft > 0) {
+      this.loadMore();
+    }
+  }
+
   ngAfterViewInit(): void {
     fromEvent(this.search.nativeElement, 'keyup').pipe(
       map((event: any) => {
@@ -49,6 +67,8 @@ export class HomeComponent {
       , debounceTime(300)
       , distinctUntilChanged()
     ).subscribe((term: string) => {
+      this.elementsToRetrieve = this.defaultElementsToRetrieve;
+      this.lastTerm = term;
       this.channels = this.filterChannels(term, this.memory.Channels);
     });
 
@@ -59,19 +79,23 @@ export class HomeComponent {
       , debounceTime(300)
       , distinctUntilChanged()
     ).subscribe((term: string) => {
-      this.favChannels = this.filterChannels(term, this.memory.FavChannels);
+      this.favChannels = this.filterChannels(term, this.memory.FavChannels, false);
     });
   }
 
   getChannels() {
     this.channels = this.memory.Channels.slice(0, this.elementsToRetrieve);
+    this.channelsLeft = this.memory.Channels.length - this.elementsToRetrieve;
     this.favChannels = this.memory.FavChannels;
   }
 
-  filterChannels(term: string, source: Channel[]) {
-    return source
+  filterChannels(term: string, source: Channel[], useMax = true) {
+    let result = source
       .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1)
-      .slice(0, this.elementsToRetrieve);
+    this.channelsLeft = result.length - this.elementsToRetrieve;
+    if (useMax)
+      result = result.slice(0, this.elementsToRetrieve);
+    return result;
   }
 
   openSettings() {
