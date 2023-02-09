@@ -1,7 +1,7 @@
 {
   "name": "open-tv",
   "productName": "Open TV",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "My Electron application description",
   "main": "./.webpack/main",
   "scripts": {
