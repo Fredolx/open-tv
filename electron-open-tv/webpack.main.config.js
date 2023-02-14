@@ -14,11 +14,11 @@ module.exports = {
 			patterns: [
 				{
 					from: '../ng-open-tv/dist/ng-open-tv',
-					noErrorOnMissing: true,
 				},
         {
           from: '../../libs',
-          to: "../libs"
+          to: "../libs",
+          noErrorOnMissing: true
         }
 			],
 		}),
