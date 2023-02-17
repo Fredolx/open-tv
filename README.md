@@ -1,8 +1,6 @@
 # Open-TV
 
-Simple Rust IPTV Front-end and alternative to Hypnotix. Made with Tauri.
-This is my first app in Rust as a C# Developer, if you see anything that could
-be improved, feel free to contribute.
+Simple Electron + Angular IPTV Frontend. Much faster replacement for Hypnotix.
 
 ![alt text](https://github.com/Fredolx/open-tv/blob/main/demo.png)
 
@@ -10,12 +8,12 @@ be improved, feel free to contribute.
 
 - Lack of good open source IPTV apps
 - Faster and much more stable than the alternatives
+- Built on open standards and existing technologies
 
 ## Planned features
 
 - Recording channels
 - Clearing cache via GUI and/or multiple sources support
-- Various optimizations
 - Xtream support
 
 ## Prerequisites
@@ -26,19 +24,9 @@ sudo apt install mpv #Debian/Ubuntu
 choco install mpv # Windows
 scoop install mpv # Windows alt
 ```
+
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
-
-## Build/Dev
-
-```
-npm install
-npm run tauri dev 
-#or
-npm run tauri build
-```
-
-
 
 
 
