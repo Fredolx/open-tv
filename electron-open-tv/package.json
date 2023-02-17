@@ -1,6 +1,6 @@
 {
   "name": "open-tv",
-  "productName": "open-tv",
+  "productName": "Open TV",
   "version": "0.8.1",
   "description": "Cross-platform IPTV App",
   "main": "./.webpack/main",
@@ -17,7 +17,7 @@
     "name": "Frédéric Lachapelle",
     "email": "frederic.lachapelle7@gmail.com"
   },
-  "license": "",
+  "license": "GPL",
   "dependencies": {
     "copy-webpack-plugin": "^11.0.0",
     "electron-squirrel-startup": "^1.0.0",
@@ -26,9 +26,10 @@
   "devDependencies": {
     "@electron-forge/cli": "^6.0.4",
     "@electron-forge/maker-deb": "^6.0.4",
+    "@electron-forge/maker-dmg": "^6.0.5",
     "@electron-forge/maker-rpm": "^6.0.4",
     "@electron-forge/maker-squirrel": "^6.0.4",
-    "@electron-forge/maker-zip": "^6.0.4",
+    "@electron-forge/maker-zip": "^6.0.5",
     "@electron-forge/plugin-webpack": "^6.0.4",
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
     "electron": "22.2.0"

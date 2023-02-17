@@ -1,12 +1,16 @@
 module.exports = {
-  packagerConfig: {},
+  packagerConfig: {
+    icon: "resources/icon",
+    executableName: "open-tv"
+  },
   rebuildConfig: {},
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
       config: {
         authors: 'Frédéric Lachapelle',
-        description: "IPTV app based on Electron and Angular"
+        description: "IPTV app based on Electron and Angular",
+        setupIcon: 'resources/icon.ico'
       },
     },
     {
@@ -14,8 +18,17 @@ module.exports = {
       platforms: ['darwin'],
     },
     {
+      name: '@electron-forge/maker-dmg',
+      config: {
+        icon: 'resources/icon.icns'
+      }
+    },
+    {
       name: '@electron-forge/maker-deb',
-      config: {},
+      bin: "Open TV",
+      config: {
+        icon: 'resources/icon.png'
+      },
     },
     {
       name: '@electron-forge/maker-rpm',
