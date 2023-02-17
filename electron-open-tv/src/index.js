@@ -48,6 +48,7 @@ async function createWindow() {
       preload,
       nodeIntegration: false,
       contextIsolation: true,
+      devTools: process.env.DEVMODE ?? false
     },
   })
 
