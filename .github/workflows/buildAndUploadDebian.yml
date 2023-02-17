@@ -1,0 +1,47 @@
+name: NodeJS with Webpack
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        
+    - name: Install deps
+      run: | 
+        npm install yarn -g    
+        sudo apt install rpmbuild dpkg fakeroot
+
+    - name: Build Angular App
+      working-directory: ./ng-open-tv
+      run: |
+        npm install
+        npm run prod
+        
+    - name: Build Electron app
+      working-directory: ./electron-open-tv
+      run: |
+        npm install
+        npm run publish
+        
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: open-tv-debian-amd64
+        path: ./electron-open-tv/out/make/deb/x64/*.deb
+        retention-days: 90
