@@ -1,4 +1,4 @@
-name: Build and Upload for Linux
+name: Build and Upload
 
 on:
   push:
@@ -8,11 +8,12 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         node-version: [18.x]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
     - uses: actions/checkout@v3
@@ -23,9 +24,13 @@ jobs:
         node-version: ${{ matrix.node-version }}
         
     - name: Install deps
+      if: matrix.os == 'ubuntu-latest'
       run: | 
-        npm install yarn -g    
         sudo apt install rpm dpkg fakeroot
+
+    - name: Install yarn
+      run: |
+        npm install yarn -g    
 
     - name: Build Angular App
       working-directory: ./ng-open-tv
@@ -40,6 +45,7 @@ jobs:
         npm run publish
         
     - name: Upload DEB Artifact
+      if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v3.1.2
       with:
         name: open-tv-debian-amd64
@@ -47,8 +53,17 @@ jobs:
         retention-days: 90
         
     - name: Upload RPM Artifact
+      if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v3.1.2
       with:
         name: open-tv-redhat-amd64
         path: ./electron-open-tv/out/make/rpm/x64/*.rpm
+        retention-days: 90
+    
+    - name: Upload Squirrel Artifact
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: open-tv-windows-squirrel-amd64
+        path: ./electron-open-tv/out/make/squirrel.windows/x64/*.exe
         retention-days: 90
