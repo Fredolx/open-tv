@@ -39,9 +39,16 @@ jobs:
         npm install
         npm run publish
         
-    - name: Upload a Build Artifact
+    - name: Upload DEB Artifact
       uses: actions/upload-artifact@v3.1.2
       with:
         name: open-tv-debian-amd64
         path: ./electron-open-tv/out/make/deb/x64/*.deb
+        retention-days: 90
+        
+    - name: Upload RPM Artifact
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: open-tv-redhat-amd64
+        path: ./electron-open-tv/out/make/rpm/x64/*.rpm
         retention-days: 90
