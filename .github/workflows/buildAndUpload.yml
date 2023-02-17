@@ -23,10 +23,9 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Install deps windows 10 SDK
-      if: matrix.is == 'windows-latest'
+    - name: Setup Windows 10 SDK Action
       uses: GuillaumeFalourd/setup-windows10-sdk-action@v1.11
-        
+
     - name: Install deps linux
       if: matrix.os == 'ubuntu-latest'
       run: | 
