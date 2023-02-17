@@ -38,6 +38,6 @@ jobs:
       uses: actions/upload-artifact@v3.1.2
       with:
         name: open-tv-windows-squirrel-amd64
-        path: out/make/squirrel.windows/*.exe
+        path: ./electron-open-tv/out/make/squirrel.windows/*.exe
         retention-days: 90
       
