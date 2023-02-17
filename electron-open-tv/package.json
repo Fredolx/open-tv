@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.4",
+    "@electron-forge/maker-appx": "^6.0.5",
     "@electron-forge/maker-deb": "^6.0.4",
     "@electron-forge/maker-dmg": "^6.0.5",
     "@electron-forge/maker-rpm": "^6.0.4",

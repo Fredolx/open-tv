@@ -22,8 +22,12 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
+
+    - name: Install deps windows 10 SDK
+      if: matrix.is == 'windows-latest'
+      uses: GuillaumeFalourd/setup-windows10-sdk-action@v1.11
         
-    - name: Install deps
+    - name: Install deps linux
       if: matrix.os == 'ubuntu-latest'
       run: | 
         sudo apt install rpm dpkg fakeroot
@@ -50,7 +54,7 @@ jobs:
       with:
         name: open-tv-debian-amd64
         path: ./electron-open-tv/out/make/deb/x64/*.deb
-        retention-days: 90
+        retention-days: 3
         
     - name: Upload RPM Artifact
       if: matrix.os == 'ubuntu-latest'
@@ -58,7 +62,7 @@ jobs:
       with:
         name: open-tv-redhat-amd64
         path: ./electron-open-tv/out/make/rpm/x64/*.rpm
-        retention-days: 90
+        retention-days: 3
     
     - name: Upload Squirrel Artifact
       if: matrix.os == 'windows-latest'
@@ -66,4 +70,13 @@ jobs:
       with:
         name: open-tv-windows-squirrel-amd64
         path: ./electron-open-tv/out/make/squirrel.windows/x64/*.exe
-        retention-days: 90
+        retention-days: 3
+
+    - name: Upload Appx Artifact
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: open-tv-windows-appx-amd64
+        path: ./electron-open-tv/out/make/appx
+        retention-days: 3
+
