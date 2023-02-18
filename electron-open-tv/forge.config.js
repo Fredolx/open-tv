@@ -13,12 +13,13 @@ module.exports = {
         setupIcon: 'resources/icon.ico'
       },
     },
-    {
-      name: '@electron-forge/maker-appx',
-      config: {
-        publisher: 'CN=D7F3F5FA-82AF-4A01-ACE9-073CE4F7FFA9',
-      }
-    },
+    // {
+    //   name: '@electron-forge/maker-appx',
+    //   config: {
+    //     publisher: 'CN=D7F3F5FA-82AF-4A01-ACE9-073CE4F7FFA9',
+    //     packageExecutable: "app/open-tv.exe"
+    //   }
+    // },
     {
       name: '@electron-forge/maker-zip',
       platforms: ['darwin'],
