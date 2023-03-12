@@ -1,7 +1,7 @@
 import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
-import { release } from 'node:os'
+import { release, homedir, platform } from 'node:os'
 import { join, dirname } from 'node:path'
-import { createReadStream, existsSync } from 'node:fs'
+import { createReadStream, existsSync, mkdirSync } from 'node:fs'
 import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises'
 import * as readLine from 'node:readline'
 import { exec } from 'node:child_process'
@@ -12,9 +12,11 @@ if (require('electron-squirrel-startup')) {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const homeDirectory = getHomeDirectory();
-const cachePath = `${homeDirectory}/cache.json`;
-const favsPath = `${homeDirectory}/favs.json`;
+const appDataPath = getAppDataPath();
+const cachePath = `${appDataPath}/cache.json`;
+const favsPath = `${appDataPath}/favs.json`;
+const homePath = homedir();
+var videosPath = getVideosPath();
 var mpvPath = "mpv";
 var mpvProcesses = [];
 
@@ -90,7 +92,7 @@ app.on('activate', () => {
 
 ipcMain.handle("selectFile", selectFile);
 ipcMain.handle("getCache", getCache);
-ipcMain.handle("playChannel", async (event, url) => await playChannel(url));
+ipcMain.handle("playChannel", async (event, url, record) => await playChannel(url, record));
 ipcMain.handle("deleteCache", deleteCache);
 ipcMain.handle("saveFavs", async (event, favs) => saveFavs(favs));
 
@@ -108,6 +110,17 @@ async function selectFile() {
   return channels;
 }
 
+function getVideosPath() {
+  let vPath;
+  if (process.platform == 'darwin')
+    vPath = join(homePath, 'Movies', 'open-tv');
+  else
+    vPath = join(homePath, 'Videos', 'open-tv');
+  if (!existsSync(vPath))
+    mkdirSync(vPath);
+  return vPath;
+}
+
 async function getCache() {
   if (!existsSync(cachePath))
     return [];
@@ -123,12 +136,12 @@ async function getCache() {
 
 async function SaveToCache(channels) {
   let json = JSON.stringify(channels);
-  if (!existsSync(homeDirectory))
-    mkdir(homeDirectory, { recursive: true });
+  if (!existsSync(appDataPath))
+    mkdir(appDataPath, { recursive: true });
   await writeFile(cachePath, json);
 }
 
-function getHomeDirectory() {
+function getAppDataPath() {
   let appdataPath = process.env.APPDATA ||
     (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' :
       process.env.HOME + "/.local/share")
@@ -167,7 +180,7 @@ async function parsePlaylist(filePath) {
         }
         if (!channel.name || !channel.name?.trim())
           channel.name = firstLine.match(idRegExp)?.groups?.id;
-          
+
         if (channel.name && channel.name?.trim() && channel.url && channel.url?.trim()) {
           channels.push(channel);
         }
@@ -186,19 +199,29 @@ function clearMpvProcesses() {
   mpvProcesses = [];
 }
 
-async function playChannel(url) {
+async function playChannel(url, record) {
   clearMpvProcesses();
   let command = `${mpvPath} ${url} --fs`
   if (url.endsWith(".mp4") || url.endsWith(".mkv"))
     command += " --save-position-on-quit";
+  else if (record === true) {
+    let recordPath = join(videosPath, getRecordingFileName());
+    command += ` --stream-record="${recordPath}"`;
+  }
   let child = await exec(command);
   mpvProcesses.push(child);
   await waitForProcessStart(child);
 }
 
+function getRecordingFileName() {
+  let date = new Date();
+  let month = ("0" + (date.getMonth() + 1)).slice(-2);
+  return `${date.getFullYear()}-${month}-${date.getHours()}-${date.getMinutes()}.mp4`;
+}
+
 function waitForProcessStart(proc) {
   return new Promise(function (resolve, reject) {
-    const timeout = 20000;
+    const timeout = 10000;
     const timer = setTimeout(() => {
       reject(new Error(`Promise timed out after ${timeout} ms`));
     }, timeout);
