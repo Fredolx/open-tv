@@ -22,12 +22,12 @@ export class ChannelTileComponent {
     this.alreadyExistsInFav = this.alreadyExistsInFavorites();
   }
 
-  async click() {
+  async click(record = false) {
     if (this.memory.startingChannel)
       return;
     this.starting = true;
     this.memory.startingChannel = true;
-    this.electron.playChannel(this.channel?.url).then(() => {
+    this.electron.playChannel(this.channel?.url, record).then(() => {
     })
       .finally(() => {
         this.starting = false;
@@ -60,5 +60,13 @@ export class ChannelTileComponent {
 
   alreadyExistsInFavorites() {
     return this.memory.FavChannels.some(x => x.url == this.channel?.url);
+  }
+
+  async record() {
+    await this.click(true);
+  }
+
+  isMovie(){
+    return this.channel?.url?.endsWith('.mkv') || this.channel?.url?.endsWith('.mp4') 
   }
 }
