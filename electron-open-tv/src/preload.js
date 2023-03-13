@@ -5,5 +5,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getCache: () => ipcRenderer.invoke('getCache'),
     playChannel: (url, record) => ipcRenderer.invoke('playChannel', url, record),
     deleteCache: () => ipcRenderer.invoke('deleteCache'),
-    saveFavs: (favs) => ipcRenderer.invoke('saveFavs', favs)
+    saveFavs: (favs) => ipcRenderer.invoke('saveFavs', favs),
+    downloadM3U: (url) => ipcRenderer.invoke('downloadM3U', url)
 });

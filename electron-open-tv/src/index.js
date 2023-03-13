@@ -1,11 +1,14 @@
 import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
 import { release, homedir, platform } from 'node:os'
 import { join, dirname } from 'node:path'
-import { createReadStream, existsSync, mkdirSync } from 'node:fs'
+import { createReadStream, existsSync, mkdirSync, writeSync } from 'node:fs'
 import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises'
 import * as readLine from 'node:readline'
 import { exec } from 'node:child_process'
 import { lookpath } from 'lookpath'
+import axios from 'axios'
+import { nameRegExp, idRegExp, logoRegExp, groupRegExp } from './regExps'
+import { stringify } from 'node:querystring'
 
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -95,6 +98,7 @@ ipcMain.handle("getCache", getCache);
 ipcMain.handle("playChannel", async (event, url, record) => await playChannel(url, record));
 ipcMain.handle("deleteCache", deleteCache);
 ipcMain.handle("saveFavs", async (event, favs) => saveFavs(favs));
+ipcMain.handle("downloadM3U", async (event, url) => await downloadM3U(url));
 
 async function deleteCache() {
   await unlink(cachePath);
@@ -107,6 +111,19 @@ async function selectFile() {
   if (dialogResult.canceled) return;
   let channels = await parsePlaylist(dialogResult.filePaths[0]);
   SaveToCache(channels);
+  return channels;
+}
+
+async function downloadM3U(url) {
+  let result;
+  try {
+    result = await axios.get(url);
+  }
+  catch (e) {
+    return [];
+  }
+  let channels = parsePlaylistFromMemory(result.data.split("\n"));
+  SaveToCache(channels, url);
   return channels;
 }
 
@@ -134,8 +151,8 @@ async function getCache() {
   return { cache: cache, favs: favs };
 }
 
-async function SaveToCache(channels) {
-  let json = JSON.stringify(channels);
+async function SaveToCache(channels, url = null) {
+  let json = JSON.stringify({ channels: channels, url: url });
   if (!existsSync(appDataPath))
     mkdir(appDataPath, { recursive: true });
   await writeFile(cachePath, json);
@@ -148,46 +165,58 @@ function getAppDataPath() {
   return `${appdataPath}/open-tv`;
 }
 
-async function parsePlaylist(filePath) {
-  const nameRegExp = /tvg-name="{1}(?<name>[^"]*)"{1}/;
-  const idRegExp = /tvg-id="{1}(?<id>[^"]*)"{1}/;
-  const logoRegExp = /tvg-logo="{1}(?<logo>[^"]*)"{1}/;
-  const groupRegExp = /group-title="{1}(?<group>[^"]*)"{1}/;
+function processChannel(twoLines) {
+  let firstLine = twoLines[0];
+  let secondLine = twoLines[1];
+  try {
+    let channel = {
+      name: firstLine.match(nameRegExp)?.groups?.name,
+      image: firstLine.match(logoRegExp)?.groups?.logo,
+      group: firstLine.match(groupRegExp)?.groups?.group,
+      url: secondLine.trim()
+    }
+    if (!channel.name || !channel.name?.trim())
+      channel.name = firstLine.match(idRegExp)?.groups?.id;
 
+    if (channel.name && channel.name?.trim() && channel.url && channel.url?.trim()) {
+      return channel;
+    }
+  }
+  catch (e) { }
+  return null;
+}
+
+function parsePlaylistFromMemory(lines) {
+  let twoLines = [];
+  let channels = [];
+  lines.shift();
+  lines.forEach(line => {
+    twoLines.push(line);
+    if (twoLines.length == 2) {
+      let channel = processChannel(twoLines);
+      if (channel)
+        channels.push(channel);
+      twoLines = [];
+    }
+  });
+  return channels;
+}
+
+async function parsePlaylist(filePath) {
   const inputStream = createReadStream(filePath);
   var lineReader = readLine.createInterface({
     input: inputStream,
     terminal: false,
   });
-  let skippedFirstLine = false;
   let twoLines = [];
   let channels = [];
+  await lineReader[Symbol.asyncIterator]().next();
   for await (const line of lineReader) {
-    if (!skippedFirstLine) {
-      skippedFirstLine = true;
-      continue;
-    }
     twoLines.push(line);
-    if (twoLines.length === 2) {
-      let firstLine = twoLines[0];
-      let secondLine = twoLines[1];
-      try {
-        let channel = {
-          name: firstLine.match(nameRegExp)?.groups?.name,
-          image: firstLine.match(logoRegExp)?.groups?.logo,
-          group: firstLine.match(groupRegExp)?.groups?.group,
-          url: secondLine
-        }
-        if (!channel.name || !channel.name?.trim())
-          channel.name = firstLine.match(idRegExp)?.groups?.id;
-
-        if (channel.name && channel.name?.trim() && channel.url && channel.url?.trim()) {
-          channels.push(channel);
-        }
-        channel = null;
-      }
-      catch (e) { }
-
+    if (twoLines.length == 2) {
+      let channel = processChannel(twoLines);
+      if (channel)
+        channels.push(channel);
       twoLines = [];
     }
   }

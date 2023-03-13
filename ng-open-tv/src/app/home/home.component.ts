@@ -2,6 +2,7 @@ import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild }
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, filter, fromEvent, last, map, Subject, tap } from 'rxjs';
 import { MemoryService } from '../memory.service';
+import { Cache } from '../models/cache';
 import { Channel } from '../models/channel';
 import { ViewMode } from '../models/viewMode';
 
@@ -28,12 +29,13 @@ export class HomeComponent {
       this.getChannels();
     }
     else {
-      this.electron.getCache().then((x: { cache: Channel[], favs: Channel[] }) => {
-        if (x.cache && x.cache.length > 0) {
-          this.memory.Channels = x.cache;
+      this.electron.getCache().then((x: { cache: Cache, favs: Channel[] }) => {
+        if (x.cache?.channels?.length > 0) {
+          this.memory.Channels = x.cache.channels;
+          this.memory.Url = x.cache.url;
           this.memory.FavChannels = x.favs;
           this.getChannels();
-          this.memory.needToRefreshFavorites.subscribe(x => {
+          this.memory.NeedToRefreshFavorites.subscribe(x => {
             this.favChannels = this.memory.FavChannels;
           });
         }

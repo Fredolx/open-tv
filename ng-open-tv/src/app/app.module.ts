@@ -12,6 +12,7 @@ import { LoadingComponent } from './loading/loading.component';
 import { SettingsComponent } from './settings/settings.component';
 import { SetupComponent } from './setup/setup.component';
 import { MatMenuModule } from '@angular/material/menu'
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { MatMenuModule } from '@angular/material/menu'
   ],
   imports: [
     BrowserModule,
+    FormsModule,
     BrowserAnimationsModule,
     AppRoutingModule,
     NgbTooltipModule,

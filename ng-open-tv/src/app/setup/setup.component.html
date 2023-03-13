@@ -1,9 +1,55 @@
 <div class="container text-center mt-5">
-    <div>Welcome to Open-TV</div>
     <ng-container *ngIf="!loading">
-        <div>Please select a m3u file to begin</div>
-        <div class="mt-2">
-            <button class="btn btn-primary" (click)="getFile()">Select file</button>
+        <div class="btn-group mx-auto mb-4" style="width: fit-content; display: block;">
+            <button (click)="setupMode = setupModeEnum.m3uFile" class="btn btn-secondary"
+                [ngbTooltip]="'Use this option if you only have an M3U file. If the file was obtained through an URL given to you by your IPTV provider, the M3U URL option is better'"
+                [ngClass]="{'active': setupMode == setupModeEnum.m3uFile}">M3U File</button>
+            <button (click)="setupMode = setupModeEnum.m3u" class="btn btn-secondary"
+                [ngbTooltip]="'If you want to have the option to automatically refresh your channels list with new channels that gets added by your IPTV Provider, this option is recommended over the M3U File'"
+                [ngClass]="{'active': setupMode == setupModeEnum.m3u}">M3U URL</button>
+            <button (click)="setupMode = setupModeEnum.xtream" class="btn btn-secondary"
+                [ngbTooltip]="'Experimental option. Use this only if your provider does not offer M3U URLs/Files'"
+                [ngClass]="{'active': setupMode == setupModeEnum.xtream}">Xtream</button>
+        </div>
+        <div *ngIf="setupMode == setupModeEnum.m3uFile">
+            <div>Please select a M3U file to begin</div>
+            <div class="mt-2">
+                <button class="btn btn-primary" (click)="getFile()">Select file</button>
+            </div>
+        </div>
+        <div *ngIf="setupMode == setupModeEnum.m3u">
+            <div>Please enter the M3U URL for your IPTV service to begin</div>
+            <form #m3uUrlForm="ngForm">
+                <div class="row justify-content-center mt-2">
+                    <div class="col-lg-6 col-md-8">
+                        <input name="url" required class="form-control" [(ngModel)]="url" placeholder="URL">
+                    </div>
+                </div>
+                <button class="btn btn-primary mt-3" (click)="getFileFromURL()" [disabled]="m3uUrlForm.invalid">Confirm</button>
+            </form>
+        </div>
+        <div *ngIf="setupMode == setupModeEnum.xtream">
+            <div>Please enter your Xtream login information to begin</div>
+            <form #form="ngForm">
+                <div class="row mt-2 justify-content-center">
+                    <div class="col-lg-6 col-md-8">
+                        <input name="url" required class="form-control" [(ngModel)]="xtream.url" placeholder="URL">
+                    </div>
+                </div>
+                <div class="row mt-2 justify-content-center">
+                    <div class="col-lg-6 col-md-8">
+                        <input name="username" required class="form-control" [(ngModel)]="xtream.username"
+                            placeholder="Username">
+                    </div>
+                </div>
+                <div class="row mt-2 justify-content-center">
+                    <div class="col-lg-6 col-md-8">
+                        <input name="password" required class="form-control" [(ngModel)]="xtream.password"
+                            placeholder="Password">
+                    </div>
+                </div>
+                <button [disabled]="form.invalid" class="btn btn-primary d-block mx-auto mt-3">Login</button>
+            </form>
         </div>
     </ng-container>
     <app-loading *ngIf="loading" [center]="false"></app-loading>

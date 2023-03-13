@@ -10,5 +10,6 @@ export class MemoryService {
   public Channels: Channel[] = [];
   public FavChannels: Channel[] = [];
   public startingChannel: boolean = false;
-  public needToRefreshFavorites: Subject<boolean> = new Subject();
+  public NeedToRefreshFavorites: Subject<boolean> = new Subject();
+  public Url? : String
 }
