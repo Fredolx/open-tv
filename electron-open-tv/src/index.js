@@ -78,7 +78,9 @@ app.whenReady().then(createWindow)
 app.on('window-all-closed', () => {
   win = null
   if(settings?.autoRefreshM3U && m3uURL?.trim())
-    downloadM3U(m3uURL).then(_ => app.quit);
+    downloadM3U(m3uURL).then(_ => {
+      app.quit();
+    });
   else
     app.quit()
 })
@@ -133,7 +135,7 @@ async function selectFile() {
   if (dialogResult.canceled) return;
   this.m3uURL = null;
   let channels = await parsePlaylist(dialogResult.filePaths[0]);
-  SaveToCache(channels);
+  await SaveToCache(channels);
   return channels;
 }
 
@@ -148,8 +150,7 @@ async function downloadM3U(url) {
   }
   m3uURL = url;
   let channels = parsePlaylistFromMemory(result.data.split("\n"));
-  SaveToCache(channels, url);
-  console.log("completed");
+  await SaveToCache(channels, url);
   return channels;
 }
 
