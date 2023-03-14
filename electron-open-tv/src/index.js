@@ -16,13 +16,17 @@ if (require('electron-squirrel-startup')) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const appDataPath = getAppDataPath();
-const cachePath = `${appDataPath}/cache.json`;
-const favsPath = `${appDataPath}/favs.json`;
+const cachePath = join(appDataPath, "cache.json");
+const favsPath = join(appDataPath, "favs.json");
+const settingsPath = join(appDataPath, "settings.json");
 const homePath = homedir();
-var videosPath = getVideosPath();
+const defaultRecordingPath = getVideosPath();
+var m3uURL;
+var settings;
 var mpvPath = "mpv";
 var mpvProcesses = [];
 
+fetchSettings();
 fixMPV();
 
 // Disable GPU Acceleration for Windows 7
@@ -73,7 +77,10 @@ app.whenReady().then(createWindow)
 
 app.on('window-all-closed', () => {
   win = null
-  if (process.platform !== 'darwin') app.quit()
+  if(settings?.autoRefreshM3U && m3uURL?.trim())
+    downloadM3U(m3uURL).then(_ => app.quit);
+  else
+    app.quit()
 })
 
 app.on('second-instance', () => {
@@ -99,6 +106,21 @@ ipcMain.handle("playChannel", async (event, url, record) => await playChannel(ur
 ipcMain.handle("deleteCache", deleteCache);
 ipcMain.handle("saveFavs", async (event, favs) => saveFavs(favs));
 ipcMain.handle("downloadM3U", async (event, url) => await downloadM3U(url));
+ipcMain.handle("selectFolder", selectFolder);
+ipcMain.handle("updateSettings", async (event, settings) => await updateSettings(settings));
+ipcMain.handle("getSettings", getSettings);
+
+async function updateSettings(_settings) {
+  settings = _settings;
+  let json = JSON.stringify(settings);
+  await writeFile(settingsPath, json);
+}
+
+async function selectFolder() {
+  let dialogResult = await dialog.showOpenDialog({ properties: ['openDirectory'] });
+  if (dialogResult.canceled) return null;
+  return dialogResult.filePaths[0];
+}
 
 async function deleteCache() {
   await unlink(cachePath);
@@ -109,6 +131,7 @@ async function deleteCache() {
 async function selectFile() {
   let dialogResult = await dialog.showOpenDialog({ properties: ['openFile'] });
   if (dialogResult.canceled) return;
+  this.m3uURL = null;
   let channels = await parsePlaylist(dialogResult.filePaths[0]);
   SaveToCache(channels);
   return channels;
@@ -120,10 +143,13 @@ async function downloadM3U(url) {
     result = await axios.get(url);
   }
   catch (e) {
+    console.error(e);
     return [];
   }
+  m3uURL = url;
   let channels = parsePlaylistFromMemory(result.data.split("\n"));
   SaveToCache(channels, url);
+  console.log("completed");
   return channels;
 }
 
@@ -148,7 +174,18 @@ async function getCache() {
     let favsJson = await readFile(favsPath, { encoding: "utf-8" });
     favs = JSON.parse(favsJson);
   }
-  return { cache: cache, favs: favs };
+  if (cache?.url?.trim())
+    m3uURL = cache.url;
+  return { cache: cache, favs: favs, settings };
+}
+
+async function getSettings() {
+  return settings;
+}
+
+async function fetchSettings() {
+  if (existsSync(settingsPath))
+    settings = JSON.parse(await readFile(settingsPath, { encoding: "utf-8" }));
 }
 
 async function SaveToCache(channels, url = null) {
@@ -234,12 +271,14 @@ async function playChannel(url, record) {
   if (url.endsWith(".mp4") || url.endsWith(".mkv"))
     command += " --save-position-on-quit";
   else if (record === true) {
-    let recordPath = join(videosPath, getRecordingFileName());
-    command += ` --stream-record="${recordPath}"`;
+    let recordingFilePath = join(settings?.recordingPath ?? defaultRecordingPath, getRecordingFileName());
+    command += ` --stream-record="${recordingFilePath}"`
   }
   let child = await exec(command);
   mpvProcesses.push(child);
+  console.log("Waiting for mpv start");
   await waitForProcessStart(child);
+  console.log(`Playing channel from URL: ${url}`);
 }
 
 function getRecordingFileName() {

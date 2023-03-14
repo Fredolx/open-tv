@@ -37,10 +37,7 @@ export class SetupComponent {
 
   async getFileFromURL() {
     this.loading = true;
-    let result = await this.electron.downloadM3U(this.url?.trim());
-    if (result && result.length > 0) {
-      this.memory.Channels = result;
-      this.memory.Url = this.url;
+    if (await this.memory.DownloadM3U(this.url)) {
       this.nav.navigateByUrl("");
     }
     else
