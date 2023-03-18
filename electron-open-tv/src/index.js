@@ -77,12 +77,7 @@ app.whenReady().then(createWindow)
 
 app.on('window-all-closed', () => {
   win = null
-  if(settings?.autoRefreshM3U && m3uURL?.trim())
-    downloadM3U(m3uURL).then(_ => {
-      app.quit();
-    });
-  else
-    app.quit()
+  app.quit()
 })
 
 app.on('second-instance', () => {
