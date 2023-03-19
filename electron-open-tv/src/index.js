@@ -13,6 +13,11 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+  process.exit(0);
+}
+
 const appDataPath = getAppDataPath();
 const cachePath = join(appDataPath, "cache.json");
 const favsPath = join(appDataPath, "favs.json");
@@ -26,21 +31,13 @@ var mpvProcesses = [];
 fetchSettings();
 fixMPV();
 
-// Disable GPU Acceleration for Windows 7
-if (release().startsWith('6.1')) app.disableHardwareAcceleration()
+// Disable GPU Accel in Windows 7
+if (release().startsWith('6.1'))
+  app.disableHardwareAcceleration();
 
-// Set application name for Windows 10+ notifications
-if (process.platform === 'win32') app.setAppUserModelId(app.getName())
-
-if (!app.requestSingleInstanceLock()) {
-  app.quit()
-  process.exit(0)
-}
-
-// Remove electron security warnings
-// This warning only shows in development mode
-// Read more on https://www.electronjs.org/docs/latest/tutorial/security
-// process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
+// Windows 10/11 notifications requirement to get proper name
+if (process.platform === 'win32')
+  app.setAppUserModelId(app.getName());
 
 let win = null
 const preload = MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY;
@@ -70,38 +67,38 @@ async function createWindow() {
   })
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
   win = null
   app.quit()
-})
+});
 
 app.on('second-instance', () => {
   if (win) {
-    // Focus on the main window if the user tried to open another
+    // Refocus the main window if user tries to open a new instance
     if (win.isMinimized()) win.restore()
     win.focus()
   }
-})
+});
 
 app.on('activate', () => {
   const allWindows = BrowserWindow.getAllWindows()
   if (allWindows.length) {
-    allWindows[0].focus()
+    allWindows[0].focus();
   } else {
-    createWindow()
+    createWindow();
   }
-})
+});
 
 ipcMain.handle("selectFile", selectFile);
 ipcMain.handle("getCache", getCache);
-ipcMain.handle("playChannel", async (event, url, record) => await playChannel(url, record));
+ipcMain.handle("playChannel", async (_, url, record) => await playChannel(url, record));
 ipcMain.handle("deleteCache", deleteCache);
-ipcMain.handle("saveFavs", async (event, favs) => saveFavs(favs));
-ipcMain.handle("downloadM3U", async (event, url) => await downloadM3U(url));
+ipcMain.handle("saveFavs", async (_, favs) => saveFavs(favs));
+ipcMain.handle("downloadM3U", async (_, url) => await downloadM3U(url));
 ipcMain.handle("selectFolder", selectFolder);
-ipcMain.handle("updateSettings", async (event, settings) => await updateSettings(settings));
+ipcMain.handle("updateSettings", async (_, settings) => await updateSettings(settings));
 ipcMain.handle("getSettings", getSettings);
 
 async function updateSettings(_settings) {
@@ -126,7 +123,7 @@ async function selectFile() {
   let dialogResult = await dialog.showOpenDialog({ properties: ['openFile'] });
   if (dialogResult.canceled) return;
   let channels = await parsePlaylist(dialogResult.filePaths[0]);
-  await SaveToCache(channels);
+  await saveToCache(channels);
   return channels;
 }
 
@@ -140,7 +137,7 @@ async function downloadM3U(url) {
     return [];
   }
   let channels = parsePlaylistFromMemory(result.data.split("\n"));
-  await SaveToCache(channels, url);
+  await saveToCache(channels, url);
   return channels;
 }
 
@@ -166,7 +163,7 @@ async function getCache() {
     favs = JSON.parse(favsJson);
   }
   if (cache?.url?.trim())
-  return { cache: cache, favs: favs, settings };
+    return { cache: cache, favs: favs, settings };
 }
 
 async function getSettings() {
@@ -178,7 +175,7 @@ async function fetchSettings() {
     settings = JSON.parse(await readFile(settingsPath, { encoding: "utf-8" }));
 }
 
-async function SaveToCache(channels, url = null) {
+async function saveToCache(channels, url = null) {
   let json = JSON.stringify({ channels: channels, url: url });
   if (!existsSync(appDataPath))
     mkdir(appDataPath, { recursive: true });
@@ -209,13 +206,14 @@ function processChannel(twoLines) {
       return channel;
     }
   }
-  catch (e) {}
+  catch (e) { }
   return null;
 }
 
 function parsePlaylistFromMemory(lines) {
   let twoLines = [];
   let channels = [];
+  //Skip first line because it's always a dud line in m3u files
   lines.shift();
   lines.forEach(line => {
     twoLines.push(line);
@@ -237,6 +235,7 @@ async function parsePlaylist(filePath) {
   });
   let twoLines = [];
   let channels = [];
+  //Skip first line because it's always a dud line in m3u files
   await lineReader[Symbol.asyncIterator]().next();
   for await (const line of lineReader) {
     twoLines.push(line);
@@ -302,12 +301,18 @@ async function saveFavs(favs) {
 }
 
 async function fixMPV() {
+  //Due to finder not giving us the path env variable in MacOS, we hardcode it
+  //@TODO find a better solution
   if (process.platform == 'darwin') {
     if (existsSync("/opt/homebrew/bin/mpv"))
       mpvPath = "/opt/homebrew/bin/mpv";
     else if (existsSync("/opt/local/mpv"))
       mpvPath = "/opt/local/mpv";
   }
+  /**
+   * On Windows some builds of OpenTV have MPV included
+   * If we can find it in path, it's prioritized.
+   */
   if (process.platform == "win32") {
     let mpvExists = await lookpath("mpv");
     if (!mpvExists) {
