@@ -7,8 +7,8 @@
             <button (click)="setupMode = setupModeEnum.m3u" class="btn btn-secondary"
                 [ngbTooltip]="'If you want to have the option to automatically refresh your channels list with new channels that gets added by your IPTV Provider, this option is recommended over the M3U File'"
                 [ngClass]="{'active': setupMode == setupModeEnum.m3u}">M3U URL</button>
-            <button (click)="setupMode = setupModeEnum.xtream" class="btn btn-secondary"
-                [ngbTooltip]="'Experimental option. Use this only if your provider does not offer M3U URLs/Files'"
+            <button class="btn btn-secondary"
+                [ngbTooltip]="'Coming soon!'"
                 [ngClass]="{'active': setupMode == setupModeEnum.xtream}">Xtream</button>
         </div>
         <div *ngIf="setupMode == setupModeEnum.m3uFile">
