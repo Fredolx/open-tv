@@ -34,7 +34,8 @@ module.exports = {
       name: '@electron-forge/maker-deb',
       bin: "Open TV",
       config: {
-        icon: 'resources/icon.png'
+        icon: 'resources/icon.png',
+        depends: ['mpv']
       },
     },
     {

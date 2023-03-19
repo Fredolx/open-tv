@@ -16,6 +16,7 @@ Simple & fast IPTV app made with Electron and Angular
 - ~~Clearing cache via GUI and/or multiple sources support~~
 - Xtream support
 - Providing better support for bad streams (proxying the source and relaying to mpv)
+- Publishing on Flathub
 
 ## Prerequisites
 ```
