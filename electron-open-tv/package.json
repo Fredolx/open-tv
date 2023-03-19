@@ -1,7 +1,7 @@
 {
   "name": "open-tv",
   "productName": "Open TV",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "Cross-platform IPTV App",
   "main": "./.webpack/main",
   "scripts": {
