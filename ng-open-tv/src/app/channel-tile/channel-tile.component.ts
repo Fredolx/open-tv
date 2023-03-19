@@ -23,15 +23,15 @@ export class ChannelTileComponent {
   }
 
   async click(record = false) {
-    if (this.memory.startingChannel)
+    if (this.memory.StartingChannel)
       return;
     this.starting = true;
-    this.memory.startingChannel = true;
+    this.memory.StartingChannel = true;
     this.electron.playChannel(this.channel?.url, record).then(() => {
     })
       .finally(() => {
         this.starting = false;
-        this.memory.startingChannel = false;
+        this.memory.StartingChannel = false;
       });
   }
 

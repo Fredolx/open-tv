@@ -10,7 +10,7 @@ export class MemoryService {
   constructor() { }
   public Channels: Channel[] = [];
   public FavChannels: Channel[] = [];
-  public startingChannel: boolean = false;
+  public StartingChannel: boolean = false;
   public NeedToRefreshFavorites: Subject<boolean> = new Subject();
   public Url?: String
   public Settings: Settings = {};

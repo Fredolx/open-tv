@@ -15,7 +15,7 @@ export class HomeComponent {
   channels: Channel[] = [];
   favChannels: Channel[] = [];
   viewMode = ViewMode.All;
-  ViewModeEnum = ViewMode;
+  viewModeEnum = ViewMode;
   electron: any = (window as any).electronAPI;
   lastTerm?: string;
   @ViewChild('search') search!: ElementRef;
@@ -35,7 +35,7 @@ export class HomeComponent {
           this.memory.Url = x.cache.url;
           this.memory.FavChannels = x.favs;
           this.getChannels();
-          this.memory.NeedToRefreshFavorites.subscribe(x => {
+          this.memory.NeedToRefreshFavorites.subscribe(_ => {
             this.favChannels = this.memory.FavChannels;
           });
         }
