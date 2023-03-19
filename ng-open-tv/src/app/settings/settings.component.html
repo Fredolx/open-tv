@@ -9,20 +9,23 @@
             <span *ngIf="!memory.Settings.recordingPath" id="default-path">~/Home/Videos</span>
             <span *ngIf="memory.Settings.recordingPath">{{memory.Settings.recordingPath}}</span>
             <button (click)="selectFolder()" class="btn btn-primary btn-sm ms-4">
-            Change <span class="mdi mdi-folder-open ms-2"></span>
+                Change <span class="mdi mdi-folder-open ms-2"></span>
             </button>
         </div>
     </div>
 
     <h2 class="mt-4 mb-4 text-center">Actions</h2>
     <div class="flex">
-        <button [disabled]="loading" *ngIf="this.memory.Url" (click)="refresh()" class="btn btn-primary">Refresh
-            Channels</button>
+        <span [disableTooltip]="CanRefresh()" [ngbTooltip]="'This option is only available if you use a M3U Url'">
+            <button [disabled]="loading || !CanRefresh()" (click)="refresh()" class="btn btn-primary">Refresh
+                Channels</button>
+        </span>
+
         <button [disabled]="loading" (click)="deleteCache()" class="btn btn-danger ms-3">Delete channels cache</button>
     </div>
 
 </div>
 
 <div class="author">
-    Made by Frédéric Lachapelle ❤️
+    <a href="https://github.com/sponsors/Fredolx" target="_blank">Made by Frédéric Lachapelle ❤️</a>
 </div>

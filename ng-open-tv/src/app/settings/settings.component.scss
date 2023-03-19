@@ -12,6 +12,13 @@
     left: 50%;
     transform: translateX(-50%);
     font-size: 0.9rem;
-    color: gray;
     cursor: pointer;
+}
+
+a {
+    text-decoration: none;
+}
+
+.btn.disabled {
+    pointer-events: auto !important;
 }

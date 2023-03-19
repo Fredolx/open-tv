@@ -13,13 +13,20 @@ export class MemoryService {
   public startingChannel: boolean = false;
   public NeedToRefreshFavorites: Subject<boolean> = new Subject();
   public Url?: String
-  public Settings: Settings = { };
+  public Settings: Settings = {};
   private electron: any = (window as any).electronAPI;
 
   async DownloadM3U(url: String | undefined = undefined): Promise<boolean> {
+    let channels;
     if (url?.trim())
       this.Url = url.trim();
-    let channels = await this.electron.downloadM3U(this.Url);
+    try {
+      channels = await this.electron.downloadM3U(this.Url);
+    }
+    catch (e) {
+      console.error(e);
+      return false;
+    }
     if (channels && channels.length > 0) {
       this.Channels = channels;
       return true;

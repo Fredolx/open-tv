@@ -58,4 +58,7 @@ export class SettingsComponent {
     await this.electron.updateSettings(this.memory.Settings);
   }
 
+  CanRefresh(): boolean {
+    return this.memory.Url?.trim() ? true : false;
+  }
 }
