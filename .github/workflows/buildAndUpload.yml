@@ -18,6 +18,16 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Download mpv
+      if: matrix.os == 'windows-latest'
+      shell: powershell
+      run: |
+        Invoke-WebRequest -Uri "https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.35.1-x86_64.7z" -OutFile .\mpv.7z
+        Get-ChildItem
+        New-Item -Path '.\libs' -ItemType Directory
+        7z x .\mpv.7z -o.\libs mpv.exe  
+        Get-ChildItem .\libs
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -37,16 +47,6 @@ jobs:
       run: |
         npm install
         npm run prod
-        
-    - name: Download mpv
-      if: matrix.os == 'windows-latest'
-      shell: powershell
-      run: |
-        Invoke-WebRequest -Uri "https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.35.1-x86_64.7z" -OutFile .\mpv.7z
-        Get-ChildItem
-        New-Item -Path '.\libs' -ItemType Directory
-        7z x .\mpv.7z -o.\libs mpv.exe  
-        Get-ChildItem .\libs
       
     - name: Build Electron app
       working-directory: ./electron-open-tv
