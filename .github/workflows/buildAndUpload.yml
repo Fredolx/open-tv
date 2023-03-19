@@ -40,7 +40,7 @@ jobs:
         
     - name: Download mpv
       if: matrix.os == 'windows-latest'
-      working-directory: ../
+      shell: powershell
       run: |
         Invoke-WebRequest -Uri "https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.35.1-x86_64.7z" -OutFile "mpv.7z"
     
@@ -48,13 +48,12 @@ jobs:
       if: matrix.os == 'windows-latest'
       uses: ihiroky/extract-action@v1
       with:
-        file_path: ../mpv.7z
-        extract_dir: ../mpv
+        file_path: mpv.7z
+        extract_dir: mpv
         verbose: true
     
     - name: Move mpv to libs
       if: matrix.os == 'windows-latest'
-      working-directory: ../
       shell: powershell
       run: |
         New-Item -Path 'libs' -ItemType Directory
