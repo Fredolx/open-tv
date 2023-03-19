@@ -38,16 +38,20 @@ jobs:
         npm install
         npm run prod
         
-    - name: Download & Extract
-      uses: gamedev-thingy/Download-Extract@done
+    - name: Download mpv
       if: matrix.os == 'windows-latest'
+      working-directory: ../
+      run: |
+        Invoke-WebRequest -Uri "https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.35.1-x86_64.7z" -OutFile "mpv.7z"
+    
+    - name: Extract Action
+      if: matrix.os == 'windows-latest'
+      uses: ihiroky/extract-action@v1
       with:
-        url: https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.35.1-x86_64.7z
-        # Where the files will be extracted to
-        destination: ../mpv
-        # Name of the downloaded ZIP file
-        ZIPname: mpv-0.35.1-x86_64.7z
-        
+        file_path: ../mpv.7z
+        extract_dir: ../mpv
+        verbose: true
+    
     - name: Move mpv to libs
       if: matrix.os == 'windows-latest'
       working-directory: ../
