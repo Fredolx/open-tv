@@ -15,7 +15,7 @@
     </div>
 
     <h2 class="mt-4 mb-4 text-center">Actions</h2>
-    <div class="flex">
+    <div class="d-flex">
         <span [disableTooltip]="CanRefresh()" [ngbTooltip]="'This option is only available if you use a M3U Url'">
             <button [disabled]="loading || !CanRefresh()" (click)="refresh()" class="btn btn-primary">Refresh
                 Channels</button>
