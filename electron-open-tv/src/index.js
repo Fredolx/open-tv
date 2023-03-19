@@ -1,27 +1,24 @@
 import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
-import { release, homedir, platform } from 'node:os'
-import { join, dirname } from 'node:path'
-import { createReadStream, existsSync, mkdirSync, writeSync } from 'node:fs'
+import { release, homedir } from 'node:os'
+import { join } from 'node:path'
+import { createReadStream, existsSync, mkdirSync } from 'node:fs'
 import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises'
 import * as readLine from 'node:readline'
 import { exec } from 'node:child_process'
 import { lookpath } from 'lookpath'
 import axios from 'axios'
 import { nameRegExp, idRegExp, logoRegExp, groupRegExp } from './regExps'
-import { stringify } from 'node:querystring'
 
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const appDataPath = getAppDataPath();
 const cachePath = join(appDataPath, "cache.json");
 const favsPath = join(appDataPath, "favs.json");
 const settingsPath = join(appDataPath, "settings.json");
 const homePath = homedir();
 const defaultRecordingPath = getVideosPath();
-var m3uURL;
 var settings;
 var mpvPath = "mpv";
 var mpvProcesses = [];
@@ -128,7 +125,6 @@ async function deleteCache() {
 async function selectFile() {
   let dialogResult = await dialog.showOpenDialog({ properties: ['openFile'] });
   if (dialogResult.canceled) return;
-  this.m3uURL = null;
   let channels = await parsePlaylist(dialogResult.filePaths[0]);
   await SaveToCache(channels);
   return channels;
@@ -143,7 +139,6 @@ async function downloadM3U(url) {
     console.error(e);
     return [];
   }
-  m3uURL = url;
   let channels = parsePlaylistFromMemory(result.data.split("\n"));
   await SaveToCache(channels, url);
   return channels;
@@ -171,7 +166,6 @@ async function getCache() {
     favs = JSON.parse(favsJson);
   }
   if (cache?.url?.trim())
-    m3uURL = cache.url;
   return { cache: cache, favs: favs, settings };
 }
 
@@ -215,7 +209,7 @@ function processChannel(twoLines) {
       return channel;
     }
   }
-  catch (e) { }
+  catch (e) {}
   return null;
 }
 
