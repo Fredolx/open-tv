@@ -22,10 +22,10 @@ jobs:
       if: matrix.os == 'windows-latest'
       shell: powershell
       run: |
-        Invoke-WebRequest -Uri "https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.35.1-x86_64.7z" -OutFile .\mpv.7z
+        Invoke-WebRequest -UserAgent "Wget" -Uri "https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.35.1-x86_64.7z" -OutFile .\mpv.7z
         Get-ChildItem
         New-Item -Path '.\libs' -ItemType Directory
-        7z x .\mpv.7z -o.\libs mpv.exe  
+        7z e .\mpv.7z -olibs mpv.exe  
         Get-ChildItem .\libs
 
     - name: Use Node.js ${{ matrix.node-version }}
