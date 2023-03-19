@@ -1,6 +1,6 @@
 # Open-TV
 
-Stupid simple IPTV app made with Electron and Angular.
+Simple & fast IPTV app made with Electron and Angular
 
 ![alt text](https://github.com/Fredolx/open-tv/blob/main/demo.png)
 
