@@ -38,6 +38,25 @@ jobs:
         npm install
         npm run prod
         
+    - name: Download & Extract
+      uses: gamedev-thingy/Download-Extract@done
+      if: matrix.os == 'windows-latest'
+      with:
+        url: https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.35.1-x86_64.7z
+        # Where the files will be extracted to
+        destination: ../mpv
+        # Name of the downloaded ZIP file
+        ZIPname: mpv-0.35.1-x86_64.7z
+        
+    - name: Move mpv to libs
+      if: matrix.os == 'windows-latest'
+      working-directory: ../
+      shell: powershell
+      run: |
+        New-Item -Path 'libs' -ItemType Directory
+        Move-Item -Path 'mpv/mpv.exe' -Destination 'libs'
+        Get-ChildItem -Force .\libs
+      
     - name: Build Electron app
       working-directory: ./electron-open-tv
       run: |
