@@ -13,7 +13,7 @@ export class MemoryService {
   public startingChannel: boolean = false;
   public NeedToRefreshFavorites: Subject<boolean> = new Subject();
   public Url?: String
-  public Settings: Settings = { autoRefreshM3U: false };
+  public Settings: Settings = { };
   private electron: any = (window as any).electronAPI;
 
   async DownloadM3U(url: String | undefined = undefined): Promise<boolean> {
