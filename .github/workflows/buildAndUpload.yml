@@ -22,7 +22,18 @@ jobs:
       if: matrix.os == 'windows-latest'
       shell: powershell
       run: |
-        Invoke-WebRequest -UserAgent "Wget" -MaximumRetryCount 3 -RetryIntervalSec 3 -Uri "https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.35.1-x86_64.7z" -OutFile .\mpv.7z
+        $retryCount = 3
+        $retryDelay = 5
+        for ($i = 1; $i -le $retryCount; $i++) {
+            try {
+                Invoke-WebRequest -UserAgent "Wget" -Uri "https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.35.1-x86_64.7z" -OutFile .\mpv.7z
+                break
+            }
+            catch {
+                Write-Host "Error occurred: $_. Retrying in $retryDelay seconds..."
+                Start-Sleep -Seconds $retryDelay
+            }
+        }
         New-Item -Path '.\libs' -ItemType Directory
         7z e .\mpv.7z -olibs mpv.exe
 
