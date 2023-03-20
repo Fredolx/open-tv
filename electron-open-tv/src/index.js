@@ -154,7 +154,7 @@ function getVideosPath() {
 
 async function getCache() {
   if (!existsSync(cachePath))
-    return [];
+    return {};
   let cacheJson = await readFile(cachePath, { encoding: "utf-8" });
   let cache = JSON.parse(cacheJson);
   let favs = [];
@@ -162,8 +162,7 @@ async function getCache() {
     let favsJson = await readFile(favsPath, { encoding: "utf-8" });
     favs = JSON.parse(favsJson);
   }
-  if (cache?.url?.trim())
-    return { cache: cache, favs: favs, settings };
+  return { cache: cache, favs: favs };
 }
 
 async function getSettings() {
