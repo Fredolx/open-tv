@@ -19,6 +19,7 @@ Simple & fast IPTV app made with Electron and Angular
 - Publishing on Flathub
 
 ## Prerequisites
+The app both depends on mpv and ffmpeg. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion.
 ```
 sudo dnf install mpv #Fedora
 sudo pacman -Syu mpv #Arch
@@ -26,12 +27,10 @@ sudo apt install mpv #Debian/Ubuntu
 scoop install mpv # Windows
 choco install mpv # Windows alternative
 ```
+The .deb package should include mpv as a dependency but due to a bug in electron forge it's not working. So install it manually alongside ffmpeg if you want full functionality on Ubuntu/Debian.
 
 ## Contribute
-Just submit a PR anytime if you find something you want to improve. Otherwise check
-the bugs category and pick something. It's really a hobby project after all so don't
-stress it. I'm not a big javascript/nodejs guy so you will certainly find things to
-improve just by looking at the code.
+Submit a PR anytime if you find something to improve. There may also be some suggestions in the issues. I'm not the most expert Javascript/NodeJS guy so you will certainly find some little things to fix.
 
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
