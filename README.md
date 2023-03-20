@@ -27,7 +27,7 @@ sudo apt install mpv #Debian/Ubuntu
 scoop install mpv # Windows
 choco install mpv # Windows alternative
 ```
-The .deb package should include mpv as a dependency but due to a bug in electron forge it's not working. So install it manually alongside ffmpeg if you want full functionality on Ubuntu/Debian.
+The .deb package should include mpv as a dependency but [due to a bug in electron forge it's not working](https://github.com/electron/forge/issues/3127). So install it manually alongside ffmpeg if you want full functionality on Ubuntu/Debian.
 
 ## Contribute
 Submit a PR anytime if you find something to improve. There may also be some suggestions in the issues. I'm not the most expert Javascript/NodeJS guy so you will certainly find some little things to fix.
