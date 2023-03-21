@@ -4,16 +4,15 @@ Simple & fast IPTV app made with Electron and Angular
 
 ![alt text](https://github.com/Fredolx/open-tv/blob/main/demo.png)
 
-## Why
+## Features
 
-- Hypnotix was god awful slow and I needed something better for my relatives
-- Lack of good open source IPTV apps
-- Faster and much more stable than the alternatives
+- Super fast
+- Easy to use
+- Recording & favorites
+- Fully customizable player through mpv conf
 
 ## Planned features
 
-- ~~Recording channels~~
-- ~~Clearing cache via GUI and/or multiple sources support~~
 - Xtream support
 - Providing better support for bad streams (proxying the source and relaying to mpv)
 - Publishing on Flathub
