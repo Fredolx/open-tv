@@ -35,6 +35,25 @@ Submit a PR anytime if you find something to improve. There may also be some sug
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
 
+## Build
+For building from source, you will need those packages
+```
+rpm dpkg fakeroot
+```
+For node and npm, I would strongly suggest to use NVM (node version manager) to get the latest LTS.
+
+And then to build
+```
+cd ng-open-tv
+npm run prod
+cd ../electron-open-tv
+npm run publish
+```
+You can add/edit targets in forge.config.js. 
+On Windows, to prepackage mpv, place it in /libs (you will need to also create the folder).
+
+## Repackaging
+I am fine if you repackage the app on open source platforms like the AUR or Snap. As long as proper credit is given and it's free. I do not authorize any repackaging on proprietary platforms like the Microsoft Store.
 
 
 
