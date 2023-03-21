@@ -7,6 +7,7 @@ Simple & fast IPTV app made with Electron and Angular
 ## Features
 
 - Super fast
+- M3U file and link support
 - Easy to use
 - Recording & favorites
 - Fully customizable player through mpv conf
