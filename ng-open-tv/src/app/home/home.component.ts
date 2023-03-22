@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { AllowIn, ShortcutInput } from 'ng-keyboard-shortcuts';
 import { debounceTime, distinctUntilChanged, filter, fromEvent, last, map, Subject, tap } from 'rxjs';
 import { MemoryService } from '../memory.service';
 import { Cache } from '../models/cache';
@@ -11,7 +12,7 @@ import { ViewMode } from '../models/viewMode';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent {
+export class HomeComponent implements AfterViewInit {
   channels: Channel[] = [];
   favChannels: Channel[] = [];
   viewMode = ViewMode.All;
@@ -23,6 +24,7 @@ export class HomeComponent {
   defaultElementsToRetrieve: number = 36;
   elementsToRetrieve: number = this.defaultElementsToRetrieve;
   channelsLeft: number = 0;
+  shortcuts: ShortcutInput[] = [];
 
   constructor(private router: Router, public memory: MemoryService) {
     if (this.memory.Channels.length > 0) {
@@ -82,6 +84,47 @@ export class HomeComponent {
       , distinctUntilChanged()
     ).subscribe((term: string) => {
       this.favChannels = this.filterChannels(term, this.memory.FavChannels, false);
+    });
+
+    this.shortcuts.push(
+      {
+        key: "ctrl + f",
+        label: "Search",
+        description: "Go to search",
+        preventDefault: true,
+        allowIn: [AllowIn.Input],
+        command: _ => this.focusSearch()
+      },
+      {
+        key: "ctrl + a",
+        label: "Show all channels",
+        description: "Selects the all channels mode",
+        allowIn: [AllowIn.Input],
+        command: _ => this.viewMode = this.viewModeEnum.All
+      },
+      {
+        key: "ctrl + s",
+        label: "Show favorites",
+        description: "Selects the favorites channels mode",
+        allowIn: [AllowIn.Input],
+        command: _ => this.viewMode = this.viewModeEnum.Favorites
+      },
+      {
+        key: "ctrl + d",
+        label: "Selects the first channel",
+        description: "Then you can use tab/shift+tab to select the next/previous channels",
+        allowIn: [AllowIn.Input],
+        command: _ => (document.getElementById('first')?.firstChild as HTMLElement)?.focus()
+      }
+    );
+  }
+
+  focusSearch() {
+    let element = this.viewMode == this.viewModeEnum.All ?
+      this.search.nativeElement : this.searchFavs.nativeElement;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    element.focus({
+      preventScroll: true
     });
   }
 

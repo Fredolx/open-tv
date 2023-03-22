@@ -13,6 +13,7 @@ import { SettingsComponent } from './settings/settings.component';
 import { SetupComponent } from './setup/setup.component';
 import { MatMenuModule } from '@angular/material/menu'
 import { FormsModule } from '@angular/forms';
+import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { FormsModule } from '@angular/forms';
     AppRoutingModule,
     NgbTooltipModule,
     ToastrModule.forRoot(),
+    KeyboardShortcutsModule.forRoot(),
     MatMenuModule
   ],
   providers: [],

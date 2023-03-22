@@ -1,3 +1,5 @@
+<ng-keyboard-shortcuts [shortcuts]="shortcuts"></ng-keyboard-shortcuts>
+<ng-keyboard-shortcuts-help [key]="'f1'" [closeKey]="'escape'" [title]="'Help'" />
 <div [hidden]="this.memory.Channels.length == 0" class="mb-5">
     <div class="mdi mdi-cog settings" (click)="openSettings()"></div>
     <div class="container reserve-settings-space">
@@ -17,9 +19,8 @@
                 [ngClass]="{'active': viewMode == viewModeEnum.Favorites}">Favorites</button>
         </div>
 
-
         <div *ngIf="viewMode == viewModeEnum.All" class="row gy-3">
-            <app-channel-tile *ngFor="let channel of channels" class="col-xl-3 col-lg-4 col-md-4"
+            <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index" class="col-xl-3 col-lg-4 col-md-4"
                 [channel]="channel"></app-channel-tile>
         </div>
         <div *ngIf="viewMode == viewModeEnum.Favorites" class="row gy-3">
