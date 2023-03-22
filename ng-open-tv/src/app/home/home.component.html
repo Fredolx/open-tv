@@ -19,9 +19,8 @@
                 [ngClass]="{'active': viewMode == viewModeEnum.Favorites}">Favorites</button>
         </div>
 
-
         <div *ngIf="viewMode == viewModeEnum.All" class="row gy-3">
-            <app-channel-tile *ngFor="let channel of channels" class="col-xl-3 col-lg-4 col-md-4"
+            <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index" class="col-xl-3 col-lg-4 col-md-4"
                 [channel]="channel"></app-channel-tile>
         </div>
         <div *ngIf="viewMode == viewModeEnum.Favorites" class="row gy-3">

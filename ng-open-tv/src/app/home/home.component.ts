@@ -88,12 +88,33 @@ export class HomeComponent implements AfterViewInit {
 
     this.shortcuts.push(
       {
-        key: "ctrl + space",
+        key: "ctrl + f",
         label: "Search",
         description: "Go to search",
         preventDefault: true,
         allowIn: [AllowIn.Input],
         command: _ => this.focusSearch()
+      },
+      {
+        key: "ctrl + a",
+        label: "Show all channels",
+        description: "Selects the all channels mode",
+        allowIn: [AllowIn.Input],
+        command: _ => this.viewMode = this.viewModeEnum.All
+      },
+      {
+        key: "ctrl + s",
+        label: "Show favorites",
+        description: "Selects the favorites channels mode",
+        allowIn: [AllowIn.Input],
+        command: _ => this.viewMode = this.viewModeEnum.Favorites
+      },
+      {
+        key: "ctrl + d",
+        label: "Selects the first channel",
+        description: "Then you can use tab/shift+tab to select the next/previous channels",
+        allowIn: [AllowIn.Input],
+        command: _ => (document.getElementById('first')?.firstChild as HTMLElement)?.focus()
       }
     );
   }
