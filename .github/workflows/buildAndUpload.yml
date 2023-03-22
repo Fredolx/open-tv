@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
     - uses: actions/checkout@v3
@@ -85,5 +85,13 @@ jobs:
       with:
         name: open-tv-windows-squirrel-amd64
         path: ./electron-open-tv/out/make/squirrel.windows/x64/*.exe
+        retention-days: 3
+
+    - name: Upload DMG Artifact
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: open-tv-macos-amd64
+        path: ./electron-open-tv/out/make/*.dmg
         retention-days: 3
 
