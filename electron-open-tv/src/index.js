@@ -148,7 +148,7 @@ function getVideosPath() {
   else
     vPath = join(homePath, 'Videos', 'open-tv');
   if (!existsSync(vPath))
-    mkdirSync(vPath);
+    mkdirSync(vPath, { recursive: true });
   return vPath;
 }
 
@@ -177,7 +177,7 @@ async function fetchSettings() {
 async function saveToCache(channels, url = null) {
   let json = JSON.stringify({ channels: channels, url: url });
   if (!existsSync(appDataPath))
-    mkdir(appDataPath, { recursive: true });
+    await mkdir(appDataPath, { recursive: true });
   await writeFile(cachePath, json);
 }
 
