@@ -7,3 +7,18 @@ body {
     background-color: #202124;
     color: white;
 }
+
+.help-modal__container {
+    .help-modal {
+        background-color: #202124 !important;
+        .item {
+            background-color: #202124 !important;
+            .key {
+                background-color: #202124 !important;
+            }
+            .description {
+                color: white !important;
+            }
+        }
+    }
+}

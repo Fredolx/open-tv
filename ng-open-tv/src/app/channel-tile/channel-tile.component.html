@@ -1,4 +1,4 @@
-<div placement="top" [ngClass]="{'playing': starting, 'disabled': !starting && memory.StartingChannel}"
+<div placement="top" tabindex="0" (keyup.enter)="click()" [ngClass]="{'playing': starting, 'disabled': !starting && memory.StartingChannel}"
     [ngbTooltip]="channel?.name" (click)="click()" class="channel d-inline-flex p-2 align-items-center" (contextmenu)="onRightClick($event)">
     <div style="height: 100%; min-width: 50px;">
         <img (error)="showImage = false" class="channel-image" *ngIf="channel?.image && showImage" src="{{channel?.image}}">
