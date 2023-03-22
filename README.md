@@ -36,13 +36,13 @@ Submit a PR anytime if you find something to improve. There may also be some sug
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
 
 ## Hotkeys
-F1: Help
-Ctrl + a: Show all channels
-Ctrl + s: Show favorites
-Ctrl + d: Select first channel
-    Tab: Select next channel
-    Shift + Tab: Select previous channel
-Ctrl + f: Search
+* F1: Help
+* Ctrl + a: Show all channels
+* Ctrl + s: Show favorites
+* Ctrl + d: Select first channel
+  * Tab: Select next channel
+  * Shift + Tab: Select previous channel
+* Ctrl + f: Search
 
 ## Build
 For building from source, you will need those packages
