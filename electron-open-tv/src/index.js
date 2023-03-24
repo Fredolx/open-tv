@@ -258,7 +258,9 @@ async function playChannel(url, record) {
   let command = `${mpvPath} ${url} --fs`
   if (url.endsWith(".mp4") || url.endsWith(".mkv"))
     command += " --save-position-on-quit";
-  else if (record === true) {
+  else 
+    command += " --cache=no --hls-bitrate=max --keep-open=yes --keep-open-pause=no --stream-lavf-o=reconnect_streamed=1,reconnect_at_eof=1,reconnect_on_network_error=1";
+  if (record === true) {
     let recordingFilePath = join(settings?.recordingPath ?? defaultRecordingPath, getRecordingFileName());
     command += ` --stream-record="${recordingFilePath}"`
   }
