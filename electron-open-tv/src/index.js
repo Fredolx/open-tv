@@ -24,7 +24,7 @@ const favsPath = join(appDataPath, "favs.json");
 const settingsPath = join(appDataPath, "settings.json");
 const homePath = homedir();
 const defaultRecordingPath = getVideosPath();
-var settings;
+var settings = { };
 var mpvPath = "mpv";
 var mpvProcesses = [];
 
@@ -170,8 +170,20 @@ async function getSettings() {
 }
 
 async function fetchSettings() {
-  if (existsSync(settingsPath))
-    settings = JSON.parse(await readFile(settingsPath, { encoding: "utf-8" }));
+  if (existsSync(settingsPath)) {
+    try {
+      settings = JSON.parse(await readFile(settingsPath, { encoding: "utf-8" }));
+    }
+    catch (e) {
+      console.error(`failed retrieving settings: ${e}`);
+    }
+  }
+  applyDefaultSettings();
+}
+
+function applyDefaultSettings() {
+  if(settings.useStreamCaching === undefined)
+    settings.useStreamCaching = true;
 }
 
 async function saveToCache(channels, url = null) {
@@ -258,7 +270,9 @@ async function playChannel(url, record) {
   let command = `${mpvPath} ${url} --fs`
   if (url.endsWith(".mp4") || url.endsWith(".mkv"))
     command += " --save-position-on-quit";
-  else if (record === true) {
+  else
+    command += ` --cache=${settings.useStreamCaching === true ? 'auto' : 'no'} --hls-bitrate=max --prefetch-playlist=yes --loop-playlist=inf`;
+  if (record === true) {
     let recordingFilePath = join(settings?.recordingPath ?? defaultRecordingPath, getRecordingFileName());
     command += ` --stream-record="${recordingFilePath}"`
   }
