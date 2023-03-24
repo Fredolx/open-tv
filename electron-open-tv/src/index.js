@@ -24,7 +24,7 @@ const favsPath = join(appDataPath, "favs.json");
 const settingsPath = join(appDataPath, "settings.json");
 const homePath = homedir();
 const defaultRecordingPath = getVideosPath();
-var settings = { useStreamCaching: true };
+var settings = { };
 var mpvPath = "mpv";
 var mpvProcesses = [];
 
@@ -178,6 +178,12 @@ async function fetchSettings() {
       console.error(`failed retrieving settings: ${e}`);
     }
   }
+  applyDefaultSettings();
+}
+
+function applyDefaultSettings() {
+  if(settings.useStreamCaching === undefined)
+    settings.useStreamCaching = true;
 }
 
 async function saveToCache(channels, url = null) {
