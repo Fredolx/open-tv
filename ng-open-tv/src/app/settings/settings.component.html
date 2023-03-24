@@ -3,7 +3,7 @@
     <h2 class="mt-4 mb-4 text-center">Settings</h2>
     <div class="row align-items-center">
         <div class="col-4">
-            <label>Recording Path</label>
+            <label>Recording path</label>
         </div>
         <div class="col">
             <div class="d-flex align-items-center">
@@ -32,7 +32,7 @@
     <div class="d-flex">
         <span [disableTooltip]="CanRefresh()" [ngbTooltip]="'This option is only available if you use a M3U Url'">
             <button [disabled]="loading || !CanRefresh()" (click)="refresh()" class="btn btn-primary">Refresh
-                Channels</button>
+                channels</button>
         </span>
 
         <button [disabled]="loading" (click)="deleteCache()" class="btn btn-danger ms-3">Delete channels</button>
