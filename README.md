@@ -20,6 +20,9 @@ Simple & fast IPTV app made with Electron and Angular
 
 ## Prerequisites
 The app both depends on mpv and ffmpeg. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion.
+
+The Windows build **comes with mpv included**, but you may still install mpv from a package manager of your choice to always have the latest version installe
+
 ```
 sudo dnf install mpv #Fedora
 sudo pacman -Syu mpv #Arch
@@ -43,6 +46,18 @@ You can install the latest version from [Releases](https://github.com/Fredolx/op
   * Tab: Select next channel
   * Shift + Tab: Select previous channel
 * Ctrl + f: Search
+
+## Settings explained
+
+**Stream Caching**
+
+Why enabling:
+  - If you have a slow internet connection/IPTV provider causing the stream to pause often
+
+Why disabling: 
+  - If the stream often drops completely. It will prevent the stream from jumping too far ahead/behind
+  - If you have a good internet/provider and want lower latency
+  - Can prevent some weird bugs/slowdowns
 
 ## Build
 For building from source, you will need those packages
