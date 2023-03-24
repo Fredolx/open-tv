@@ -271,7 +271,7 @@ async function playChannel(url, record) {
   if (url.endsWith(".mp4") || url.endsWith(".mkv"))
     command += " --save-position-on-quit";
   else
-    command += ` --cache=${settings.useStreamCaching ? 'auto' : 'no'} --hls-bitrate=max --prefetch-playlist=yes --loop-playlist=inf`;
+    command += ` --cache=${settings.useStreamCaching === true ? 'auto' : 'no'} --hls-bitrate=max --prefetch-playlist=yes --loop-playlist=inf`;
   if (record === true) {
     let recordingFilePath = join(settings?.recordingPath ?? defaultRecordingPath, getRecordingFileName());
     command += ` --stream-record="${recordingFilePath}"`
