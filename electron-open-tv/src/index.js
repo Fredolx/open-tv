@@ -174,7 +174,9 @@ async function fetchSettings() {
     try{
       settings = JSON.parse(await readFile(settingsPath, { encoding: "utf-8" }));
     }
-    catch(e) {}
+    catch(e) {
+      console.error(`failed retrieving settings: ${e}`);
+    }
   }
 }
 
