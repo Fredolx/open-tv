@@ -37,6 +37,7 @@ Submit a PR anytime if you find something to improve. There may also be some sug
 
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
+
 If you use Arch Linux, you can also [install it from the AUR](https://aur.archlinux.org/packages/open-tv-bin) 
 
 ## Hotkeys
