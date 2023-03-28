@@ -46,6 +46,9 @@ export class SetupComponent {
 
   async submitXtream() {
     this.loading = true;
+    this.xtream.url = this.xtream.url?.trim();
+    this.xtream.username = this.xtream.username?.trim();
+    this.xtream.password = this.xtream.password?.trim();
     if (await this.memory.GetXtream(this.xtream))
       this.nav.navigateByUrl("");
     else
