@@ -8,6 +8,8 @@ import { exec } from 'node:child_process'
 import { lookpath } from 'lookpath'
 import axios from 'axios'
 import { nameRegExp, idRegExp, logoRegExp, groupRegExp } from './regExps'
+import { getLiveStreams } from './xtreamActions'
+import { live } from './xtreamStreamTypes'
 
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -24,7 +26,7 @@ const favsPath = join(appDataPath, "favs.json");
 const settingsPath = join(appDataPath, "settings.json");
 const homePath = homedir();
 const defaultRecordingPath = getVideosPath();
-var settings = { };
+var settings = {};
 var mpvPath = "mpv";
 var mpvProcesses = [];
 
@@ -100,6 +102,7 @@ ipcMain.handle("downloadM3U", async (_, url) => await downloadM3U(url));
 ipcMain.handle("selectFolder", selectFolder);
 ipcMain.handle("updateSettings", async (_, settings) => await updateSettings(settings));
 ipcMain.handle("getSettings", getSettings);
+ipcMain.handle("getXtream", async (_, xtream) => await getXtream(xtream));
 
 async function updateSettings(_settings) {
   settings = _settings;
@@ -123,7 +126,7 @@ async function selectFile() {
   let dialogResult = await dialog.showOpenDialog({ properties: ['openFile'] });
   if (dialogResult.canceled) return;
   let channels = await parsePlaylist(dialogResult.filePaths[0]);
-  await saveToCache(channels);
+  await saveToCache({ channels: channels });
   return channels;
 }
 
@@ -137,8 +140,48 @@ async function downloadM3U(url) {
     return [];
   }
   let channels = parsePlaylistFromMemory(result.data.split("\n"));
-  await saveToCache(channels, url);
+  await saveToCache({ channels: channels, url: url });
   return channels;
+}
+
+async function getXtream(xtream) {
+  let url = new URL(xtream.url);
+  url.searchParams.append('username', xtream.username);
+  url.searchParams.append('password', xtream.password);
+  url.searchParams.append('action', getLiveStreams);
+  let result;
+  try {
+    result = await axios.get(url.toString());
+  }
+  catch (e) {
+    console.error(e);
+    return [];
+  }
+  let channels = parseXtreamResponse(result.data, xtream, live);
+  await saveToCache(
+    {
+      channels: channels,
+      username: xtream.username,
+      password: xtream.password,
+      url: xtream.url
+    });
+  return channels;
+}
+
+function parseXtreamResponse(data, xtream, streamType) {
+  let baseURL = new URL(xtream.url).origin;
+  let channels = [];
+  data.forEach(x => channels.push(xtreamToChannel(x, baseURL, streamType, xtream.username, xtream.password)));
+  return channels;
+}
+
+function xtreamToChannel(xtreamChannel, baseURL, streamType, username, password) {
+  return {
+    url: `${baseURL}/${streamType}/${username}/${password}/${xtreamChannel.stream_id}.${streamType == live ? 'ts' : xtreamChannel.container_extension}`,
+    name: xtreamChannel.name,
+    image: xtreamChannel.stream_icon,
+    group: xtreamChannel.category_id
+  }
 }
 
 function getVideosPath() {
@@ -182,12 +225,12 @@ async function fetchSettings() {
 }
 
 function applyDefaultSettings() {
-  if(settings.useStreamCaching === undefined)
+  if (settings.useStreamCaching === undefined)
     settings.useStreamCaching = true;
 }
 
-async function saveToCache(channels, url = null) {
-  let json = JSON.stringify({ channels: channels, url: url });
+async function saveToCache(data) {
+  let json = JSON.stringify(data);
   if (!existsSync(appDataPath))
     await mkdir(appDataPath, { recursive: true });
   await writeFile(cachePath, json);

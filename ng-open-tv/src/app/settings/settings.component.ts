@@ -25,7 +25,8 @@ export class SettingsComponent {
 
   async refresh() {
     this.loading = true;
-    if (await this.memory.DownloadM3U())
+    let result = this.memory.Xtream?.url?.trim() ? (await this.memory.GetXtream()) : (await this.memory.DownloadM3U());
+    if (result)
       this.toastr.success("Your channels are now up-to-date");
     else
       this.toastr.error("Error while trying to refresh channels, try again or delete channels cache");
@@ -58,7 +59,7 @@ export class SettingsComponent {
     await this.electron.updateSettings(this.memory.Settings);
   }
 
-  CanRefresh(): boolean {
-    return this.memory.Url?.trim() ? true : false;
+  canRefresh(): boolean {
+    return this.memory.Url?.trim() || this.memory.Xtream?.url?.trim() ? true : false;
   }
 }
