@@ -7,15 +7,16 @@ Simple & fast IPTV app made with Electron and Angular
 ## Features
 
 - Super fast
-- M3U file and link support
+- M3U file, M3U link support and partial Xtream support
 - Easy to use
 - Recording & favorites
 - Fully customizable player through mpv conf
+- Bad/slow/unstable stream mitigations
 
 ## Planned features
 
-- Xtream support
-- Providing better support for bad streams (proxying the source and relaying to mpv)
+- ~~Xtream support~~ (Partially completed)
+- ~~Providing better support for bad streams~~
 - Publishing on Flathub
 
 ## Prerequisites
@@ -80,8 +81,3 @@ On Windows, to prepackage mpv, place it in /libs (you will need to also create t
 
 ## Repackaging
 I am fine if you repackage the app on open source platforms like the AUR or Snap. As long as proper credit is given and it's free. I do not authorize any repackaging on proprietary platforms like the Microsoft Store.
-
-
-
-
-
