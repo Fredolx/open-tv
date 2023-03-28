@@ -34,7 +34,15 @@ export class HomeComponent implements AfterViewInit {
       this.electron.getCache().then((x: { cache: Cache, favs: Channel[] }) => {
         if (x.cache?.channels?.length > 0) {
           this.memory.Channels = x.cache.channels;
-          this.memory.Url = x.cache.url;
+          if (x.cache.username?.trim())
+            this.memory.Xtream =
+            {
+              url: x.cache.url,
+              username: x.cache.username,
+              password: x.cache.password
+            }
+          else
+            this.memory.Url = x.cache.url;
           this.memory.FavChannels = x.favs;
           this.getChannels();
           this.memory.NeedToRefreshFavorites.subscribe(_ => {

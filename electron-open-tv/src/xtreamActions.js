@@ -1,0 +1,1 @@
+export const getLiveStreams = 'get_live_streams';

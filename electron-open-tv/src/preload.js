@@ -9,5 +9,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     downloadM3U: (url) => ipcRenderer.invoke('downloadM3U', url),
     selectFolder: () => ipcRenderer.invoke('selectFolder'),
     updateSettings: (settings) => ipcRenderer.invoke('updateSettings', settings),
-    getSettings: () => ipcRenderer.invoke('getSettings')
+    getSettings: () => ipcRenderer.invoke('getSettings'),
+    getXtream: (xtream) => ipcRenderer.invoke('getXtream', xtream)
 });

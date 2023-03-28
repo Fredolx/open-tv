@@ -37,11 +37,19 @@ export class SetupComponent {
 
   async getFileFromURL() {
     this.loading = true;
-    if (await this.memory.DownloadM3U(this.url)) {
+    if (await this.memory.DownloadM3U(this.url))
       this.nav.navigateByUrl("");
-    }
     else
       this.toastr.error("Invalid URL or credentials. Try again with the same or a different URL");
     this.loading = false;
   }
-} 
+
+  async submitXtream() {
+    this.loading = true;
+    if (await this.memory.GetXtream(this.xtream))
+      this.nav.navigateByUrl("");
+    else
+      this.toastr.error("Invalid URL or credentials. Try again with the same or a different URL");
+    this.loading = false;
+  } 
+}

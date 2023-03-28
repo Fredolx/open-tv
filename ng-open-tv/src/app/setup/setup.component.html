@@ -7,8 +7,7 @@
             <button (click)="setupMode = setupModeEnum.m3u" class="btn btn-secondary"
                 [ngbTooltip]="'If you want to have the option to automatically refresh your channels list with new channels that gets added by your IPTV Provider, this option is recommended over the M3U File'"
                 [ngClass]="{'active': setupMode == setupModeEnum.m3u}">M3U URL</button>
-            <button class="btn btn-secondary"
-                [ngbTooltip]="'Coming soon!'"
+            <button (click)="setupMode = setupModeEnum.xtream" class="btn btn-secondary"
                 [ngClass]="{'active': setupMode == setupModeEnum.xtream}">Xtream</button>
         </div>
         <div *ngIf="setupMode == setupModeEnum.m3uFile">
@@ -30,7 +29,7 @@
         </div>
         <div *ngIf="setupMode == setupModeEnum.xtream">
             <div>Please enter your Xtream login information to begin</div>
-            <form #form="ngForm">
+            <form #form="ngForm" (submit)="submitXtream();">
                 <div class="row mt-2 justify-content-center">
                     <div class="col-lg-6 col-md-8">
                         <input name="url" required class="form-control" [(ngModel)]="xtream.url" placeholder="URL">
