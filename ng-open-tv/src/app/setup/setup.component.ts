@@ -5,6 +5,8 @@ import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { SetupMode } from '../models/setupMode';
 import { Xtream } from '../models/xtream';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-setup',
@@ -12,7 +14,8 @@ import { Xtream } from '../models/xtream';
   styleUrls: ['./setup.component.scss']
 })
 export class SetupComponent {
-  constructor(public memory: MemoryService, private nav: Router, private toastr: ToastrService) { }
+  constructor(public memory: MemoryService, private nav: Router,
+    private toastr: ToastrService, private modalService: NgbModal) { }
   url?: string
   loading = false;
   electron: any = (window as any).electronAPI;
@@ -40,7 +43,7 @@ export class SetupComponent {
     if (await this.memory.DownloadM3U(this.url))
       this.nav.navigateByUrl("");
     else
-      this.toastr.error("Invalid URL or credentials. Try again with the same or a different URL");
+      this.error();
     this.loading = false;
   }
 
@@ -49,10 +52,31 @@ export class SetupComponent {
     this.xtream.url = this.xtream.url?.trim();
     this.xtream.username = this.xtream.username?.trim();
     this.xtream.password = this.xtream.password?.trim();
+    if (!this.xtream.url || !this.xtream.username || !this.xtream.password) {
+      this.error();
+      this.loading = false;
+      return;
+    }
+    if(!this.xtream.url.startsWith('http://')){
+      this.xtream.url = `http://${this.xtream.url}`;
+      this.toastr.info("Since the given URL lacked a protocol, http was assumed");
+    }
+    let url = new URL(this.xtream.url);
+    if (url.pathname == "/") {
+      let result = await this.modalService.open
+        (ConfirmModalComponent, { keyboard: false, backdrop: 'static' }).result;
+      if (result == "correct") {
+        url.pathname = "/player_api.php";
+        this.xtream.url = url.toString();
+      }
+    }
     if (await this.memory.GetXtream(this.xtream))
       this.nav.navigateByUrl("");
     else
-      this.toastr.error("Invalid URL or credentials. Try again with the same or a different URL");
+      this.error();
     this.loading = false;
-  } 
+  }
+  error() {
+    this.toastr.error("Invalid URL or credentials. Try again with the same or a different URL");
+  }
 }
