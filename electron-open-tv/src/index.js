@@ -8,8 +8,8 @@ import { exec } from 'node:child_process'
 import { lookpath } from 'lookpath'
 import axios from 'axios'
 import { nameRegExp, idRegExp, logoRegExp, groupRegExp } from './regExps'
-import { getLiveStreams } from './xtreamActions'
-import { live } from './xtreamStreamTypes'
+import { getLiveStreams, getSeries, getVods } from './xtreamActions'
+import { live, series, vods } from './xtreamStreamTypes'
 
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -148,16 +148,29 @@ async function getXtream(xtream) {
   let url = new URL(xtream.url);
   url.searchParams.append('username', xtream.username);
   url.searchParams.append('password', xtream.password);
-  url.searchParams.append('action', getLiveStreams);
-  let result;
+  let reqs = [];
+  let responses;
   try {
-    result = await axios.get(url.toString());
+    url.searchParams.append('action', getLiveStreams);
+    reqs.push(axios.get(url.toString()));
+
+    url.searchParams.set('action', getVods)
+    reqs.push(axios.get(url.toString()));
+
+    //@TODO different impl for series
+    // url.searchParams.set('action', getSeries)
+    // reqs.push(axios.get(url.toString()));
+
+    responses = await Promise.all(reqs);
   }
   catch (e) {
     console.error(e);
     return [];
   }
-  let channels = parseXtreamResponse(result.data, xtream, live);
+  let channels = [];
+  responses.forEach(x => {
+    channels = channels.concat(parseXtreamResponse(x.data, xtream));
+  })
   await saveToCache(
     {
       channels: channels,
@@ -168,16 +181,16 @@ async function getXtream(xtream) {
   return channels;
 }
 
-function parseXtreamResponse(data, xtream, streamType) {
+function parseXtreamResponse(data, xtream) {
   let baseURL = new URL(xtream.url).origin;
   let channels = [];
-  data.forEach(x => channels.push(xtreamToChannel(x, baseURL, streamType, xtream.username, xtream.password)));
+  data.forEach(x => channels.push(xtreamToChannel(x, baseURL, xtream.username, xtream.password)));
   return channels;
 }
 
-function xtreamToChannel(xtreamChannel, baseURL, streamType, username, password) {
+function xtreamToChannel(xtreamChannel, baseURL, username, password) {
   return {
-    url: `${baseURL}/${streamType}/${username}/${password}/${xtreamChannel.stream_id}.${streamType == live ? 'ts' : xtreamChannel.container_extension}`,
+    url: `${baseURL}/${xtreamChannel.stream_type}/${username}/${password}/${xtreamChannel.stream_id}.${xtreamChannel.stream_type.toLowerCase().trim() == live ? 'ts' : xtreamChannel.container_extension}`,
     name: xtreamChannel.name,
     image: xtreamChannel.stream_icon,
     group: xtreamChannel.category_id
