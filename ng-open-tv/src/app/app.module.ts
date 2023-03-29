@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModalModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { HomeComponent } from './home/home.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
@@ -14,6 +14,7 @@ import { SetupComponent } from './setup/setup.component';
 import { MatMenuModule } from '@angular/material/menu'
 import { FormsModule } from '@angular/forms';
 import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
+import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
     ChannelTileComponent,
     LoadingComponent,
     SettingsComponent,
-    SetupComponent
+    SetupComponent,
+    ConfirmModalComponent
   ],
   imports: [
     BrowserModule,
@@ -32,7 +34,8 @@ import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
     NgbTooltipModule,
     ToastrModule.forRoot(),
     KeyboardShortcutsModule.forRoot(),
-    MatMenuModule
+    MatMenuModule,
+    NgbModalModule
   ],
   providers: [],
   bootstrap: [AppComponent]
