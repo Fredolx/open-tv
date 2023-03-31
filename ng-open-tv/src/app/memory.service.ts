@@ -33,7 +33,6 @@ export class MemoryService {
       this.Channels = channels;
       return true;
     }
-    this.Url = undefined;
     return false;
   }
 
@@ -52,7 +51,6 @@ export class MemoryService {
       this.Channels = channels;
       return true;
     }
-    this.Xtream = undefined;
     return false;
   }
 }

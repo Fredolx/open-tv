@@ -10,6 +10,7 @@ import axios from 'axios'
 import { nameRegExp, idRegExp, logoRegExp, groupRegExp } from './regExps'
 import { getLiveStreams } from './xtreamActions'
 import { live } from './xtreamStreamTypes'
+import { kill } from 'node:process'
 
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -336,6 +337,7 @@ function waitForProcessStart(proc) {
   return new Promise(function (resolve, reject) {
     const timeout = 10000;
     const timer = setTimeout(() => {
+      clearMpvProcesses();
       reject(new Error(`Promise timed out after ${timeout} ms`));
     }, timeout);
     proc.stdout.on('data', function (data) {
