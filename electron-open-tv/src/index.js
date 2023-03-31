@@ -10,7 +10,6 @@ import axios from 'axios'
 import { nameRegExp, idRegExp, logoRegExp, groupRegExp } from './regExps'
 import { getLiveStreams } from './xtreamActions'
 import { live } from './xtreamStreamTypes'
-import { kill } from 'node:process'
 
 if (require('electron-squirrel-startup')) {
   app.quit();
