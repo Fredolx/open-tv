@@ -10,6 +10,7 @@ import axios from 'axios'
 import { nameRegExp, idRegExp, logoRegExp, groupRegExp } from './regExps'
 import { getLiveStreams, getSeries, getVods } from './xtreamActions'
 import { live, series, vods } from './xtreamStreamTypes'
+import { livestream, movie, serie } from './mediaType'
 
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -170,7 +171,7 @@ async function getXtream(xtream) {
   let channels = [];
   responses.forEach(x => {
     channels = channels.concat(parseXtreamResponse(x.data, xtream));
-  })
+  });
   await saveToCache(
     {
       channels: channels,
@@ -193,7 +194,8 @@ function xtreamToChannel(xtreamChannel, baseURL, username, password) {
     url: `${baseURL}/${xtreamChannel.stream_type}/${username}/${password}/${xtreamChannel.stream_id}.${xtreamChannel.stream_type.toLowerCase().trim() == live ? 'ts' : xtreamChannel.container_extension}`,
     name: xtreamChannel.name,
     image: xtreamChannel.stream_icon,
-    group: xtreamChannel.category_id
+    group: xtreamChannel.category_id,
+    type: xtreamChannel.stream_type == live ? livestream : movie
   }
 }
 
@@ -266,6 +268,7 @@ function processChannel(twoLines) {
       group: firstLine.match(groupRegExp)?.groups?.group,
       url: secondLine.trim()
     }
+    channel.type = URLIsNotLivestream(channel.url) ? movie : livestream;
     if (!channel.name || !channel.name?.trim())
       channel.name = firstLine.match(idRegExp)?.groups?.id;
 
@@ -324,7 +327,7 @@ function clearMpvProcesses() {
 async function playChannel(url, record) {
   clearMpvProcesses();
   let command = `${mpvPath} ${url} --fs`
-  if (url.endsWith(".mp4") || url.endsWith(".mkv"))
+  if (URLIsNotLivestream(url))
     command += " --save-position-on-quit";
   else
     command += ` --cache=${settings.useStreamCaching === true ? 'auto' : 'no'} --hls-bitrate=max --prefetch-playlist=yes --loop-playlist=inf`;
@@ -337,6 +340,10 @@ async function playChannel(url, record) {
   console.log("Waiting for mpv start");
   await waitForProcessStart(child);
   console.log(`Playing channel from URL: ${url}`);
+}
+
+function URLIsNotLivestream(url) {
+  return url.endsWith(".mp4") || url.endsWith(".mkv")
 }
 
 function getRecordingFileName() {

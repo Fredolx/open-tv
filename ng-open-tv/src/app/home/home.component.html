@@ -19,9 +19,33 @@
                 [ngClass]="{'active': viewMode == viewModeEnum.Favorites}">Favorites</button>
         </div>
 
+        <div class="mx-auto mb-3 filterBox" *ngIf="viewMode == viewModeEnum.All">
+            <div class="form-check form-check-inline form-switch">
+                <input [(ngModel)]="chkLivestream" (ngModelChange)="load()" class="form-check-input" id="checkLivestreams" type="checkbox">
+                <label class="form-check-label" for="checkLivestreams">
+                    Livestreams
+                </label>
+            </div>
+            <div class="form-check form-check-inline form-switch">
+                <input [(ngModel)]="chkMovie" (ngModelChange)="load()" class="form-check-input" id="checkMovies" type="checkbox">
+                <label *ngIf="memory.Xtream" class="form-check-label" for="checkMovies">
+                    Movies/Vods
+                </label>
+                <label *ngIf="!memory.Xtream">
+                    Movies/Vods/Series
+                </label>
+            </div>
+            <div *ngIf="memory.Xtream" class="form-check form-check-inline form-switch">
+                <input [(ngModel)]="chkSerie" (ngModelChange)="load()" class="form-check-input" id="checkSeries" type="checkbox">
+                <label class="form-check-label" for="checkSeries">
+                    Series
+                </label>
+            </div>
+        </div>
+
         <div *ngIf="viewMode == viewModeEnum.All" class="row gy-3">
-            <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index" class="col-xl-3 col-lg-4 col-md-4"
-                [channel]="channel"></app-channel-tile>
+            <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
+                class="col-xl-3 col-lg-4 col-md-4" [channel]="channel"></app-channel-tile>
         </div>
         <div *ngIf="viewMode == viewModeEnum.Favorites" class="row gy-3">
             <app-channel-tile *ngFor="let channel of favChannels" class="col-xl-3 col-lg-4 col-md-4"

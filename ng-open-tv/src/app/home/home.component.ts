@@ -6,6 +6,7 @@ import { MemoryService } from '../memory.service';
 import { Cache } from '../models/cache';
 import { Channel } from '../models/channel';
 import { ViewMode } from '../models/viewMode';
+import { MediaType } from '../models/mediaType';
 
 @Component({
   selector: 'app-home',
@@ -25,6 +26,9 @@ export class HomeComponent implements AfterViewInit {
   elementsToRetrieve: number = this.defaultElementsToRetrieve;
   channelsLeft: number = 0;
   shortcuts: ShortcutInput[] = [];
+  chkLivestream: boolean = true;
+  chkMovie: boolean = true;
+  chkSerie: boolean = true;
 
   constructor(private router: Router, public memory: MemoryService) {
     if (this.memory.Channels.length > 0) {
@@ -57,11 +61,14 @@ export class HomeComponent implements AfterViewInit {
 
   loadMore() {
     this.elementsToRetrieve += 36;
-    if (this.lastTerm) {
-      this.channels = this.filterChannels(this.lastTerm!, this.memory.Channels);
-    }
-    else
+    this.load();
+  }
+
+  load() {
+    if (this.getAllowedMediaTypes().length == 3 && !this.lastTerm)
       this.channels = this.memory.Channels.slice(0, this.elementsToRetrieve);
+    else
+      this.channels = this.filterChannels(this.lastTerm ?? "", this.memory.Channels);
   }
 
   @HostListener('window:scroll', ['$event'])
@@ -143,12 +150,24 @@ export class HomeComponent implements AfterViewInit {
   }
 
   filterChannels(term: string, source: Channel[], useMax = true) {
+    let allowedTypes = this.getAllowedMediaTypes();
     let result = source
-      .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1)
+      .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1 && allowedTypes.includes(y.type))
     this.channelsLeft = result.length - this.elementsToRetrieve;
     if (useMax)
       result = result.slice(0, this.elementsToRetrieve);
     return result;
+  }
+
+  getAllowedMediaTypes(): Array<MediaType> {
+    let array = [];
+    if (this.chkLivestream)
+      array.push(MediaType.livestream);
+    if (this.chkMovie)
+      array.push(MediaType.movie);
+    if (this.chkSerie)
+      array.push(MediaType.serie);
+    return array;
   }
 
   openSettings() {
