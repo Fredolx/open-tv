@@ -7,6 +7,7 @@ import { Cache } from '../models/cache';
 import { Channel } from '../models/channel';
 import { ViewMode } from '../models/viewMode';
 import { MediaType } from '../models/mediaType';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-home',
@@ -31,13 +32,15 @@ export class HomeComponent implements AfterViewInit {
   chkMovie: boolean = true;
   chkSerie: boolean = true;
 
-  constructor(private router: Router, public memory: MemoryService) {
+  constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
     if (this.memory.Channels.length > 0) {
       this.getChannels();
     }
     else {
-      this.electron.getCache().then((x: { cache: Cache, favs: Channel[] }) => {
+      this.electron.getCache().then((x: { cache: Cache, favs: Channel[], performedMigration?: boolean }) => {
         if (x.cache?.channels?.length > 0) {
+          if (x.performedMigration)
+            toast.info("Your channel data has been migrated. Please delete & re-load your channels if you notice any issues", undefined, {timeOut: 20000})
           this.memory.Channels = x.cache.channels;
           if (x.cache.username?.trim())
             this.memory.Xtream =

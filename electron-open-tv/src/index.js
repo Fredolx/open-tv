@@ -220,7 +220,24 @@ async function getCache() {
     let favsJson = await readFile(favsPath, { encoding: "utf-8" });
     favs = JSON.parse(favsJson);
   }
-  return { cache: cache, favs: favs };
+  let result = { cache: cache, favs: favs };
+  await performMigrations(result);
+  return result;
+}
+
+async function performMigrations(result) {
+  if (!result.cache.channels[0].type){
+    mediaTypeMigration(result.cache);
+    result.performedMigration = true;
+  }
+}
+
+function mediaTypeMigration(cache) {
+  cache.channels.forEach(channel => {
+    if (!channel.type)
+      channel.type = URLIsNotLivestream(channel.url) ? movie : livestream;
+  });
+  saveToCache(cache);
 }
 
 async function getSettings() {
