@@ -49,6 +49,9 @@ If you use Arch Linux, you can also [install it from the AUR](https://aur.archli
   * Tab: Select next channel
   * Shift + Tab: Select previous channel
 * Ctrl + f: Search
+* Ctrl + q: Enable/Disable livestreams
+* Ctrl + w: Enable/Disable movies
+* Ctrl + e: Enable/Disable series
 
 ## Settings explained
 
