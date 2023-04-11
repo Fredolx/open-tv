@@ -11,11 +11,14 @@ body {
 .help-modal__container {
     .help-modal {
         background-color: #202124 !important;
+
         .item {
             background-color: #202124 !important;
+
             .key {
                 background-color: #202124 !important;
             }
+
             .description {
                 color: white !important;
             }
@@ -26,4 +29,8 @@ body {
 .modal-content {
     border-radius: 22px !important;
     background-color: #292b2c;
+}
+
+::-webkit-scrollbar {
+    display: none;
 }
