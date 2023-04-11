@@ -17,24 +17,29 @@ Simple & fast IPTV app made with Electron and Angular
 
 - ~~Xtream support~~ (Partially completed)
 - ~~Providing better support for bad streams~~
+- Add more stream caching options
+- Add custom configurations for specific channels
 - Publishing on Flathub
 
 ## Prerequisites
-The app both depends on mpv and ffmpeg. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion.
+The app both depends on mpv and ffmpeg. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion and on OpenSUSE you will need to 
+install codecs with opi beforehand.
 
-The Windows build **comes with mpv included**, but you may still install mpv from a package manager of your choice to always have the latest version installe
+The Windows build **comes with mpv included**, but you should still install mpv from a package manager of your choice to always have the latest version installed
 
 ```
 sudo dnf install mpv #Fedora
+sudo zypper install mpv #OpenSUSE
 sudo pacman -Syu mpv #Arch
 sudo apt install mpv #Debian/Ubuntu
 scoop install mpv # Windows
 choco install mpv # Windows alternative
 ```
+
 The .deb package should include mpv as a dependency but [due to a bug in electron forge it's not working](https://github.com/electron/forge/issues/3127). So install it manually alongside ffmpeg if you want full functionality on Ubuntu/Debian.
 
-## Contribute
-Submit a PR anytime if you find something to improve. There may also be some suggestions in the issues. I'm not the most expert Javascript/NodeJS guy so you will certainly find some little things to fix.
+## Feedback
+Feel free to submit any kind of feedback by creating a new issue.
 
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
