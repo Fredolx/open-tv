@@ -1,7 +1,7 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AllowIn, ShortcutInput } from 'ng-keyboard-shortcuts';
-import { debounceTime, distinctUntilChanged, filter, fromEvent, last, map, Subject, tap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, fromEvent, map } from 'rxjs';
 import { MemoryService } from '../memory.service';
 import { Cache } from '../models/cache';
 import { Channel } from '../models/channel';
@@ -20,6 +20,7 @@ export class HomeComponent implements AfterViewInit {
   viewModeEnum = ViewMode;
   electron: any = (window as any).electronAPI;
   lastTerm?: string;
+  lastTermFavs?: string;
   @ViewChild('search') search!: ElementRef;
   @ViewChild('searchFavs') searchFavs!: ElementRef;
   defaultElementsToRetrieve: number = 36;
@@ -50,7 +51,13 @@ export class HomeComponent implements AfterViewInit {
           this.memory.FavChannels = x.favs;
           this.getChannels();
           this.memory.NeedToRefreshFavorites.subscribe(_ => {
-            this.favChannels = this.memory.FavChannels;
+            if (this.lastTermFavs?.trim() && this.favChannels.length > 1)
+              this.favChannels = this.filterFavs(this.lastTermFavs);
+            else {
+              if (this.lastTermFavs?.trim())
+                this.searchFavs.nativeElement.value = "";
+              this.favChannels = this.memory.FavChannels;
+            }
           });
         }
         else
@@ -68,7 +75,7 @@ export class HomeComponent implements AfterViewInit {
     if (this.getAllowedMediaTypes().length == 3 && !this.lastTerm)
       this.channels = this.memory.Channels.slice(0, this.elementsToRetrieve);
     else
-      this.channels = this.filterChannels(this.lastTerm ?? "", this.memory.Channels);
+      this.channels = this.filterChannels(this.lastTerm ?? "");
   }
 
   @HostListener('window:scroll', ['$event'])
@@ -88,7 +95,7 @@ export class HomeComponent implements AfterViewInit {
     ).subscribe((term: string) => {
       this.elementsToRetrieve = this.defaultElementsToRetrieve;
       this.lastTerm = term;
-      this.channels = this.filterChannels(term, this.memory.Channels);
+      this.channels = this.filterChannels(term);
     });
 
     fromEvent(this.searchFavs.nativeElement, 'keyup').pipe(
@@ -98,7 +105,8 @@ export class HomeComponent implements AfterViewInit {
       , debounceTime(300)
       , distinctUntilChanged()
     ).subscribe((term: string) => {
-      this.favChannels = this.filterChannels(term, this.memory.FavChannels, false);
+      this.lastTermFavs = term;
+      this.favChannels = this.filterFavs(term);
     });
 
     this.shortcuts.push(
@@ -157,8 +165,8 @@ export class HomeComponent implements AfterViewInit {
         description: "Enable/Disable series",
         allowIn: [AllowIn.Input],
         command: _ => {
-          if(this.memory.Xtream){
-            this.chkSerie = !this.chkSerie; 
+          if (this.memory.Xtream) {
+            this.chkSerie = !this.chkSerie;
             this.load();
           }
         }
@@ -181,13 +189,18 @@ export class HomeComponent implements AfterViewInit {
     this.favChannels = this.memory.FavChannels;
   }
 
-  filterChannels(term: string, source: Channel[], useMax = true) {
+  filterChannels(term: string) {
     let allowedTypes = this.getAllowedMediaTypes();
-    let result = source
+    let result = this.memory.Channels
       .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1 && allowedTypes.includes(y.type))
+      .slice(0, this.elementsToRetrieve);
     this.channelsLeft = result.length - this.elementsToRetrieve;
-    if (useMax)
-      result = result.slice(0, this.elementsToRetrieve);
+    return result;
+  }
+
+  filterFavs(term: string) {
+    let result = this.memory.FavChannels
+      .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1)
     return result;
   }
 
