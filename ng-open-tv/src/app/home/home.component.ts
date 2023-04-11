@@ -193,8 +193,8 @@ export class HomeComponent implements AfterViewInit {
     let allowedTypes = this.getAllowedMediaTypes();
     let result = this.memory.Channels
       .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1 && allowedTypes.includes(y.type))
-      .slice(0, this.elementsToRetrieve);
     this.channelsLeft = result.length - this.elementsToRetrieve;
+    result = result.slice(0, this.elementsToRetrieve);
     return result;
   }
 
