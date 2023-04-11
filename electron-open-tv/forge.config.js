@@ -35,12 +35,17 @@ module.exports = {
       bin: "Open TV",
       config: {
         icon: 'resources/icon.png',
+        categories: ['AudioVideo'],
         depends: ['mpv']
       },
     },
     {
       name: '@electron-forge/maker-rpm',
-      config: {},
+      config: {
+        icon: 'resources/icon.png',
+        categories: ['AudioVideo'],
+        requires: ['mpv']
+      },
     },
   ],
   plugins: [
