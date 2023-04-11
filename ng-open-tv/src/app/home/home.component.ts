@@ -112,25 +112,57 @@ export class HomeComponent implements AfterViewInit {
       },
       {
         key: "ctrl + a",
-        label: "Show all channels",
+        label: "Switching modes",
         description: "Selects the all channels mode",
         allowIn: [AllowIn.Input],
         command: _ => this.viewMode = this.viewModeEnum.All
       },
       {
         key: "ctrl + s",
-        label: "Show favorites",
+        label: "Switching modes",
         description: "Selects the favorites channels mode",
         allowIn: [AllowIn.Input],
         command: _ => this.viewMode = this.viewModeEnum.Favorites
       },
       {
         key: "ctrl + d",
-        label: "Selects the first channel",
-        description: "Then you can use tab/shift+tab to select the next/previous channels",
+        label: "Quick navigation",
+        description: "Selects the first channel. Press tab/shift+tab for next/previous",
         allowIn: [AllowIn.Input],
         command: _ => (document.getElementById('first')?.firstChild as HTMLElement)?.focus()
-      }
+      },
+      {
+        key: "ctrl + q",
+        label: "Media Type Filters",
+        description: "Enable/Disable livestreams",
+        allowIn: [AllowIn.Input],
+        command: _ => {
+          this.chkLivestream = !this.chkLivestream;
+          this.load();
+        }
+      },
+      {
+        key: "ctrl + w",
+        label: "Media Type Filters",
+        description: "Enable/Disable movies",
+        allowIn: [AllowIn.Input],
+        command: _ => {
+          this.chkMovie = !this.chkMovie;
+          this.load();
+        }
+      },
+      {
+        key: "ctrl + e",
+        label: "Media Type Filters",
+        description: "Enable/Disable series",
+        allowIn: [AllowIn.Input],
+        command: _ => {
+          if(this.memory.Xtream){
+            this.chkSerie = !this.chkSerie; 
+            this.load();
+          }
+        }
+      },
     );
   }
 
