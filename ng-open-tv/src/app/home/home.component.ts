@@ -37,6 +37,7 @@ export class HomeComponent implements AfterViewInit {
     if (this.memory.Channels.length > 0) {
       this.getChannels();
       this.getCategories();
+      this.addEvents();
     }
     else {
       this.electron.getCache().then((x: { cache: Cache, favs: Channel[], performedMigration?: boolean }) => {
@@ -56,21 +57,25 @@ export class HomeComponent implements AfterViewInit {
           this.memory.FavChannels = x.favs;
           this.getChannels();
           this.getCategories();
-          this.memory.NeedToRefreshFavorites.subscribe(_ => {
-            if(this.channels.length == 1 && this.lastTerm?.trim()){
-              this.search.nativeElement.value = "";
-              this.lastTerm = "";
-            }
-            this.load();
-          });
-          this.memory.SwitchToCategoriesNode.subscribe(_ => {
-            this.load();
-          });
+          this.addEvents();
         }
         else
           router.navigateByUrl("setup");
       });
     }
+  }
+
+  addEvents() {
+    this.memory.NeedToRefreshFavorites.subscribe(_ => {
+      if(this.channels.length == 1 && this.lastTerm?.trim()){
+        this.search.nativeElement.value = "";
+        this.lastTerm = "";
+      }
+      this.load();
+    });
+    this.memory.SwitchToCategoriesNode.subscribe(_ => {
+      this.load();
+    });
   }
 
   loadMore() {
