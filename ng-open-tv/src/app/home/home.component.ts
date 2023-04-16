@@ -126,17 +126,24 @@ export class HomeComponent implements AfterViewInit {
         label: "Switching modes",
         description: "Selects the all channels mode",
         allowIn: [AllowIn.Input],
-        command: _ => this.viewMode = this.viewModeEnum.All
+        command: _ => this.switchMode(this.viewModeEnum.All)
       },
       {
         key: "ctrl + s",
         label: "Switching modes",
-        description: "Selects the favorites channels mode",
+        description: "Selects the categories channels mode",
         allowIn: [AllowIn.Input],
-        command: _ => this.viewMode = this.viewModeEnum.Favorites
+        command: _ => this.switchMode(this.viewModeEnum.Categories)
       },
       {
         key: "ctrl + d",
+        label: "Switching modes",
+        description: "Selects the favorites channels mode",
+        allowIn: [AllowIn.Input],
+        command: _ => this.switchMode(this.viewModeEnum.Favorites)
+      },
+      {
+        key: "ctrl + space",
         label: "Quick navigation",
         description: "Selects the first channel. Press tab/shift+tab for next/previous",
         allowIn: [AllowIn.Input],
