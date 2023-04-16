@@ -67,15 +67,20 @@ export class HomeComponent implements AfterViewInit {
 
   addEvents() {
     this.memory.NeedToRefreshFavorites.subscribe(_ => {
-      if(this.channels.length == 1 && this.lastTerm?.trim()){
-        this.search.nativeElement.value = "";
-        this.lastTerm = "";
+      if (this.channels.length == 1 && this.lastTerm?.trim()) {
+        this.clearSearch();
       }
       this.load();
     });
     this.memory.SwitchToCategoriesNode.subscribe(_ => {
+      this.clearSearch();
       this.load();
     });
+  }
+
+  clearSearch() {
+    this.search.nativeElement.value = "";
+    this.lastTerm = "";
   }
 
   loadMore() {
