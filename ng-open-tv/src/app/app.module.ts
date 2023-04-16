@@ -24,7 +24,7 @@ import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
     LoadingComponent,
     SettingsComponent,
     SetupComponent,
-    ConfirmModalComponent
+    ConfirmModalComponent,
   ],
   imports: [
     BrowserModule,

@@ -21,9 +21,9 @@ export class HomeComponent implements AfterViewInit {
   viewModeEnum = ViewMode;
   electron: any = (window as any).electronAPI;
   lastTerm?: string;
-  lastTermFavs?: string;
   @ViewChild('search') search!: ElementRef;
   @ViewChild('searchFavs') searchFavs!: ElementRef;
+  @ViewChild('searchCats') searchCats!: ElementRef;
   defaultElementsToRetrieve: number = 36;
   elementsToRetrieve: number = this.defaultElementsToRetrieve;
   channelsLeft: number = 0;
@@ -31,16 +31,19 @@ export class HomeComponent implements AfterViewInit {
   chkLivestream: boolean = true;
   chkMovie: boolean = true;
   chkSerie: boolean = true;
+  categories?: Array<Channel>;
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
     if (this.memory.Channels.length > 0) {
       this.getChannels();
+      this.getCategories();
+      this.addEvents();
     }
     else {
       this.electron.getCache().then((x: { cache: Cache, favs: Channel[], performedMigration?: boolean }) => {
         if (x.cache?.channels?.length > 0) {
           if (x.performedMigration)
-            toast.info("Your channel data has been migrated. Please delete & re-load your channels if you notice any issues", undefined, {timeOut: 20000})
+            toast.info("Your channel data has been migrated. Please delete & re-load your channels if you notice any issues", undefined, { timeOut: 20000 })
           this.memory.Channels = x.cache.channels;
           if (x.cache.username?.trim())
             this.memory.Xtream =
@@ -53,20 +56,31 @@ export class HomeComponent implements AfterViewInit {
             this.memory.Url = x.cache.url;
           this.memory.FavChannels = x.favs;
           this.getChannels();
-          this.memory.NeedToRefreshFavorites.subscribe(_ => {
-            if (this.lastTermFavs?.trim() && this.favChannels.length > 1)
-              this.favChannels = this.filterFavs(this.lastTermFavs);
-            else {
-              if (this.lastTermFavs?.trim())
-                this.searchFavs.nativeElement.value = "";
-              this.favChannels = this.memory.FavChannels;
-            }
-          });
+          this.getCategories();
+          this.addEvents();
         }
         else
           router.navigateByUrl("setup");
       });
     }
+  }
+
+  addEvents() {
+    this.memory.NeedToRefreshFavorites.subscribe(_ => {
+      if (this.channels.length == 1 && this.lastTerm?.trim()) {
+        this.clearSearch();
+      }
+      this.load();
+    });
+    this.memory.SwitchToCategoriesNode.subscribe(_ => {
+      this.clearSearch();
+      this.load();
+    });
+  }
+
+  clearSearch() {
+    this.search.nativeElement.value = "";
+    this.lastTerm = "";
   }
 
   loadMore() {
@@ -75,10 +89,7 @@ export class HomeComponent implements AfterViewInit {
   }
 
   load() {
-    if (this.getAllowedMediaTypes().length == 3 && !this.lastTerm)
-      this.channels = this.memory.Channels.slice(0, this.elementsToRetrieve);
-    else
-      this.channels = this.filterChannels(this.lastTerm ?? "");
+    this.channels = this.filterChannels(this.lastTerm ?? "");
   }
 
   @HostListener('window:scroll', ['$event'])
@@ -101,17 +112,6 @@ export class HomeComponent implements AfterViewInit {
       this.channels = this.filterChannels(term);
     });
 
-    fromEvent(this.searchFavs.nativeElement, 'keyup').pipe(
-      map((event: any) => {
-        return event.target.value;
-      })
-      , debounceTime(300)
-      , distinctUntilChanged()
-    ).subscribe((term: string) => {
-      this.lastTermFavs = term;
-      this.favChannels = this.filterFavs(term);
-    });
-
     this.shortcuts.push(
       {
         key: "ctrl + f",
@@ -126,17 +126,24 @@ export class HomeComponent implements AfterViewInit {
         label: "Switching modes",
         description: "Selects the all channels mode",
         allowIn: [AllowIn.Input],
-        command: _ => this.viewMode = this.viewModeEnum.All
+        command: _ => this.switchMode(this.viewModeEnum.All)
       },
       {
         key: "ctrl + s",
         label: "Switching modes",
-        description: "Selects the favorites channels mode",
+        description: "Selects the categories channels mode",
         allowIn: [AllowIn.Input],
-        command: _ => this.viewMode = this.viewModeEnum.Favorites
+        command: _ => this.switchMode(this.viewModeEnum.Categories)
       },
       {
         key: "ctrl + d",
+        label: "Switching modes",
+        description: "Selects the favorites channels mode",
+        allowIn: [AllowIn.Input],
+        command: _ => this.switchMode(this.viewModeEnum.Favorites)
+      },
+      {
+        key: "ctrl + space",
         label: "Quick navigation",
         description: "Selects the first channel. Press tab/shift+tab for next/previous",
         allowIn: [AllowIn.Input],
@@ -177,11 +184,20 @@ export class HomeComponent implements AfterViewInit {
     );
   }
 
+  switchMode(viewMode: ViewMode) {
+    if (viewMode == this.viewMode)
+      return;
+    this.elementsToRetrieve = this.defaultElementsToRetrieve;
+    this.memory.clearCategoryNode();
+    this.viewMode = viewMode;
+    this.search.nativeElement.value = "";
+    this.lastTerm = "";
+    this.load();
+  }
+
   focusSearch() {
-    let element = this.viewMode == this.viewModeEnum.All ?
-      this.search.nativeElement : this.searchFavs.nativeElement;
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    element.focus({
+    this.search.nativeElement.focus({
       preventScroll: true
     });
   }
@@ -192,18 +208,33 @@ export class HomeComponent implements AfterViewInit {
     this.favChannels = this.memory.FavChannels;
   }
 
-  filterChannels(term: string) {
-    let allowedTypes = this.getAllowedMediaTypes();
-    let result = this.memory.Channels
-      .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1 && allowedTypes.includes(y.type))
-    this.channelsLeft = result.length - this.elementsToRetrieve;
-    result = result.slice(0, this.elementsToRetrieve);
-    return result;
+  getCategories() {
+    let tmpDic: any = {}
+    this.memory.Channels.forEach(x => {
+      if (x.group?.trim() && !tmpDic[x.group] && x.type == MediaType.livestream) {
+        let group: Channel = {
+          name: x.group,
+          group: x.group,
+          image: x.image,
+          url: "",
+          type: MediaType.group
+        }
+        tmpDic[x.group] = group;
+      }
+    });
+
+    this.memory.Categories = Object.values(tmpDic);
+    this.categories = this.memory.Categories.slice(0, this.elementsToRetrieve);
   }
 
-  filterFavs(term: string) {
-    let result = this.memory.FavChannels
-      .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1)
+  filterChannels(term: string) {
+    let params = this.getFilteringParameters();
+    let allowedTypes = params.useFilters ? this.getAllowedMediaTypes() : null
+    let result = params.source
+      .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1
+        && (params.useFilters ? allowedTypes?.includes(y.type) : true))
+    this.channelsLeft = result.length - this.elementsToRetrieve;
+    result = result.slice(0, this.elementsToRetrieve);
     return result;
   }
 
@@ -216,6 +247,24 @@ export class HomeComponent implements AfterViewInit {
     if (this.chkSerie)
       array.push(MediaType.serie);
     return array;
+  }
+
+  getFilteringParameters() {
+    switch (this.viewMode) {
+      case this.viewModeEnum.All:
+        return { source: this.memory.Channels, useFilters: true };
+      case this.viewModeEnum.Favorites:
+        return { source: this.memory.FavChannels, useFilters: true };
+      case this.viewModeEnum.Categories:
+        if (this.memory.SelectedCategory)
+          return { source: this.memory.CategoriesNode, useFilters: true }
+        return { source: this.memory.Categories, useFilters: false };
+    }
+  }
+
+  goBack() {
+    this.memory.clearCategoryNode();
+    this.load();
   }
 
   openSettings() {

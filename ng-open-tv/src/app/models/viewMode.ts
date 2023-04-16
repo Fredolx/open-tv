@@ -1,4 +1,5 @@
 export enum ViewMode {
     All,
-    Favorites
+    Favorites,
+    Categories
 }

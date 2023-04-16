@@ -5,29 +5,30 @@
     <div class="container reserve-settings-space">
         <div class="row mb-3">
             <div class="mx-auto col-xl-6 col-lg-6 col-md-8 col-12">
-                <input [hidden]="viewMode != viewModeEnum.All" type="text" #search style="width: 100%;"
-                    class="form-control" placeholder="Type to search...">
-                <input [hidden]="viewMode != viewModeEnum.Favorites" type="text" #searchFavs style="width: 100%;"
-                    class="form-control" placeholder="Type to search...">
+                <input type="text" #search style="width: 100%;" class="form-control" placeholder="Type to search...">
             </div>
         </div>
 
         <div class="btn-group mx-auto mb-3" style="width: fit-content; display: block;">
-            <button (click)="viewMode = viewModeEnum.All" class="btn btn-primary"
+            <button (click)="switchMode(viewModeEnum.All)" class="btn btn-primary"
                 [ngClass]="{'active': viewMode == viewModeEnum.All}">All</button>
-            <button (click)="viewMode = viewModeEnum.Favorites" class="btn btn-primary"
+            <button (click)="switchMode(viewModeEnum.Categories)" class="btn btn-primary"
+                [ngClass]="{'active': viewMode == viewModeEnum.Categories}">Categories</button>
+            <button (click)="switchMode(viewModeEnum.Favorites)" class="btn btn-primary"
                 [ngClass]="{'active': viewMode == viewModeEnum.Favorites}">Favorites</button>
         </div>
 
-        <div class="mx-auto mb-3 filterBox" *ngIf="viewMode == viewModeEnum.All">
+        <div class="mx-auto mb-3 filterBox" *ngIf="viewMode != viewModeEnum.Categories || memory.SelectedCategory">
             <div class="form-check form-check-inline form-switch">
-                <input [(ngModel)]="chkLivestream" (ngModelChange)="load()" class="form-check-input" id="checkLivestreams" type="checkbox">
+                <input [(ngModel)]="chkLivestream" (ngModelChange)="load()" class="form-check-input"
+                    id="checkLivestreams" type="checkbox">
                 <label class="form-check-label" for="checkLivestreams">
                     Livestreams
                 </label>
             </div>
             <div class="form-check form-check-inline form-switch">
-                <input [(ngModel)]="chkMovie" (ngModelChange)="load()" class="form-check-input" id="checkMovies" type="checkbox">
+                <input [(ngModel)]="chkMovie" (ngModelChange)="load()" class="form-check-input" id="checkMovies"
+                    type="checkbox">
                 <label *ngIf="memory.Xtream" class="form-check-label" for="checkMovies">
                     Movies/Vods
                 </label>
@@ -36,23 +37,25 @@
                 </label>
             </div>
             <div *ngIf="memory.Xtream" class="form-check form-check-inline form-switch">
-                <input [(ngModel)]="chkSerie" (ngModelChange)="load()" class="form-check-input" id="checkSeries" type="checkbox">
+                <input [(ngModel)]="chkSerie" (ngModelChange)="load()" class="form-check-input" id="checkSeries"
+                    type="checkbox">
                 <label class="form-check-label" for="checkSeries">
                     Series
                 </label>
             </div>
         </div>
 
-        <div *ngIf="viewMode == viewModeEnum.All" class="row gy-3">
+        <div class="mb-3 clickable" (click)="goBack()" *ngIf="viewMode == viewModeEnum.Categories && this.memory.SelectedCategory">
+            <span style="font-size: 1.5em;" class="arrow mdi mdi-arrow-left-circle"></span>
+            &nbsp;
+            <h4 class="d-inline">Viewing: {{this.memory.SelectedCategory.group}}</h4>
+        </div>
+        <div class="row gy-3">
             <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
                 class="col-xl-3 col-lg-4 col-md-4" [channel]="channel"></app-channel-tile>
         </div>
-        <div *ngIf="viewMode == viewModeEnum.Favorites" class="row gy-3">
-            <app-channel-tile *ngFor="let channel of favChannels" class="col-xl-3 col-lg-4 col-md-4"
-                [channel]="channel"></app-channel-tile>
-        </div>
     </div>
-    <button *ngIf="channelsLeft > 0 && viewMode != viewModeEnum.Favorites" (click)="loadMore()"
-        class="btn btn-outline-primary mx-auto d-block mt-3">Load More</button>
+    <button *ngIf="channelsLeft > 0" (click)="loadMore()" class="btn btn-outline-primary mx-auto d-block mt-3">Load
+        More</button>
 </div>
 <app-loading [hidden]="this.memory.Channels.length != 0" [center]="true"></app-loading>

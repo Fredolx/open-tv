@@ -11,8 +11,12 @@ export class MemoryService {
   constructor() { }
   public Channels: Channel[] = [];
   public FavChannels: Channel[] = [];
+  public Categories: Channel[] = [];
+  public CategoriesNode: Channel[] = [];
+  public SelectedCategory?: Channel;
   public StartingChannel: boolean = false;
   public NeedToRefreshFavorites: Subject<boolean> = new Subject();
+  public SwitchToCategoriesNode: Subject<boolean> = new Subject();
   public Url?: String
   public Settings: Settings = {};
   private electron: any = (window as any).electronAPI;
@@ -52,5 +56,16 @@ export class MemoryService {
       return true;
     }
     return false;
+  }
+
+  clearCategoryNode() {
+    this.SelectedCategory = undefined;
+    this.CategoriesNode = [];
+  }
+
+  setCategoryNode(channel: Channel) {
+    this.SelectedCategory = channel;
+    this.CategoriesNode = this.Channels.filter(x => x.group === channel.group);
+    this.SwitchToCategoriesNode.next(true);
   }
 }

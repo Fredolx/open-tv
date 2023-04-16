@@ -49,8 +49,9 @@ If you use Arch Linux, you can also [install it from the AUR](https://aur.archli
 ## Hotkeys
 * F1: Help
 * Ctrl + a: Show all channels
-* Ctrl + s: Show favorites
-* Ctrl + d: Select first channel
+* Ctrl + s: Show categories
+* Ctrl + d: Show favorites
+* Ctrl + space: Select first channel
   * Tab: Select next channel
   * Shift + Tab: Select previous channel
 * Ctrl + f: Search
