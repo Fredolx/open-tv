@@ -1,0 +1,8 @@
+<div placement="top" tabindex="0" (keyup.enter)="click()" [ngbTooltip]="channel?.group" (click)="click()"
+    class="channel d-inline-flex p-2 align-items-center">
+    <div style="height: 100%; min-width: 50px;">
+        <img (error)="showImage = false" class="channel-image" *ngIf="channel?.image && showImage"
+            src="{{channel?.image}}">
+    </div>
+    <div class="channel-title">{{channel?.group}}</div>
+</div>

@@ -24,6 +24,7 @@ export class HomeComponent implements AfterViewInit {
   lastTermFavs?: string;
   @ViewChild('search') search!: ElementRef;
   @ViewChild('searchFavs') searchFavs!: ElementRef;
+  @ViewChild('searchCats') searchCats!: ElementRef;
   defaultElementsToRetrieve: number = 36;
   elementsToRetrieve: number = this.defaultElementsToRetrieve;
   channelsLeft: number = 0;
@@ -31,16 +32,18 @@ export class HomeComponent implements AfterViewInit {
   chkLivestream: boolean = true;
   chkMovie: boolean = true;
   chkSerie: boolean = true;
+  categories?: Array<Channel>;
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
     if (this.memory.Channels.length > 0) {
       this.getChannels();
+      this.getCategories();
     }
     else {
       this.electron.getCache().then((x: { cache: Cache, favs: Channel[], performedMigration?: boolean }) => {
         if (x.cache?.channels?.length > 0) {
           if (x.performedMigration)
-            toast.info("Your channel data has been migrated. Please delete & re-load your channels if you notice any issues", undefined, {timeOut: 20000})
+            toast.info("Your channel data has been migrated. Please delete & re-load your channels if you notice any issues", undefined, { timeOut: 20000 })
           this.memory.Channels = x.cache.channels;
           if (x.cache.username?.trim())
             this.memory.Xtream =
@@ -53,6 +56,7 @@ export class HomeComponent implements AfterViewInit {
             this.memory.Url = x.cache.url;
           this.memory.FavChannels = x.favs;
           this.getChannels();
+          this.getCategories();
           this.memory.NeedToRefreshFavorites.subscribe(_ => {
             if (this.lastTermFavs?.trim() && this.favChannels.length > 1)
               this.favChannels = this.filterFavs(this.lastTermFavs);
@@ -110,6 +114,16 @@ export class HomeComponent implements AfterViewInit {
     ).subscribe((term: string) => {
       this.lastTermFavs = term;
       this.favChannels = this.filterFavs(term);
+    });
+
+    fromEvent(this.searchCats.nativeElement, 'keyup').pipe(
+      map((event: any) => {
+        return event.target.value;
+      })
+      , debounceTime(300)
+      , distinctUntilChanged()
+    ).subscribe((term: string) => {
+      this.categories = this.filterCats(term);
     });
 
     this.shortcuts.push(
@@ -192,6 +206,17 @@ export class HomeComponent implements AfterViewInit {
     this.favChannels = this.memory.FavChannels;
   }
 
+  getCategories() {
+    let tmpDic: any = {}
+    this.memory.Channels.forEach(x => {
+      if (x.group.trim() && !tmpDic[x.group] && x.type == MediaType.livestream) {
+        tmpDic[x.group] = x;
+      }
+    });
+    this.categories = Object.values(tmpDic);
+    this.memory.Categories = [...this.categories];
+  }
+
   filterChannels(term: string) {
     let allowedTypes = this.getAllowedMediaTypes();
     let result = this.memory.Channels
@@ -204,6 +229,12 @@ export class HomeComponent implements AfterViewInit {
   filterFavs(term: string) {
     let result = this.memory.FavChannels
       .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1)
+    return result;
+  }
+
+  filterCats(term: string) {
+    let result = this.memory.Categories
+      .filter(y => y.group.toLowerCase().indexOf(term.toLowerCase()) > -1)
     return result;
   }
 

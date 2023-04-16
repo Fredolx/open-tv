@@ -11,6 +11,9 @@ export class MemoryService {
   constructor() { }
   public Channels: Channel[] = [];
   public FavChannels: Channel[] = [];
+  public Categories: Channel[] = [];
+  public CategoriesNode: Channel[] = [];
+  public SelectedCategory?: Channel;
   public StartingChannel: boolean = false;
   public NeedToRefreshFavorites: Subject<boolean> = new Subject();
   public Url?: String
