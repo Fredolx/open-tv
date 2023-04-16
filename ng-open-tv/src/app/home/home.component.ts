@@ -170,6 +170,7 @@ export class HomeComponent implements AfterViewInit {
     this.memory.clearCategoryNode();
     this.viewMode = viewMode;
     this.search.nativeElement.value = "";
+    this.lastTerm = "";
     this.load();
   }
 
