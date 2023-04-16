@@ -21,7 +21,6 @@ export class HomeComponent implements AfterViewInit {
   viewModeEnum = ViewMode;
   electron: any = (window as any).electronAPI;
   lastTerm?: string;
-  lastTermFavs?: string;
   @ViewChild('search') search!: ElementRef;
   @ViewChild('searchFavs') searchFavs!: ElementRef;
   @ViewChild('searchCats') searchCats!: ElementRef;
@@ -58,13 +57,7 @@ export class HomeComponent implements AfterViewInit {
           this.getChannels();
           this.getCategories();
           this.memory.NeedToRefreshFavorites.subscribe(_ => {
-            if (this.lastTermFavs?.trim() && this.favChannels.length > 1)
-              this.favChannels = this.filterFavs(this.lastTermFavs);
-            else {
-              if (this.lastTermFavs?.trim())
-                this.searchFavs.nativeElement.value = "";
-              this.favChannels = this.memory.FavChannels;
-            }
+           this.load();
           });
         }
         else
@@ -79,9 +72,6 @@ export class HomeComponent implements AfterViewInit {
   }
 
   load() {
-    if (this.getAllowedMediaTypes().length == 3 && !this.lastTerm)
-      this.channels = this.memory.Channels.slice(0, this.elementsToRetrieve);
-    else
       this.channels = this.filterChannels(this.lastTerm ?? "");
   }
 
@@ -103,27 +93,6 @@ export class HomeComponent implements AfterViewInit {
       this.elementsToRetrieve = this.defaultElementsToRetrieve;
       this.lastTerm = term;
       this.channels = this.filterChannels(term);
-    });
-
-    fromEvent(this.searchFavs.nativeElement, 'keyup').pipe(
-      map((event: any) => {
-        return event.target.value;
-      })
-      , debounceTime(300)
-      , distinctUntilChanged()
-    ).subscribe((term: string) => {
-      this.lastTermFavs = term;
-      this.favChannels = this.filterFavs(term);
-    });
-
-    fromEvent(this.searchCats.nativeElement, 'keyup').pipe(
-      map((event: any) => {
-        return event.target.value;
-      })
-      , debounceTime(300)
-      , distinctUntilChanged()
-    ).subscribe((term: string) => {
-      this.categories = this.filterCats(term);
     });
 
     this.shortcuts.push(
@@ -191,11 +160,15 @@ export class HomeComponent implements AfterViewInit {
     );
   }
 
+  switchMode(viewMode: ViewMode) {
+    this.viewMode = viewMode;
+    this.search.nativeElement.value = "";
+    this.load();
+  }
+
   focusSearch() {
-    let element = this.viewMode == this.viewModeEnum.All ?
-      this.search.nativeElement : this.searchFavs.nativeElement;
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    element.focus({
+    this.search.nativeElement.focus({
       preventScroll: true
     });
   }
@@ -218,23 +191,13 @@ export class HomeComponent implements AfterViewInit {
   }
 
   filterChannels(term: string) {
-    let allowedTypes = this.getAllowedMediaTypes();
-    let result = this.memory.Channels
-      .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1 && allowedTypes.includes(y.type))
+    let params = this.getFilteringParameters();
+    let allowedTypes = params.useFilters ? this.getAllowedMediaTypes() : null
+    let result = params.source
+      .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1
+        && (params.useFilters ? allowedTypes?.includes(y.type) : true))
     this.channelsLeft = result.length - this.elementsToRetrieve;
     result = result.slice(0, this.elementsToRetrieve);
-    return result;
-  }
-
-  filterFavs(term: string) {
-    let result = this.memory.FavChannels
-      .filter(y => y.name.toLowerCase().indexOf(term.toLowerCase()) > -1)
-    return result;
-  }
-
-  filterCats(term: string) {
-    let result = this.memory.Categories
-      .filter(y => y.group.toLowerCase().indexOf(term.toLowerCase()) > -1)
     return result;
   }
 
@@ -247,6 +210,17 @@ export class HomeComponent implements AfterViewInit {
     if (this.chkSerie)
       array.push(MediaType.serie);
     return array;
+  }
+
+  getFilteringParameters() {
+    switch (this.viewMode) {
+      case this.viewModeEnum.All:
+        return { source: this.memory.Channels, useFilters: true };
+      case this.viewModeEnum.Favorites:
+        return { source: this.memory.FavChannels, useFilters: true };
+      case this.viewModeEnum.Categories:
+        return { source: this.memory.Categories, useFilters: false };
+    }
   }
 
   openSettings() {
