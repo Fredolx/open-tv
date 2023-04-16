@@ -8,7 +8,7 @@ import { exec } from 'node:child_process'
 import { lookpath } from 'lookpath'
 import axios from 'axios'
 import { nameRegExp, idRegExp, logoRegExp, groupRegExp } from './regExps'
-import { getLiveStreams, getSeries, getVods } from './xtreamActions'
+import { getLiveStreamCategories, getLiveStreams, getSeries, getVodCategories, getVods } from './xtreamActions'
 import { live, series, vods } from './xtreamStreamTypes'
 import { livestream, movie, serie } from './mediaType'
 
@@ -155,9 +155,14 @@ async function getXtream(xtream) {
     url.searchParams.append('action', getLiveStreams);
     reqs.push(axios.get(url.toString()));
 
+    url.searchParams.set('action', getLiveStreamCategories);
+    reqs.push(axios.get(url.toString()));
+
     url.searchParams.set('action', getVods)
     reqs.push(axios.get(url.toString()));
 
+    url.searchParams.set('action', getVodCategories);
+    reqs.push(axios.get(url.toString()));
     //@TODO different impl for series
     // url.searchParams.set('action', getSeries)
     // reqs.push(axios.get(url.toString()));
@@ -169,8 +174,19 @@ async function getXtream(xtream) {
     return [];
   }
   let channels = [];
-  responses.forEach(x => {
-    channels = channels.concat(parseXtreamResponse(x.data, xtream));
+  let dataSet = [];
+  responses.forEach((x) => {
+    dataSet.push(x);
+    if(dataSet.length == 2) {
+      let catsArr = dataSet[1].data;
+      let catsDic = {};
+      catsArr.forEach(y => {
+        catsDic[y.category_id] = {
+          name: y.category_name
+        };
+      });
+      channels = channels.concat(parseXtreamResponse(dataSet[0].data, xtream, catsDic));
+    }
   });
   await saveToCache(
     {
@@ -182,19 +198,19 @@ async function getXtream(xtream) {
   return channels;
 }
 
-function parseXtreamResponse(data, xtream) {
+function parseXtreamResponse(data, xtream, cats) {
   let baseURL = new URL(xtream.url).origin;
   let channels = [];
-  data.forEach(x => channels.push(xtreamToChannel(x, baseURL, xtream.username, xtream.password)));
+  data.forEach(x => channels.push(xtreamToChannel(x, baseURL, xtream.username, xtream.password, cats[x.category_id])));
   return channels;
 }
 
-function xtreamToChannel(xtreamChannel, baseURL, username, password) {
+function xtreamToChannel(xtreamChannel, baseURL, username, password, cat) {
   return {
     url: `${baseURL}/${xtreamChannel.stream_type}/${username}/${password}/${xtreamChannel.stream_id}.${xtreamChannel.stream_type.toLowerCase().trim() == live ? 'ts' : xtreamChannel.container_extension}`,
     name: xtreamChannel.name,
     image: xtreamChannel.stream_icon,
-    group: xtreamChannel.category_id,
+    group: cat.name,
     type: xtreamChannel.stream_type == live ? livestream : movie
   }
 }

@@ -57,6 +57,10 @@ export class HomeComponent implements AfterViewInit {
           this.getChannels();
           this.getCategories();
           this.memory.NeedToRefreshFavorites.subscribe(_ => {
+            if(this.channels.length == 1 && this.lastTerm?.trim()){
+              this.search.nativeElement.value = "";
+              this.lastTerm = "";
+            }
             this.load();
           });
           this.memory.SwitchToCategoriesNode.subscribe(_ => {
@@ -164,7 +168,7 @@ export class HomeComponent implements AfterViewInit {
   }
 
   switchMode(viewMode: ViewMode) {
-    if(viewMode == this.viewMode)
+    if (viewMode == this.viewMode)
       return;
     this.elementsToRetrieve = this.defaultElementsToRetrieve;
     this.memory.clearCategoryNode();
@@ -190,10 +194,15 @@ export class HomeComponent implements AfterViewInit {
   getCategories() {
     let tmpDic: any = {}
     this.memory.Channels.forEach(x => {
-      if (x.group.trim() && !tmpDic[x.group] && x.type == MediaType.livestream) {
-        x.name = x.group;
-        x.type = MediaType.group;
-        tmpDic[x.group] = x;
+      if (x.group?.trim() && !tmpDic[x.group] && x.type == MediaType.livestream) {
+        let group: Channel = {
+          name: x.group,
+          group: x.group,
+          image: x.image,
+          url: "",
+          type: MediaType.group
+        }
+        tmpDic[x.group] = group;
       }
     });
 
