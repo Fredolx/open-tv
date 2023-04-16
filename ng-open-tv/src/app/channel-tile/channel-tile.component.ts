@@ -2,6 +2,7 @@ import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MemoryService } from '../memory.service';
 import { Channel } from '../models/channel';
+import { MediaType } from '../models/mediaType';
 
 @Component({
   selector: 'app-channel-tile',
@@ -23,6 +24,10 @@ export class ChannelTileComponent {
   }
 
   async click(record = false) {
+    if (this.channel?.type == MediaType.group) {
+      this.memory.setCategoryNode(this.channel);
+      return;
+    }
     if (this.memory.StartingChannel)
       return;
     this.starting = true;
@@ -36,6 +41,8 @@ export class ChannelTileComponent {
   }
 
   onRightClick(event: MouseEvent) {
+    if (this.channel?.type == MediaType.group)
+      return;
     this.alreadyExistsInFav = this.alreadyExistsInFavorites();
     event.preventDefault();
     this.menuTopLeftPosition.x = event.clientX;
@@ -66,7 +73,7 @@ export class ChannelTileComponent {
     await this.click(true);
   }
 
-  isMovie(){
-    return this.channel?.url?.endsWith('.mkv') || this.channel?.url?.endsWith('.mp4') 
+  isMovie() {
+    return this.channel?.url?.endsWith('.mkv') || this.channel?.url?.endsWith('.mp4')
   }
 }

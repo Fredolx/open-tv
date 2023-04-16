@@ -57,7 +57,10 @@ export class HomeComponent implements AfterViewInit {
           this.getChannels();
           this.getCategories();
           this.memory.NeedToRefreshFavorites.subscribe(_ => {
-           this.load();
+            this.load();
+          });
+          this.memory.SwitchToCategoriesNode.subscribe(_ => {
+            this.load();
           });
         }
         else
@@ -72,7 +75,7 @@ export class HomeComponent implements AfterViewInit {
   }
 
   load() {
-      this.channels = this.filterChannels(this.lastTerm ?? "");
+    this.channels = this.filterChannels(this.lastTerm ?? "");
   }
 
   @HostListener('window:scroll', ['$event'])
@@ -161,6 +164,10 @@ export class HomeComponent implements AfterViewInit {
   }
 
   switchMode(viewMode: ViewMode) {
+    if(viewMode == this.viewMode)
+      return;
+    this.elementsToRetrieve = this.defaultElementsToRetrieve;
+    this.memory.clearCategoryNode();
     this.viewMode = viewMode;
     this.search.nativeElement.value = "";
     this.load();
@@ -183,11 +190,14 @@ export class HomeComponent implements AfterViewInit {
     let tmpDic: any = {}
     this.memory.Channels.forEach(x => {
       if (x.group.trim() && !tmpDic[x.group] && x.type == MediaType.livestream) {
+        x.name = x.group;
+        x.type = MediaType.group;
         tmpDic[x.group] = x;
       }
     });
-    this.categories = Object.values(tmpDic);
-    this.memory.Categories = [...this.categories];
+
+    this.memory.Categories = Object.values(tmpDic);
+    this.categories = this.memory.Categories.slice(0, this.elementsToRetrieve);
   }
 
   filterChannels(term: string) {
@@ -219,8 +229,15 @@ export class HomeComponent implements AfterViewInit {
       case this.viewModeEnum.Favorites:
         return { source: this.memory.FavChannels, useFilters: true };
       case this.viewModeEnum.Categories:
+        if (this.memory.SelectedCategory)
+          return { source: this.memory.CategoriesNode, useFilters: true }
         return { source: this.memory.Categories, useFilters: false };
     }
+  }
+
+  goBack() {
+    this.memory.clearCategoryNode();
+    this.load();
   }
 
   openSettings() {
