@@ -22,3 +22,20 @@ a {
 .btn.disabled {
     pointer-events: auto !important;
 }
+
+#mySlider {
+    width: 100%;
+    height: 25px;
+  }
+
+  .tickmarks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: -10px
+  }
+
+  .ticklabel {
+    display: inline-block;
+    text-align: center;
+    width: fit-content
+  }

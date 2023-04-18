@@ -12,25 +12,42 @@
                 <button (click)="selectFolder()" class="btn btn-primary btn-sm ms-4">
                     Change <span class="mdi mdi-folder-open ms-2"></span>
                 </button>
-            </div>        
+            </div>
         </div>
     </div>
 
-    <div class="row mt-3 align-items-center">
+    <div class="row mt-3 align-items-bottom">
         <div class="col-4">
-            <span [ngbTooltip]="'Depending on your provider/internet connection, using no caching would give you a lower latency and a more stable experience'">Use stream caching</span>
+            <span
+                [ngbTooltip]="'Depending on your provider/internet connection, using no caching would give you a lower latency and a more stable experience'">Use
+                stream caching</span>
         </div>
         <div class="col">
-            <div class="form-check form-switch">
-                <input [(ngModel)]="memory.Settings!.useStreamCaching" (ngModelChange)="updateSettings()" class="form-check-input" type="checkbox">
+            <input type="range" min="0" max="2" value="1" step="1" id="mySlider">
+            <div class="tickmarks">
+                <span class="ticklabel">Never</span>
+                <span style="margin-left: 1%;" class="ticklabel">Auto</span>
+                <span class="ticklabel">Always</span>
             </div>
         </div>
+    </div>
 
+    <div class="row mt-3 align-items-bottom">
+        <div class="col-4">
+            <label>Seconds to cache</label>
+        </div>
+        <div class="col">
+            <div class="d-flex">
+                <input [defaultValue]="30" style="width: 88%;" [(ngModel)]="memory.Settings.cacheSecs" type="range" min="0" max="300" step="5" id="mySlider">
+                <span style="margin-left: 1em;">{{memory.Settings.cacheSecs}}</span>
+            </div>
+        </div>
     </div>
 
     <h2 class="mt-4 mb-4 text-center">Actions</h2>
     <div class="d-flex">
-        <span [disableTooltip]="canRefresh()" [ngbTooltip]="'This option is only available if you use a M3U Url or Xtream'">
+        <span [disableTooltip]="canRefresh()"
+            [ngbTooltip]="'This option is only available if you use a M3U Url or Xtream'">
             <button [disabled]="loading || !canRefresh()" (click)="refresh()" class="btn btn-primary">Refresh
                 channels</button>
         </span>
