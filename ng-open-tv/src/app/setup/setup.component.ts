@@ -57,7 +57,7 @@ export class SetupComponent {
       this.loading = false;
       return;
     }
-    if(!this.xtream.url.startsWith('http://')){
+    if(!this.xtream.url.startsWith('http://') && !this.xtream.url.startsWith('https://')){
       this.xtream.url = `http://${this.xtream.url}`;
       this.toastr.info("Since the given URL lacked a protocol, http was assumed");
     }
