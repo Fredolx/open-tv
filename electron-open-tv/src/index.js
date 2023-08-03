@@ -163,9 +163,6 @@ async function getXtream(xtream) {
 
     url.searchParams.set('action', getVodCategories);
     reqs.push(axios.get(url.toString()));
-    //@TODO different impl for series
-    // url.searchParams.set('action', getSeries)
-    // reqs.push(axios.get(url.toString()));
 
     responses = await Promise.all(reqs);
   }
@@ -174,19 +171,17 @@ async function getXtream(xtream) {
     return [];
   }
   let channels = [];
-  let dataSet = [];
-  responses.forEach((x) => {
-    dataSet.push(x);
-    if(dataSet.length == 2) {
-      let catsArr = dataSet[1].data;
-      let catsDic = {};
-      catsArr.forEach(y => {
-        catsDic[y.category_id] = {
+  let categoriesStreams = Array.from({ length: responses.length / 2 }, () => responses.splice(0, 2).map(x => x.data));
+  categoriesStreams.forEach((x) => {
+      let categories = x[1];
+      let streams = x[0];
+      let categoriesDic = {};
+      categories.forEach(y => {
+        categoriesDic[y.category_id] = {
           name: y.category_name
         };
       });
-      channels = channels.concat(parseXtreamResponse(dataSet[0].data, xtream, catsDic));
-    }
+      channels = channels.concat(parseXtreamResponse(streams, xtream, categoriesDic));
   });
   await saveToCache(
     {
@@ -198,19 +193,19 @@ async function getXtream(xtream) {
   return channels;
 }
 
-function parseXtreamResponse(data, xtream, cats) {
+function parseXtreamResponse(streams, xtream, categoriesDic) {
   let baseURL = new URL(xtream.url).origin;
   let channels = [];
-  data.forEach(x => channels.push(xtreamToChannel(x, baseURL, xtream.username, xtream.password, cats[x.category_id])));
+  streams.forEach(x => channels.push(xtreamToChannel(x, baseURL, xtream.username, xtream.password, categoriesDic[x.category_id])));
   return channels;
 }
 
 function xtreamToChannel(xtreamChannel, baseURL, username, password, cat) {
   return {
-    url: `${baseURL}/${xtreamChannel.stream_type}/${username}/${password}/${xtreamChannel.stream_id}.${xtreamChannel.stream_type.toLowerCase().trim() == live ? 'ts' : xtreamChannel.container_extension}`,
+    url: `${baseURL}/${xtreamChannel.stream_type}/${username}/${password}/${xtreamChannel.stream_id}.${xtreamChannel.stream_type?.toLowerCase()?.trim() == live ? 'ts' : xtreamChannel.container_extension}`,
     name: xtreamChannel.name,
     image: xtreamChannel.stream_icon,
-    group: cat.name,
+    group: cat?.name,
     type: xtreamChannel.stream_type == live ? livestream : movie
   }
 }
@@ -237,23 +232,7 @@ async function getCache() {
     favs = JSON.parse(favsJson);
   }
   let result = { cache: cache, favs: favs };
-  await performMigrations(result);
   return result;
-}
-
-async function performMigrations(result) {
-  if (!result.cache.channels[0].type){
-    mediaTypeMigration(result.cache);
-    result.performedMigration = true;
-  }
-}
-
-function mediaTypeMigration(cache) {
-  cache.channels.forEach(channel => {
-    if (!channel.type)
-      channel.type = URLIsNotLivestream(channel.url) ? movie : livestream;
-  });
-  saveToCache(cache);
 }
 
 async function getSettings() {
