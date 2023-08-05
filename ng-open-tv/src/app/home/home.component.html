@@ -52,7 +52,7 @@
         </div>
         <div class="row gy-3">
             <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
-                class="col-xl-3 col-lg-4 col-md-4" [channel]="channel"></app-channel-tile>
+                class="col-lg-4 col-md-4" [id]="i" [channel]="channel"></app-channel-tile>
         </div>
     </div>
     <button *ngIf="channelsLeft > 0" (click)="loadMore()" class="btn btn-outline-primary mx-auto d-block mt-3">Load

@@ -32,6 +32,8 @@ export class HomeComponent implements AfterViewInit {
   chkMovie: boolean = true;
   chkSerie: boolean = true;
   categories?: Array<Channel>;
+  focus: number = 0;
+  navKeys: Array<string> = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"];
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
     if (this.memory.Channels.length > 0) {
@@ -99,6 +101,11 @@ export class HomeComponent implements AfterViewInit {
     }
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    event.target.innerWidth;
+  }
+
   ngAfterViewInit(): void {
     fromEvent(this.search.nativeElement, 'keyup').pipe(
       map((event: any) => {
@@ -125,7 +132,7 @@ export class HomeComponent implements AfterViewInit {
         key: "ctrl + a",
         label: "Switching modes",
         description: "Selects the all channels mode",
-        allowIn: [AllowIn.Input],
+        preventDefault: true,
         command: _ => this.switchMode(this.viewModeEnum.All)
       },
       {
@@ -196,6 +203,7 @@ export class HomeComponent implements AfterViewInit {
   }
 
   focusSearch() {
+    this.focus = 0;
     window.scrollTo({ top: 0, behavior: 'smooth' });
     this.search.nativeElement.focus({
       preventScroll: true
@@ -269,5 +277,39 @@ export class HomeComponent implements AfterViewInit {
 
   openSettings() {
     this.router.navigateByUrl("settings");
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if(!this.navKeys.includes(event.key))
+      return;
+    console.log('Key pressed:', event.key);
+    let tmpFocus = this.focus;
+    switch (event.key) {
+      case "ArrowUp":
+        event.preventDefault();
+        tmpFocus -=3;
+        break;
+      case "ArrowDown":
+        event.preventDefault();
+        tmpFocus +=3;
+        break;
+      case "ArrowLeft":
+        tmpFocus -= 1;
+        break;
+      case "Tab":
+      case "ArrowRight":
+        tmpFocus += 1;
+        break;
+    }
+    console.log(tmpFocus);
+    if(tmpFocus < 0)
+      tmpFocus = 0;
+    if(tmpFocus >= this.elementsToRetrieve)
+      this.loadMore();
+    else {
+      this.focus = tmpFocus;
+      document.getElementById(`tile-${this.focus}`)?.focus();
+    }
   }
 }

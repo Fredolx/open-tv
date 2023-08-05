@@ -12,6 +12,7 @@ import { MediaType } from '../models/mediaType';
 export class ChannelTileComponent {
   constructor(public memory: MemoryService) { }
   @Input() channel?: Channel;
+  @Input() id!: Number;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
   menuTopLeftPosition = { x: 0, y: 0 }
   showImage: boolean = true;
