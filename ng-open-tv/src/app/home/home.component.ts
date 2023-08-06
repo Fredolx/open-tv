@@ -35,6 +35,7 @@ export class HomeComponent implements AfterViewInit {
   categories?: Array<Channel>;
   focus: number = 0;
   focusArea = FocusArea.Tiles;
+  currentWindowSize: number = window.innerWidth;
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
     if (this.memory.Channels.length > 0) {
@@ -104,7 +105,7 @@ export class HomeComponent implements AfterViewInit {
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
-    event.target.innerWidth;
+   this.currentWindowSize = event.target.innerWidth;
   }
 
   ngAfterViewInit(): void {
@@ -359,10 +360,11 @@ export class HomeComponent implements AfterViewInit {
   }
 
   nav(key: string) {
+    let lowSize = this.currentWindowSize < 768
     if(this.memory.currentContextMenu?.menuOpen){
       return;
     }
-    let tmpFocus = this.focus;
+    let tmpFocus = 0;
     switch (key) {
       case "ArrowUp":
         tmpFocus -=3;
@@ -379,6 +381,9 @@ export class HomeComponent implements AfterViewInit {
         tmpFocus += 1;
         break;
     }
+    if(lowSize && (tmpFocus % 3 == 0) && this.focusArea == FocusArea.Tiles)
+      tmpFocus / 3;
+    tmpFocus += this.focus;
     if(tmpFocus < 0){
      this.changeFocusArea(false);
     }
