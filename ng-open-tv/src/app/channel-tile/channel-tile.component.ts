@@ -48,7 +48,7 @@ export class ChannelTileComponent {
     event.preventDefault();
     this.menuTopLeftPosition.x = event.clientX;
     this.menuTopLeftPosition.y = event.clientY;
-    if (this.memory.currentContextMenu)
+    if (this.memory.currentContextMenu?.menuOpen)
       this.memory.currentContextMenu.closeMenu();
     this.memory.currentContextMenu = this.matMenuTrigger;
     this.matMenuTrigger.openMenu();
