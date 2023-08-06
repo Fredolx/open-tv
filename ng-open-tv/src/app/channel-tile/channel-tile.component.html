@@ -13,10 +13,10 @@
 
 <mat-menu #rightMenu="matMenu">
 	<ng-template matMenuContent let-item="item">
-		<button id="fav" mat-menu-item (click)="favorite()">
+		<button mat-menu-item (click)="favorite()">
             <ng-container *ngIf="alreadyExistsInFav">Unfavorite</ng-container>
             <ng-container *ngIf="!alreadyExistsInFav">Favorite</ng-container>
         </button>
-        <button id="record" [hidden]="isMovie()" mat-menu-item (click)="record()">Record</button>
+        <button [hidden]="isMovie()" mat-menu-item (click)="record()">Record</button>
 	</ng-template>
 </mat-menu>
