@@ -390,19 +390,19 @@ export class HomeComponent implements AfterViewInit {
       this.focusArea += increment
     if(this.focusArea < 0)
       this.focusArea = 0;
-    this.applyFocusArea();
+    this.applyFocusArea(down);
   }
 
-  applyFocusArea() {
-    this.focus = 0;
-    let id = FocusAreaPrefix[this.focusArea] + "0";
+  applyFocusArea(down: boolean) {
+    this.focus = down ? 0 : 2
+    let id = FocusAreaPrefix[this.focusArea] + this.focus;
     document.getElementById(id)?.focus();
   }
 
   //Temporary solution because the ng-keyboard-shortcuts library doesn't seem to support ESC
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    if(event.key == "Escape")
+    if(event.key == "Escape" || event.key == "BrowserBack")
       this.goBackHotkey();
     if(event.key == "Enter" && this.focusArea == FocusArea.Filters)
       (document.activeElement as any).click();
