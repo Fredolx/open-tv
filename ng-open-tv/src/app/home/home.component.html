@@ -5,31 +5,31 @@
     <div class="container reserve-settings-space">
         <div class="row mb-3">
             <div class="mx-auto col-xl-6 col-lg-6 col-md-8 col-12">
-                <input type="text" #search style="width: 100%;" class="form-control" placeholder="Type to search...">
+                <input type="text" id="search" #search style="width: 100%;" class="form-control" placeholder="Type to search...">
             </div>
         </div>
 
         <div class="btn-group mx-auto mb-3" style="width: fit-content; display: block;">
-            <button (click)="switchMode(viewModeEnum.All)" class="btn btn-primary"
+            <button id="viewMode-0" (click)="switchMode(viewModeEnum.All)" class="btn btn-primary"
                 [ngClass]="{'active': viewMode == viewModeEnum.All}">All</button>
-            <button (click)="switchMode(viewModeEnum.Categories)" class="btn btn-primary"
+            <button id="viewMode-1" (click)="switchMode(viewModeEnum.Categories)" class="btn btn-primary"
                 [ngClass]="{'active': viewMode == viewModeEnum.Categories}">Categories</button>
-            <button (click)="switchMode(viewModeEnum.Favorites)" class="btn btn-primary"
+            <button id="viewMode-2" (click)="switchMode(viewModeEnum.Favorites)" class="btn btn-primary"
                 [ngClass]="{'active': viewMode == viewModeEnum.Favorites}">Favorites</button>
         </div>
 
-        <div class="mx-auto mb-3 filterBox" *ngIf="viewMode != viewModeEnum.Categories || memory.SelectedCategory">
+        <div class="mx-auto mb-3 filterBox" *ngIf="filtersVisible()">
             <div class="form-check form-check-inline form-switch">
                 <input [(ngModel)]="chkLivestream" (ngModelChange)="load()" class="form-check-input"
-                    id="checkLivestreams" type="checkbox">
-                <label class="form-check-label" for="checkLivestreams">
+                    id="filter-0" type="checkbox">
+                <label class="form-check-label" for="filter-0">
                     Livestreams
                 </label>
             </div>
             <div class="form-check form-check-inline form-switch">
-                <input [(ngModel)]="chkMovie" (ngModelChange)="load()" class="form-check-input" id="checkMovies"
+                <input [(ngModel)]="chkMovie" (ngModelChange)="load()" class="form-check-input" id="filter-1"
                     type="checkbox">
-                <label *ngIf="memory.Xtream" class="form-check-label" for="checkMovies">
+                <label *ngIf="memory.Xtream" class="form-check-label" for="filter-1">
                     Movies/Vods
                 </label>
                 <label *ngIf="!memory.Xtream">
@@ -37,9 +37,9 @@
                 </label>
             </div>
             <div *ngIf="memory.Xtream" class="form-check form-check-inline form-switch">
-                <input [(ngModel)]="chkSerie" (ngModelChange)="load()" class="form-check-input" id="checkSeries"
+                <input [(ngModel)]="chkSerie" (ngModelChange)="load()" class="form-check-input" id="filter-2"
                     type="checkbox">
-                <label class="form-check-label" for="checkSeries">
+                <label class="form-check-label" for="filter-2">
                     Series
                 </label>
             </div>
@@ -52,7 +52,7 @@
         </div>
         <div class="row gy-3">
             <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
-                class="col-xl-3 col-lg-4 col-md-4" [channel]="channel"></app-channel-tile>
+                class="col-lg-4 col-md-4" [id]="i" [channel]="channel"></app-channel-tile>
         </div>
     </div>
     <button *ngIf="channelsLeft > 0" (click)="loadMore()" class="btn btn-outline-primary mx-auto d-block mt-3">Load

@@ -8,6 +8,7 @@ import { Channel } from '../models/channel';
 import { ViewMode } from '../models/viewMode';
 import { MediaType } from '../models/mediaType';
 import { ToastrService } from 'ngx-toastr';
+import { FocusArea, FocusAreaPrefix } from '../models/focusArea';
 
 @Component({
   selector: 'app-home',
@@ -32,6 +33,9 @@ export class HomeComponent implements AfterViewInit {
   chkMovie: boolean = true;
   chkSerie: boolean = true;
   categories?: Array<Channel>;
+  focus: number = 0;
+  focusArea = FocusArea.Tiles;
+  currentWindowSize: number = window.innerWidth;
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
     if (this.memory.Channels.length > 0) {
@@ -99,6 +103,11 @@ export class HomeComponent implements AfterViewInit {
     }
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+   this.currentWindowSize = event.target.innerWidth;
+  }
+
   ngAfterViewInit(): void {
     fromEvent(this.search.nativeElement, 'keyup').pipe(
       map((event: any) => {
@@ -107,6 +116,7 @@ export class HomeComponent implements AfterViewInit {
       , debounceTime(300)
       , distinctUntilChanged()
     ).subscribe((term: string) => {
+      this.focus = 0;
       this.elementsToRetrieve = this.defaultElementsToRetrieve;
       this.lastTerm = term;
       this.channels = this.filterChannels(term);
@@ -114,7 +124,7 @@ export class HomeComponent implements AfterViewInit {
 
     this.shortcuts.push(
       {
-        key: "ctrl + f",
+        key: ["ctrl + f", "ctrl + space"],
         label: "Search",
         description: "Go to search",
         preventDefault: true,
@@ -125,7 +135,7 @@ export class HomeComponent implements AfterViewInit {
         key: "ctrl + a",
         label: "Switching modes",
         description: "Selects the all channels mode",
-        allowIn: [AllowIn.Input],
+        preventDefault: true,
         command: _ => this.switchMode(this.viewModeEnum.All)
       },
       {
@@ -141,13 +151,6 @@ export class HomeComponent implements AfterViewInit {
         description: "Selects the favorites channels mode",
         allowIn: [AllowIn.Input],
         command: _ => this.switchMode(this.viewModeEnum.Favorites)
-      },
-      {
-        key: "ctrl + space",
-        label: "Quick navigation",
-        description: "Selects the first channel. Press tab/shift+tab for next/previous",
-        allowIn: [AllowIn.Input],
-        command: _ => (document.getElementById('first')?.firstChild as HTMLElement)?.focus()
       },
       {
         key: "ctrl + q",
@@ -181,7 +184,71 @@ export class HomeComponent implements AfterViewInit {
           }
         }
       },
+      {
+        key: "left",
+        label: "Navigation",
+        description: "Go left",
+        allowIn: [AllowIn.Input],
+        command: _ => this.nav("ArrowLeft") 
+      },
+      {
+        key: "shift + tab",
+        label: "Navigation",
+        description: "Go left",
+        allowIn: [AllowIn.Input],
+        preventDefault: true,
+        command: _ => this.nav("ShiftTab") 
+      },
+      {
+        key: "right",
+        label: "Navigation",
+        description: "Go right",
+        allowIn: [AllowIn.Input],
+        command: _ => this.nav("ArrowRight") 
+      },
+      {
+        key: "tab",
+        label: "Navigation",
+        description: "Go right",
+        allowIn: [AllowIn.Input],
+        preventDefault: true,
+        command: _ => this.nav("Tab") 
+      },
+      {
+        key: "up",
+        label: "Navigation",
+        description: "Go up",
+        allowIn: [AllowIn.Input],
+        preventDefault: true,
+        command: _ => this.nav("ArrowUp") 
+      },
+      {
+        key: "down",
+        label: "Navigation",
+        description: "Go down",
+        allowIn: [AllowIn.Input],
+        preventDefault: true,
+        command: _ => this.nav("ArrowDown") 
+      },
+      {
+        key: "esc",
+        label: "Navigation",
+        description: "Go back",
+        preventDefault: true,
+        allowIn: [AllowIn.Input],
+        command: _ => console.log("working")
+      },
+      {
+        key: "backspace",
+        label: "Navigation",
+        description: "Go back",
+        command: _ => this.goBackHotkey() 
+      }
     );
+  }
+
+  filtersVisible() {
+    return this.viewMode != this.viewModeEnum.Categories || this.memory.SelectedCategory;
   }
 
   switchMode(viewMode: ViewMode) {
@@ -195,7 +262,16 @@ export class HomeComponent implements AfterViewInit {
     this.load();
   }
 
+  searchFocused() : boolean {
+   return document.activeElement?.id == "search";
+  }
+
   focusSearch() {
+    if(this.searchFocused()){
+      this.selectFirstChannel();
+      return;
+    }
+    this.focus = 0;
     window.scrollTo({ top: 0, behavior: 'smooth' });
     this.search.nativeElement.focus({
       preventScroll: true
@@ -262,6 +338,18 @@ export class HomeComponent implements AfterViewInit {
     }
   }
 
+  goBackHotkey() {
+    if(this.memory.CategoriesNode){
+      if(this.focusArea == FocusArea.Filters){
+        this.focusArea = FocusArea.Tiles;
+        this.focus = 0;
+      }
+      this.goBack();
+    }
+    this.closeContextMenu();
+    this.selectFirstChannel();   
+  }
+
   goBack() {
     this.memory.clearCategoryNode();
     this.load();
@@ -270,4 +358,82 @@ export class HomeComponent implements AfterViewInit {
   openSettings() {
     this.router.navigateByUrl("settings");
   }
+
+  nav(key: string) {
+    let lowSize = this.currentWindowSize < 768
+    if(this.memory.currentContextMenu?.menuOpen){
+      return;
+    }
+    let tmpFocus = 0;
+    switch (key) {
+      case "ArrowUp":
+        tmpFocus -=3;
+        break;
+      case "ArrowDown":
+        tmpFocus +=3;
+        break;
+      case "ShiftTab":
+      case "ArrowLeft":
+        tmpFocus -= 1;
+        break;
+      case "Tab":
+      case "ArrowRight":
+        tmpFocus += 1;
+        break;
+    }
+    if(lowSize && (tmpFocus % 3 == 0) && this.focusArea == FocusArea.Tiles)
+      tmpFocus / 3;
+    tmpFocus += this.focus;
+    if(tmpFocus < 0){
+     this.changeFocusArea(false);
+    }
+    else if(tmpFocus > 2 && this.focusArea != FocusArea.Tiles) {
+      this.changeFocusArea(true);
+    }
+    else if(this.focusArea == FocusArea.Tiles && tmpFocus >= this.elementsToRetrieve && this.channelsLeft > 0)
+      this.loadMore();
+    else {
+      if(tmpFocus >= this.channels.length && this.focusArea == FocusArea.Tiles)
+        tmpFocus = (this.channels.length == 0 ? 1 : this.channels.length) - 1;
+      this.focus = tmpFocus;
+      document.getElementById(`${FocusAreaPrefix[this.focusArea]}${this.focus}`)?.focus();
+    }
+  }
+
+  changeFocusArea(down: boolean) {
+    let increment = down ? 1 : -1;
+    this.focusArea += increment;
+    if(this.focusArea == FocusArea.Filters && !this.filtersVisible())
+      this.focusArea += increment
+    if(this.focusArea < 0)
+      this.focusArea = 0;
+    this.applyFocusArea(down);
+  }
+
+  applyFocusArea(down: boolean) {
+    this.focus = down ? 0 : 2
+    let id = FocusAreaPrefix[this.focusArea] + this.focus;
+    document.getElementById(id)?.focus();
+  }
+
+  //Temporary solution because the ng-keyboard-shortcuts library doesn't seem to support ESC
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if(event.key == "Escape" || event.key == "BrowserBack")
+      this.goBackHotkey();
+    if(event.key == "Enter" && this.focusArea == FocusArea.Filters)
+      (document.activeElement as any).click();
+  }
+
+  selectFirstChannel() {
+    this.focusArea = FocusArea.Tiles;
+    (document.getElementById('first')?.firstChild as HTMLElement)?.focus();
+  }
+
+  closeContextMenu(){
+    if(this.memory.currentContextMenu?.menuOpen){
+      this.memory.currentContextMenu?.closeMenu();
+    }
+  }
+
 }

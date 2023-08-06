@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { MatMenuTrigger } from '@angular/material/menu';
+import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
 import { MemoryService } from '../memory.service';
 import { Channel } from '../models/channel';
 import { MediaType } from '../models/mediaType';
@@ -12,6 +12,7 @@ import { MediaType } from '../models/mediaType';
 export class ChannelTileComponent {
   constructor(public memory: MemoryService) { }
   @Input() channel?: Channel;
+  @Input() id!: Number;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
   menuTopLeftPosition = { x: 0, y: 0 }
   showImage: boolean = true;
@@ -47,6 +48,9 @@ export class ChannelTileComponent {
     event.preventDefault();
     this.menuTopLeftPosition.x = event.clientX;
     this.menuTopLeftPosition.y = event.clientY;
+    if (this.memory.currentContextMenu?.menuOpen)
+      this.memory.currentContextMenu.closeMenu();
+    this.memory.currentContextMenu = this.matMenuTrigger;
     this.matMenuTrigger.openMenu();
   }
 

@@ -9,8 +9,8 @@ import { lookpath } from 'lookpath'
 import axios from 'axios'
 import { nameRegExp, idRegExp, logoRegExp, groupRegExp } from './regExps'
 import { getLiveStreamCategories, getLiveStreams, getSeries, getVodCategories, getVods } from './xtreamActions'
-import { live, series, vods } from './xtreamStreamTypes'
-import { livestream, movie, serie } from './mediaType'
+import { live } from './xtreamStreamTypes'
+import { livestream, movie } from './mediaType'
 
 if (require('electron-squirrel-startup')) {
   app.quit();
