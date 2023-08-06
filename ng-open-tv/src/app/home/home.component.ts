@@ -115,6 +115,7 @@ export class HomeComponent implements AfterViewInit {
       , debounceTime(300)
       , distinctUntilChanged()
     ).subscribe((term: string) => {
+      this.focus = 0;
       this.elementsToRetrieve = this.defaultElementsToRetrieve;
       this.lastTerm = term;
       this.channels = this.filterChannels(term);
@@ -337,9 +338,15 @@ export class HomeComponent implements AfterViewInit {
   }
 
   goBackHotkey() {
-    if(this.memory.CategoriesNode)
+    if(this.memory.CategoriesNode){
+      if(this.focusArea == FocusArea.Filters){
+        this.focusArea = FocusArea.Tiles;
+        this.focus = 0;
+      }
       this.goBack();
-    this.selectFirstChannel();
+    }
+    this.closeContextMenu();
+    this.selectFirstChannel();   
   }
 
   goBack() {
@@ -352,6 +359,9 @@ export class HomeComponent implements AfterViewInit {
   }
 
   nav(key: string) {
+    if(this.memory.currentContextMenu?.menuOpen){
+      return;
+    }
     let tmpFocus = this.focus;
     switch (key) {
       case "ArrowUp":
@@ -375,9 +385,11 @@ export class HomeComponent implements AfterViewInit {
     else if(tmpFocus > 2 && this.focusArea != FocusArea.Tiles) {
       this.changeFocusArea(true);
     }
-    else if(this.focusArea == FocusArea.Tiles && tmpFocus >= this.elementsToRetrieve)
+    else if(this.focusArea == FocusArea.Tiles && tmpFocus >= this.elementsToRetrieve && this.channelsLeft > 0)
       this.loadMore();
     else {
+      if(tmpFocus >= this.channels.length && this.focusArea == FocusArea.Tiles)
+        tmpFocus = (this.channels.length == 0 ? 1 : this.channels.length) - 1;
       this.focus = tmpFocus;
       document.getElementById(`${FocusAreaPrefix[this.focusArea]}${this.focus}`)?.focus();
     }
@@ -411,6 +423,12 @@ export class HomeComponent implements AfterViewInit {
   selectFirstChannel() {
     this.focusArea = FocusArea.Tiles;
     (document.getElementById('first')?.firstChild as HTMLElement)?.focus();
+  }
+
+  closeContextMenu(){
+    if(this.memory.currentContextMenu?.menuOpen){
+      this.memory.currentContextMenu?.closeMenu();
+    }
   }
 
 }

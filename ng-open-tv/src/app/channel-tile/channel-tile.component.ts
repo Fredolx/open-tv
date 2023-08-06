@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { MatMenuTrigger } from '@angular/material/menu';
+import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
 import { MemoryService } from '../memory.service';
 import { Channel } from '../models/channel';
 import { MediaType } from '../models/mediaType';
@@ -48,6 +48,9 @@ export class ChannelTileComponent {
     event.preventDefault();
     this.menuTopLeftPosition.x = event.clientX;
     this.menuTopLeftPosition.y = event.clientY;
+    if (this.memory.currentContextMenu)
+      this.memory.currentContextMenu.closeMenu();
+    this.memory.currentContextMenu = this.matMenuTrigger;
     this.matMenuTrigger.openMenu();
   }
 

@@ -3,6 +3,7 @@ import { Subject } from 'rxjs';
 import { Channel } from './models/channel';
 import { Settings } from './models/settings';
 import { Xtream } from './models/xtream';
+import { MatMenuTrigger } from '@angular/material/menu';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +22,7 @@ export class MemoryService {
   public Settings: Settings = {};
   private electron: any = (window as any).electronAPI;
   public Xtream?: Xtream;
+  public currentContextMenu?: MatMenuTrigger
 
   async DownloadM3U(url: String | undefined = undefined): Promise<boolean> {
     let channels;

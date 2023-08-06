@@ -1,6 +1,5 @@
 <ng-keyboard-shortcuts [shortcuts]="shortcuts"></ng-keyboard-shortcuts>
 <ng-keyboard-shortcuts-help [key]="'f1'" [closeKey]="'escape'" [title]="'Help'" />
-{{this.focus}}
 <div [hidden]="this.memory.Channels.length == 0" class="mb-5">
     <div class="mdi mdi-cog settings" (click)="openSettings()"></div>
     <div class="container reserve-settings-space">
