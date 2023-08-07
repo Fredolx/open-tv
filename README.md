@@ -51,13 +51,15 @@ If you use Arch Linux, you can also [install it from the AUR](https://aur.archli
 * Ctrl + a: Show all channels
 * Ctrl + s: Show categories
 * Ctrl + d: Show favorites
-* Ctrl + space: Select first channel
-  * Tab: Select next channel
-  * Shift + Tab: Select previous channel
 * Ctrl + f: Search
 * Ctrl + q: Enable/Disable livestreams
 * Ctrl + w: Enable/Disable movies
 * Ctrl + e: Enable/Disable series
+* Backspace/Esc: Go back
+* Arrow keys/Tab/Shift+Tab: Navigation
+
+If you have a tv remote or air mouse that has slightly different bindings for general nav (back, up, down, left, right),
+please open an issue and I will add them if it's feasible. Otherwise, you can still use hwdb to make them match OpenTV's bindings.
 
 ## Settings explained
 

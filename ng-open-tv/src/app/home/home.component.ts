@@ -156,6 +156,7 @@ export class HomeComponent implements AfterViewInit {
         key: "ctrl + q",
         label: "Media Type Filters",
         description: "Enable/Disable livestreams",
+        preventDefault: true,
         allowIn: [AllowIn.Input],
         command: _ => {
           this.chkLivestream = !this.chkLivestream;
@@ -166,6 +167,7 @@ export class HomeComponent implements AfterViewInit {
         key: "ctrl + w",
         label: "Media Type Filters",
         description: "Enable/Disable movies",
+        preventDefault: true,
         allowIn: [AllowIn.Input],
         command: _ => {
           this.chkMovie = !this.chkMovie;
@@ -176,6 +178,7 @@ export class HomeComponent implements AfterViewInit {
         key: "ctrl + e",
         label: "Media Type Filters",
         description: "Enable/Disable series",
+        preventDefault: true,
         allowIn: [AllowIn.Input],
         command: _ => {
           if (this.memory.Xtream) {
