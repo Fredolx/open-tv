@@ -384,13 +384,14 @@ export class HomeComponent implements AfterViewInit {
         tmpFocus += 1;
         break;
     }
+    let goOverSize = this.shortFiltersMode() ? 1 : 2;
     if(lowSize && (tmpFocus % 3 == 0) && this.focusArea == FocusArea.Tiles)
       tmpFocus / 3;
     tmpFocus += this.focus;
     if(tmpFocus < 0){
      this.changeFocusArea(false);
     }
-    else if(tmpFocus > 2 && this.focusArea != FocusArea.Tiles) {
+    else if(tmpFocus > goOverSize && this.focusArea != FocusArea.Tiles) {
       this.changeFocusArea(true);
     }
     else if(this.focusArea == FocusArea.Tiles && tmpFocus >= this.elementsToRetrieve && this.channelsLeft > 0)
@@ -401,6 +402,10 @@ export class HomeComponent implements AfterViewInit {
       this.focus = tmpFocus;
       document.getElementById(`${FocusAreaPrefix[this.focusArea]}${this.focus}`)?.focus();
     }
+  }
+
+  shortFiltersMode() {
+    return !this.memory.Xtream && this.focusArea == FocusArea.Filters;
   }
 
   changeFocusArea(down: boolean) {
@@ -414,7 +419,7 @@ export class HomeComponent implements AfterViewInit {
   }
 
   applyFocusArea(down: boolean) {
-    this.focus = down ? 0 : 2
+    this.focus = down ? 0 : (this.shortFiltersMode() ? 1 : 2)
     let id = FocusAreaPrefix[this.focusArea] + this.focus;
     document.getElementById(id)?.focus();
   }
