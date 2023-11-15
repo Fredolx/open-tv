@@ -18,6 +18,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - uses: actions/setup-python@v4
+    if: matrix.os == 'macos-latest'
+    with:
+      python-version: '3.10'
+
     - name: Download mpv
       if: matrix.os == 'windows-latest'
       shell: powershell
