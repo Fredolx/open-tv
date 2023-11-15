@@ -1,7 +1,7 @@
-import { AfterViewInit, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AllowIn, ShortcutInput } from 'ng-keyboard-shortcuts';
-import { debounceTime, distinctUntilChanged, fromEvent, map } from 'rxjs';
+import { Subscription, debounceTime, distinctUntilChanged, fromEvent, map } from 'rxjs';
 import { MemoryService } from '../memory.service';
 import { Cache } from '../models/cache';
 import { Channel } from '../models/channel';
@@ -15,7 +15,7 @@ import { FocusArea, FocusAreaPrefix } from '../models/focusArea';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements AfterViewInit {
+export class HomeComponent implements AfterViewInit, OnDestroy {
   channels: Channel[] = [];
   favChannels: Channel[] = [];
   viewMode = ViewMode.All;
@@ -36,6 +36,7 @@ export class HomeComponent implements AfterViewInit {
   focus: number = 0;
   focusArea = FocusArea.Tiles;
   currentWindowSize: number = window.innerWidth;
+  subscriptions: Subscription[] = [];
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
     if (this.memory.Channels.length > 0) {
@@ -70,16 +71,16 @@ export class HomeComponent implements AfterViewInit {
   }
 
   addEvents() {
-    this.memory.NeedToRefreshFavorites.subscribe(_ => {
+    this.subscriptions.push(this.memory.NeedToRefreshFavorites.subscribe(_ => {
       if (this.channels.length == 1 && this.lastTerm?.trim()) {
         this.clearSearch();
       }
       this.load();
-    });
-    this.memory.SwitchToCategoriesNode.subscribe(_ => {
+    }));
+    this.subscriptions.push(this.memory.SwitchToCategoriesNode.subscribe(_ => {
       this.clearSearch();
       this.load();
-    });
+    }));
   }
 
   clearSearch() {
@@ -109,6 +110,7 @@ export class HomeComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.subscriptions.push(
     fromEvent(this.search.nativeElement, 'keyup').pipe(
       map((event: any) => {
         return event.target.value;
@@ -120,7 +122,7 @@ export class HomeComponent implements AfterViewInit {
       this.elementsToRetrieve = this.defaultElementsToRetrieve;
       this.lastTerm = term;
       this.channels = this.filterChannels(term);
-    });
+    }));
 
     this.shortcuts.push(
       {
@@ -444,4 +446,7 @@ export class HomeComponent implements AfterViewInit {
     }
   }
 
+  ngOnDestroy() {
+    this.subscriptions.forEach(x => x.unsubscribe());
+  }
 }
