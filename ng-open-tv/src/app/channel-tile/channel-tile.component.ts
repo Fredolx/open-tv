@@ -25,8 +25,8 @@ export class ChannelTileComponent {
   }
 
   async click(record = false) {
-    if (this.channel?.type == MediaType.group) {
-      this.memory.setCategoryNode(this.channel);
+    if (this.channel?.type == MediaType.group || this.channel?.type == MediaType.serie) {
+      await this.memory.setNode(this.channel);
       return;
     }
     if (this.memory.StartingChannel)

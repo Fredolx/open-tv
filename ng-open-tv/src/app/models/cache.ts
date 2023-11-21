@@ -1,8 +1,8 @@
 import { Channel } from "./channel";
+import { Xtream } from "./xtream";
 
 export class Cache {
     channels!: Array<Channel>;
-    url?: string;
-    username?: string;
-    password?: string;
+    xtream?: Xtream
+    m3u_url?: string
 }

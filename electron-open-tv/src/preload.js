@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     selectFolder: () => ipcRenderer.invoke('selectFolder'),
     updateSettings: (settings) => ipcRenderer.invoke('updateSettings', settings),
     getSettings: () => ipcRenderer.invoke('getSettings'),
-    getXtream: (xtream) => ipcRenderer.invoke('getXtream', xtream)
+    getXtream: (xtream) => ipcRenderer.invoke('getXtream', xtream),
+    getEpisodes: (series_data) => ipcRenderer.invoke('getEpisodes', series_data)
 });
