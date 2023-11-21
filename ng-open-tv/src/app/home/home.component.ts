@@ -248,7 +248,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   filtersVisible() {
-    return this.viewMode != this.viewModeEnum.Categories || this.memory.SelectedCategory;
+    return (this.viewMode != this.viewModeEnum.Categories || this.memory.SelectedCategory) && !this.memory.SelectedSerie
   }
 
   switchMode(viewMode: ViewMode) {
