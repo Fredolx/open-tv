@@ -256,6 +256,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       return;
     this.elementsToRetrieve = this.defaultElementsToRetrieve;
     this.memory.clearCategoryNode();
+    this.memory.clearSeriesNode();
     this.viewMode = viewMode;
     this.search.nativeElement.value = "";
     this.lastTerm = "";

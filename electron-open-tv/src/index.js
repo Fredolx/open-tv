@@ -240,6 +240,7 @@ function xtreamEpisodeToChannel(episode, xtream, origin) {
     url: `${origin}/series/${xtream.username}/${xtream.password}/${episode.id}.${episode.container_extension}`,
     name: episode.title,
     image: episode.info?.movie_image,
+    type: movie
   }
 }
 

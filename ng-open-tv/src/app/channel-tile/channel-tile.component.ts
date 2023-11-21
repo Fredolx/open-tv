@@ -78,6 +78,6 @@ export class ChannelTileComponent {
   }
 
   isMovie() {
-    return this.channel?.url?.endsWith('.mkv') || this.channel?.url?.endsWith('.mp4')
+    return this.channel?.type != MediaType.livestream;
   }
 }
