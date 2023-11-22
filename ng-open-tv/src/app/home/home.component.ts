@@ -50,14 +50,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           if (x.performedMigration)
             toast.info("Your channel data has been migrated. Please delete & re-load your channels if you notice any issues", undefined, { timeOut: 20000 })
           this.memory.Channels = x.cache.channels;
-          if (x.cache.username?.trim())
-            this.memory.Xtream =
-            {
-              url: x.cache.url,
-              username: x.cache.username,
-              password: x.cache.password
-            }
-          else
+          if (x.cache.xtream)
+            this.memory.Xtream = x.cache.xtream
+          if (x.cache.url)
             this.memory.Url = x.cache.url;
           this.memory.FavChannels = x.favs;
           this.getChannels();
@@ -77,7 +72,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       }
       this.load();
     }));
-    this.subscriptions.push(this.memory.SwitchToCategoriesNode.subscribe(_ => {
+    this.subscriptions.push(this.memory.SwitchingNode.subscribe(_ => {
       this.clearSearch();
       this.load();
     }));
@@ -106,23 +101,23 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
-   this.currentWindowSize = event.target.innerWidth;
+    this.currentWindowSize = event.target.innerWidth;
   }
 
   ngAfterViewInit(): void {
     this.subscriptions.push(
-    fromEvent(this.search.nativeElement, 'keyup').pipe(
-      map((event: any) => {
-        return event.target.value;
-      })
-      , debounceTime(300)
-      , distinctUntilChanged()
-    ).subscribe((term: string) => {
-      this.focus = 0;
-      this.elementsToRetrieve = this.defaultElementsToRetrieve;
-      this.lastTerm = term;
-      this.channels = this.filterChannels(term);
-    }));
+      fromEvent(this.search.nativeElement, 'keyup').pipe(
+        map((event: any) => {
+          return event.target.value;
+        })
+        , debounceTime(300)
+        , distinctUntilChanged()
+      ).subscribe((term: string) => {
+        this.focus = 0;
+        this.elementsToRetrieve = this.defaultElementsToRetrieve;
+        this.lastTerm = term;
+        this.channels = this.filterChannels(term);
+      }));
 
     this.shortcuts.push(
       {
@@ -194,7 +189,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         label: "Navigation",
         description: "Go left",
         allowIn: [AllowIn.Input],
-        command: _ => this.nav("ArrowLeft") 
+        command: _ => this.nav("ArrowLeft")
       },
       {
         key: "shift + tab",
@@ -202,14 +197,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         description: "Go left",
         allowIn: [AllowIn.Input],
         preventDefault: true,
-        command: _ => this.nav("ShiftTab") 
+        command: _ => this.nav("ShiftTab")
       },
       {
         key: "right",
         label: "Navigation",
         description: "Go right",
         allowIn: [AllowIn.Input],
-        command: _ => this.nav("ArrowRight") 
+        command: _ => this.nav("ArrowRight")
       },
       {
         key: "tab",
@@ -217,7 +212,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         description: "Go right",
         allowIn: [AllowIn.Input],
         preventDefault: true,
-        command: _ => this.nav("Tab") 
+        command: _ => this.nav("Tab")
       },
       {
         key: "up",
@@ -225,7 +220,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         description: "Go up",
         allowIn: [AllowIn.Input],
         preventDefault: true,
-        command: _ => this.nav("ArrowUp") 
+        command: _ => this.nav("ArrowUp")
       },
       {
         key: "down",
@@ -233,7 +228,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         description: "Go down",
         allowIn: [AllowIn.Input],
         preventDefault: true,
-        command: _ => this.nav("ArrowDown") 
+        command: _ => this.nav("ArrowDown")
       },
       {
         key: "esc",
@@ -247,13 +242,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         key: "backspace",
         label: "Navigation",
         description: "Go back",
-        command: _ => this.goBackHotkey() 
+        command: _ => this.goBackHotkey()
       }
     );
   }
 
   filtersVisible() {
-    return this.viewMode != this.viewModeEnum.Categories || this.memory.SelectedCategory;
+    return (this.viewMode != this.viewModeEnum.Categories || this.memory.SelectedCategory) && !this.memory.SelectedSerie
   }
 
   switchMode(viewMode: ViewMode) {
@@ -261,18 +256,19 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       return;
     this.elementsToRetrieve = this.defaultElementsToRetrieve;
     this.memory.clearCategoryNode();
+    this.memory.clearSeriesNode();
     this.viewMode = viewMode;
     this.search.nativeElement.value = "";
     this.lastTerm = "";
     this.load();
   }
 
-  searchFocused() : boolean {
-   return document.activeElement?.id == "search";
+  searchFocused(): boolean {
+    return document.activeElement?.id == "search";
   }
 
   focusSearch() {
-    if(this.searchFocused()){
+    if (this.searchFocused()) {
       this.selectFirstChannel();
       return;
     }
@@ -292,7 +288,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   getCategories() {
     let tmpDic: any = {}
     this.memory.Channels.forEach(x => {
-      if (x.group?.trim() && !tmpDic[x.group] && x.type == MediaType.livestream) {
+      if (x.group?.trim() && !tmpDic[x.group]) {
         let group: Channel = {
           name: x.group,
           group: x.group,
@@ -331,6 +327,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   getFilteringParameters() {
+    if (this.memory.SelectedSerie)
+      return { source: this.memory.SeriesNode, useFilters: false };
     switch (this.viewMode) {
       case this.viewModeEnum.All:
         return { source: this.memory.Channels, useFilters: true };
@@ -344,19 +342,23 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   goBackHotkey() {
-    if(this.memory.CategoriesNode){
-      if(this.focusArea == FocusArea.Filters){
+    if (this.memory.CategoriesNode) {
+      if (this.focusArea == FocusArea.Filters) {
         this.focusArea = FocusArea.Tiles;
         this.focus = 0;
       }
       this.goBack();
     }
     this.closeContextMenu();
-    this.selectFirstChannel();   
+    this.selectFirstChannel();
   }
 
   goBack() {
-    this.memory.clearCategoryNode();
+    if(this.memory.SelectedSerie)
+      this.memory.clearSeriesNode();
+    else {
+      this.memory.clearCategoryNode();
+    }
     this.load();
   }
 
@@ -366,16 +368,16 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   nav(key: string) {
     let lowSize = this.currentWindowSize < 768
-    if(this.memory.currentContextMenu?.menuOpen){
+    if (this.memory.currentContextMenu?.menuOpen) {
       return;
     }
     let tmpFocus = 0;
     switch (key) {
       case "ArrowUp":
-        tmpFocus -=3;
+        tmpFocus -= 3;
         break;
       case "ArrowDown":
-        tmpFocus +=3;
+        tmpFocus += 3;
         break;
       case "ShiftTab":
       case "ArrowLeft":
@@ -387,19 +389,19 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         break;
     }
     let goOverSize = this.shortFiltersMode() ? 1 : 2;
-    if(lowSize && (tmpFocus % 3 == 0) && this.focusArea == FocusArea.Tiles)
+    if (lowSize && (tmpFocus % 3 == 0) && this.focusArea == FocusArea.Tiles)
       tmpFocus / 3;
     tmpFocus += this.focus;
-    if(tmpFocus < 0){
-     this.changeFocusArea(false);
+    if (tmpFocus < 0) {
+      this.changeFocusArea(false);
     }
-    else if(tmpFocus > goOverSize && this.focusArea != FocusArea.Tiles) {
+    else if (tmpFocus > goOverSize && this.focusArea != FocusArea.Tiles) {
       this.changeFocusArea(true);
     }
-    else if(this.focusArea == FocusArea.Tiles && tmpFocus >= this.elementsToRetrieve && this.channelsLeft > 0)
+    else if (this.focusArea == FocusArea.Tiles && tmpFocus >= this.elementsToRetrieve && this.channelsLeft > 0)
       this.loadMore();
     else {
-      if(tmpFocus >= this.channels.length && this.focusArea == FocusArea.Tiles)
+      if (tmpFocus >= this.channels.length && this.focusArea == FocusArea.Tiles)
         tmpFocus = (this.channels.length == 0 ? 1 : this.channels.length) - 1;
       this.focus = tmpFocus;
       document.getElementById(`${FocusAreaPrefix[this.focusArea]}${this.focus}`)?.focus();
@@ -413,9 +415,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   changeFocusArea(down: boolean) {
     let increment = down ? 1 : -1;
     this.focusArea += increment;
-    if(this.focusArea == FocusArea.Filters && !this.filtersVisible())
+    if (this.focusArea == FocusArea.Filters && !this.filtersVisible())
       this.focusArea += increment
-    if(this.focusArea < 0)
+    if (this.focusArea < 0)
       this.focusArea = 0;
     this.applyFocusArea(down);
   }
@@ -429,9 +431,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   //Temporary solution because the ng-keyboard-shortcuts library doesn't seem to support ESC
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    if(event.key == "Escape" || event.key == "BrowserBack")
+    if (event.key == "Escape" || event.key == "BrowserBack")
       this.goBackHotkey();
-    if(event.key == "Enter" && this.focusArea == FocusArea.Filters)
+    if (event.key == "Enter" && this.focusArea == FocusArea.Filters)
       (document.activeElement as any).click();
   }
 
@@ -440,8 +442,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     (document.getElementById('first')?.firstChild as HTMLElement)?.focus();
   }
 
-  closeContextMenu(){
-    if(this.memory.currentContextMenu?.menuOpen){
+  closeContextMenu() {
+    if (this.memory.currentContextMenu?.menuOpen) {
       this.memory.currentContextMenu?.closeMenu();
     }
   }

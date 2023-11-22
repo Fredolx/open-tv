@@ -1,6 +1,6 @@
 <ng-keyboard-shortcuts [shortcuts]="shortcuts"></ng-keyboard-shortcuts>
 <ng-keyboard-shortcuts-help [key]="'f1'" [closeKey]="'escape'" [title]="'Help'" />
-<div [hidden]="this.memory.Channels.length == 0" class="mb-5">
+<div [hidden]="this.memory.Channels.length == 0 || this.memory.Loading" class="mb-5">
     <div class="mdi mdi-cog settings" (click)="openSettings()"></div>
     <div class="container reserve-settings-space">
         <div class="row mb-3">
@@ -45,10 +45,11 @@
             </div>
         </div>
 
-        <div class="mb-3 clickable" (click)="goBack()" *ngIf="viewMode == viewModeEnum.Categories && this.memory.SelectedCategory">
+        <div class="mb-3 clickable" (click)="goBack()" *ngIf="(viewMode == viewModeEnum.Categories && this.memory.SelectedCategory) || this.memory.SelectedSerie">
             <span style="font-size: 1.5em;" class="arrow mdi mdi-arrow-left-circle"></span>
             &nbsp;
-            <h4 class="d-inline">Viewing: {{this.memory.SelectedCategory.group}}</h4>
+            <h4 *ngIf="this.memory.SelectedCategory && !this.memory.SelectedSerie" class="d-inline">Viewing: {{this.memory.SelectedCategory.group}}</h4>
+            <h4 *ngIf="this.memory.SelectedSerie" class="d-inline">Viewing: {{this.memory.SelectedSerie.name}}</h4>
         </div>
         <div class="row gy-3">
             <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
@@ -58,4 +59,4 @@
     <button *ngIf="channelsLeft > 0" (click)="loadMore()" class="btn btn-outline-primary mx-auto d-block mt-3">Load
         More</button>
 </div>
-<app-loading [hidden]="this.memory.Channels.length != 0" [center]="true"></app-loading>
+<app-loading [hidden]="this.memory.Channels.length != 0 && !this.memory.Loading" [center]="true"></app-loading>

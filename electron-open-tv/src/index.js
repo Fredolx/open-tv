@@ -8,9 +8,9 @@ import { exec } from 'node:child_process'
 import { lookpath } from 'lookpath'
 import axios from 'axios'
 import { nameRegExp, idRegExp, logoRegExp, groupRegExp } from './regExps'
-import { getLiveStreamCategories, getLiveStreams, getSeries, getVodCategories, getVods } from './xtreamActions'
+import { getLiveStreamCategories, getLiveStreams, getSeries, getSeriesCategories, getVodCategories, getVods, getSeriesInfo } from './xtreamActions'
 import { live } from './xtreamStreamTypes'
-import { livestream, movie } from './mediaType'
+import { livestream, movie, serie } from './mediaType'
 
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -104,6 +104,8 @@ ipcMain.handle("selectFolder", selectFolder);
 ipcMain.handle("updateSettings", async (_, settings) => await updateSettings(settings));
 ipcMain.handle("getSettings", getSettings);
 ipcMain.handle("getXtream", async (_, xtream) => await getXtream(xtream));
+ipcMain.handle("getEpisodes", async (_, series_data) => await getEpisodes(series_data));
+
 
 async function updateSettings(_settings) {
   settings = _settings;
@@ -145,68 +147,100 @@ async function downloadM3U(url) {
   return channels;
 }
 
-async function getXtream(xtream) {
+function buildXtreamURL(xtream) {
   let url = new URL(xtream.url);
   url.searchParams.append('username', xtream.username);
   url.searchParams.append('password', xtream.password);
+  return url;
+}
+
+async function getXtream(xtream) {
+  let url = buildXtreamURL(xtream);
   let reqs = [];
   let responses;
-  try {
-    url.searchParams.append('action', getLiveStreams);
-    reqs.push(axios.get(url.toString()));
 
-    url.searchParams.set('action', getLiveStreamCategories);
-    reqs.push(axios.get(url.toString()));
+  url.searchParams.append('action', getLiveStreams);
+  reqs.push(axios.get(url.toString()));
 
-    url.searchParams.set('action', getVods)
-    reqs.push(axios.get(url.toString()));
+  url.searchParams.set('action', getLiveStreamCategories);
+  reqs.push(axios.get(url.toString()));
 
-    url.searchParams.set('action', getVodCategories);
-    reqs.push(axios.get(url.toString()));
+  url.searchParams.set('action', getVods)
+  reqs.push(axios.get(url.toString()));
 
-    responses = await Promise.all(reqs);
-  }
-  catch (e) {
-    console.error(e);
-    return [];
-  }
+  url.searchParams.set('action', getVodCategories);
+  reqs.push(axios.get(url.toString()));
+
+  url.searchParams.set('action', getSeries)
+  reqs.push(axios.get(url.toString()));
+
+  url.searchParams.set('action', getSeriesCategories)
+  reqs.push(axios.get(url.toString()));
+
+  responses = await Promise.allSettled(reqs);
   let channels = [];
-  let categoriesStreams = Array.from({ length: responses.length / 2 }, () => responses.splice(0, 2).map(x => x.data));
+  let categoriesStreams = Array.from({ length: responses.length / 2 }, () => responses.splice(0, 2));
   categoriesStreams.forEach((x) => {
-      let categories = x[1];
-      let streams = x[0];
-      let categoriesDic = {};
-      categories.forEach(y => {
-        categoriesDic[y.category_id] = {
-          name: y.category_name
-        };
-      });
-      channels = channels.concat(parseXtreamResponse(streams, xtream, categoriesDic));
+    if (x.some(y => y?.status == "rejected" || y?.value?.status != 200))
+      return;
+    let categories = x[1].value.data;
+    let streams = x[0].value.data;
+    let categoriesDic = {};
+    categories.forEach(y => {
+      categoriesDic[y.category_id] = {
+        name: y.category_name
+      };
+    });
+    channels = channels.concat(parseXtreamResponse(streams, xtream, categoriesDic));
   });
   await saveToCache(
     {
       channels: channels,
-      username: xtream.username,
-      password: xtream.password,
-      url: xtream.url
+      xtream: xtream
     });
   return channels;
 }
 
 function parseXtreamResponse(streams, xtream, categoriesDic) {
-  let baseURL = new URL(xtream.url).origin;
+  let origin = new URL(xtream.url).origin;
   let channels = [];
-  streams.forEach(x => channels.push(xtreamToChannel(x, baseURL, xtream.username, xtream.password, categoriesDic[x.category_id])));
+  streams.forEach(x => channels.push(xtreamToChannel(x, origin, xtream, categoriesDic[x.category_id])));
   return channels;
 }
 
-function xtreamToChannel(xtreamChannel, baseURL, username, password, cat) {
+function xtreamToChannel(xtreamChannel, origin, xtream, cat) {
   return {
-    url: `${baseURL}/${xtreamChannel.stream_type}/${username}/${password}/${xtreamChannel.stream_id}.${xtreamChannel.stream_type?.toLowerCase()?.trim() == live ? 'ts' : xtreamChannel.container_extension}`,
+    url: xtreamChannel.series_id ??
+      `${origin}/${xtreamChannel.stream_type}/${xtream.username}/${xtream.password}/${xtreamChannel.stream_id}.${xtreamChannel.stream_type?.toLowerCase()?.trim() == live
+        ? 'ts' : xtreamChannel.container_extension}`,
     name: xtreamChannel.name,
-    image: xtreamChannel.stream_icon,
+    image: xtreamChannel.series_id ? xtreamChannel.cover : xtreamChannel.stream_icon,
     group: cat?.name,
-    type: xtreamChannel.stream_type == live ? livestream : movie
+    type: xtreamChannel.series_id ? serie : xtreamChannel.stream_type == live ? livestream : movie
+  }
+}
+
+async function getEpisodes(data) {
+  let xtream = data.xtream;
+  let url = buildXtreamURL(xtream);
+  let origin = new URL(xtream.url).origin;
+  url.searchParams.append('action', getSeriesInfo);
+  url.searchParams.append('series_id', data.seriesId)
+  let request = await axios.get(url.toString());
+  if (request.status != 200)
+    return [];
+  let rawEpisodes = [].concat(...Object.values(request.data.episodes));
+  let episodes = [];
+  rawEpisodes.forEach(x => episodes.push(xtreamEpisodeToChannel(x, xtream, origin)));
+  return episodes;
+}
+
+function xtreamEpisodeToChannel(episode, xtream, origin) {
+  return {
+    url: `${origin}/series/${xtream.username}/${xtream.password}/${episode.id}.${episode.container_extension}`,
+    name: episode.title,
+    image: episode.info?.movie_image,
+    type: movie
   }
 }
 
