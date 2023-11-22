@@ -52,8 +52,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           this.memory.Channels = x.cache.channels;
           if (x.cache.xtream)
             this.memory.Xtream = x.cache.xtream
-          if (x.cache.m3u_url)
-            this.memory.Url = x.cache.m3u_url;
+          if (x.cache.url)
+            this.memory.Url = x.cache.url;
           this.memory.FavChannels = x.favs;
           this.getChannels();
           this.getCategories();
