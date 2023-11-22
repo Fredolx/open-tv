@@ -3,7 +3,7 @@
     <h2 class="mt-4 mb-4 text-center">Settings</h2>
     <div class="row align-items-center">
         <div class="col-4">
-            <label>Recording path</label>
+            <label [ngbTooltip]="'Where recorded livestreams will be saved'">Recording path</label>
         </div>
         <div class="col">
             <div class="d-flex align-items-center">
@@ -14,6 +14,15 @@
                 </button>
             </div>        
         </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+        <div class="col-4">
+            <span [ngbTooltip]="'Launch parameters applied to all channels. Leave as-is if you don\'t know what this is'">Global MPV Parameters</span>
+        </div>
+        <div class="col col-lg-6 col-md-8">
+            <textarea #mpvParams id="mpvParams" [(ngModel)]="this.memory.Settings.mpvParams" placeholder="mpv params like: --hwdec auto. Don't touch this unless you know what you're doing!" class="form-control"></textarea>
+        </div>  
     </div>
 
     <div class="row mt-3 align-items-center">
