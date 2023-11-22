@@ -288,6 +288,8 @@ async function fetchSettings() {
 function applyDefaultSettings() {
   if (settings.useStreamCaching === undefined)
     settings.useStreamCaching = true;
+  if (settings.mpvParams === undefined)
+    settings.mpvParams = "--fs"
 }
 
 async function saveToCache(data) {
@@ -372,7 +374,7 @@ function clearMpvProcesses() {
 
 async function playChannel(url, record) {
   clearMpvProcesses();
-  let command = `${mpvPath} ${url} --fs`
+  let command = `${mpvPath} ${url} ${settings.mpvParams}`
   if (URLIsNotLivestream(url))
     command += " --save-position-on-quit";
   else

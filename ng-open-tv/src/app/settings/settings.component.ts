@@ -1,18 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgbActiveModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ToastrService } from 'ngx-toastr';
 import { MemoryService } from '../memory.service';
 import { Settings } from '../models/settings';
+import { Subscription, debounceTime, distinctUntilChanged, fromEvent, map } from 'rxjs';
 
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
-export class SettingsComponent {
+export class SettingsComponent implements AfterViewInit, OnDestroy {
   loading = false;
   electron: any = (window as any).electronAPI;
+  subscriptions: Subscription[] = [];
+  @ViewChild('mpvParams') mpvParams!: ElementRef;
 
   constructor(private router: Router, public memory: MemoryService, private toastr: ToastrService) { }
 
@@ -21,6 +24,19 @@ export class SettingsComponent {
       if (x)
         this.memory.Settings = x;
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.subscriptions.push(
+      fromEvent(this.mpvParams.nativeElement, 'keyup').pipe(
+        map((event: any) => {
+          return event.target.value;
+        })
+        , debounceTime(500)
+        , distinctUntilChanged()
+      ).subscribe(async () => {
+        await this.updateSettings();
+      }));
   }
 
   async refresh() {
@@ -51,15 +67,22 @@ export class SettingsComponent {
     await this.updateSettings();
   }
 
-  goBack() {
+  async goBack() {
+    await this.updateSettings();
     this.router.navigateByUrl("");
   }
 
   async updateSettings() {
+    if (this.memory.Settings.mpvParams)
+      this.memory.Settings.mpvParams = this.memory.Settings.mpvParams?.trim();
     await this.electron.updateSettings(this.memory.Settings);
   }
 
   canRefresh(): boolean {
     return this.memory.Url?.trim() || this.memory.Xtream?.url?.trim() ? true : false;
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(x => x.unsubscribe());
   }
 }
