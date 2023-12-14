@@ -5,6 +5,7 @@ import { Settings } from './models/settings';
 import { Xtream } from './models/xtream';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MediaType } from './models/mediaType';
+import { Source } from './models/source';
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +28,7 @@ export class MemoryService {
   public Xtream?: Xtream;
   public currentContextMenu?: MatMenuTrigger
   public Loading = false;
-
+  
   async DownloadM3U(url: String | undefined = undefined): Promise<boolean> {
     let channels;
     if (url?.trim())

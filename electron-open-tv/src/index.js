@@ -106,7 +106,6 @@ ipcMain.handle("getSettings", getSettings);
 ipcMain.handle("getXtream", async (_, xtream) => await getXtream(xtream));
 ipcMain.handle("getEpisodes", async (_, series_data) => await getEpisodes(series_data));
 
-
 async function updateSettings(_settings) {
   settings = _settings;
   let json = JSON.stringify(settings);
@@ -129,7 +128,7 @@ async function selectFile() {
   let dialogResult = await dialog.showOpenDialog({ properties: ['openFile'] });
   if (dialogResult.canceled) return;
   let channels = await parsePlaylist(dialogResult.filePaths[0]);
-  await saveToCache({ channels: channels });
+  await saveToCache(channels, sourceIndex);
   return channels;
 }
 
@@ -143,7 +142,7 @@ async function downloadM3U(url) {
     return [];
   }
   let channels = parsePlaylistFromMemory(result.data.split("\n"));
-  await saveToCache({ channels: channels, url: url });
+  await saveToCache(channels, sourceIndex);
   return channels;
 }
 
@@ -154,7 +153,7 @@ function buildXtreamURL(xtream) {
   return url;
 }
 
-async function getXtream(xtream) {
+async function getXtream(xtream, id) {
   let url = buildXtreamURL(xtream);
   let reqs = [];
   let responses;
@@ -193,11 +192,11 @@ async function getXtream(xtream) {
     });
     channels = channels.concat(parseXtreamResponse(streams, xtream, categoriesDic));
   });
-  await saveToCache(
-    {
-      channels: channels,
-      xtream: xtream
-    });
+  if (id === -1)
+    id = await addSource();
+  let cache = await saveToCache(channels, id)
+  if(cache)
+    return cache;
   return channels;
 }
 
@@ -242,6 +241,13 @@ function xtreamEpisodeToChannel(episode, xtream, origin) {
     image: episode.info?.movie_image,
     type: movie
   }
+}
+
+async function addSource(data) {
+  data.id = settings.sources.length
+  settings.sources[data.id] = data;
+  await updateSettings(settings);
+  return data.id;
 }
 
 function getVideosPath() {
@@ -292,11 +298,19 @@ function applyDefaultSettings() {
     settings.mpvParams = "--fs"
 }
 
-async function saveToCache(data) {
-  let json = JSON.stringify(data);
+async function saveToCache(data, id) {
+  let json = {};
   if (!existsSync(appDataPath))
     await mkdir(appDataPath, { recursive: true });
+  if (existsSync(cachePath) && id) {
+    let cacheJson = await readFile(cachePath, { encoding: "utf-8" });
+    json = JSON.parse(cacheJson);
+  }
+  cache[id] = data;
+  json = JSON.stringify(cache);
   await writeFile(cachePath, json);
+  if(id)
+    return json;
 }
 
 function getAppDataPath() {

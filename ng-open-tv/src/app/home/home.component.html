@@ -29,11 +29,8 @@
             <div class="form-check form-check-inline form-switch">
                 <input [(ngModel)]="chkMovie" (ngModelChange)="load()" class="form-check-input" id="filter-1"
                     type="checkbox">
-                <label *ngIf="memory.Xtream" class="form-check-label" for="filter-1">
+                <label class="form-check-label" for="filter-1">
                     Movies/Vods
-                </label>
-                <label *ngIf="!memory.Xtream">
-                    Movies/Vods/Series
                 </label>
             </div>
             <div *ngIf="memory.Xtream" class="form-check form-check-inline form-switch">

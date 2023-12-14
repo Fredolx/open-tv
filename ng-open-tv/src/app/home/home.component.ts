@@ -23,8 +23,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   electron: any = (window as any).electronAPI;
   lastTerm?: string;
   @ViewChild('search') search!: ElementRef;
-  @ViewChild('searchFavs') searchFavs!: ElementRef;
-  @ViewChild('searchCats') searchCats!: ElementRef;
   defaultElementsToRetrieve: number = 36;
   elementsToRetrieve: number = this.defaultElementsToRetrieve;
   channelsLeft: number = 0;
@@ -45,15 +43,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.addEvents();
     }
     else {
-      this.electron.getCache().then((x: { cache: Cache, favs: Channel[], performedMigration?: boolean }) => {
-        if (x.cache?.channels?.length > 0) {
+      this.electron.getCache().then((x: { cache: Channel[], favs: Channel[], performedMigration?: boolean }) => {
+        if (x.cache?.length > 0) {
           if (x.performedMigration)
             toast.info("Your channel data has been migrated. Please delete & re-load your channels if you notice any issues", undefined, { timeOut: 20000 })
-          this.memory.Channels = x.cache.channels;
-          if (x.cache.xtream)
-            this.memory.Xtream = x.cache.xtream
-          if (x.cache.url)
-            this.memory.Url = x.cache.url;
+          this.memory.Channels = x.cache;
           this.memory.FavChannels = x.favs;
           this.getChannels();
           this.getCategories();
@@ -388,7 +382,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         tmpFocus += 1;
         break;
     }
-    let goOverSize = this.shortFiltersMode() ? 1 : 2;
+    let goOverSize = 2;
     if (lowSize && (tmpFocus % 3 == 0) && this.focusArea == FocusArea.Tiles)
       tmpFocus / 3;
     tmpFocus += this.focus;
@@ -408,10 +402,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  shortFiltersMode() {
-    return !this.memory.Xtream && this.focusArea == FocusArea.Filters;
-  }
-
   changeFocusArea(down: boolean) {
     let increment = down ? 1 : -1;
     this.focusArea += increment;
@@ -423,7 +413,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   applyFocusArea(down: boolean) {
-    this.focus = down ? 0 : (this.shortFiltersMode() ? 1 : 2)
+    this.focus = down ? 0 : 2
     let id = FocusAreaPrefix[this.focusArea] + this.focus;
     document.getElementById(id)?.focus();
   }
