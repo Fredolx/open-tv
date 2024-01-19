@@ -47,8 +47,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     else {
       this.electron.getCache().then((x: { cache: Cache, favs: Channel[], performedMigration?: boolean }) => {
         if (x.cache?.channels?.length > 0) {
-          if (x.performedMigration)
-            toast.info("Your channel data has been migrated. Please delete & re-load your channels if you notice any issues", undefined, { timeOut: 20000 })
           this.memory.Channels = x.cache.channels;
           if (x.cache.xtream)
             this.memory.Xtream = x.cache.xtream
@@ -60,9 +58,18 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           this.addEvents();
         }
         else
-          router.navigateByUrl("setup");
+          this.reset();
+      }).catch(() => {
+        this.toast.error("Could not load cached channels");
+        this.reset();
       });
     }
+  }
+
+  reset() {
+    this.electron.deleteCache().finally(() => {
+      this.router.navigateByUrl("setup");
+    });
   }
 
   addEvents() {
@@ -354,7 +361,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   goBack() {
-    if(this.memory.SelectedSerie)
+    if (this.memory.SelectedSerie)
       this.memory.clearSeriesNode();
     else {
       this.memory.clearCategoryNode();
