@@ -29,11 +29,8 @@ export class SetupComponent {
 
   async getFile() {
     this.loading = true;
-    let result = await this.electron.selectFile();
-    if (result) {
-      this.memory.Channels = result;
+    if (await this.memory.GetFile(this.name))
       this.nav.navigateByUrl("");
-    }
     else
       this.toastr.error("Could not parse selected file");
     this.loading = false;
@@ -41,7 +38,7 @@ export class SetupComponent {
 
   async getFileFromURL() {
     this.loading = true;
-    if (await this.memory.DownloadM3U(this.url))
+    if (await this.memory.DownloadM3U(this.name, this.url))
       this.nav.navigateByUrl("");
     else
       this.error();

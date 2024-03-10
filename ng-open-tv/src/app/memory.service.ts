@@ -29,12 +29,32 @@ export class MemoryService {
   public currentContextMenu?: MatMenuTrigger
   public Loading = false;
 
-  async DownloadM3U(url: String | undefined = undefined): Promise<boolean> {
+  async GetFile(name: String | undefined = undefined): Promise<boolean> {
     let channels;
+    if (name?.trim())
+      this.Name = name.trim();
+    try {
+      channels = await this.electron.selectFile(this.Name);
+    }
+    catch (e) {
+      console.error(e);
+      return false;
+    }
+    if (channels?.length > 0) {
+      this.Channels = channels;
+      return true;
+    }
+    return false;
+  }
+
+  async DownloadM3U(name: String | undefined = undefined, url: String | undefined = undefined): Promise<boolean> {
+    let channels;
+    if (name?.trim())
+      this.Name = name.trim();
     if (url?.trim())
       this.Url = url.trim();
     try {
-      channels = await this.electron.downloadM3U(this.Url);
+      channels = await this.electron.downloadM3U(this.Name, this.Url);
     }
     catch (e) {
       console.error(e);

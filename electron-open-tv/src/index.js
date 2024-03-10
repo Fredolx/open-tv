@@ -94,12 +94,12 @@ app.on('activate', () => {
   }
 });
 
-ipcMain.handle("selectFile", selectFile);
+ipcMain.handle("selectFile", async (_, name) => await selectFile(name));
 ipcMain.handle("getCache", getCache);
 ipcMain.handle("playChannel", async (_, url, record) => await playChannel(url, record));
 ipcMain.handle("deleteCache", deleteCache);
 ipcMain.handle("saveFavs", async (_, favs) => saveFavs(favs));
-ipcMain.handle("downloadM3U", async (_, url) => await downloadM3U(url));
+ipcMain.handle("downloadM3U", async (_, name, url) => await downloadM3U(name, url));
 ipcMain.handle("selectFolder", selectFolder);
 ipcMain.handle("updateSettings", async (_, settings) => await updateSettings(settings));
 ipcMain.handle("getSettings", getSettings);
@@ -125,15 +125,15 @@ async function deleteCache() {
     await unlink(favsPath);
 }
 
-async function selectFile() {
+async function selectFile(name) {
   let dialogResult = await dialog.showOpenDialog({ properties: ['openFile'] });
   if (dialogResult.canceled) return;
   let channels = await parsePlaylist(dialogResult.filePaths[0]);
-  await saveToCache({ channels: channels });
+  await saveToCache(name, { channels: channels });
   return channels;
 }
 
-async function downloadM3U(url) {
+async function downloadM3U(name, url) {
   let result;
   try {
     result = await axios.get(url);
@@ -143,7 +143,7 @@ async function downloadM3U(url) {
     return [];
   }
   let channels = parsePlaylistFromMemory(result.data.split("\n"));
-  await saveToCache({ channels: channels, url: url });
+  await saveToCache(name, { channels: channels, url: url });
   return channels;
 }
 

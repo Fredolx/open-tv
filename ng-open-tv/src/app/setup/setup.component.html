@@ -12,13 +12,27 @@
         </div>
         <div *ngIf="setupMode == setupModeEnum.m3uFile">
             <div>Please select a M3U file to begin</div>
-            <div class="mt-2">
-                <button class="btn btn-primary" (click)="getFile()">Select file</button>
-            </div>
+            <form #m3uFileForm="ngForm">
+                <div class="row mt-2 justify-content-center">
+                    <div class="col-lg-6 col-md-8">
+                        <input name="name" required class="form-control" [(ngModel)]="name" placeholder="Playlist Name">
+                    </div>
+                </div>
+                <div class="row justify-content-center mt-2">
+                    <div class="col-lg-6 col-md-8">
+                        <button class="btn btn-primary" (click)="getFile()" [disabled]="m3uFileForm.invalid">Select file</button>
+                    </div>
+                </div>
+            </form>
         </div>
         <div *ngIf="setupMode == setupModeEnum.m3u">
             <div>Please enter the M3U URL for your IPTV service to begin</div>
             <form #m3uUrlForm="ngForm">
+                <div class="row mt-2 justify-content-center">
+                    <div class="col-lg-6 col-md-8">
+                        <input name="name" required class="form-control" [(ngModel)]="name" placeholder="Playlist Name">
+                    </div>
+                </div>
                 <div class="row justify-content-center mt-2">
                     <div class="col-lg-6 col-md-8">
                         <input name="url" required class="form-control" [(ngModel)]="url" placeholder="URL">
