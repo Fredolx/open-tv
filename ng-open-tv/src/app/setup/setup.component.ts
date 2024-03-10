@@ -16,7 +16,8 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
 export class SetupComponent {
   constructor(public memory: MemoryService, private nav: Router,
     private toastr: ToastrService, private modalService: NgbModal) { }
-  url?: string
+  name?: string;
+  url?: string;
   loading = false;
   electron: any = (window as any).electronAPI;
   setupModeEnum = SetupMode;
@@ -49,6 +50,7 @@ export class SetupComponent {
 
   async submitXtream() {
     this.loading = true;
+    this.name = this.name?.trim();
     this.xtream.url = this.xtream.url?.trim();
     this.xtream.username = this.xtream.username?.trim();
     this.xtream.password = this.xtream.password?.trim();
@@ -70,7 +72,7 @@ export class SetupComponent {
         this.xtream.url = url.toString();
       }
     }
-    if (await this.memory.GetXtream(this.xtream))
+    if (await this.memory.GetXtream(this.name, this.xtream))
       this.nav.navigateByUrl("");
     else
       this.error();

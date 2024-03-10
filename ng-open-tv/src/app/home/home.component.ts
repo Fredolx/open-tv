@@ -16,6 +16,7 @@ import { FocusArea, FocusAreaPrefix } from '../models/focusArea';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
+  name: String = '';
   channels: Channel[] = [];
   favChannels: Channel[] = [];
   viewMode = ViewMode.All;
@@ -45,17 +46,23 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.addEvents();
     }
     else {
-      this.electron.getCache().then((x: { cache: Cache, favs: Channel[], performedMigration?: boolean }) => {
-        if (x.cache?.channels?.length > 0) {
-          this.memory.Channels = x.cache.channels;
-          if (x.cache.xtream)
-            this.memory.Xtream = x.cache.xtream
-          if (x.cache.url)
-            this.memory.Url = x.cache.url;
-          this.memory.FavChannels = x.favs;
-          this.getChannels();
-          this.getCategories();
-          this.addEvents();
+      this.electron.getCache().then((x: { cache: [Cache], favs: Channel[], performedMigration?: boolean }) => {
+        if (x.cache?.length > 0) {
+          if (x.cache[0]?.channels?.length > 0) {
+            this.memory.Channels = x.cache[0].channels;
+            if (x.cache[0].name) {
+              this.name = x.cache[0].name;
+              this.memory.Name = x.cache[0].name;
+            }
+            if (x.cache[0].xtream)
+              this.memory.Xtream = x.cache[0].xtream
+            if (x.cache[0].url)
+              this.memory.Url = x.cache[0].url;
+            this.memory.FavChannels = x.favs;
+            this.getChannels();
+            this.getCategories();
+            this.addEvents();
+          }
         }
         else
           this.reset();

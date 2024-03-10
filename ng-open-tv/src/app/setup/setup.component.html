@@ -32,6 +32,11 @@
             <form #form="ngForm" (submit)="submitXtream();">
                 <div class="row mt-2 justify-content-center">
                     <div class="col-lg-6 col-md-8">
+                        <input name="name" required class="form-control" [(ngModel)]="name" placeholder="Playlist Name">
+                    </div>
+                </div>
+                <div class="row mt-2 justify-content-center">
+                    <div class="col-lg-6 col-md-8">
                         <input name="url" required class="form-control" [(ngModel)]="xtream.url" placeholder="URL">
                     </div>
                 </div>

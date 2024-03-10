@@ -103,7 +103,7 @@ ipcMain.handle("downloadM3U", async (_, url) => await downloadM3U(url));
 ipcMain.handle("selectFolder", selectFolder);
 ipcMain.handle("updateSettings", async (_, settings) => await updateSettings(settings));
 ipcMain.handle("getSettings", getSettings);
-ipcMain.handle("getXtream", async (_, xtream) => await getXtream(xtream));
+ipcMain.handle("getXtream", async (_, name, xtream) => await getXtream(name, xtream));
 ipcMain.handle("getEpisodes", async (_, series_data) => await getEpisodes(series_data));
 
 
@@ -154,7 +154,7 @@ function buildXtreamURL(xtream) {
   return url;
 }
 
-async function getXtream(xtream) {
+async function getXtream(name, xtream) {
   let url = buildXtreamURL(xtream);
   let reqs = [];
   let responses;
@@ -194,6 +194,7 @@ async function getXtream(xtream) {
     channels = channels.concat(parseXtreamResponse(streams, xtream, categoriesDic));
   });
   await saveToCache(
+    name,
     {
       channels: channels,
       xtream: xtream
@@ -292,10 +293,18 @@ function applyDefaultSettings() {
     settings.mpvParams = "--fs"
 }
 
-async function saveToCache(data) {
-  let json = JSON.stringify(data);
+async function saveToCache(name, data) {
+  let json;
   if (!existsSync(appDataPath))
     await mkdir(appDataPath, { recursive: true });
+  if (existsSync(cachePath)) {
+    let oldCache = await readFile(cachePath, { encoding: "utf-8" });
+    let oldCacheParsed = JSON.parse(oldCache);
+    let newCache = [...oldCacheParsed, { name, ...data }];
+    json = JSON.stringify(newCache);
+  } else {
+    json = JSON.stringify([{ name, ...data }]);
+  }
   await writeFile(cachePath, json);
 }
 

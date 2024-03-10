@@ -21,7 +21,8 @@ export class MemoryService {
   public StartingChannel: boolean = false;
   public NeedToRefreshFavorites: Subject<boolean> = new Subject();
   public SwitchingNode: Subject<boolean> = new Subject();
-  public Url?: String
+  public Name: String = '';
+  public Url?: String;
   public Settings: Settings = {};
   private electron: any = (window as any).electronAPI;
   public Xtream?: Xtream;
@@ -46,12 +47,14 @@ export class MemoryService {
     return false;
   }
 
-  async GetXtream(xtream: Xtream | undefined = undefined) {
+  async GetXtream(name: String | undefined = undefined, xtream: Xtream | undefined = undefined) {
     let channels;
+    if (name)
+      this.Name = name;
     if (xtream)
       this.Xtream = xtream;
     try {
-      channels = await this.electron.getXtream(this.Xtream);
+      channels = await this.electron.getXtream(this.Name, this.Xtream);
     }
     catch (e) {
       console.error(e);

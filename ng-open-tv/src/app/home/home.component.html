@@ -1,11 +1,16 @@
 <ng-keyboard-shortcuts [shortcuts]="shortcuts"></ng-keyboard-shortcuts>
 <ng-keyboard-shortcuts-help [key]="'f1'" [closeKey]="'escape'" [title]="'Help'" />
 <div [hidden]="this.memory.Channels.length == 0 || this.memory.Loading" class="mb-5">
-    <div class="mdi mdi-cog settings" (click)="openSettings()"></div>
     <div class="container reserve-settings-space">
-        <div class="row mb-3">
-            <div class="mx-auto col-xl-6 col-lg-6 col-md-8 col-12">
+        <div class="row align-items-center mb-3">
+            <div class="col d-flex justify-content-start ">
+                {{this.memory.Name}}
+            </div>
+            <div class="col-8">
                 <input type="text" id="search" #search style="width: 100%;" class="form-control" placeholder="Type to search...">
+            </div>
+            <div class="col d-flex justify-content-end">
+                <div class="mdi mdi-cog settings" (click)="openSettings()"></div>
             </div>
         </div>
 
