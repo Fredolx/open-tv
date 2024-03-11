@@ -59,6 +59,13 @@
         <div class="row gy-3">
             <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
                 class="col-lg-4 col-md-4" [id]="i" [channel]="channel"></app-channel-tile>
+                <div
+                *ngIf="!channels.length"
+                placement="top"
+                class="h3 d-inline-flex p-2 align-items-center justify-content-center"
+              >
+                No channels Found.
+              </div>
         </div>
     </div>
     <button *ngIf="channelsLeft > 0" (click)="loadMore()" class="btn btn-outline-primary mx-auto d-block mt-3">Load
