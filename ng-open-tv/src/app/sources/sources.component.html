@@ -1,0 +1,18 @@
+<div class="my-5">
+  <div class="container">
+    <div class="d-flex flex-column row gy-3 align-items-center">
+      <div *ngFor="let source of sources" class="col-lg-4 col-md-4">
+        <div
+          class="source d-inline-flex p-2 align-items-center justify-content-center"
+          (click)="click(source)"
+        >
+          <div class="source-title">{{ source?.name }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<app-loading
+  [hidden]="this.memory.Sources.length != 0 && !this.loading"
+  [center]="true"
+></app-loading>

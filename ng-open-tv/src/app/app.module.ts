@@ -15,6 +15,7 @@ import { MatMenuModule } from '@angular/material/menu'
 import { FormsModule } from '@angular/forms';
 import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
 import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
+import { SourcesComponent } from './sources/sources.component';
 
 @NgModule({
   declarations: [
@@ -25,6 +26,7 @@ import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
     SettingsComponent,
     SetupComponent,
     ConfirmModalComponent,
+    SourcesComponent,
   ],
   imports: [
     BrowserModule,

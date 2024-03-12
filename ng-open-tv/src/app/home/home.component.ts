@@ -3,11 +3,9 @@ import { Router } from '@angular/router';
 import { AllowIn, ShortcutInput } from 'ng-keyboard-shortcuts';
 import { Subscription, debounceTime, distinctUntilChanged, fromEvent, map } from 'rxjs';
 import { MemoryService } from '../memory.service';
-import { Cache } from '../models/cache';
 import { Channel } from '../models/channel';
 import { ViewMode } from '../models/viewMode';
 import { MediaType } from '../models/mediaType';
-import { ToastrService } from 'ngx-toastr';
 import { FocusArea, FocusAreaPrefix } from '../models/focusArea';
 
 @Component({
@@ -39,37 +37,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   currentWindowSize: number = window.innerWidth;
   subscriptions: Subscription[] = [];
 
-  constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
+  constructor(private router: Router, public memory: MemoryService) {
     if (this.memory.Channels.length > 0) {
       this.getChannels();
       this.getCategories();
       this.addEvents();
-    }
-    else {
-      this.electron.getCache().then((x: { cache: [Cache], favs: Channel[], performedMigration?: boolean }) => {
-        if (x.cache?.length > 0) {
-          if (x.cache[0]?.channels?.length > 0) {
-            this.memory.Channels = x.cache[0].channels;
-            if (x.cache[0].name) {
-              this.name = x.cache[0].name;
-              this.memory.Name = x.cache[0].name;
-            }
-            if (x.cache[0].xtream)
-              this.memory.Xtream = x.cache[0].xtream
-            if (x.cache[0].url)
-              this.memory.Url = x.cache[0].url;
-            this.memory.FavChannels = x.favs;
-            this.getChannels();
-            this.getCategories();
-            this.addEvents();
-          }
-        }
-        else
-          this.reset();
-      }).catch(() => {
-        this.toast.error("Could not load cached channels");
-        this.reset();
-      });
     }
   }
 
@@ -378,6 +350,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   openSettings() {
     this.router.navigateByUrl("settings");
+  }
+
+  goToSourcesList() {
+    this.memory.clearAll();
+    this.router.navigateByUrl("");
   }
 
   nav(key: string) {

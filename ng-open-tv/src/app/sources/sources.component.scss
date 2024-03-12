@@ -1,0 +1,23 @@
+.source {
+  border-radius: 0.25rem;
+  background-color: #343a40;
+  height: 3em;
+  width: 100%;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+.source-title {
+  margin-left: 10px;
+  margin-right: 10px;
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.source:hover {
+  background: #007bff;
+  cursor: pointer;
+}

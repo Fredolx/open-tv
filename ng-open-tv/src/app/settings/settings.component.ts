@@ -69,7 +69,7 @@ export class SettingsComponent implements AfterViewInit, OnDestroy {
 
   async goBack() {
     await this.updateSettings();
-    this.router.navigateByUrl("");
+    this.router.navigateByUrl("channels");
   }
 
   async updateSettings() {

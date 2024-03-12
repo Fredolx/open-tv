@@ -5,12 +5,14 @@ import { Settings } from './models/settings';
 import { Xtream } from './models/xtream';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MediaType } from './models/mediaType';
+import { Source } from './models/source';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MemoryService {
   constructor() { }
+  public Sources: Source[] = [];
   public Channels: Channel[] = [];
   public FavChannels: Channel[] = [];
   public Categories: Channel[] = [];
@@ -109,5 +111,17 @@ export class MemoryService {
       this.CategoriesNode = this.Channels.filter(x => x.group === channel.group);
     }
     this.SwitchingNode.next(true);
+  }
+
+  clearAll() {
+    this.Sources = [];
+    this.Channels = [];
+    this.FavChannels = [];
+    this.Categories = [];
+    this.CategoriesNode = [];
+    this.SelectedSerie = undefined;
+    this.SeriesNode = [];
+    this.SelectedCategory = undefined;
+    this.CategoriesNode = [];
   }
 }

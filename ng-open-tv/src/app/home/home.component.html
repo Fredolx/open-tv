@@ -3,7 +3,14 @@
 <div [hidden]="this.memory.Channels.length == 0 || this.memory.Loading" class="mb-5">
     <div class="container reserve-settings-space">
         <div class="row align-items-center mb-3">
-            <div class="col d-flex justify-content-start ">
+            <div class="col d-flex justify-content-start align-items-center ">
+                <div
+                *ngIf="memory.Sources.length > 1"
+                class="arrow mdi mdi-arrow-left-circle settings"
+                [ngbTooltip]="'Retourn to Sources List'"
+                style="margin-right: 20px"
+                (click)="goToSourcesList()"
+                ></div>
                 {{this.memory.Name}}
             </div>
             <div class="col-8">
