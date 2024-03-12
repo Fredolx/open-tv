@@ -114,7 +114,6 @@ export class MemoryService {
   }
 
   clearAll() {
-    this.Sources = [];
     this.Channels = [];
     this.FavChannels = [];
     this.Categories = [];

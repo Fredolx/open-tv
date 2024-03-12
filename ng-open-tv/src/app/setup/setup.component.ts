@@ -29,8 +29,10 @@ export class SetupComponent {
 
   async getFile() {
     this.loading = true;
-    if (await this.memory.GetFile(this.name))
+    if (await this.memory.GetFile(this.name)) {
+      this.memory.Sources = [];
       this.nav.navigateByUrl("");
+    }
     else
       this.toastr.error("Could not parse selected file");
     this.loading = false;
@@ -38,8 +40,10 @@ export class SetupComponent {
 
   async getFileFromURL() {
     this.loading = true;
-    if (await this.memory.DownloadM3U(this.name, this.url))
+    if (await this.memory.DownloadM3U(this.name, this.url)) {
+      this.memory.Sources = [];
       this.nav.navigateByUrl("");
+    }
     else
       this.error();
     this.loading = false;
@@ -69,13 +73,19 @@ export class SetupComponent {
         this.xtream.url = url.toString();
       }
     }
-    if (await this.memory.GetXtream(this.name, this.xtream))
+    if (await this.memory.GetXtream(this.name, this.xtream)) {
+      this.memory.Sources = [];
       this.nav.navigateByUrl("");
+    }
     else
       this.error();
     this.loading = false;
   }
   error() {
     this.toastr.error("Invalid URL or credentials. Try again with the same or a different URL");
+  }
+
+  goHome() {
+    this.nav.navigateByUrl('');
   }
 }

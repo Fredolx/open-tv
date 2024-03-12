@@ -22,32 +22,38 @@ export class SourcesComponent {
     public toast: ToastrService
   ) {
     this.loading = true;
-    this.electron
-      .getCache()
-      .then((x: { cache: [Cache]; favs: Channel[] }) => {
-        if (x.cache?.length > 0) {
-          const newCaches = x.cache.map((ca) => ({
-            ...ca,
-            favs: x.favs,
-          }));
-          this.sources = newCaches;
-          this.memory.Sources = this.sources;
-
-          if (this.sources.length === 1) this.click(this.sources[0])
-        } else this.reset();
-        this.loading = false;
-      })
-      .catch(() => {
-        this.loading = false;
-        this.toast.error('Could not load cached settings');
-        this.reset();
-      });
+    if (this.memory.Sources.length > 0) {
+      this.sources = this.memory.Sources;
+      this.loading = false;
+    } else
+      this.electron
+        .getCache()
+        .then((x: { cache: [Cache]; favs: Channel[] }) => {
+          if (x.cache?.length > 0) {
+            const newCaches = x.cache.map((ca) => ({
+              ...ca,
+              favs: x.favs,
+            }));
+            this.sources = newCaches;
+            this.memory.Sources = this.sources;
+          } else this.reset();
+          this.loading = false;
+        })
+        .catch(() => {
+          this.loading = false;
+          this.toast.error('Could not load cached settings');
+          this.reset();
+        });
   }
 
   reset() {
     this.electron.deleteCache().finally(() => {
       this.router.navigateByUrl('setup');
     });
+  }
+
+  goToSetup() {
+    this.router.navigateByUrl('setup');
   }
 
   async click(source: Source) {

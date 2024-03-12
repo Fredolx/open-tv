@@ -1,5 +1,16 @@
 <div class="container text-center mt-5">
     <ng-container *ngIf="!loading">
+        <div class="row justify-content-center mb-3" *ngIf="this.memory.Sources.length > 0">
+            <div class="col d-flex justify-content-center">
+              <button
+                class="btn btn-sm btn-outline-light"
+                [ngbTooltip]="'Return Home'"
+                (click)="goHome()"
+              >
+                <div class="mdi mdi-home icon"></div>
+              </button>
+            </div>
+        </div>
         <div class="btn-group mx-auto mb-4" style="width: fit-content; display: block;">
             <button (click)="setupMode = setupModeEnum.m3uFile" class="btn btn-secondary"
                 [ngbTooltip]="'Use this option if you only have an M3U file. If the file was obtained through an URL given to you by your IPTV provider, the M3U URL option is better'"
