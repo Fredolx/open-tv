@@ -98,7 +98,7 @@ ipcMain.handle("selectFile", async (_, name) => await selectFile(name));
 ipcMain.handle("getCache", getCache);
 ipcMain.handle("playChannel", async (_, url, record) => await playChannel(url, record));
 ipcMain.handle("deleteCache", deleteCache);
-ipcMain.handle("saveFavs", async (_, favs) => saveFavs(favs));
+ipcMain.handle("saveFavs", async (_, name, favs) => saveFavs(name, favs));
 ipcMain.handle("downloadM3U", async (_, name, url) => await downloadM3U(name, url));
 ipcMain.handle("selectFolder", selectFolder);
 ipcMain.handle("updateSettings", async (_, settings) => await updateSettings(settings));
@@ -430,8 +430,23 @@ function waitForProcessStart(proc) {
   })
 }
 
-async function saveFavs(favs) {
-  await writeFile(favsPath, JSON.stringify(favs));
+async function saveFavs(name, favs) {
+  let json;
+  if (existsSync(favsPath)) {
+    let oldFavs = await readFile(favsPath, { encoding: "utf-8" });
+    let oldFavsParsed = JSON.parse(oldFavs);
+    let foundIndex = oldFavsParsed.findIndex((item) => item.name === name);
+    if (foundIndex !== -1) {
+      oldFavsParsed[foundIndex].channels = favs;
+      json = JSON.stringify(oldFavsParsed);
+    } else {
+      let newFavs = [...oldFavsParsed, { name, channels: favs }];
+      json = JSON.stringify(newFavs);
+    }
+  } else {
+    json = JSON.stringify([{ name, channels: favs }]);
+  }
+  await writeFile(favsPath, json);
 }
 
 async function fixMPV() {

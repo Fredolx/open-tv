@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { MemoryService } from '../memory.service';
 import { ToastrService } from 'ngx-toastr';
 import { Channel } from '../models/channel';
-import { Source } from '../models/source';
+import { Favs, Source } from '../models/source';
 
 @Component({
   selector: 'app-sources',
@@ -28,11 +28,11 @@ export class SourcesComponent {
     } else
       this.electron
         .getCache()
-        .then((x: { cache: [Cache]; favs: Channel[] }) => {
+        .then((x: { cache: [Cache]; favs: Favs[] }) => {
           if (x.cache?.length > 0) {
             const newCaches = x.cache.map((ca) => ({
               ...ca,
-              favs: x.favs,
+              favs: x.favs.find(e => e.name === ca.name)?.channels || [],
             }));
             this.sources = newCaches;
             this.memory.Sources = this.sources;

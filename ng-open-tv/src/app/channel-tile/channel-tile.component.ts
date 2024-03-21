@@ -66,7 +66,7 @@ export class ChannelTileComponent {
     else
       this.memory.FavChannels.splice(index, 1);
     this.memory.NeedToRefreshFavorites.next(true);
-    this.electron.saveFavs(this.memory.FavChannels);
+    this.electron.saveFavs(this.memory.Name, this.memory.FavChannels);
   }
 
   alreadyExistsInFavorites() {

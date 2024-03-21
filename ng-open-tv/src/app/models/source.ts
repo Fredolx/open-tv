@@ -8,3 +8,8 @@ export class Source {
   url?: string;
   favs!: Array<Channel>;
 }
+
+export class Favs {
+  name!: string;
+  channels!: Array<Channel>;
+}
