@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
-import { Cache } from '../models/cache';
 import { Router } from '@angular/router';
-import { MemoryService } from '../memory.service';
 import { ToastrService } from 'ngx-toastr';
-import { Channel } from '../models/channel';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Cache } from '../models/cache';
+import { MemoryService } from '../memory.service';
 import { Favs, Source } from '../models/source';
+import { DeleteModalComponent } from '../delete-modal/delete-modal.component';
 
 @Component({
   selector: 'app-sources',
@@ -14,12 +15,14 @@ import { Favs, Source } from '../models/source';
 export class SourcesComponent {
   sources: Source[] = [];
   electron: any = (window as any).electronAPI;
+  edit: Boolean = false;
   loading: Boolean = false;
 
   constructor(
     private router: Router,
     public memory: MemoryService,
-    public toast: ToastrService
+    public toast: ToastrService,
+    private modalService: NgbModal
   ) {
     this.loading = true;
     if (this.memory.Sources.length > 0) {
@@ -32,11 +35,11 @@ export class SourcesComponent {
           if (x.cache?.length > 0) {
             const newCaches = x.cache.map((ca) => ({
               ...ca,
-              favs: x.favs.find(e => e.name === ca.name)?.channels || [],
+              favs: x.favs.find((e) => e.name === ca.name)?.channels || [],
             }));
             this.sources = newCaches;
             this.memory.Sources = this.sources;
-          } else this.reset();
+          } else this.goToSetup();
           this.loading = false;
         })
         .catch(() => {
@@ -47,13 +50,19 @@ export class SourcesComponent {
   }
 
   reset() {
-    this.electron.deleteCache().finally(() => {
+    this.electron.deleteAllCache().finally(() => {
       this.router.navigateByUrl('setup');
     });
   }
 
   goToSetup() {
     this.router.navigateByUrl('setup');
+  }
+
+  editSources() {
+    if (this.edit) return (this.edit = false);
+
+    return (this.edit = true);
   }
 
   async click(source: Source) {
@@ -65,5 +74,30 @@ export class SourcesComponent {
     if (favs) this.memory.FavChannels = favs;
 
     this.router.navigateByUrl('channels');
+  }
+
+  async deleteModal(source: Source) {
+    let result = await this.modalService.open(DeleteModalComponent, {
+      keyboard: false,
+      backdrop: 'static',
+      size: 'lg',
+    }).result;
+
+    if (result === 'delete') {
+      const { name } = source;
+
+      const newSources = this.memory.Sources.filter(
+        (source) => source.name !== name
+      );
+
+      this.sources = newSources;
+      this.memory.Sources = this.sources;
+      this.electron.deleteCache(name);
+
+      if (this.sources.length === 0) {
+        this.edit = false;
+        this.goToSetup();
+      }
+    }
   }
 }

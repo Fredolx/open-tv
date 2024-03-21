@@ -1,0 +1,19 @@
+<div class="modal-header">
+  <h4 class="modal-title">Are you sure you want to delete this source?</h4>
+</div>
+<div class="modal-footer modal-footer-custom">
+  <button
+    type="button"
+    class="btn btn-secondary"
+    (click)="activeModal.close('ignore')"
+  >
+    Cancel
+  </button>
+  <button
+    type="button"
+    class="btn btn-danger"
+    (click)="activeModal.close('delete')"
+  >
+    Delete
+  </button>
+</div>

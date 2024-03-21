@@ -97,7 +97,7 @@ app.on('activate', () => {
 ipcMain.handle("selectFile", async (_, name) => await selectFile(name));
 ipcMain.handle("getCache", getCache);
 ipcMain.handle("playChannel", async (_, url, record) => await playChannel(url, record));
-ipcMain.handle("deleteCache", deleteCache);
+ipcMain.handle("deleteAllCache", deleteAllCache);
 ipcMain.handle("saveFavs", async (_, name, favs) => saveFavs(name, favs));
 ipcMain.handle("downloadM3U", async (_, name, url) => await downloadM3U(name, url));
 ipcMain.handle("selectFolder", selectFolder);
@@ -105,6 +105,7 @@ ipcMain.handle("updateSettings", async (_, settings) => await updateSettings(set
 ipcMain.handle("getSettings", getSettings);
 ipcMain.handle("getXtream", async (_, name, xtream) => await getXtream(name, xtream));
 ipcMain.handle("getEpisodes", async (_, series_data) => await getEpisodes(series_data));
+ipcMain.handle("deleteCache", async (_, name) => await deleteCache(name));
 
 
 async function updateSettings(_settings) {
@@ -119,8 +120,9 @@ async function selectFolder() {
   return dialogResult.filePaths[0];
 }
 
-async function deleteCache() {
-  await unlink(cachePath);
+async function deleteAllCache() {
+  if (existsSync(cachePath))
+    await unlink(cachePath);
   if (existsSync(favsPath))
     await unlink(favsPath);
 }
@@ -447,6 +449,13 @@ async function saveFavs(name, favs) {
     json = JSON.stringify([{ name, channels: favs }]);
   }
   await writeFile(favsPath, json);
+}
+
+async function deleteCache(name) {
+  let cache = await readFile(cachePath, { encoding: "utf-8" });
+  let cacheParsed = JSON.parse(cache);
+  let filteredCache = cacheParsed.filter((ca) => ca.name !== name);
+  await writeFile(cachePath, JSON.stringify(filteredCache));
 }
 
 async function fixMPV() {

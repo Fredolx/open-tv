@@ -4,6 +4,7 @@
       <div class="col d-flex justify-content-center">
         <button
           class="btn btn-sm btn-outline-light"
+          *ngIf="!edit"
           [ngbTooltip]="'Add new Source'"
           (click)="goToSetup()"
         >
@@ -13,20 +14,36 @@
       <div class="col d-flex justify-content-center">
         <button
           class="btn btn-sm btn-outline-light"
+          [ngClass]="{ 'btn-outline-light': !edit, 'btn-warning': edit }"
           [ngbTooltip]="'Edit List Sources'"
+          (click)="editSources()"
         >
           <div class="mdi mdi-pencil icon"></div>
         </button>
       </div>
     </div>
-    <div class="d-flex flex-column row gy-3 align-items-center">
-      <div *ngFor="let source of sources" class="col-lg-4 col-md-4">
+    <div
+      class="d-flex flex-column row gy-3 justify-content-center align-items-center"
+    >
+      <div
+        *ngFor="let source of sources"
+        class="d-flex align-items-center"
+        [ngClass]="{ 'col-lg-4 col-md-4': !edit, 'col-lg-6 col-md-6': edit }"
+      >
         <div
           class="source d-inline-flex p-2 align-items-center justify-content-center"
           (click)="click(source)"
         >
           <div class="source-title">{{ source?.name }}</div>
         </div>
+        <button
+          class="btn btn-sm btn-danger mx-5"
+          *ngIf="edit"
+          [ngbTooltip]="'Delete Source'"
+          (click)="deleteModal(source)"
+        >
+          <div class="mdi mdi-delete icon"></div>
+        </button>
       </div>
     </div>
   </div>

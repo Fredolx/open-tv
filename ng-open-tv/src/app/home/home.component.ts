@@ -46,7 +46,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   reset() {
-    this.electron.deleteCache().finally(() => {
+    this.electron.deleteAllCache().finally(() => {
       this.router.navigateByUrl("setup");
     });
   }
@@ -349,7 +349,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   openSettings() {
-    this.router.navigateByUrl("settings");
+    const source = this.memory.Sources.find(
+      (source) => source.name === this.memory.Name
+    );
+    this.router.navigateByUrl('settings', { state: { source } });
   }
 
   goToSourcesList() {
