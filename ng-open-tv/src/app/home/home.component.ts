@@ -3,11 +3,9 @@ import { Router } from '@angular/router';
 import { AllowIn, ShortcutInput } from 'ng-keyboard-shortcuts';
 import { Subscription, debounceTime, distinctUntilChanged, fromEvent, map } from 'rxjs';
 import { MemoryService } from '../memory.service';
-import { Cache } from '../models/cache';
 import { Channel } from '../models/channel';
 import { ViewMode } from '../models/viewMode';
 import { MediaType } from '../models/mediaType';
-import { ToastrService } from 'ngx-toastr';
 import { FocusArea, FocusAreaPrefix } from '../models/focusArea';
 
 @Component({
@@ -16,6 +14,7 @@ import { FocusArea, FocusAreaPrefix } from '../models/focusArea';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
+  name: String = '';
   channels: Channel[] = [];
   favChannels: Channel[] = [];
   viewMode = ViewMode.All;
@@ -38,36 +37,16 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   currentWindowSize: number = window.innerWidth;
   subscriptions: Subscription[] = [];
 
-  constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
+  constructor(private router: Router, public memory: MemoryService) {
     if (this.memory.Channels.length > 0) {
       this.getChannels();
       this.getCategories();
       this.addEvents();
     }
-    else {
-      this.electron.getCache().then((x: { cache: Cache, favs: Channel[], performedMigration?: boolean }) => {
-        if (x.cache?.channels?.length > 0) {
-          this.memory.Channels = x.cache.channels;
-          if (x.cache.xtream)
-            this.memory.Xtream = x.cache.xtream
-          if (x.cache.url)
-            this.memory.Url = x.cache.url;
-          this.memory.FavChannels = x.favs;
-          this.getChannels();
-          this.getCategories();
-          this.addEvents();
-        }
-        else
-          this.reset();
-      }).catch(() => {
-        this.toast.error("Could not load cached channels");
-        this.reset();
-      });
-    }
   }
 
   reset() {
-    this.electron.deleteCache().finally(() => {
+    this.electron.deleteAllCache().finally(() => {
       this.router.navigateByUrl("setup");
     });
   }
@@ -370,7 +349,15 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   openSettings() {
-    this.router.navigateByUrl("settings");
+    const source = this.memory.Sources.find(
+      (source) => source.name === this.memory.Name
+    );
+    this.router.navigateByUrl('settings', { state: { source } });
+  }
+
+  goToSourcesList() {
+    this.memory.clearAll();
+    this.router.navigateByUrl("");
   }
 
   nav(key: string) {

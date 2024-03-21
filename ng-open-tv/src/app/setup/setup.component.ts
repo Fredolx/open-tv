@@ -16,7 +16,8 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
 export class SetupComponent {
   constructor(public memory: MemoryService, private nav: Router,
     private toastr: ToastrService, private modalService: NgbModal) { }
-  url?: string
+  name?: string;
+  url?: string;
   loading = false;
   electron: any = (window as any).electronAPI;
   setupModeEnum = SetupMode;
@@ -28,9 +29,8 @@ export class SetupComponent {
 
   async getFile() {
     this.loading = true;
-    let result = await this.electron.selectFile();
-    if (result) {
-      this.memory.Channels = result;
+    if (await this.memory.GetFile(this.name)) {
+      this.memory.Sources = [];
       this.nav.navigateByUrl("");
     }
     else
@@ -40,8 +40,10 @@ export class SetupComponent {
 
   async getFileFromURL() {
     this.loading = true;
-    if (await this.memory.DownloadM3U(this.url))
+    if (await this.memory.DownloadM3U(this.name, this.url)) {
+      this.memory.Sources = [];
       this.nav.navigateByUrl("");
+    }
     else
       this.error();
     this.loading = false;
@@ -49,6 +51,7 @@ export class SetupComponent {
 
   async submitXtream() {
     this.loading = true;
+    this.name = this.name?.trim();
     this.xtream.url = this.xtream.url?.trim();
     this.xtream.username = this.xtream.username?.trim();
     this.xtream.password = this.xtream.password?.trim();
@@ -70,13 +73,19 @@ export class SetupComponent {
         this.xtream.url = url.toString();
       }
     }
-    if (await this.memory.GetXtream(this.xtream))
+    if (await this.memory.GetXtream(this.name, this.xtream)) {
+      this.memory.Sources = [];
       this.nav.navigateByUrl("");
+    }
     else
       this.error();
     this.loading = false;
   }
   error() {
     this.toastr.error("Invalid URL or credentials. Try again with the same or a different URL");
+  }
+
+  goHome() {
+    this.nav.navigateByUrl('');
   }
 }

@@ -5,12 +5,14 @@ import { Settings } from './models/settings';
 import { Xtream } from './models/xtream';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MediaType } from './models/mediaType';
+import { Source } from './models/source';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MemoryService {
   constructor() { }
+  public Sources: Source[] = [];
   public Channels: Channel[] = [];
   public FavChannels: Channel[] = [];
   public Categories: Channel[] = [];
@@ -21,19 +23,20 @@ export class MemoryService {
   public StartingChannel: boolean = false;
   public NeedToRefreshFavorites: Subject<boolean> = new Subject();
   public SwitchingNode: Subject<boolean> = new Subject();
-  public Url?: String
+  public Name: String = '';
+  public Url?: String;
   public Settings: Settings = {};
   private electron: any = (window as any).electronAPI;
   public Xtream?: Xtream;
   public currentContextMenu?: MatMenuTrigger
   public Loading = false;
 
-  async DownloadM3U(url: String | undefined = undefined): Promise<boolean> {
+  async GetFile(name: String | undefined = undefined): Promise<boolean> {
     let channels;
-    if (url?.trim())
-      this.Url = url.trim();
+    if (name?.trim())
+      this.Name = name.trim();
     try {
-      channels = await this.electron.downloadM3U(this.Url);
+      channels = await this.electron.selectFile(this.Name);
     }
     catch (e) {
       console.error(e);
@@ -46,12 +49,34 @@ export class MemoryService {
     return false;
   }
 
-  async GetXtream(xtream: Xtream | undefined = undefined) {
+  async DownloadM3U(name: String | undefined = undefined, url: String | undefined = undefined): Promise<boolean> {
     let channels;
+    if (name?.trim())
+      this.Name = name.trim();
+    if (url?.trim())
+      this.Url = url.trim();
+    try {
+      channels = await this.electron.downloadM3U(this.Name, this.Url);
+    }
+    catch (e) {
+      console.error(e);
+      return false;
+    }
+    if (channels?.length > 0) {
+      this.Channels = channels;
+      return true;
+    }
+    return false;
+  }
+
+  async GetXtream(name: String | undefined = undefined, xtream: Xtream | undefined = undefined) {
+    let channels;
+    if (name)
+      this.Name = name;
     if (xtream)
       this.Xtream = xtream;
     try {
-      channels = await this.electron.getXtream(this.Xtream);
+      channels = await this.electron.getXtream(this.Name, this.Xtream);
     }
     catch (e) {
       console.error(e);
@@ -86,5 +111,16 @@ export class MemoryService {
       this.CategoriesNode = this.Channels.filter(x => x.group === channel.group);
     }
     this.SwitchingNode.next(true);
+  }
+
+  clearAll() {
+    this.Channels = [];
+    this.FavChannels = [];
+    this.Categories = [];
+    this.CategoriesNode = [];
+    this.SelectedSerie = undefined;
+    this.SeriesNode = [];
+    this.SelectedCategory = undefined;
+    this.CategoriesNode = [];
   }
 }

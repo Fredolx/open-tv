@@ -94,17 +94,18 @@ app.on('activate', () => {
   }
 });
 
-ipcMain.handle("selectFile", selectFile);
+ipcMain.handle("selectFile", async (_, name) => await selectFile(name));
 ipcMain.handle("getCache", getCache);
 ipcMain.handle("playChannel", async (_, url, record) => await playChannel(url, record));
-ipcMain.handle("deleteCache", deleteCache);
-ipcMain.handle("saveFavs", async (_, favs) => saveFavs(favs));
-ipcMain.handle("downloadM3U", async (_, url) => await downloadM3U(url));
+ipcMain.handle("deleteAllCache", deleteAllCache);
+ipcMain.handle("saveFavs", async (_, name, favs) => saveFavs(name, favs));
+ipcMain.handle("downloadM3U", async (_, name, url) => await downloadM3U(name, url));
 ipcMain.handle("selectFolder", selectFolder);
 ipcMain.handle("updateSettings", async (_, settings) => await updateSettings(settings));
 ipcMain.handle("getSettings", getSettings);
-ipcMain.handle("getXtream", async (_, xtream) => await getXtream(xtream));
+ipcMain.handle("getXtream", async (_, name, xtream) => await getXtream(name, xtream));
 ipcMain.handle("getEpisodes", async (_, series_data) => await getEpisodes(series_data));
+ipcMain.handle("deleteCache", async (_, name) => await deleteCache(name));
 
 
 async function updateSettings(_settings) {
@@ -119,21 +120,22 @@ async function selectFolder() {
   return dialogResult.filePaths[0];
 }
 
-async function deleteCache() {
-  await unlink(cachePath);
+async function deleteAllCache() {
+  if (existsSync(cachePath))
+    await unlink(cachePath);
   if (existsSync(favsPath))
     await unlink(favsPath);
 }
 
-async function selectFile() {
+async function selectFile(name) {
   let dialogResult = await dialog.showOpenDialog({ properties: ['openFile'] });
   if (dialogResult.canceled) return;
   let channels = await parsePlaylist(dialogResult.filePaths[0]);
-  await saveToCache({ channels: channels });
+  await saveToCache(name, { channels: channels });
   return channels;
 }
 
-async function downloadM3U(url) {
+async function downloadM3U(name, url) {
   let result;
   try {
     result = await axios.get(url);
@@ -143,7 +145,7 @@ async function downloadM3U(url) {
     return [];
   }
   let channels = parsePlaylistFromMemory(result.data.split("\n"));
-  await saveToCache({ channels: channels, url: url });
+  await saveToCache(name, { channels: channels, url: url });
   return channels;
 }
 
@@ -154,7 +156,7 @@ function buildXtreamURL(xtream) {
   return url;
 }
 
-async function getXtream(xtream) {
+async function getXtream(name, xtream) {
   let url = buildXtreamURL(xtream);
   let reqs = [];
   let responses;
@@ -194,6 +196,7 @@ async function getXtream(xtream) {
     channels = channels.concat(parseXtreamResponse(streams, xtream, categoriesDic));
   });
   await saveToCache(
+    name,
     {
       channels: channels,
       xtream: xtream
@@ -292,10 +295,18 @@ function applyDefaultSettings() {
     settings.mpvParams = "--fs"
 }
 
-async function saveToCache(data) {
-  let json = JSON.stringify(data);
+async function saveToCache(name, data) {
+  let json;
   if (!existsSync(appDataPath))
     await mkdir(appDataPath, { recursive: true });
+  if (existsSync(cachePath)) {
+    let oldCache = await readFile(cachePath, { encoding: "utf-8" });
+    let oldCacheParsed = JSON.parse(oldCache);
+    let newCache = [...oldCacheParsed, { name, ...data }];
+    json = JSON.stringify(newCache);
+  } else {
+    json = JSON.stringify([{ name, ...data }]);
+  }
   await writeFile(cachePath, json);
 }
 
@@ -421,8 +432,30 @@ function waitForProcessStart(proc) {
   })
 }
 
-async function saveFavs(favs) {
-  await writeFile(favsPath, JSON.stringify(favs));
+async function saveFavs(name, favs) {
+  let json;
+  if (existsSync(favsPath)) {
+    let oldFavs = await readFile(favsPath, { encoding: "utf-8" });
+    let oldFavsParsed = JSON.parse(oldFavs);
+    let foundIndex = oldFavsParsed.findIndex((item) => item.name === name);
+    if (foundIndex !== -1) {
+      oldFavsParsed[foundIndex].channels = favs;
+      json = JSON.stringify(oldFavsParsed);
+    } else {
+      let newFavs = [...oldFavsParsed, { name, channels: favs }];
+      json = JSON.stringify(newFavs);
+    }
+  } else {
+    json = JSON.stringify([{ name, channels: favs }]);
+  }
+  await writeFile(favsPath, json);
+}
+
+async function deleteCache(name) {
+  let cache = await readFile(cachePath, { encoding: "utf-8" });
+  let cacheParsed = JSON.parse(cache);
+  let filteredCache = cacheParsed.filter((ca) => ca.name !== name);
+  await writeFile(cachePath, JSON.stringify(filteredCache));
 }
 
 async function fixMPV() {
