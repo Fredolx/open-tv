@@ -7,6 +7,7 @@ export class Source {
   xtream?: Xtream;
   url?: string;
   favs!: Array<Channel>;
+  auto?: Boolean;
 }
 
 export class Favs {

@@ -33,6 +33,24 @@ export class SourcesComponent {
       this.electron
         .getCache()
         .then((x: { cache: [Cache]; favs: Favs[] }) => {
+          if (x.cache?.length === 1) {
+            x.cache.map((ca) => {
+              if (ca.auto) {
+                const { name, channels, xtream, url } = ca;
+                const favs =
+                  x.favs.find((e) => e.name === ca.name)?.channels || [];
+
+                if (channels?.length > 0) this.memory.Channels = channels;
+                if (name) this.memory.Name = name;
+                if (xtream) this.memory.Xtream = xtream;
+                if (url) this.memory.Url = url;
+                if (favs) this.memory.FavChannels = favs;
+
+                this.router.navigateByUrl('channels');
+              }
+            });
+          }
+
           if (x.cache?.length > 0) {
             const newCaches = x.cache.map((ca) => ({
               ...ca,

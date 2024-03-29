@@ -105,6 +105,10 @@ export class SettingsComponent implements AfterViewInit, OnDestroy {
     await this.electron.updateSettings(this.memory.Settings);
   }
 
+  async updateSourceAuto() {
+    await this.electron.setAutoSource(this.source?.name, this.source?.auto);
+  }
+
   canRefresh(): boolean {
     return this.memory.Url?.trim() || this.memory.Xtream?.url?.trim() ? true : false;
   }

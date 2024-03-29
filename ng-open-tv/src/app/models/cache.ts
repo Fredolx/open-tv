@@ -6,4 +6,5 @@ export class Cache {
     channels!: Array<Channel>;
     xtream?: Xtream;
     url?: string;
+    auto?: Boolean;
 }

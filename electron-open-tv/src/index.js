@@ -107,6 +107,7 @@ ipcMain.handle("getXtream", async (_, name, xtream) => await getXtream(name, xtr
 ipcMain.handle("getEpisodes", async (_, series_data) => await getEpisodes(series_data));
 ipcMain.handle("deleteCache", async (_, name) => await deleteCache(name));
 ipcMain.handle('editSource', async (_, filter, name, url, xtream) => await editSource(filter, name, url, xtream));
+ipcMain.handle('setAutoSource', async (_, name, auto) => await setAutoSource(name, auto));
 
 async function updateSettings(_settings) {
   settings = _settings;
@@ -496,6 +497,21 @@ async function editSource(filter, name, url, xtream) {
   }
 
   return result;
+}
+
+async function setAutoSource(name, auto) {
+  let cache = await readFile(cachePath, { encoding: "utf-8" });
+  let cacheParsed = JSON.parse(cache);
+  let filteredCache = cacheParsed.filter((ca) => ca.name === name);
+  if (filteredCache.length > 0) {
+    let index = cacheParsed.indexOf(filteredCache[0]);
+    let newData = {
+      ...filteredCache[0],
+      auto,
+    };
+    cacheParsed[index] = newData;
+    await writeFile(cachePath, JSON.stringify(cacheParsed));
+  }
 }
 
 async function fixMPV() {
