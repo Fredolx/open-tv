@@ -1,4 +1,4 @@
-<div class="my-5">
+<div [hidden]="this.memory.Sources.length == 0 || this.memory.Loading" class="my-5">
   <div class="container">
     <div class="row justify-content-center mb-3">
       <div class="col d-flex justify-content-center">
@@ -32,7 +32,7 @@
       >
         <div
           class="source d-inline-flex p-2 align-items-center justify-content-center"
-          (click)="click(source)"
+          (click)="!edit ? click(source) : editModal(source)"
         >
           <div class="source-title">{{ source?.name }}</div>
         </div>

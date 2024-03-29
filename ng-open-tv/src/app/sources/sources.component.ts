@@ -6,6 +6,7 @@ import { Cache } from '../models/cache';
 import { MemoryService } from '../memory.service';
 import { Favs, Source } from '../models/source';
 import { DeleteModalComponent } from '../delete-modal/delete-modal.component';
+import { EditModalComponent } from '../edit-modal/edit-modal.component';
 
 @Component({
   selector: 'app-sources',
@@ -74,6 +75,21 @@ export class SourcesComponent {
     if (favs) this.memory.FavChannels = favs;
 
     this.router.navigateByUrl('channels');
+  }
+
+  async editModal(source: Source) {
+    const modalRef = await this.modalService.open(EditModalComponent, {
+      keyboard: false,
+      backdrop: 'static',
+      size: 'lg',
+    });
+    modalRef.componentInstance.source = source;
+
+    const { name, xtream, url } = source;
+
+    if (name) this.memory.Name = name;
+    if (xtream) this.memory.Xtream = xtream;
+    if (url) this.memory.Url = url;
   }
 
   async deleteModal(source: Source) {

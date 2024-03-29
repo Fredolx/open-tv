@@ -123,4 +123,9 @@ export class MemoryService {
     this.SelectedCategory = undefined;
     this.CategoriesNode = [];
   }
+
+  clearAllSource() {
+    this.Sources = [];
+    this.clearAll();
+  }
 }

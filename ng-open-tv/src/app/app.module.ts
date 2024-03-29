@@ -17,6 +17,7 @@ import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
 import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
 import { SourcesComponent } from './sources/sources.component';
 import { DeleteModalComponent } from './delete-modal/delete-modal.component';
+import { EditModalComponent } from './edit-modal/edit-modal.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { DeleteModalComponent } from './delete-modal/delete-modal.component';
     ConfirmModalComponent,
     SourcesComponent,
     DeleteModalComponent,
+    EditModalComponent,
   ],
   imports: [
     BrowserModule,

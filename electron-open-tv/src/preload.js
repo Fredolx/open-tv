@@ -12,5 +12,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getSettings: () => ipcRenderer.invoke('getSettings'),
     getXtream: (name, xtream) => ipcRenderer.invoke('getXtream', name, xtream),
     getEpisodes: (series_data) => ipcRenderer.invoke('getEpisodes', series_data),
-    deleteCache: (name) => ipcRenderer.invoke('deleteCache', name)
+    deleteCache: (name) => ipcRenderer.invoke('deleteCache', name),
+    editSource: (filter, name, url, xtream) => ipcRenderer.invoke('editSource', filter, name, url, xtream)
 });

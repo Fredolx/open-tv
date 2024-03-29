@@ -106,7 +106,7 @@ ipcMain.handle("getSettings", getSettings);
 ipcMain.handle("getXtream", async (_, name, xtream) => await getXtream(name, xtream));
 ipcMain.handle("getEpisodes", async (_, series_data) => await getEpisodes(series_data));
 ipcMain.handle("deleteCache", async (_, name) => await deleteCache(name));
-
+ipcMain.handle('editSource', async (_, filter, name, url, xtream) => await editSource(filter, name, url, xtream));
 
 async function updateSettings(_settings) {
   settings = _settings;
@@ -179,7 +179,7 @@ async function getXtream(name, xtream) {
   url.searchParams.set('action', getSeriesCategories)
   reqs.push(axios.get(url.toString()));
 
-  responses = await Promise.allSettled(reqs);
+  responses = await Promise.allSettled(reqs).catch(error => error);
   let channels = [];
   let categoriesStreams = Array.from({ length: responses.length / 2 }, () => responses.splice(0, 2));
   categoriesStreams.forEach((x) => {
@@ -195,11 +195,11 @@ async function getXtream(name, xtream) {
     });
     channels = channels.concat(parseXtreamResponse(streams, xtream, categoriesDic));
   });
-  await saveToCache(
-    name,
-    {
+
+  if (channels.length !== 0)
+    await saveToCache(name, {
       channels: channels,
-      xtream: xtream
+      xtream: xtream,
     });
   return channels;
 }
@@ -456,6 +456,46 @@ async function deleteCache(name) {
   let cacheParsed = JSON.parse(cache);
   let filteredCache = cacheParsed.filter((ca) => ca.name !== name);
   await writeFile(cachePath, JSON.stringify(filteredCache));
+}
+
+async function editSource(filter, name, url, xtream) {
+  let result = true;
+  let cache = await readFile(cachePath, { encoding: "utf-8" });
+  let cacheParsed = JSON.parse(cache);
+  let filteredCache = cacheParsed.filter((ca) => ca.name === filter);
+  if (filteredCache.length > 0) {
+    let index = cacheParsed.indexOf(filteredCache[0]);
+    let newData = {
+      ...filteredCache[0],
+      name,
+    };
+
+    if (url) {
+      try {
+        await axios.head(url);
+      } catch (e) {
+        result = false;
+        console.error(e);
+      }
+    }
+
+    if (xtream) {
+      try {
+        let buildUrl = buildXtreamURL(xtream);
+        await axios.head(buildUrl);
+      } catch (e) {
+        result = false;
+        console.error(e);
+      }
+    }
+
+    if (result) {
+      cacheParsed[index] = newData;
+      await writeFile(cachePath, JSON.stringify(cacheParsed));
+    }
+  }
+
+  return result;
 }
 
 async function fixMPV() {
