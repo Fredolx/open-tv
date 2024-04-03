@@ -1,0 +1,54 @@
+<div [hidden]="this.memory.Sources.length == 0 || this.memory.Loading" class="my-5">
+  <div class="container">
+    <div class="row justify-content-center mb-3">
+      <div class="col d-flex justify-content-center">
+        <button
+          class="btn btn-sm btn-outline-light"
+          *ngIf="!edit"
+          [ngbTooltip]="'Add new Source'"
+          (click)="goToSetup()"
+        >
+          <div class="mdi mdi-plus icon"></div>
+        </button>
+      </div>
+      <div class="col d-flex justify-content-center">
+        <button
+          class="btn btn-sm btn-outline-light"
+          [ngClass]="{ 'btn-outline-light': !edit, 'btn-warning': edit }"
+          [ngbTooltip]="'Edit List Sources'"
+          (click)="editSources()"
+        >
+          <div class="mdi mdi-pencil icon"></div>
+        </button>
+      </div>
+    </div>
+    <div
+      class="d-flex flex-column row gy-3 justify-content-center align-items-center"
+    >
+      <div
+        *ngFor="let source of sources"
+        class="d-flex align-items-center"
+        [ngClass]="{ 'col-lg-4 col-md-4': !edit, 'col-lg-6 col-md-6': edit }"
+      >
+        <div
+          class="source d-inline-flex p-2 align-items-center justify-content-center"
+          (click)="!edit ? click(source) : editModal(source)"
+        >
+          <div class="source-title">{{ source?.name }}</div>
+        </div>
+        <button
+          class="btn btn-sm btn-danger mx-5"
+          *ngIf="edit"
+          [ngbTooltip]="'Delete Source'"
+          (click)="deleteModal(source)"
+        >
+          <div class="mdi mdi-delete icon"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<app-loading
+  [hidden]="this.memory.Sources.length != 0 && !this.loading"
+  [center]="true"
+></app-loading>

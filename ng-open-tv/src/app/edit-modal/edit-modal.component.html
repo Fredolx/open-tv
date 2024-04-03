@@ -1,0 +1,114 @@
+<div class="modal-body container">
+  <ng-container *ngIf="!loading">
+    <div *ngIf="setupMode == setupModeEnum.m3uFile">
+      <form #m3uFileForm="ngForm">
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label">Name</label>
+          <div class="col-sm-10">
+            <input
+              name="name"
+              required
+              class="form-control"
+              [(ngModel)]="name"
+              placeholder="Playlist Name"
+            />
+          </div>
+        </div>
+      </form>
+    </div>
+    <div *ngIf="setupMode == setupModeEnum.m3u">
+      <form #m3uUrlForm="ngForm">
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label">Name</label>
+          <div class="col-sm-10">
+            <input
+              name="name"
+              required
+              class="form-control"
+              [(ngModel)]="name"
+              placeholder="Playlist Name"
+            />
+          </div>
+        </div>
+        <div class="form-group row my-2">
+          <label class="col-sm-2 col-form-label">Url</label>
+          <div class="col-sm-10">
+            <input
+              name="url"
+              required
+              class="form-control"
+              [(ngModel)]="url"
+              placeholder="URL"
+            />
+          </div>
+        </div>
+      </form>
+    </div>
+    <div *ngIf="setupMode == setupModeEnum.xtream">
+      <form #m3uUrlForm="ngForm">
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label">Name</label>
+          <div class="col-sm-10">
+            <input
+              name="name"
+              required
+              class="form-control"
+              [(ngModel)]="name"
+              placeholder="Playlist Name"
+            />
+          </div>
+        </div>
+        <div class="form-group row my-2">
+          <label class="col-sm-2 col-form-label">Url</label>
+          <div class="col-sm-10">
+            <input
+              name="url"
+              required
+              class="form-control"
+              [(ngModel)]="xtream.url"
+              placeholder="URL"
+            />
+          </div>
+        </div>
+        <div class="form-group row my-2">
+          <label class="col-sm-2 col-form-label">Username</label>
+          <div class="col-sm-10">
+            <input
+              name="username"
+              required
+              class="form-control"
+              [(ngModel)]="xtream.username"
+              placeholder="Username"
+            />
+          </div>
+        </div>
+        <div class="form-group row my-2">
+          <label class="col-sm-2 col-form-label">Password</label>
+          <div class="col-sm-10">
+            <input
+              name="password"
+              required
+              class="form-control"
+              [(ngModel)]="xtream.password"
+              placeholder="Password"
+            />
+          </div>
+        </div>
+      </form>
+    </div>
+  </ng-container>
+  <app-loading *ngIf="loading" [center]="false"></app-loading>
+</div>
+
+<div class="modal-footer modal-footer-custom">
+  <button
+    type="button"
+    class="btn btn-secondary"
+    (click)="activeModal.close('ignore')"
+  >
+    Cancel
+  </button>
+  <button type="button" class="btn btn-primary" (click)="submit()">
+    Submit
+  </button>
+</div>
