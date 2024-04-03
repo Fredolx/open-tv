@@ -25,14 +25,15 @@
     "lookpath": "^1.2.2"
   },
   "devDependencies": {
-    "@electron-forge/cli": "6.4.1",
-    "@electron-forge/maker-appx": "6.4.1",
-    "@electron-forge/maker-deb": "6.4.1",
-    "@electron-forge/maker-dmg": "6.4.1",
-    "@electron-forge/maker-rpm": "6.4.1",
-    "@electron-forge/maker-squirrel": "6.4.1",
-    "@electron-forge/maker-zip": "6.4.1",
-    "@electron-forge/plugin-webpack": "6.4.1",
+    "@electron-forge/cli": "7.3.1",
+    "@electron-forge/maker-appx": "7.3.1",
+    "@electron-forge/maker-deb": "7.3.1",
+    "@electron-forge/maker-dmg": "7.3.1",
+    "@electron-forge/maker-rpm": "7.3.1",
+    "@electron-forge/maker-squirrel": "7.3.1",
+    "@electron-forge/maker-wix": "^7.3.1",
+    "@electron-forge/maker-zip": "7.3.1",
+    "@electron-forge/plugin-webpack": "7.3.1",
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
     "electron": "27.0.4"
   }
