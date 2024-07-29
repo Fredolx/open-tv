@@ -1,64 +1,42 @@
-.DS_STORE
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-/dist/
+# Compiled output
+/dist
+/tmp
+/out-tsc
 /bazel-out
-/integration/bazel/bazel-*
-*.log
-node_modules/
 
-# CircleCI temporary file for cache key computation.
-# See `save_month_to_file` in `.circleci/config.yml`.
-month.txt
-
-# Include when developing application packages.
-pubspec.lock
-.c9
-.idea/
-.devcontainer/*
-!.devcontainer/README.md
-!.devcontainer/recommended-devcontainer.json
-!.devcontainer/recommended-Dockerfile
-.settings/
-.vscode/launch.json
-.vscode/settings.json
-.vscode/tasks.json
-*.swo
-*.swp
-modules/.settings
-modules/.vscode
-.vimrc
-.nvimrc
-
-# Don't check in secret files
-*secret.js
-
-# Ignore npm/yarn debug log
+# Node
+/node_modules
 npm-debug.log
 yarn-error.log
 
-# build-analytics
-.build-analytics
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-# rollup-test output
-/modules/rollup-test/dist/
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
 
-# User specific bazel settings
-.bazelrc.user
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
 
-# User specific ng-dev settings
-.ng-dev.user*
-
-.notes.md
-baseline.json
-
-# Ignore .history for the xyz.local-history VSCode extension
-.history
-
-# Husky
-.husky/_
-aio/content/examples/.DS_Store
-.webpack
-ng-open-tv/.angular/cache
-ng-open-tv/dist
-electron-open-tv/out
-libs
+# System files
+.DS_Store
+Thumbs.db
