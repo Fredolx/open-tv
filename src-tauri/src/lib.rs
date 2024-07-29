@@ -6,24 +6,10 @@ use std::{
 
 use anyhow::{bail, Context, Result};
 use regex::{Captures, Regex};
-use rusqlite::Connection;
-
-struct Channel {
-    name: String,
-    url: String,
-    group: Option<String>,
-    image: Option<String>,
-    media_type: MediaType,
-}
-
-enum MediaType {
-    Livestream,
-    Movie,
-    Serie,
-    Group,
-}
+use types::{Channel, MediaType};
 
 pub mod sql;
+pub mod types;
 
 static NAME_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"tvg-name="(?P<name>[^"]*)""#).unwrap());
@@ -42,10 +28,14 @@ pub fn run() {
 }
 
 pub fn read_m3u8(path: String, source_name: String) -> Result<()> {
-    let file = File::open("foo.txt").context("Failed to open m3u8 file")?;
+    let file = File::open(path).context("Failed to open m3u8 file")?;
     let reader = BufReader::new(file);
     let mut lines = reader.lines().enumerate().skip(1);
     let mut problematic_lines: Vec<usize> = Vec::new();
+    let mut batched_channels = 0;
+    let source_id = sql::create_or_find_source_by_name(source_name, types::SourceType::M3U)?;
+    let mut sql = sql::CONN.lock().unwrap();
+    let mut tx = sql.transaction()?;
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
         let l1 = match l1.with_context(|| format!("(l1) Error on line: {}, skipping", c1)) {
             Ok(line) => line,
@@ -63,7 +53,7 @@ pub fn read_m3u8(path: String, source_name: String) -> Result<()> {
                 continue;
             }
         };
-        let channel = match get_channel_from_lines(l1, l2)
+        let channel = match get_channel_from_lines(l1, l2, source_id)
             .with_context(|| format!("Failed to process lines #{} #{}, skipping", c1, c2))
         {
             Ok(val) => val,
@@ -73,17 +63,13 @@ pub fn read_m3u8(path: String, source_name: String) -> Result<()> {
                 continue;
             }
         };
-        //commit_channel();
+        sql::insert_channel(&tx, channel)?;
+        batched_channels += 1;
+        if batched_channels == 500 {
+            tx.commit()?;
+            tx = sql.transaction()?;
+        }
     }
-    Ok(())
-}
-
-fn commit_channel(channel: Channel) -> Result<()> {
-    let conn = Connection::open_in_memory()?;
-    conn.execute(
-    "
-        
-    ", ())?;
     Ok(())
 }
 
@@ -93,7 +79,7 @@ fn extract_non_empty_capture(caps: Captures) -> Option<String> {
         .filter(|s| !s.trim().is_empty())
 }
 
-fn get_channel_from_lines(first: String, second: String) -> Result<Channel> {
+fn get_channel_from_lines(first: String, second: String, source_id: i64) -> Result<Channel> {
     if second.trim().is_empty() {
         bail!("second line is empty");
     }
@@ -106,45 +92,56 @@ fn get_channel_from_lines(first: String, second: String) -> Result<Channel> {
                 .and_then(extract_non_empty_capture)
         })
         .context("Couldn't find name from Name or ID")?;
-    let group = GROUP_REGEX.captures(&first)
-    .and_then(extract_non_empty_capture);
-    let image = LOGO_REGEX.captures(&first)
+    let group = GROUP_REGEX
+        .captures(&first)
+        .and_then(extract_non_empty_capture);
+    let image = LOGO_REGEX
+        .captures(&first)
         .and_then(extract_non_empty_capture);
     let channel = Channel {
         name: name,
         group: group,
         image: image,
         url: second.clone(),
-        media_type: get_media_type(second)
+        media_type: get_media_type(second),
+        source_id: source_id
     };
     //let group
     Ok(channel)
 }
 
 fn get_media_type(url: String) -> MediaType {
-    let media_type = if url.ends_with(".mp4") || url.ends_with("mkv")
-        { MediaType::Movie } 
-        else { MediaType::Livestream };
+    let media_type = if url.ends_with(".mp4") || url.ends_with("mkv") {
+        MediaType::Movie
+    } else {
+        MediaType::Livestream
+    };
     return media_type;
 }
 
 #[cfg(test)]
 mod test_m3u {
-    use crate::get_channel_from_lines;
+    use crate::{get_channel_from_lines, read_m3u8};
 
     #[test]
     fn test_get_channel_from_lines() {
         let res1 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="Amazing Channel" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string());
-       assert!(!res1.is_err());
-       let res2 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string());
-       assert!(!res2.is_err());
-       let res3 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string());
-       assert!(res3.is_err());
-       let res4 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id=" " tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string());
-       assert!(res4.is_err());
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0);
+        assert!(!res1.is_err());
+        let res2 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0);
+        assert!(!res2.is_err());
+        let res3 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0);
+        assert!(res3.is_err());
+        let res4 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id=" " tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0);
+        assert!(res4.is_err());
+    }
+
+    #[test]
+    fn test_read_m3u8() {
+        crate::sql::create_or_initialize_db().unwrap();
+        read_m3u8("/home/fred/Downloads/get.php".to_string(), "main".to_string()).unwrap();
     }
 }
