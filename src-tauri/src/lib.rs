@@ -134,17 +134,17 @@ mod test_m3u {
 
     #[test]
     fn test_get_channel_from_lines() {
-        let res1 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="TMC.fr" tvg-name="FR - TMC HEVC" tvg-logo="http://logo.protv.cc/picons/logos/france/TMC-1.png" group-title="|EU| FRANCE HEVC",FR - TMC HEVC"#.to_string()
-       , r#"http://f14.dinott.com:80/e56d0a6d80/ff288fc98346/845440"#.to_string());
+        let res1 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="Amazing Channel" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
+       , r#"http://myurl.local/1234/1234/1234"#.to_string());
        assert!(!res1.is_err());
-       let res2 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="TMC.fr" tvg-name="" tvg-logo="http://logo.protv.cc/picons/logos/france/TMC-1.png" group-title="|EU| FRANCE HEVC",FR - TMC HEVC"#.to_string()
-       , r#"http://f14.dinott.com:80/e56d0a6d80/ff288fc98346/845440"#.to_string());
+       let res2 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
+       , r#"http://myurl.local/1234/1234/1234"#.to_string());
        assert!(!res2.is_err());
-       let res3 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="" tvg-name="" tvg-logo="http://logo.protv.cc/picons/logos/france/TMC-1.png" group-title="|EU| FRANCE HEVC",FR - TMC HEVC"#.to_string()
-       , r#"http://f14.dinott.com:80/e56d0a6d80/ff288fc98346/845440"#.to_string());
+       let res3 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
+       , r#"http://myurl.local/1234/1234/1234"#.to_string());
        assert!(res3.is_err());
-       let res4 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id=" " tvg-name="" tvg-logo="http://logo.protv.cc/picons/logos/france/TMC-1.png" group-title="|EU| FRANCE HEVC",FR - TMC HEVC"#.to_string()
-       , r#"http://f14.dinott.com:80/e56d0a6d80/ff288fc98346/845440"#.to_string());
+       let res4 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id=" " tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
+       , r#"http://myurl.local/1234/1234/1234"#.to_string());
        assert!(res4.is_err());
     }
 }
