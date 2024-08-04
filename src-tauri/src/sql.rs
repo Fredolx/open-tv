@@ -67,6 +67,12 @@ pub fn create_or_initialize_db() -> Result<()> {
     Ok(())
 }
 
+pub fn drop_db() -> Result<()> {
+    let sql = CONN.lock().unwrap();
+    sql.execute_batch("DROP TABLE channels; DROP TABLE sources;")?;
+    Ok(())
+}
+
 pub fn create_or_find_source_by_name(source_name: String, source_type: SourceType) -> Result<i64> {
     let sql = CONN.lock().unwrap();
     let id: Option<i64> = sql
@@ -105,11 +111,11 @@ VALUES (?1, ?2, ?3, ?4, ?5);
 
 #[cfg(test)]
 mod test_sql {
-    use crate::sql::{create_structure, get_and_create_sqlite_db_path, structure_exists};
+    use crate::sql::{create_structure, drop_db, get_and_create_sqlite_db_path, structure_exists};
 
     #[test]
     fn test_structure_exists() {
-        std::fs::remove_file(get_and_create_sqlite_db_path()).unwrap_or_default();
+        drop_db().unwrap();
         assert_eq!(structure_exists().unwrap(), false);
         create_structure().unwrap();
         assert_eq!(structure_exists().unwrap(), true);

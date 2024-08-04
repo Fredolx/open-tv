@@ -1,6 +1,7 @@
 use std::{
+    borrow::{Borrow, BorrowMut},
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Write},
     sync::LazyLock,
 };
 
@@ -27,15 +28,14 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-pub fn read_m3u8(path: String, source_name: String) -> Result<()> {
+pub fn read_m3u8(path: String, source_name: String) -> Result<Vec<usize>> {
     let file = File::open(path).context("Failed to open m3u8 file")?;
     let reader = BufReader::new(file);
     let mut lines = reader.lines().enumerate().skip(1);
     let mut problematic_lines: Vec<usize> = Vec::new();
-    let mut batched_channels = 0;
     let source_id = sql::create_or_find_source_by_name(source_name, types::SourceType::M3U)?;
     let mut sql = sql::CONN.lock().unwrap();
-    let mut tx = sql.transaction()?;
+    let tx = sql.transaction()?;
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
         let l1 = match l1.with_context(|| format!("(l1) Error on line: {}, skipping", c1)) {
             Ok(line) => line,
@@ -64,12 +64,66 @@ pub fn read_m3u8(path: String, source_name: String) -> Result<()> {
             }
         };
         sql::insert_channel(&tx, channel)?;
-        batched_channels += 1;
-        if batched_channels == 500 {
-            tx.commit()?;
-            tx = sql.transaction()?;
+    }
+    tx.commit()?;
+    Ok(problematic_lines)
+}
+
+async fn get_m3u8_from_link(url: String, source_name: String) -> Result<()> {
+    let client = reqwest::Client::new();
+    let mut response = client.get(url).send().await?;
+    let mut str_buffer: String = String::new();
+    let mut skipped_first = false;
+
+    let source_id = sql::create_or_find_source_by_name(source_name, types::SourceType::M3U)?;
+    let mut sql = sql::CONN.lock().unwrap();
+    let tx = sql.transaction()?;
+
+    while let Some(chunk) = response.chunk().await? {
+        let mut two_lines = Vec::new();
+        let lossy = String::from_utf8_lossy(&chunk);
+        let lossy = lossy.into_owned();
+        str_buffer.push_str(&lossy);
+        let mut split: Vec<String> = str_buffer.split('\n').map(String::from).collect();
+        str_buffer.clear();
+        if !skipped_first {
+            skipped_first = true;
+            split.remove(0);
+        }
+        let last = split.last().context("failed to get last")?;
+        if !last.ends_with('\n') {
+            str_buffer = last.to_string();
+            split.pop();
+        }
+        let len = split.len();
+        if len > 0 && len % 2 != 0 {
+            let mut ele = split.pop().context("failed to pop")?;
+            ele.push('\n');
+            str_buffer.insert_str(0, &ele);
+        }
+        for line in split {
+            two_lines.push(line);
+            if two_lines.len() == 2 {
+                let first = two_lines.remove(0);
+                let second = two_lines.remove(0);
+                let channel = match get_channel_from_lines(
+                    first.to_string(),
+                    second.to_string(),
+                    source_id,
+                )
+                .with_context(|| format!("Failed to process lines:\n{}\n{}", first, second))
+                {
+                    Ok(val) => val,
+                    Err(e) => {
+                        eprintln!("{:?}", e);
+                        continue;
+                    }
+                };
+                sql::insert_channel(&tx, channel)?;
+            }
         }
     }
+    tx.commit()?;
     Ok(())
 }
 
@@ -104,7 +158,7 @@ fn get_channel_from_lines(first: String, second: String, source_id: i64) -> Resu
         image: image,
         url: second.clone(),
         media_type: get_media_type(second),
-        source_id: source_id
+        source_id: source_id,
     };
     //let group
     Ok(channel)
@@ -121,27 +175,41 @@ fn get_media_type(url: String) -> MediaType {
 
 #[cfg(test)]
 mod test_m3u {
-    use crate::{get_channel_from_lines, read_m3u8};
+    use crate::{get_channel_from_lines, get_m3u8_from_link, read_m3u8};
+    use std::time::Instant;
 
     #[test]
     fn test_get_channel_from_lines() {
-        let res1 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="Amazing Channel" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0);
-        assert!(!res1.is_err());
-        let res2 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0);
-        assert!(!res2.is_err());
-        let res3 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0);
-        assert!(res3.is_err());
-        let res4 = get_channel_from_lines(r#"#EXTINF:-1 tvg-id=" " tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0);
-        assert!(res4.is_err());
+        get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="Amazing Channel" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0).unwrap();
+        get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0).unwrap();
+        assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0).is_err());
+        assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id=" " tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0).is_err());
     }
 
     #[test]
     fn test_read_m3u8() {
+        crate::sql::drop_db().unwrap_or_default();
         crate::sql::create_or_initialize_db().unwrap();
-        read_m3u8("/home/fred/Downloads/get.php".to_string(), "main".to_string()).unwrap();
+        let now = Instant::now();
+        read_m3u8(
+            "/home/fred/Downloads/get.php".to_string(),
+            "main".to_string(),
+        )
+        .unwrap();
+        std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_get_m3u8_from_link() {
+        crate::sql::drop_db().unwrap_or_default();
+        crate::sql::create_or_initialize_db().unwrap();
+        let now = Instant::now();
+        get_m3u8_from_link("http://test.com".to_string(), 
+        "source2".to_string()).await.unwrap();
+        std::fs::write("bench2.txt", now.elapsed().as_millis().to_string()).unwrap();
     }
 }

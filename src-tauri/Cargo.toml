@@ -25,3 +25,5 @@ tauri = { version = "2.0.0-beta.24", features = [] }
 anyhow = { version = "1.0.86" }
 regex = { version = "1.10.5", features = ["std"] }
 directories = "5.0.1"
+reqwest = "0.12.5"
+tokio = {version = "1.39.2", features = ["full"]}
