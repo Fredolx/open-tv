@@ -176,7 +176,7 @@ fn get_media_type(url: String) -> MediaType {
 #[cfg(test)]
 mod test_m3u {
     use crate::{get_channel_from_lines, get_m3u8_from_link, read_m3u8};
-    use std::time::Instant;
+    use std::{env, time::Instant};
 
     #[test]
     fn test_get_channel_from_lines() {
@@ -208,7 +208,8 @@ mod test_m3u {
         crate::sql::drop_db().unwrap_or_default();
         crate::sql::create_or_initialize_db().unwrap();
         let now = Instant::now();
-        get_m3u8_from_link("http://test.com".to_string(), 
+        let url = env::var("OPEN_TV_TEST_LINK").unwrap();
+        get_m3u8_from_link(url, 
         "source2".to_string()).await.unwrap();
         std::fs::write("bench2.txt", now.elapsed().as_millis().to_string()).unwrap();
     }
