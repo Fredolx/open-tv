@@ -1,15 +1,13 @@
-use std::{
-    borrow::BorrowMut,
-    sync::{LazyLock, Mutex},
-};
+use std::sync::{LazyLock, Mutex};
 
-use crate::types::{Channel, SourceType};
-use anyhow::Result;
+use crate::types::{Channel, Source};
+use anyhow::{Ok, Result};
 use directories::ProjectDirs;
-use rusqlite::{params, types::Null, Connection, OptionalExtension, Transaction};
+use rusqlite::{params, Connection, OptionalExtension, Transaction};
 
 pub static CONN: LazyLock<Mutex<Connection>> =
     LazyLock::new(|| Mutex::new(Connection::open(get_and_create_sqlite_db_path()).unwrap()));
+
 
 fn get_and_create_sqlite_db_path() -> String {
     let mut path = ProjectDirs::from("dev", "fredol", "open-tv")
@@ -23,25 +21,32 @@ fn get_and_create_sqlite_db_path() -> String {
     return path.to_string_lossy().to_string();
 }
 
+//@TODO: Nullable types
 fn create_structure() -> Result<()> {
     let sql = CONN.lock().unwrap();
     sql.execute_batch(
         r#"
 CREATE TABLE "sources" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "name" varchar(100),
-  "source_type" integer
+  "id"          INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name"        varchar(100),
+  "source_type" integer,
+  "url"         varchar(500),
+  "username"    varchar(100),
+  "password"    varchar(100)
 );
 
 CREATE TABLE "channels" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "name" varchar(250),
-  "group_name" varchar(250),
-  "image" varchar(600),
-  "url" varchar(600),
+  "name" varchar(100),
+  "group_name" varchar(100),
+  "image" varchar(500),
+  "url" varchar(500),
   "source_id" integer,
   FOREIGN KEY (source_id) REFERENCES sources(id)
 );
+
+CREATE INDEX index_channel_name
+ON channels(name);
 "#,
     )?;
     Ok(())
@@ -73,23 +78,25 @@ pub fn drop_db() -> Result<()> {
     Ok(())
 }
 
-pub fn create_or_find_source_by_name(source_name: String, source_type: SourceType) -> Result<i64> {
+pub fn create_or_find_source_by_name(source: &mut Source) -> Result<()> {
     let sql = CONN.lock().unwrap();
     let id: Option<i64> = sql
         .query_row(
             "SELECT id FROM sources WHERE name = ?1",
-            params![source_name],
+            params![source.name],
             |r| r.get(0),
         )
         .optional()?;
     if let Some(id) = id {
-        return Ok(id);
+        source.id = id;
+        return Ok(())
     }
     sql.execute(
-        "INSERT INTO sources (name, source_type) VALUES (?1, ?2)",
-        params![source_name, source_type as u8],
+        "INSERT INTO sources (name, source_type, url, username, password) VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password],
     )?;
-    Ok(sql.last_insert_rowid())
+    source.id = sql.last_insert_rowid();
+    Ok(())
 }
 
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
@@ -98,7 +105,7 @@ pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
 INSERT INTO channels (name, group_name, image, url, source_id) 
 VALUES (?1, ?2, ?3, ?4, ?5); 
 "#,
-        rusqlite::params![
+        params![
             channel.name,
             channel.group,
             channel.image,
@@ -111,7 +118,7 @@ VALUES (?1, ?2, ?3, ?4, ?5);
 
 #[cfg(test)]
 mod test_sql {
-    use crate::sql::{create_structure, drop_db, get_and_create_sqlite_db_path, structure_exists};
+    use crate::sql::{create_structure, drop_db, structure_exists};
 
     #[test]
     fn test_structure_exists() {

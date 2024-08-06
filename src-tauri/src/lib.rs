@@ -1,16 +1,16 @@
 use std::{
-    borrow::{Borrow, BorrowMut},
     fs::File,
-    io::{BufRead, BufReader, Write},
+    io::{BufRead, BufReader},
     sync::LazyLock,
 };
 
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, Context, Error, Result};
 use regex::{Captures, Regex};
-use types::{Channel, MediaType};
+use types::{Channel, MediaType, Source};
 
 pub mod sql;
 pub mod types;
+pub mod xtream;
 
 static NAME_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"tvg-name="(?P<name>[^"]*)""#).unwrap());
@@ -28,12 +28,12 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-pub fn read_m3u8(path: String, source_name: String) -> Result<Vec<usize>> {
+pub fn read_m3u8(path: String, mut source: Source) -> Result<Vec<usize>> {
     let file = File::open(path).context("Failed to open m3u8 file")?;
     let reader = BufReader::new(file);
     let mut lines = reader.lines().enumerate().skip(1);
     let mut problematic_lines: Vec<usize> = Vec::new();
-    let source_id = sql::create_or_find_source_by_name(source_name, types::SourceType::M3U)?;
+    sql::create_or_find_source_by_name(&mut source)?;
     let mut sql = sql::CONN.lock().unwrap();
     let tx = sql.transaction()?;
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
@@ -41,7 +41,7 @@ pub fn read_m3u8(path: String, source_name: String) -> Result<Vec<usize>> {
             Ok(line) => line,
             Err(e) => {
                 problematic_lines.push(c1);
-                eprintln!("{}", e);
+                print_error_stack(e);
                 continue;
             }
         };
@@ -49,17 +49,17 @@ pub fn read_m3u8(path: String, source_name: String) -> Result<Vec<usize>> {
             Ok(line) => line,
             Err(e) => {
                 problematic_lines.push(c2);
-                eprintln!("{}", e);
+                print_error_stack(e);
                 continue;
             }
         };
-        let channel = match get_channel_from_lines(l1, l2, source_id)
+        let channel = match get_channel_from_lines(l1, l2, source.id)
             .with_context(|| format!("Failed to process lines #{} #{}, skipping", c1, c2))
         {
             Ok(val) => val,
             Err(e) => {
                 problematic_lines.push(c1);
-                eprintln!("{}", e);
+                print_error_stack(e);
                 continue;
             }
         };
@@ -69,13 +69,14 @@ pub fn read_m3u8(path: String, source_name: String) -> Result<Vec<usize>> {
     Ok(problematic_lines)
 }
 
-async fn get_m3u8_from_link(url: String, source_name: String) -> Result<()> {
+async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
     let client = reqwest::Client::new();
-    let mut response = client.get(url).send().await?;
+    let url = source.url.clone().context("Invalid source")?;
+    let mut response = client.get(&url).send().await?;
     let mut str_buffer: String = String::new();
     let mut skipped_first = false;
 
-    let source_id = sql::create_or_find_source_by_name(source_name, types::SourceType::M3U)?;
+    sql::create_or_find_source_by_name(&mut source)?;
     let mut sql = sql::CONN.lock().unwrap();
     let tx = sql.transaction()?;
 
@@ -106,19 +107,16 @@ async fn get_m3u8_from_link(url: String, source_name: String) -> Result<()> {
             if two_lines.len() == 2 {
                 let first = two_lines.remove(0);
                 let second = two_lines.remove(0);
-                let channel = match get_channel_from_lines(
-                    first.to_string(),
-                    second.to_string(),
-                    source_id,
-                )
-                .with_context(|| format!("Failed to process lines:\n{}\n{}", first, second))
-                {
-                    Ok(val) => val,
-                    Err(e) => {
-                        eprintln!("{:?}", e);
-                        continue;
-                    }
-                };
+                let channel =
+                    match get_channel_from_lines(first.to_string(), second.to_string(), source.id)
+                        .with_context(|| format!("Failed to process lines:\n{}\n{}", first, second))
+                    {
+                        Ok(val) => val,
+                        Err(e) => {
+                            print_error_stack(e);
+                            continue;
+                        }
+                    };
                 sql::insert_channel(&tx, channel)?;
             }
         }
@@ -173,9 +171,13 @@ fn get_media_type(url: String) -> MediaType {
     return media_type;
 }
 
+fn print_error_stack(e: Error) {
+    eprintln!("{:?}", e);
+}
+
 #[cfg(test)]
 mod test_m3u {
-    use crate::{get_channel_from_lines, get_m3u8_from_link, read_m3u8};
+    use crate::{get_channel_from_lines, get_m3u8_from_link, read_m3u8, types::Source};
     use std::{env, time::Instant};
 
     #[test]
@@ -195,9 +197,18 @@ mod test_m3u {
         crate::sql::drop_db().unwrap_or_default();
         crate::sql::create_or_initialize_db().unwrap();
         let now = Instant::now();
+        let source = Source {
+            url: None,
+            name: "main".to_string(),
+            id: 0,
+            password: None,
+            username: None,
+            url_origin: None,
+            source_type: crate::types::SourceType::M3ULink
+        };
         read_m3u8(
             "/home/fred/Downloads/get.php".to_string(),
-            "main".to_string(),
+            source
         )
         .unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
@@ -208,9 +219,18 @@ mod test_m3u {
         crate::sql::drop_db().unwrap_or_default();
         crate::sql::create_or_initialize_db().unwrap();
         let now = Instant::now();
-        let url = env::var("OPEN_TV_TEST_LINK").unwrap();
-        get_m3u8_from_link(url, 
-        "source2".to_string()).await.unwrap();
+        let source = Source {
+            url: Some(env::var("OPEN_TV_TEST_LINK").unwrap()),
+            name: "m3ulink1".to_string(),
+            id: 0,
+            password: None,
+            username: None,
+            url_origin: None,
+            source_type: crate::types::SourceType::M3ULink
+        };
+        get_m3u8_from_link(source)
+            .await
+            .unwrap();
         std::fs::write("bench2.txt", now.elapsed().as_millis().to_string()).unwrap();
     }
 }
