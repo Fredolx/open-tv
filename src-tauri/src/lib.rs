@@ -53,7 +53,7 @@ pub fn read_m3u8(path: String, mut source: Source) -> Result<Vec<usize>> {
                 continue;
             }
         };
-        let channel = match get_channel_from_lines(l1, l2, source.id)
+        let channel = match get_channel_from_lines(l1, l2, source.id.unwrap())
             .with_context(|| format!("Failed to process lines #{} #{}, skipping", c1, c2))
         {
             Ok(val) => val,
@@ -108,7 +108,7 @@ async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
                 let first = two_lines.remove(0);
                 let second = two_lines.remove(0);
                 let channel =
-                    match get_channel_from_lines(first.to_string(), second.to_string(), source.id)
+                    match get_channel_from_lines(first.to_string(), second.to_string(), source.id.unwrap())
                         .with_context(|| format!("Failed to process lines:\n{}\n{}", first, second))
                     {
                         Ok(val) => val,
@@ -200,7 +200,7 @@ mod test_m3u {
         let source = Source {
             url: None,
             name: "main".to_string(),
-            id: 0,
+            id: None,
             password: None,
             username: None,
             url_origin: None,
@@ -222,7 +222,7 @@ mod test_m3u {
         let source = Source {
             url: Some(env::var("OPEN_TV_TEST_LINK").unwrap()),
             name: "m3ulink1".to_string(),
-            id: 0,
+            id: None,
             password: None,
             username: None,
             url_origin: None,

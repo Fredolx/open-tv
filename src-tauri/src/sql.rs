@@ -88,14 +88,14 @@ pub fn create_or_find_source_by_name(source: &mut Source) -> Result<()> {
         )
         .optional()?;
     if let Some(id) = id {
-        source.id = id;
+        source.id = Some(id);
         return Ok(())
     }
     sql.execute(
         "INSERT INTO sources (name, source_type, url, username, password) VALUES (?1, ?2, ?3, ?4, ?5)",
         params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password],
     )?;
-    source.id = sql.last_insert_rowid();
+    source.id = Some(sql.last_insert_rowid());
     Ok(())
 }
 

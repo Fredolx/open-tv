@@ -1,10 +1,8 @@
 use std::collections::HashMap;
-use std::os::unix::process;
 use std::str::FromStr;
 
 use crate::print_error_stack;
 use crate::sql;
-use crate::types;
 use crate::types::Channel;
 use crate::types::MediaType;
 use crate::types::Source;
@@ -23,8 +21,6 @@ const GET_SERIES_CATEGORIES: &str = "get_series_categories";
 const GET_LIVE_STREAM_CATEGORIES: &str = "get_live_categories";
 const GET_VOD_CATEGORIES: &str = "get_vod_categories";
 
-//@TODO use Stream_type from GETs
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamStream {
     stream_id: Option<u64>,
@@ -36,7 +32,7 @@ struct XtreamStream {
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamCategory {
-    id: String,
+    category_id: String,
     category_name: String,
 }
 
@@ -95,7 +91,7 @@ fn process_xtream(
     source: &Source,
     stream_type: MediaType,
 ) -> Result<()> {
-    let cats: HashMap<String, String> = cats.into_iter().map(|f| (f.id, f.category_name)).collect();
+    let cats: HashMap<String, String> = cats.into_iter().map(|f| (f.category_id, f.category_name)).collect();
     let mut sql = sql::CONN.lock().unwrap();
     let tx = sql.transaction()?;
     for live in streams {
@@ -104,6 +100,7 @@ fn process_xtream(
             .and_then(|channel| sql::insert_channel(&tx, channel))
             .unwrap_or_else(print_error_stack);
     }
+    tx.commit()?;
     Ok(())
 }
 
@@ -125,7 +122,7 @@ fn convert_xtream_live_to_channel(
         image: stream.stream_icon.or(stream.cover),
         media_type: stream_type.clone(),
         name: stream.name.context("No name")?,
-        source_id: source.id,
+        source_id: source.id.unwrap(),
         url: if stream_type == MediaType::Serie {
             stream.series_id.context("no series id")?.to_string()
         } else {
@@ -160,11 +157,25 @@ fn get_media_type_string(stream_type: MediaType) -> Result<String> {
 
 #[cfg(test)]
 mod test_xtream {
+
+    use std::env;
+
+    use crate::sql::{self, drop_db};
     use crate::types::Source;
     use crate::xtream::get_xtream;
 
     #[tokio::test]
     async fn test_get_xtream() {
-      
+        drop_db().unwrap();
+        sql::create_or_initialize_db().unwrap();
+        get_xtream(Source {
+            name: "my-xtream".to_string(),
+            id: None,
+            username: Some(env::var("OPEN_TV_TEST_XTREAM_USERNAME").unwrap()),
+            password: Some(env::var("OPEN_TV_TEST_XTREAM_PASSWORD").unwrap()),
+            url: Some(env::var("OPEN_TV_TEST_XTREAM_LINK").unwrap()),
+            url_origin: None,
+            source_type: crate::types::SourceType::Xtream
+        }).await.unwrap();
     }
 }

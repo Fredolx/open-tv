@@ -21,7 +21,7 @@ pub struct Channel {
 }
 
 pub struct Source {
-    pub id: i64,
+    pub id: Option<i64>,
     pub name: String,
     pub url: Option<String>,
     pub url_origin: Option<String>,
