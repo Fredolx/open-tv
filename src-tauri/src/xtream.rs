@@ -20,6 +20,7 @@ const GET_SERIES_INFO: &str = "get_series_info";
 const GET_SERIES_CATEGORIES: &str = "get_series_categories";
 const GET_LIVE_STREAM_CATEGORIES: &str = "get_live_categories";
 const GET_VOD_CATEGORIES: &str = "get_vod_categories";
+const LIVE_STREAM_EXTENSION: &str = "ts";
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamStream {
@@ -29,6 +30,7 @@ struct XtreamStream {
     stream_icon: Option<String>,
     series_id: Option<u64>,
     cover: Option<String>,
+    container_extension: Option<String>
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamCategory {
@@ -130,19 +132,21 @@ fn convert_xtream_live_to_channel(
                 stream.stream_id.context("no stream id")?,
                 source,
                 stream_type,
+                stream.container_extension
             )?
         },
     })
 }
 
-fn get_url(stream_id: u64, source: &Source, stream_type: MediaType) -> Result<String> {
+fn get_url(stream_id: u64, source: &Source, stream_type: MediaType, extension: Option<String>) -> Result<String> {
     Ok(format!(
-        "{}/{}/{}/{}/{}.ts",
+        "{}/{}/{}/{}/{}.{}",
         source.url_origin.clone().unwrap(),
         get_media_type_string(stream_type)?,
         source.username.clone().unwrap(),
         source.password.clone().unwrap(),
-        stream_id
+        stream_id,
+        extension.unwrap_or(LIVE_STREAM_EXTENSION.to_string())
     ))
 }
 
