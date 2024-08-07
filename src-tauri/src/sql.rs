@@ -47,6 +47,10 @@ CREATE TABLE "channels" (
 
 CREATE INDEX index_channel_name
 ON channels(name);
+
+CREATE INDEX index_channel_group ON channels(group_name);
+
+CREATE INDEX index_source_name ON channels(name);
 "#,
     )?;
     Ok(())
