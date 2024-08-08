@@ -20,6 +20,7 @@ pub struct Channel {
     pub source_id: i64
 }
 
+#[derive(Clone, Debug)]
 pub struct Source {
     pub id: Option<i64>,
     pub name: String,

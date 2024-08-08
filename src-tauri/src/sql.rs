@@ -41,6 +41,7 @@ CREATE TABLE "channels" (
   "group_name" varchar(100),
   "image" varchar(500),
   "url" varchar(500),
+  "media_type" integer,
   "source_id" integer,
   FOREIGN KEY (source_id) REFERENCES sources(id)
 );
@@ -50,7 +51,7 @@ ON channels(name);
 
 CREATE INDEX index_channel_group ON channels(group_name);
 
-CREATE INDEX index_source_name ON channels(name);
+CREATE UNIQUE INDEX index_source_name ON sources(name);
 "#,
     )?;
     Ok(())
@@ -106,15 +107,16 @@ pub fn create_or_find_source_by_name(source: &mut Source) -> Result<()> {
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
-INSERT INTO channels (name, group_name, image, url, source_id) 
-VALUES (?1, ?2, ?3, ?4, ?5); 
+INSERT INTO channels (name, group_name, image, url, source_id, media_type) 
+VALUES (?1, ?2, ?3, ?4, ?5, ?6); 
 "#,
         params![
             channel.name,
             channel.group,
             channel.image,
             channel.url,
-            channel.source_id
+            channel.source_id,
+            channel.media_type as u8
         ],
     )?;
     Ok(())
