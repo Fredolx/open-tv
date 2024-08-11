@@ -30,3 +30,9 @@ pub struct Source {
     pub password: Option<String>,
     pub source_type: SourceType
 }
+
+pub struct Settings {
+    pub RecordingPath: Option<String>,
+    pub MpvParams: Option<String>,
+    pub UseStreamCaching: Option<bool>,
+}

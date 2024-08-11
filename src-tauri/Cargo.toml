@@ -28,3 +28,5 @@ directories = "5.0.1"
 reqwest = "0.12.5"
 tokio = {version = "1.39.2", features = ["full"]}
 url = "2.5.2"
+r2d2_sqlite = "0.25.0"
+r2d2 = "0.8.10"

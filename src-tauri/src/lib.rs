@@ -11,6 +11,7 @@ use types::{Channel, MediaType, Source};
 pub mod sql;
 pub mod types;
 pub mod xtream;
+pub mod settings;
 
 static NAME_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"tvg-name="(?P<name>[^"]*)""#).unwrap());
@@ -34,7 +35,7 @@ pub fn read_m3u8(path: String, mut source: Source) -> Result<Vec<usize>> {
     let mut lines = reader.lines().enumerate().skip(1);
     let mut problematic_lines: Vec<usize> = Vec::new();
     sql::create_or_find_source_by_name(&mut source)?;
-    let mut sql = sql::CONN.lock().unwrap();
+    let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
         let l1 = match l1.with_context(|| format!("(l1) Error on line: {}, skipping", c1)) {
@@ -77,7 +78,7 @@ async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
     let mut skipped_first = false;
 
     sql::create_or_find_source_by_name(&mut source)?;
-    let mut sql = sql::CONN.lock().unwrap();
+    let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
 
     while let Some(chunk) = response.chunk().await? {

@@ -118,7 +118,7 @@ fn process_xtream(
         .into_iter()
         .map(|f| (f.category_id, f.category_name))
         .collect();
-    let mut sql = sql::CONN.lock().unwrap();
+    let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
     for live in streams {
         let category_name = get_cat_name(&cats, live.category_id.clone());
