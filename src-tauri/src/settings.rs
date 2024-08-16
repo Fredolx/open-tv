@@ -9,7 +9,7 @@ pub const USE_STREAM_CACHING: &str = "useStreamingCaching";
 pub const RECORDING_PATH: &str = "recordingPath";
 
 
-fn get_settings() -> Result<Settings> {
+pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
     let settings = Settings {
         MpvParams: map.get(MPV_PARAMS).map(|s| s.to_string()),
@@ -19,7 +19,7 @@ fn get_settings() -> Result<Settings> {
     Ok(settings)
 }
 
-fn update_settings(settings: Settings) -> Result<()> {
+pub fn update_settings(settings: Settings) -> Result<()> {
     let mut map: HashMap<String, String> = HashMap::with_capacity(3);
     if let Some(mpv_params) = settings.MpvParams {
         map.insert(MPV_PARAMS.to_string(), mpv_params);

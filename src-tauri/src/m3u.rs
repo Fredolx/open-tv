@@ -28,7 +28,7 @@ pub fn read_m3u8(path: String, mut source: Source) -> Result<Vec<usize>> {
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
-        let l1 = match l1.with_context(|| format!("(l1) Error on line: {}, skipping", c1)) {
+        let l1 = match l1.with_context(|| format!("(l1) Error on line: {c1}, skipping")) {
             Ok(line) => line,
             Err(e) => {
                 problematic_lines.push(c1);
@@ -36,7 +36,7 @@ pub fn read_m3u8(path: String, mut source: Source) -> Result<Vec<usize>> {
                 continue;
             }
         };
-        let l2 = match l2.with_context(|| format!("(l2) Error on line: {}, skipping", c2)) {
+        let l2 = match l2.with_context(|| format!("(l2) Error on line: {c2}, skipping")) {
             Ok(line) => line,
             Err(e) => {
                 problematic_lines.push(c2);
@@ -45,7 +45,7 @@ pub fn read_m3u8(path: String, mut source: Source) -> Result<Vec<usize>> {
             }
         };
         let channel = match get_channel_from_lines(l1, l2, source.id.unwrap())
-            .with_context(|| format!("Failed to process lines #{} #{}, skipping", c1, c2))
+            .with_context(|| format!("Failed to process lines #{c1} #{c2}, skipping"))
         {
             Ok(val) => val,
             Err(e) => {
@@ -100,7 +100,7 @@ async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
                 let second = two_lines.remove(0);
                 let channel =
                     match get_channel_from_lines(first.to_string(), second.to_string(), source.id.unwrap())
-                        .with_context(|| format!("Failed to process lines:\n{}\n{}", first, second))
+                        .with_context(|| format!("Failed to process lines:\n{first}\n{second}"))
                     {
                         Ok(val) => val,
                         Err(e) => {
