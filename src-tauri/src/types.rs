@@ -1,4 +1,7 @@
-#[derive(Clone, PartialEq, Debug)]
+use num_enum::{IntoPrimitive, TryFromPrimitive};
+
+#[derive(Clone, PartialEq, Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
 pub enum MediaType {
     Livestream,
     Movie,
@@ -9,7 +12,7 @@ pub enum MediaType {
 pub enum SourceType {
     M3U,
     M3ULink,
-    Xtream
+    Xtream,
 }
 pub struct Channel {
     pub name: String,
@@ -17,7 +20,7 @@ pub struct Channel {
     pub group: Option<String>,
     pub image: Option<String>,
     pub media_type: MediaType,
-    pub source_id: i64
+    pub source_id: i64,
 }
 
 #[derive(Clone, Debug)]
@@ -28,11 +31,11 @@ pub struct Source {
     pub url_origin: Option<String>,
     pub username: Option<String>,
     pub password: Option<String>,
-    pub source_type: SourceType
+    pub source_type: SourceType,
 }
 
 pub struct Settings {
-    pub RecordingPath: Option<String>,
-    pub MpvParams: Option<String>,
-    pub UseStreamCaching: Option<bool>,
+    pub recording_path: Option<String>,
+    pub mpv_params: Option<String>,
+    pub use_stream_caching: Option<bool>,
 }

@@ -1,13 +1,22 @@
 use std::{collections::HashMap, sync::LazyLock};
 
-use crate::types::{Channel, Source};
-use anyhow::{Context, Result};
+use crate::types::{Channel, MediaType, Source};
+use anyhow::{anyhow, bail, Context, Result};
 use directories::ProjectDirs;
+use num_enum::{FromPrimitive, TryFromPrimitive};
 use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::{params, OptionalExtension, Transaction};
+use rusqlite::{params, MappedRows, OptionalExtension, Row, Transaction};
 
+const PAGE_SIZE: u8 = 36;
 static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
+
+pub struct Filters {
+    pub query: Option<String>,
+    pub source_ids: Vec<String>,
+    pub media_type: MediaType,
+    pub page: u8,
+}
 
 pub fn get_conn() -> Result<PooledConnection<SqliteConnectionManager>> {
     CONN.try_get().context("No sqlite conns available")
@@ -160,10 +169,68 @@ pub fn update_settings(map: HashMap<String, String>) -> Result<()> {
             VALUES (?1, ?2)
             ON CONFLICT(key) DO UPDATE SET value = ?2
             "#,
-            params![key, value]
+            params![key, value],
         )?;
     }
     tx.commit()?;
+    Ok(())
+}
+
+pub fn search(filters: Filters) -> Result<Vec<Channel>> {
+    let sql = get_conn()?;
+    let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
+    let channels: Vec<Channel> = sql
+        .prepare(
+            r#"
+        SELECT * FROM CHANNELS
+        WHERE name like '%?1%'
+        AND media_type = ?2
+		AND source_id in (?3)
+		LIMIT ?4, ?5
+    "#,
+        )?
+        .query_map(
+            params![
+                filters.query,
+                (filters.media_type as u8),
+                filters.source_ids.join(","),
+                offset,
+                PAGE_SIZE,
+            ],
+            row_to_channel,
+        )?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(channels)
+}
+
+fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
+    let channel = Channel {
+        name: row.get("name")?,
+        group: row.get("group")?,
+        image: row.get("image")?,
+        media_type: MediaType::try_from(row.get::<&str, u8>("media_type")?).map_err(|_| {
+            rusqlite::Error::InvalidColumnType(
+                6,
+                "Could not convert media_type to enum".to_string(),
+                rusqlite::types::Type::Integer,
+            )
+        })?,
+        source_id: row.get("source_id")?,
+        url: row.get("url")?,
+    };
+    Ok(channel)
+}
+
+pub fn delete_source(source_id: i64) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
+        DELETE FROM channels
+        WHERE source_id = ?1;
+    "#,
+        params![source_id.to_string()],
+    )?;
     Ok(())
 }
 

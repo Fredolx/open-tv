@@ -46,12 +46,12 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
     if channel.media_type == MediaType::Livestream {
         args.push(ARG_SAVE_POSITION_ON_QUIT.to_string());
     }
-    if settings.UseStreamCaching == Some(false) {
+    if settings.use_stream_caching == Some(false) {
         let stream_caching_arg = format!("{ARG_CACHE} no",);
         args.push(stream_caching_arg);
     }
     if record {
-        let record_path = match settings.RecordingPath {
+        let record_path = match settings.recording_path {
             Some(path) => path,
             None => get_default_record_path()?,
         };

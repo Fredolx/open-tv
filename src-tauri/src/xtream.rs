@@ -34,19 +34,19 @@ struct XtreamStream {
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamSeries {
-    episodes: HashMap<String, Vec<XtreamEpisode>>
+    episodes: HashMap<String, Vec<XtreamEpisode>>,
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamEpisode {
     id: String,
     title: String,
     container_extension: String,
-    info: Option<XtreamEpisodeInfo>
+    info: Option<XtreamEpisodeInfo>,
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamEpisodeInfo {
-    movie_image: Option<String>
-} 
+    movie_image: Option<String>,
+}
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamCategory {
     category_id: String,
@@ -190,14 +190,15 @@ fn get_media_type_string(stream_type: MediaType) -> Result<String> {
 
 async fn get_episodes(mut source: Source, series_id: u64) -> Result<Vec<Channel>> {
     let mut url = build_xtream_url(&mut source)?;
-    url.query_pairs_mut().append_pair("series_id", &series_id.to_string());
+    url.query_pairs_mut()
+        .append_pair("series_id", &series_id.to_string());
     let episodes = (get_xtream_http_data::<XtreamSeries>(url, GET_SERIES_INFO).await?).episodes;
     let episodes: Vec<XtreamEpisode> = episodes.into_values().flat_map(|episode| episode).collect();
     let mut channels: Vec<Channel> = Vec::new();
     for episode in episodes {
         episode_to_channel(episode, &source)
-        .map(|channel| channels.push(channel))
-        .unwrap_or_else(print_error_stack);
+            .map(|channel| channels.push(channel))
+            .unwrap_or_else(print_error_stack);
     }
     channels.sort_by(|a, b| a.name.cmp(&b.name));
     Ok(channels)
@@ -210,7 +211,12 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source) -> Result<Channel
         media_type: MediaType::Movie,
         name: episode.title,
         source_id: source.id.context("Invalid ID")?,
-        url: get_url(episode.id, &source, MediaType::Serie, Some(episode.container_extension))?
+        url: get_url(
+            episode.id,
+            &source,
+            MediaType::Serie,
+            Some(episode.container_extension),
+        )?,
     })
 }
 
@@ -221,7 +227,7 @@ mod test_xtream {
 
     use crate::sql::{self, drop_db};
     use crate::types::Source;
-    use crate::xtream::{get_xtream, get_episodes};
+    use crate::xtream::{get_episodes, get_xtream};
 
     #[tokio::test]
     async fn test_get_xtream() {
@@ -242,15 +248,20 @@ mod test_xtream {
 
     #[tokio::test]
     async fn test_get_episodes() {
-        let episodes = get_episodes(Source {
-            id: Some(1),
-            name: "my-xtream".to_string(),
-            username: Some(env::var("OPEN_TV_TEST_XTREAM_USERNAME").unwrap()),
-            password: Some(env::var("OPEN_TV_TEST_XTREAM_PASSWORD").unwrap()),
-            url: Some(env::var("OPEN_TV_TEST_XTREAM_LINK").unwrap()),
-            url_origin: None,
-            source_type: crate::types::SourceType::Xtream
-        }, 7542).await.unwrap();
+        let episodes = get_episodes(
+            Source {
+                id: Some(1),
+                name: "my-xtream".to_string(),
+                username: Some(env::var("OPEN_TV_TEST_XTREAM_USERNAME").unwrap()),
+                password: Some(env::var("OPEN_TV_TEST_XTREAM_PASSWORD").unwrap()),
+                url: Some(env::var("OPEN_TV_TEST_XTREAM_LINK").unwrap()),
+                url_origin: None,
+                source_type: crate::types::SourceType::Xtream,
+            },
+            7542,
+        )
+        .await
+        .unwrap();
         for episode in episodes {
             println!("{}", episode.name);
         }
