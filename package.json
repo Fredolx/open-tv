@@ -27,7 +27,7 @@
     "@angular-devkit/build-angular": "^17.3.8",
     "@angular/cli": "^17.3.8",
     "@angular/compiler-cli": "^17.3.0",
-    "@tauri-apps/cli": "^2.0.0-beta.22",
+    "@tauri-apps/cli": "^2.0.0-beta.23",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
