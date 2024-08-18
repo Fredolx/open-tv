@@ -2136,6 +2136,7 @@ name = "open_tv"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bytes",
  "directories",
  "num_enum",
  "r2d2",

@@ -1,6 +1,7 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, PartialEq, Debug, IntoPrimitive, TryFromPrimitive)]
+#[derive(Clone, PartialEq, Debug, IntoPrimitive, TryFromPrimitive, Deserialize, Serialize)]
 #[repr(u8)]
 pub enum MediaType {
     Livestream,
@@ -8,12 +9,14 @@ pub enum MediaType {
     Serie,
     Group,
 }
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub enum SourceType {
     M3U,
     M3ULink,
     Xtream,
 }
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Channel {
     pub name: String,
     pub url: String,
@@ -23,7 +26,7 @@ pub struct Channel {
     pub source_id: i64,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Source {
     pub id: Option<i64>,
     pub name: String,
@@ -34,6 +37,7 @@ pub struct Source {
     pub source_type: SourceType,
 }
 
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Settings {
     pub recording_path: Option<String>,
     pub mpv_params: Option<String>,

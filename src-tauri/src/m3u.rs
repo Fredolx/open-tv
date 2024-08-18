@@ -1,10 +1,9 @@
 use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-    sync::LazyLock,
+    fs::File, io::{BufRead, BufReader}, sync::LazyLock
 };
 
 use anyhow::{bail, Context, Result};
+use bytes::Bytes;
 use regex::{Captures, Regex};
 use types::{Channel, MediaType, Source};
 
@@ -60,7 +59,7 @@ pub fn read_m3u8(path: String, mut source: Source) -> Result<()> {
     Ok(())
 }
 
-async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
+pub async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
     let client = reqwest::Client::new();
     let url = source.url.clone().context("Invalid source")?;
     let mut response = client.get(&url).send().await?;
@@ -68,55 +67,66 @@ async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
     let mut skipped_first = false;
 
     sql::create_or_find_source_by_name(&mut source)?;
-    let mut sql = sql::get_conn()?;
-    let tx = sql.transaction()?;
-
     while let Some(chunk) = response.chunk().await? {
-        let mut two_lines = Vec::new();
-        let lossy = String::from_utf8_lossy(&chunk);
-        let lossy = lossy.into_owned();
-        str_buffer.push_str(&lossy);
-        let mut split: Vec<String> = str_buffer.split('\n').map(String::from).collect();
-        str_buffer.clear();
+        let split = get_lines_from_chunk(chunk, &mut str_buffer, skipped_first)?;
         if !skipped_first {
             skipped_first = true;
-            split.remove(0);
         }
-        let last = split.last().context("failed to get last")?;
-        if !last.ends_with('\n') {
-            str_buffer = last.to_string();
-            split.pop();
-        }
-        let len = split.len();
-        if len > 0 && len % 2 != 0 {
-            let mut ele = split.pop().context("failed to pop")?;
-            ele.push('\n');
-            str_buffer.insert_str(0, &ele);
-        }
-        for line in split {
-            two_lines.push(line);
-            if two_lines.len() == 2 {
-                let first = two_lines.remove(0);
-                let second = two_lines.remove(0);
-                let channel = match get_channel_from_lines(
-                    first.to_string(),
-                    second.to_string(),
-                    source.id.unwrap(),
-                )
-                .with_context(|| format!("Failed to process lines:\n{first}\n{second}"))
-                {
-                    Ok(val) => val,
-                    Err(e) => {
-                        print_error_stack(e);
-                        continue;
-                    }
-                };
-                sql::insert_channel(&tx, channel)?;
-            }
+        process_chunk_split(split, &source)?;
+    }
+    Ok(())
+}
+
+fn process_chunk_split(split: Vec<String>, source: &Source) -> Result<()> {
+    let mut two_lines = Vec::new();
+    let mut sql = sql::get_conn()?;
+    let tx = sql.transaction()?;
+    for line in split {
+        two_lines.push(line);
+        if two_lines.len() == 2 {
+            let first = two_lines.remove(0);
+            let second = two_lines.remove(0);
+            let channel = match get_channel_from_lines(
+                first.to_string(),
+                second.to_string(),
+                source.id.unwrap(),
+            )
+            .with_context(|| format!("Failed to process lines:\n{first}\n{second}"))
+            {
+                Ok(val) => val,
+                Err(e) => {
+                    print_error_stack(e);
+                    continue;
+                }
+            };
+            sql::insert_channel(&tx, channel)?;
         }
     }
     tx.commit()?;
     Ok(())
+}
+
+fn get_lines_from_chunk(chunk: Bytes, str_buffer: &mut String, skipped_first: bool) -> Result<Vec<String>> {
+    let lossy = String::from_utf8_lossy(&chunk);
+    let lossy = lossy.into_owned();
+    str_buffer.push_str(&lossy);
+    let mut split: Vec<String> = str_buffer.split('\n').map(String::from).collect();
+    str_buffer.clear();
+    if !skipped_first {
+        split.remove(0);
+    }
+    let last = split.last().context("failed to get last")?;
+    if !last.ends_with('\n') {
+        _ = std::mem::replace(str_buffer, last.to_string());
+        split.pop();
+    }
+    let len = split.len();
+    if len > 0 && len % 2 != 0 {
+        let mut ele = split.pop().context("failed to pop")?;
+        ele.push('\n');
+        str_buffer.insert_str(0, &ele);
+    }
+    Ok(split)
 }
 
 fn extract_non_empty_capture(caps: Captures) -> Option<String> {
@@ -221,6 +231,8 @@ mod test_m3u {
             source_type: crate::types::SourceType::M3ULink,
         };
         get_m3u8_from_link(source).await.unwrap();
-        std::fs::write("bench2.txt", now.elapsed().as_millis().to_string()).unwrap();
+        let time = now.elapsed().as_millis().to_string();
+        println!("{time}");
+        std::fs::write("bench2.txt", time).unwrap();
     }
 }

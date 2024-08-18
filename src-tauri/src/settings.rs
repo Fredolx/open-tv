@@ -8,6 +8,7 @@ pub const MPV_PARAMS: &str = "mpvParams";
 pub const USE_STREAM_CACHING: &str = "useStreamingCaching";
 pub const RECORDING_PATH: &str = "recordingPath";
 
+#[tauri::command(async)]
 pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
     let settings = Settings {
@@ -18,6 +19,7 @@ pub fn get_settings() -> Result<Settings> {
     Ok(settings)
 }
 
+#[tauri::command(async)]
 pub fn update_settings(settings: Settings) -> Result<()> {
     let mut map: HashMap<String, String> = HashMap::with_capacity(3);
     if let Some(mpv_params) = settings.mpv_params {

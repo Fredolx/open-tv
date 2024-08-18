@@ -18,7 +18,7 @@ const ARG_SAVE_POSITION_ON_QUIT: &str = "--save-position-on-quit";
 const ARG_CACHE: &str = "--cache";
 const ARG_RECORD: &str = "--stream-record=";
 
-async fn play(channel: Channel, record: bool) -> Result<()> {
+pub async fn play(channel: Channel, record: bool) -> Result<()> {
     let args = get_play_args(channel, record)?;
 
     let mut cmd = Command::new("mpv")

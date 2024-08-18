@@ -176,6 +176,7 @@ pub fn update_settings(map: HashMap<String, String>) -> Result<()> {
     Ok(())
 }
 
+#[tauri::command(async)]
 pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     let sql = get_conn()?;
     let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
@@ -222,6 +223,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
     Ok(channel)
 }
 
+#[tauri::command(async)]
 pub fn delete_source(source_id: i64) -> Result<()> {
     let sql = get_conn()?;
     sql.execute(
