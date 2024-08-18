@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::LazyLock};
 
-use crate::types::{Channel, MediaType, Source};
+use crate::types::{Channel, Filters, MediaType, Source};
 use anyhow::{anyhow, bail, Context, Result};
 use directories::ProjectDirs;
 use num_enum::{FromPrimitive, TryFromPrimitive};
@@ -10,13 +10,6 @@ use rusqlite::{params, MappedRows, OptionalExtension, Row, Transaction};
 
 const PAGE_SIZE: u8 = 36;
 static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
-
-pub struct Filters {
-    pub query: Option<String>,
-    pub source_ids: Vec<String>,
-    pub media_type: MediaType,
-    pub page: u8,
-}
 
 pub fn get_conn() -> Result<PooledConnection<SqliteConnectionManager>> {
     CONN.try_get().context("No sqlite conns available")
@@ -176,7 +169,6 @@ pub fn update_settings(map: HashMap<String, String>) -> Result<()> {
     Ok(())
 }
 
-#[tauri::command(async)]
 pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     let sql = get_conn()?;
     let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
@@ -223,8 +215,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
     Ok(channel)
 }
 
-#[tauri::command(async)]
-pub fn delete_source(source_id: i64) -> Result<()> {
+pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     let sql = get_conn()?;
     sql.execute(
         r#"

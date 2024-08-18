@@ -43,3 +43,11 @@ pub struct Settings {
     pub mpv_params: Option<String>,
     pub use_stream_caching: Option<bool>,
 }
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct Filters {
+    pub query: Option<String>,
+    pub source_ids: Vec<String>,
+    pub media_type: MediaType,
+    pub page: u8,
+}

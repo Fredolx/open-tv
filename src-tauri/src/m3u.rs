@@ -18,8 +18,8 @@ static LOGO_REGEX: LazyLock<Regex> =
 static GROUP_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"group-title="(?P<group>[^"]*)""#).unwrap());
 
-pub fn read_m3u8(path: String, mut source: Source) -> Result<()> {
-    let file = File::open(path).context("Failed to open m3u8 file")?;
+pub fn read_m3u8(mut source: Source) -> Result<()> {
+    let file = File::open(source.url.clone().context("No path")?).context("Failed to open m3u8 file")?;
     let reader = BufReader::new(file);
     let mut lines = reader.lines().enumerate().skip(1);
     let mut problematic_lines: Vec<usize> = Vec::new();
@@ -204,7 +204,7 @@ mod test_m3u {
         crate::sql::create_or_initialize_db().unwrap();
         let now = Instant::now();
         let source = Source {
-            url: None,
+            url: Some("/home/fred/Downloads/get.php".to_string()),
             name: "main".to_string(),
             id: None,
             password: None,
@@ -212,7 +212,7 @@ mod test_m3u {
             url_origin: None,
             source_type: crate::types::SourceType::M3ULink,
         };
-        read_m3u8("/home/fred/Downloads/get.php".to_string(), source).unwrap();
+        read_m3u8(source).unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
     }
 

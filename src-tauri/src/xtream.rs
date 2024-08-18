@@ -72,7 +72,6 @@ fn build_xtream_url(source: &mut Source) -> Result<Url> {
     Ok(url)
 }
 
-#[tauri::command(async)]
 pub async fn get_xtream(mut source: Source) -> Result<()> {
     let url = build_xtream_url(&mut source)?;
     sql::create_or_find_source_by_name(&mut source)?;
