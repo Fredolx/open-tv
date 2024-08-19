@@ -24,7 +24,8 @@ pub fn run() {
             update_settings,
             search,
             get_xtream,
-            refresh_source
+            refresh_source,
+            get_episodes
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -72,4 +73,9 @@ async fn get_xtream(source: Source) -> Result<(), String> {
 #[tauri::command]
 async fn refresh_source(source: Source) -> Result<(), String> {
     utils::refresh_source(source).await.map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn get_episodes(source: Source, series_id: u64) -> Result<Vec<Channel>, String> {
+    xtream::get_episodes(source, series_id).await.map_err(map_err_frontend)
 }

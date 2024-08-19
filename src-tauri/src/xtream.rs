@@ -188,7 +188,7 @@ fn get_media_type_string(stream_type: MediaType) -> Result<String> {
     }
 }
 
-async fn get_episodes(mut source: Source, series_id: u64) -> Result<Vec<Channel>> {
+pub async fn get_episodes(mut source: Source, series_id: u64) -> Result<Vec<Channel>> {
     let mut url = build_xtream_url(&mut source)?;
     url.query_pairs_mut()
         .append_pair("series_id", &series_id.to_string());
