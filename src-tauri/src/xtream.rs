@@ -144,20 +144,21 @@ fn convert_xtream_live_to_channel(
     category_name: Option<String>,
 ) -> Result<Channel> {
     Ok(Channel {
+        id: None,
         group: category_name,
         image: stream.stream_icon.or(stream.cover),
         media_type: stream_type.clone(),
         name: stream.name.context("No name")?,
         source_id: source.id.unwrap(),
         url: if stream_type == MediaType::Serie {
-            stream.series_id.context("no series id")?.to_string()
+            Some(stream.series_id.context("no series id")?.to_string())
         } else {
-            get_url(
+            Some(get_url(
                 stream.stream_id.context("no stream id")?.to_string(),
                 source,
                 stream_type,
                 stream.container_extension,
-            )?
+            )?)
         },
     })
 }
@@ -206,17 +207,18 @@ pub async fn get_episodes(mut source: Source, series_id: u64) -> Result<Vec<Chan
 
 fn episode_to_channel(episode: XtreamEpisode, source: &Source) -> Result<Channel> {
     Ok(Channel {
+        id: None,
         group: None,
         image: episode.info.map(|info| info.movie_image).unwrap_or(None),
         media_type: MediaType::Movie,
         name: episode.title,
         source_id: source.id.context("Invalid ID")?,
-        url: get_url(
+        url: Some(get_url(
             episode.id,
             &source,
             MediaType::Serie,
             Some(episode.container_extension),
-        )?,
+        )?),
     })
 }
 

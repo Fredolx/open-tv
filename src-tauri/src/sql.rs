@@ -54,6 +54,7 @@ CREATE TABLE "channels" (
   "url" varchar(500),
   "media_type" integer,
   "source_id" integer,
+  "favorite" integer,
   FOREIGN KEY (source_id) REFERENCES sources(id)
 );
 
@@ -179,6 +180,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         WHERE name like '%?1%'
         AND media_type = ?2
 		AND source_id in (?3)
+        AND url IS NOT NULL
 		LIMIT ?4, ?5
     "#,
         )?
@@ -197,18 +199,70 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     Ok(channels)
 }
 
+pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
+    let sql = get_conn()?;
+    let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
+    let channels: Vec<Channel> = sql
+        .prepare(
+            r#"
+        SELECT id, group_name, image, source_id
+        FROM (
+            SELECT *,
+                ROW_NUMBER() OVER (PARTITION BY group_name ORDER BY id) AS row_num
+            FROM channels
+        ) ranked_channels
+        WHERE row_num = 1
+        AND group_name like '%?1%'
+        AND media_type = ?2
+        AND source_id in (?3)
+        LIMIT ?4, ?5
+    "#,
+        )?
+        .query_map(
+            params![
+                filters.query,
+                (filters.media_type as u8),
+                filters.source_ids.join(","),
+                offset,
+                PAGE_SIZE,
+            ],
+            row_to_group,
+        )?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(channels)
+}
+
+fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
+    let channel = Channel {
+        id: row.get("id")?,
+        name: row.get("group_name")?,
+        group: None,
+        image: row.get("image")?,
+        media_type: MediaType::Group,
+        source_id: row.get("source_id")?,
+        url: None
+    };
+    Ok(channel)
+}
+
+fn get_media_type(row: &Row) -> std::result::Result<MediaType, rusqlite::Error> {
+    MediaType::try_from(row.get::<&str, u8>("media_type")?).map_err(|_| {
+        rusqlite::Error::InvalidColumnType(
+            6,
+            "Could not convert media_type to enum".to_string(),
+            rusqlite::types::Type::Integer,
+        )
+    })
+}
+
 fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
     let channel = Channel {
+        id: row.get("id")?,
         name: row.get("name")?,
         group: row.get("group")?,
         image: row.get("image")?,
-        media_type: MediaType::try_from(row.get::<&str, u8>("media_type")?).map_err(|_| {
-            rusqlite::Error::InvalidColumnType(
-                6,
-                "Could not convert media_type to enum".to_string(),
-                rusqlite::types::Type::Integer,
-            )
-        })?,
+        media_type: get_media_type(row)?,
         source_id: row.get("source_id")?,
         url: row.get("url")?,
     };
@@ -224,6 +278,16 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     "#,
         params![source_id.to_string()],
     )?;
+    Ok(())
+}
+
+pub fn favorite_channel(channel_id: i64, favorite: bool) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(r#"
+        UPDATE channels
+        SET favorite = ?1
+        WHERE id = ?2
+    "#, params![favorite, channel_id])?;
     Ok(())
 }
 

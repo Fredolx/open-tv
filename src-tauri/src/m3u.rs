@@ -155,10 +155,11 @@ fn get_channel_from_lines(first: String, second: String, source_id: i64) -> Resu
         .captures(&first)
         .and_then(extract_non_empty_capture);
     let channel = Channel {
+        id: None,
         name: name,
         group: group,
         image: image,
-        url: second.clone(),
+        url: Some(second.clone()),
         media_type: get_media_type(second),
         source_id: source_id,
     };

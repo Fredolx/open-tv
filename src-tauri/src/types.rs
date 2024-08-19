@@ -18,8 +18,9 @@ pub enum SourceType {
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Channel {
+    pub id: Option<i64>,
     pub name: String,
-    pub url: String,
+    pub url: Option<String>,
     pub group: Option<String>,
     pub image: Option<String>,
     pub media_type: MediaType,

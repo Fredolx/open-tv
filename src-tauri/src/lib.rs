@@ -25,7 +25,9 @@ pub fn run() {
             search,
             get_xtream,
             refresh_source,
-            get_episodes
+            get_episodes,
+            favorite_channel,
+            unfavorite_channel
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -78,4 +80,14 @@ async fn refresh_source(source: Source) -> Result<(), String> {
 #[tauri::command]
 async fn get_episodes(source: Source, series_id: u64) -> Result<Vec<Channel>, String> {
     xtream::get_episodes(source, series_id).await.map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+async fn favorite_channel(channel_id: i64) -> Result<(), String> {
+    sql::favorite_channel(channel_id, true).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+async fn unfavorite_channel(channel_id: i64) -> Result<(), String> {
+    sql::favorite_channel(channel_id, false).map_err(map_err_frontend)
 }
