@@ -124,8 +124,8 @@ pub fn create_or_find_source_by_name(source: &mut Source) -> Result<()> {
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
-INSERT INTO channels (name, group_name, image, url, source_id, media_type) 
-VALUES (?1, ?2, ?3, ?4, ?5, ?6); 
+INSERT INTO channels (name, group_name, image, url, source_id, media_type, favorite) 
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, false); 
 "#,
         params![
             channel.name,
@@ -181,7 +181,8 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         AND media_type = ?2
 		AND source_id in (?3)
         AND url IS NOT NULL
-		LIMIT ?4, ?5
+        AND favorite IN (?4)
+		LIMIT ?5, ?6
     "#,
         )?
         .query_map(
@@ -189,6 +190,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
                 filters.query,
                 (filters.media_type as u8),
                 filters.source_ids.join(","),
+                favorite_to_sql_string(&filters.is_favorite),
                 offset,
                 PAGE_SIZE,
             ],
@@ -197,6 +199,13 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         .filter_map(Result::ok)
         .collect();
     Ok(channels)
+}
+
+fn favorite_to_sql_string(value: &bool) -> String {
+    match value {
+        true => "1".to_string(),
+        false => "0, 1".to_string()
+    }
 }
 
 pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {

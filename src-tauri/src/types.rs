@@ -50,5 +50,6 @@ pub struct Filters {
     pub query: Option<String>,
     pub source_ids: Vec<String>,
     pub media_type: MediaType,
+    pub is_favorite: bool,
     pub page: u8,
 }
