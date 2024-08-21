@@ -24,7 +24,7 @@
     "@ng-bootstrap/ng-bootstrap": "^16.0.0",
     "@popperjs/core": "^2.11.8",
     "@tauri-apps/api": "^2.0.0-beta.19",
-    "@tauri-apps/plugin-dialog": "^2.0.0-beta.18",
+    "@tauri-apps/plugin-dialog": "^2.0.0-rc.0",
     "ng-keyboard-shortcuts": "^13.0.8",
     "ngx-toastr": "^19.0.0",
     "rxjs": "~7.8.0",

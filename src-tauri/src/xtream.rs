@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
+use crate::media_type;
 use crate::print_error_stack;
 use crate::sql;
 use crate::types::Channel;
-use crate::types::MediaType;
 use crate::types::Source;
 use anyhow::anyhow;
 use anyhow::{Context, Result};
@@ -74,7 +74,7 @@ fn build_xtream_url(source: &mut Source) -> Result<Url> {
 
 pub async fn get_xtream(mut source: Source) -> Result<()> {
     let url = build_xtream_url(&mut source)?;
-    sql::create_or_find_source_by_name(&mut source)?;
+    let new_source = sql::create_or_find_source_by_name(&mut source)?;
 
     let (live, live_cats, vods, vods_cats, series, series_cats) = join!(
         get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_LIVE_STREAMS),
@@ -84,17 +84,33 @@ pub async fn get_xtream(mut source: Source) -> Result<()> {
         get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_SERIES),
         get_xtream_http_data::<Vec<XtreamCategory>>(url.clone(), GET_SERIES_CATEGORIES),
     );
-    live.and_then(|live| process_xtream(live, live_cats?, &source, MediaType::Livestream))
-        .unwrap_or_else(print_error_stack);
+    let mut fail_count = 0;
+    live.and_then(|live| process_xtream(live, live_cats?, &source, media_type::LIVESTREAM))
+        .unwrap_or_else(|e| {
+            print_error_stack(e);
+            fail_count += 1;
+        });
     vods.and_then(|vods: Vec<XtreamStream>| {
-        process_xtream(vods, vods_cats?, &source, MediaType::Movie)
+        process_xtream(vods, vods_cats?, &source, media_type::MOVIE)
     })
-    .unwrap_or_else(print_error_stack);
+    .unwrap_or_else(|e| {
+        print_error_stack(e);
+        fail_count += 1;
+    });
     series
         .and_then(|series: Vec<XtreamStream>| {
-            process_xtream(series, series_cats?, &source, MediaType::Serie)
+            process_xtream(series, series_cats?, &source, media_type::SERIE)
         })
-        .unwrap_or_else(print_error_stack);
+        .unwrap_or_else(|e| {
+            print_error_stack(e);
+            fail_count += 1;
+        });
+    if fail_count > 2 {
+        if new_source {
+            sql::delete_source(source.id.context("no source id")?).unwrap_or_default();
+        }
+        return Err(anyhow!("Too many Xtream requests failed"));
+    }
     Ok(())
 }
 
@@ -112,7 +128,7 @@ fn process_xtream(
     streams: Vec<XtreamStream>,
     cats: Vec<XtreamCategory>,
     source: &Source,
-    stream_type: MediaType,
+    stream_type: u8,
 ) -> Result<()> {
     let cats: HashMap<String, String> = cats
         .into_iter()
@@ -140,7 +156,7 @@ fn get_cat_name(cats: &HashMap<String, String>, category_id: Option<String>) -> 
 fn convert_xtream_live_to_channel(
     stream: XtreamStream,
     source: &Source,
-    stream_type: MediaType,
+    stream_type: u8,
     category_name: Option<String>,
 ) -> Result<Channel> {
     Ok(Channel {
@@ -150,7 +166,7 @@ fn convert_xtream_live_to_channel(
         media_type: stream_type.clone(),
         name: stream.name.context("No name")?,
         source_id: source.id.unwrap(),
-        url: if stream_type == MediaType::Serie {
+        url: if stream_type == media_type::SERIE {
             Some(stream.series_id.context("no series id")?.to_string())
         } else {
             Some(get_url(
@@ -166,7 +182,7 @@ fn convert_xtream_live_to_channel(
 fn get_url(
     stream_id: String,
     source: &Source,
-    stream_type: MediaType,
+    stream_type: u8,
     extension: Option<String>,
 ) -> Result<String> {
     Ok(format!(
@@ -180,11 +196,11 @@ fn get_url(
     ))
 }
 
-fn get_media_type_string(stream_type: MediaType) -> Result<String> {
+fn get_media_type_string(stream_type: u8) -> Result<String> {
     match stream_type {
-        MediaType::Livestream => Ok("live".to_string()),
-        MediaType::Movie => Ok("movie".to_string()),
-        MediaType::Serie => Ok("series".to_string()),
+        media_type::LIVESTREAM => Ok("live".to_string()),
+        media_type::MOVIE => Ok("movie".to_string()),
+        media_type::SERIE => Ok("series".to_string()),
         _ => Err(anyhow!("Invalid stream_type")),
     }
 }
@@ -210,13 +226,13 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source) -> Result<Channel
         id: None,
         group: None,
         image: episode.info.map(|info| info.movie_image).unwrap_or(None),
-        media_type: MediaType::Movie,
+        media_type: media_type::MOVIE,
         name: episode.title,
         source_id: source.id.context("Invalid ID")?,
         url: Some(get_url(
             episode.id,
             &source,
-            MediaType::Serie,
+            media_type::SERIE,
             Some(episode.container_extension),
         )?),
     })
@@ -227,6 +243,7 @@ mod test_xtream {
 
     use std::env;
 
+    use crate::source_type;
     use crate::sql::{self, drop_db};
     use crate::types::Source;
     use crate::xtream::{get_episodes, get_xtream};
@@ -242,7 +259,7 @@ mod test_xtream {
             password: Some(env::var("OPEN_TV_TEST_XTREAM_PASSWORD").unwrap()),
             url: Some(env::var("OPEN_TV_TEST_XTREAM_LINK").unwrap()),
             url_origin: None,
-            source_type: crate::types::SourceType::Xtream,
+            source_type: source_type::XTREAM,
         })
         .await
         .unwrap();
@@ -258,7 +275,7 @@ mod test_xtream {
                 password: Some(env::var("OPEN_TV_TEST_XTREAM_PASSWORD").unwrap()),
                 url: Some(env::var("OPEN_TV_TEST_XTREAM_LINK").unwrap()),
                 url_origin: None,
-                source_type: crate::types::SourceType::Xtream,
+                source_type: source_type::XTREAM,
             },
             7542,
         )

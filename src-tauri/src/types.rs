@@ -1,21 +1,6 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, PartialEq, Debug, IntoPrimitive, TryFromPrimitive, Deserialize, Serialize)]
-#[repr(u8)]
-pub enum MediaType {
-    Livestream,
-    Movie,
-    Serie,
-    Group,
-}
-#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
-pub enum SourceType {
-    M3U,
-    M3ULink,
-    Xtream,
-}
-
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Channel {
     pub id: Option<i64>,
@@ -23,7 +8,7 @@ pub struct Channel {
     pub url: Option<String>,
     pub group: Option<String>,
     pub image: Option<String>,
-    pub media_type: MediaType,
+    pub media_type: u8,
     pub source_id: i64,
 }
 
@@ -35,7 +20,7 @@ pub struct Source {
     pub url_origin: Option<String>,
     pub username: Option<String>,
     pub password: Option<String>,
-    pub source_type: SourceType,
+    pub source_type: u8,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -49,7 +34,7 @@ pub struct Settings {
 pub struct Filters {
     pub query: Option<String>,
     pub source_ids: Vec<String>,
-    pub media_type: MediaType,
+    pub media_type: u8,
     pub is_favorite: bool,
     pub page: u8,
 }

@@ -26,9 +26,10 @@ anyhow = { version = "1.0.86" }
 regex = { version = "1.10.5", features = ["std"] }
 directories = "5.0.1"
 reqwest = "0.12.5"
-tokio = {version = "1.39.2", features = ["full"]}
+tokio = {version = "1.39.2", features = ["full"] }
 url = "2.5.2"
 r2d2_sqlite = "0.25.0"
 r2d2 = "0.8.10"
 num_enum = "0.7.3"
 bytes = "1.7.1"
+tauri-plugin-dialog = "2.0.0-rc.1"

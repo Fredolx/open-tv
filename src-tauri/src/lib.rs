@@ -6,8 +6,10 @@ pub mod mpv;
 pub mod settings;
 pub mod sql;
 pub mod types;
-pub mod xtream;
 pub mod utils;
+pub mod xtream;
+pub mod source_type;
+pub mod media_type;
 
 fn print_error_stack(e: Error) {
     eprintln!("{:?}", e);
@@ -16,6 +18,7 @@ fn print_error_stack(e: Error) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             get_m3u8,
             get_m3u8_from_link,
@@ -27,14 +30,15 @@ pub fn run() {
             refresh_source,
             get_episodes,
             favorite_channel,
-            unfavorite_channel
+            unfavorite_channel,
+            source_name_exists
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 fn map_err_frontend(e: Error) -> String {
-    return e.to_string();
+    return format!("{:?}", e);
 }
 
 #[tauri::command(async)]
@@ -44,7 +48,9 @@ fn get_m3u8(source: Source) -> Result<(), String> {
 
 #[tauri::command]
 async fn get_m3u8_from_link(source: Source) -> Result<(), String> {
-    m3u::get_m3u8_from_link(source).await.map_err(map_err_frontend)
+    m3u::get_m3u8_from_link(source)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command]
@@ -74,12 +80,16 @@ async fn get_xtream(source: Source) -> Result<(), String> {
 
 #[tauri::command]
 async fn refresh_source(source: Source) -> Result<(), String> {
-    utils::refresh_source(source).await.map_err(map_err_frontend)
+    utils::refresh_source(source)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command]
 async fn get_episodes(source: Source, series_id: u64) -> Result<Vec<Channel>, String> {
-    xtream::get_episodes(source, series_id).await.map_err(map_err_frontend)
+    xtream::get_episodes(source, series_id)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
@@ -90,4 +100,9 @@ async fn favorite_channel(channel_id: i64) -> Result<(), String> {
 #[tauri::command(async)]
 async fn unfavorite_channel(channel_id: i64) -> Result<(), String> {
     sql::favorite_channel(channel_id, false).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+async fn source_name_exists(name: String) -> Result<bool, String> {
+    sql::source_name_exists(name).map_err(map_err_frontend)
 }

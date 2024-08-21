@@ -6,12 +6,7 @@ use tokio::{
     process::Command,
     time::timeout,
 };
-use types::Channel;
-
-use crate::{
-    settings::get_settings,
-    types::{self, MediaType},
-};
+use crate::{media_type, settings::get_settings, types::Channel};
 
 const MPV_END_STR: [&str; 3] = ["AO", "VO", "AV"];
 const ARG_SAVE_POSITION_ON_QUIT: &str = "--save-position-on-quit";
@@ -43,7 +38,7 @@ pub async fn play(channel: Channel, record: bool) -> Result<()> {
 fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
     let mut args = Vec::new();
     let settings = get_settings()?;
-    if channel.media_type == MediaType::Livestream {
+    if channel.media_type != media_type::LIVESTREAM {
         args.push(ARG_SAVE_POSITION_ON_QUIT.to_string());
     }
     if settings.use_stream_caching == Some(false) {

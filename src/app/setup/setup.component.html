@@ -1,0 +1,58 @@
+<div class="container text-center mt-5">
+    <ng-container *ngIf="!loading">
+        <h2>Let's add your first source</h2>
+        <div class="btn-group mx-auto mb-4 mt-4" style="width: fit-content; display: block;">
+            <button (click)="switchMode(sourceTypeEnum.M3U)" class="btn btn-secondary"
+                [ngbTooltip]="'Use this option if you only have an M3U file. If the file was obtained through an URL given to you by your IPTV provider, the M3U URL option is better'"
+                triggers="hover" [ngClass]="{'active': source.source_type == sourceTypeEnum.M3U}">M3U File</button>
+            <button (click)="switchMode(sourceTypeEnum.M3ULink)" class="btn btn-secondary"
+                [ngbTooltip]="'If you want to have the option to automatically refresh your channels list with new channels that gets added by your IPTV Provider, this option is recommended over the M3U File'"
+                triggers="hover" [ngClass]="{'active': source.source_type == sourceTypeEnum.M3ULink}">M3U URL</button>
+            <button (click)="switchMode(sourceTypeEnum.Xtream)" class="btn btn-secondary"
+                [ngClass]="{'active': source.source_type == sourceTypeEnum.Xtream}">Xtream</button>
+        </div>
+        <form #form="ngForm" (ngSubmit)="submit()">
+            <div class="row mt-2 justify-content-center">
+                <div class="col-lg-6 col-md-8">
+                    <input #name="ngModel" source-name-exists name="name" empty class="form-control" [(ngModel)]="source.name"
+                        placeholder="Nickname for this source">
+                </div>
+            </div>
+            <div class="row mt-1 ps-3">
+                <div *ngIf="name.errors?.['sourceNameExists']" class="col-lg-6 col-md-8 text-danger">
+                    This source name is already taken
+                </div>
+            </div>
+
+            <div *ngIf="source.source_type != sourceTypeEnum.M3U">
+                <div class="row justify-content-center mt-2">
+                    <div class="col-lg-6 col-md-8">
+                        <input name="url" empty class="form-control" [(ngModel)]="source.url" placeholder="URL">
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="source.source_type == sourceTypeEnum.Xtream">
+                <div class="row mt-2 justify-content-center">
+                    <div class="col-lg-6 col-md-8">
+                        <input name="username" empty class="form-control" [(ngModel)]="source.username"
+                            placeholder="Username">
+                    </div>
+                </div>
+                <div class="row mt-2 justify-content-center">
+                    <div class="col-lg-6 col-md-8">
+                        <input name="password" empty class="form-control" [(ngModel)]="source.password"
+                            placeholder="Password">
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button [disabled]="!form.valid" class="btn btn-primary">
+                    <ng-container *ngIf="source.source_type == sourceTypeEnum.M3U">Select file</ng-container>
+                    <ng-container *ngIf="source.source_type == sourceTypeEnum.M3ULink">Fetch</ng-container>
+                    <ng-container *ngIf="source.source_type == sourceTypeEnum.Xtream">Login</ng-container>
+                </button>
+            </div>
+        </form>
+    </ng-container>
+    <app-loading *ngIf="loading" [center]="false"></app-loading>
+</div>

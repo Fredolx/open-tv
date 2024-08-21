@@ -1,13 +1,20 @@
 use std::{
-    fs::File, io::{BufRead, BufReader}, sync::LazyLock
+    fs::File,
+    io::{BufRead, BufReader},
+    sync::LazyLock,
 };
 
 use anyhow::{bail, Context, Result};
 use bytes::Bytes;
 use regex::{Captures, Regex};
-use types::{Channel, MediaType, Source};
+use reqwest::Response;
+use types::{Channel, Source};
 
-use crate::{print_error_stack, sql, types};
+use crate::{
+    media_type, print_error_stack,
+    sql::{self, delete_source},
+    types,
+};
 
 static NAME_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"tvg-name="(?P<name>[^"]*)""#).unwrap());
@@ -19,18 +26,21 @@ static GROUP_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"group-title="(?P<group>[^"]*)""#).unwrap());
 
 pub fn read_m3u8(mut source: Source) -> Result<()> {
-    let file = File::open(source.url.clone().context("No path")?).context("Failed to open m3u8 file")?;
+    let file =
+        File::open(source.url.clone().context("No path")?).context("Failed to open m3u8 file")?;
     let reader = BufReader::new(file);
     let mut lines = reader.lines().enumerate().skip(1);
-    let mut problematic_lines: Vec<usize> = Vec::new();
-    sql::create_or_find_source_by_name(&mut source)?;
+    let mut problematic_lines: usize = 0;
+    let mut lines_count: usize = 0;
+    let new_source = sql::create_or_find_source_by_name(&mut source)?;
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
+        lines_count = c2;
         let l1 = match l1.with_context(|| format!("(l1) Error on line: {c1}, skipping")) {
             Ok(line) => line,
             Err(e) => {
-                problematic_lines.push(c1);
+                problematic_lines += 1;
                 print_error_stack(e);
                 continue;
             }
@@ -38,7 +48,7 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
         let l2 = match l2.with_context(|| format!("(l2) Error on line: {c2}, skipping")) {
             Ok(line) => line,
             Err(e) => {
-                problematic_lines.push(c2);
+                problematic_lines+= 1;
                 print_error_stack(e);
                 continue;
             }
@@ -48,12 +58,18 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
         {
             Ok(val) => val,
             Err(e) => {
-                problematic_lines.push(c1);
+                problematic_lines += 2;
                 print_error_stack(e);
                 continue;
             }
         };
         sql::insert_channel(&tx, channel)?;
+    }
+    if problematic_lines > lines_count / 2 {
+        if new_source {
+            delete_source(source.id.context("no source id")?).unwrap_or_default();
+        }
+        return Err(anyhow::anyhow!("Too many problematic lines, read considered failed"))
     }
     tx.commit()?;
     Ok(())
@@ -62,11 +78,22 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
 pub async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
     let client = reqwest::Client::new();
     let url = source.url.clone().context("Invalid source")?;
-    let mut response = client.get(&url).send().await?;
+    let response = client.get(&url).send().await?;
+
+    let new_source = sql::create_or_find_source_by_name(&mut source)?;
+    process_chunks(&source, response).await.or_else(|e| {
+        if new_source {
+            delete_source(source.id.context("no source id")?).unwrap_or_default();
+        }
+        Err(e)
+    })?;
+    Ok(())
+}
+
+async fn process_chunks(source: &Source, mut response: Response) -> Result<()> {
     let mut str_buffer: String = String::new();
     let mut skipped_first = false;
 
-    sql::create_or_find_source_by_name(&mut source)?;
     while let Some(chunk) = response.chunk().await? {
         let split = get_lines_from_chunk(chunk, &mut str_buffer, skipped_first)?;
         if !skipped_first {
@@ -106,7 +133,11 @@ fn process_chunk_split(split: Vec<String>, source: &Source) -> Result<()> {
     Ok(())
 }
 
-fn get_lines_from_chunk(chunk: Bytes, str_buffer: &mut String, skipped_first: bool) -> Result<Vec<String>> {
+fn get_lines_from_chunk(
+    chunk: Bytes,
+    str_buffer: &mut String,
+    skipped_first: bool,
+) -> Result<Vec<String>> {
     let lossy = String::from_utf8_lossy(&chunk);
     let lossy = lossy.into_owned();
     str_buffer.push_str(&lossy);
@@ -167,11 +198,11 @@ fn get_channel_from_lines(first: String, second: String, source_id: i64) -> Resu
     Ok(channel)
 }
 
-fn get_media_type(url: String) -> MediaType {
+fn get_media_type(url: String) -> u8 {
     let media_type = if url.ends_with(".mp4") || url.ends_with("mkv") {
-        MediaType::Movie
+        media_type::MOVIE
     } else {
-        MediaType::Livestream
+        media_type::LIVESTREAM
     };
     return media_type;
 }
@@ -211,7 +242,7 @@ mod test_m3u {
             password: None,
             username: None,
             url_origin: None,
-            source_type: crate::types::SourceType::M3ULink,
+            source_type: crate::source_type::M3U,
         };
         read_m3u8(source).unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
@@ -229,7 +260,7 @@ mod test_m3u {
             password: None,
             username: None,
             url_origin: None,
-            source_type: crate::types::SourceType::M3ULink,
+            source_type: crate::source_type::M3U_LINK,
         };
         get_m3u8_from_link(source).await.unwrap();
         let time = now.elapsed().as_millis().to_string();

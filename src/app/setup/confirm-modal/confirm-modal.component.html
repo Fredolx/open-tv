@@ -1,0 +1,19 @@
+<div class="modal-header">
+    <h4 class="modal-title">Is this the right URL?</h4>
+</div>
+<div class="modal-body">
+    <p>
+        It seems your URL is not pointing to an Xtream API server.
+        You can proceed anyway, but if you get an error
+        we can correct the URL for you automatically on your next attempt.
+    </p>
+    <p>
+        If the automatic URL correction still fails, please contact your provider to obtain
+        its proper Xtream API URL or proper credentials.
+    </p>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-warning" (click)="activeModal.close('ignore')">Proceed anyway</button>
+    <button type="button" class="btn btn-primary" (click)="activeModal.close('correct')">Correct URL
+        automatically</button>
+</div>

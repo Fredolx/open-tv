@@ -1,12 +1,11 @@
 use std::{collections::HashMap, sync::LazyLock};
 
-use crate::types::{Channel, Filters, MediaType, Source};
-use anyhow::{anyhow, bail, Context, Result};
+use crate::{media_type, types::{Channel, Filters, Source}};
+use anyhow::{Context, Result};
 use directories::ProjectDirs;
-use num_enum::{FromPrimitive, TryFromPrimitive};
 use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::{params, MappedRows, OptionalExtension, Row, Transaction};
+use rusqlite::{params, OptionalExtension, Row, Transaction};
 
 const PAGE_SIZE: u8 = 36;
 static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
@@ -100,7 +99,9 @@ pub fn drop_db() -> Result<()> {
     Ok(())
 }
 
-pub fn create_or_find_source_by_name(source: &mut Source) -> Result<()> {
+/// # Returns
+/// If a new source was created
+pub fn create_or_find_source_by_name(source: &mut Source) -> Result<bool> {
     let sql = get_conn()?;
     let id: Option<i64> = sql
         .query_row(
@@ -111,14 +112,14 @@ pub fn create_or_find_source_by_name(source: &mut Source) -> Result<()> {
         .optional()?;
     if let Some(id) = id {
         source.id = Some(id);
-        return Ok(());
+        return Ok(false);
     }
     sql.execute(
         "INSERT INTO sources (name, source_type, url, username, password) VALUES (?1, ?2, ?3, ?4, ?5)",
         params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password],
     )?;
     source.id = Some(sql.last_insert_rowid());
-    Ok(())
+    Ok(true)
 }
 
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
@@ -204,7 +205,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
 fn favorite_to_sql_string(value: &bool) -> String {
     match value {
         true => "1".to_string(),
-        false => "0, 1".to_string()
+        false => "0, 1".to_string(),
     }
 }
 
@@ -248,21 +249,11 @@ fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         name: row.get("group_name")?,
         group: None,
         image: row.get("image")?,
-        media_type: MediaType::Group,
+        media_type: media_type::GROUP,
         source_id: row.get("source_id")?,
-        url: None
+        url: None,
     };
     Ok(channel)
-}
-
-fn get_media_type(row: &Row) -> std::result::Result<MediaType, rusqlite::Error> {
-    MediaType::try_from(row.get::<&str, u8>("media_type")?).map_err(|_| {
-        rusqlite::Error::InvalidColumnType(
-            6,
-            "Could not convert media_type to enum".to_string(),
-            rusqlite::types::Type::Integer,
-        )
-    })
 }
 
 fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
@@ -271,7 +262,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         name: row.get("name")?,
         group: row.get("group")?,
         image: row.get("image")?,
-        media_type: get_media_type(row)?,
+        media_type: row.get("media_type")?,
         source_id: row.get("source_id")?,
         url: row.get("url")?,
     };
@@ -290,13 +281,41 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     Ok(())
 }
 
-pub fn favorite_channel(channel_id: i64, favorite: bool) -> Result<()> {
+pub fn delete_source(id: i64) -> Result<()> {
     let sql = get_conn()?;
     sql.execute(r#"
+        DELETE FROM sources
+        WHERE id = ?1
+    "#, [id])?;
+    Ok(())
+}
+
+pub fn source_name_exists(name: String) -> Result<bool> {
+    let sql = get_conn()?;
+    Ok(sql
+        .query_row(
+            r#"
+    SELECT 1 
+    FROM sources 
+    WHERE name = ?1
+    "#,
+            [name],
+            |row| row.get::<_, i32>(0),
+        )
+        .optional()?
+        .is_some())
+}
+
+pub fn favorite_channel(channel_id: i64, favorite: bool) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
         UPDATE channels
         SET favorite = ?1
         WHERE id = ?2
-    "#, params![favorite, channel_id])?;
+    "#,
+        params![favorite, channel_id],
+    )?;
     Ok(())
 }
 
