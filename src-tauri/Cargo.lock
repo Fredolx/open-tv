@@ -2398,7 +2398,6 @@ dependencies = [
  "anyhow",
  "bytes",
  "directories",
- "num_enum",
  "r2d2",
  "r2d2_sqlite",
  "regex",

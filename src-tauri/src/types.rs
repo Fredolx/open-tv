@@ -1,4 +1,3 @@
-use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -33,8 +32,8 @@ pub struct Settings {
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Filters {
     pub query: Option<String>,
-    pub source_ids: Vec<String>,
-    pub media_type: u8,
-    pub is_favorite: bool,
+    pub source_ids: Vec<i64>,
+    pub media_types: Option<Vec<u8>>,
+    pub view_type: u8,
     pub page: u8,
 }

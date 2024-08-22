@@ -10,6 +10,7 @@ pub mod utils;
 pub mod xtream;
 pub mod source_type;
 pub mod media_type;
+pub mod view_type;
 
 fn print_error_stack(e: Error) {
     eprintln!("{:?}", e);
@@ -31,7 +32,8 @@ pub fn run() {
             get_episodes,
             favorite_channel,
             unfavorite_channel,
-            source_name_exists
+            source_name_exists,
+            get_sources
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -93,16 +95,21 @@ async fn get_episodes(source: Source, series_id: u64) -> Result<Vec<Channel>, St
 }
 
 #[tauri::command(async)]
-async fn favorite_channel(channel_id: i64) -> Result<(), String> {
+fn favorite_channel(channel_id: i64) -> Result<(), String> {
     sql::favorite_channel(channel_id, true).map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
-async fn unfavorite_channel(channel_id: i64) -> Result<(), String> {
+fn unfavorite_channel(channel_id: i64) -> Result<(), String> {
     sql::favorite_channel(channel_id, false).map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
-async fn source_name_exists(name: String) -> Result<bool, String> {
+fn source_name_exists(name: String) -> Result<bool, String> {
     sql::source_name_exists(name).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn get_sources() -> Result<Vec<Source>, String> {
+    sql::get_sources().map_err(map_err_frontend)
 }

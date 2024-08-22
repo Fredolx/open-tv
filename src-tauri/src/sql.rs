@@ -1,11 +1,15 @@
 use std::{collections::HashMap, sync::LazyLock};
 
-use crate::{media_type, types::{Channel, Filters, Source}};
+use crate::{
+    media_type,
+    types::{Channel, Filters, Source},
+    view_type,
+};
 use anyhow::{Context, Result};
 use directories::ProjectDirs;
 use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::{params, OptionalExtension, Row, Transaction};
+use rusqlite::{params, params_from_iter, OptionalExtension, Row, ToSql, Transaction};
 
 const PAGE_SIZE: u8 = 36;
 static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
@@ -172,49 +176,81 @@ pub fn update_settings(map: HashMap<String, String>) -> Result<()> {
 }
 
 pub fn search(filters: Filters) -> Result<Vec<Channel>> {
+    if filters.view_type == view_type::CATEGORIES {
+        return search_group(filters);
+    }
     let sql = get_conn()?;
     let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
-    let channels: Vec<Channel> = sql
-        .prepare(
-            r#"
+    let favorite_sql = favorite_to_sql_string(filters.view_type == view_type::FAVORITES);
+    let sql_query = format!(
+        r#"
         SELECT * FROM CHANNELS
-        WHERE name like '%?1%'
-        AND media_type = ?2
-		AND source_id in (?3)
+        WHERE name LIKE ?
+        AND media_type IN ({})
+		AND source_id IN ({})
         AND url IS NOT NULL
-        AND favorite IN (?4)
-		LIMIT ?5, ?6
+        AND favorite IN ({})
+		LIMIT ?, ?
     "#,
-        )?
-        .query_map(
-            params![
-                filters.query,
-                (filters.media_type as u8),
-                filters.source_ids.join(","),
-                favorite_to_sql_string(&filters.is_favorite),
-                offset,
-                PAGE_SIZE,
-            ],
-            row_to_channel,
-        )?
+        generate_placeholders(
+            filters
+                .media_types
+                .as_ref()
+                .context("no media types")?
+                .len()
+        ),
+        generate_placeholders(filters.source_ids.len()),
+        generate_placeholders(favorite_sql.len())
+    );
+    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(
+        3 + filters.media_types.as_ref().unwrap().len()
+            + filters.source_ids.len()
+            + favorite_sql.len(),
+    );
+    let query = to_sql_like(filters.query);
+    let media_types = filters.media_types.unwrap();
+    params.push(&query);
+    params.extend(to_to_sql(&media_types));
+    params.extend(to_to_sql(&filters.source_ids));
+    params.extend(to_to_sql(&favorite_sql));
+    params.push(&offset);
+    params.push(&PAGE_SIZE);
+    let channels: Vec<Channel> = sql
+        .prepare(&sql_query)?
+        .query_map(params_from_iter(params), row_to_channel)?
         .filter_map(Result::ok)
         .collect();
     Ok(channels)
 }
 
-fn favorite_to_sql_string(value: &bool) -> String {
+fn to_to_sql<T: rusqlite::ToSql>(values: &[T]) -> Vec<&dyn rusqlite::ToSql> {
+    values.iter().map(|x| x as &dyn rusqlite::ToSql).collect()
+}
+
+fn generate_placeholders(size: usize) -> String {
+    std::iter::repeat("?")
+        .take(size)
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+fn to_sql_like(query: Option<String>) -> String {
+    query.map(|x| format!("%{x}%")).unwrap_or("%".to_string())
+}
+
+fn favorite_to_sql_string(value: bool) -> Vec<u8> {
     match value {
-        true => "1".to_string(),
-        false => "0, 1".to_string(),
+        true => vec![1],
+        false => vec![0, 1],
     }
 }
 
 pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
     let sql = get_conn()?;
     let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
-    let channels: Vec<Channel> = sql
-        .prepare(
-            r#"
+    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(3 + filters.source_ids.len());
+    let sql_query = format!(
+        r#"
         SELECT id, group_name, image, source_id
         FROM (
             SELECT *,
@@ -222,22 +258,20 @@ pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
             FROM channels
         ) ranked_channels
         WHERE row_num = 1
-        AND group_name like '%?1%'
-        AND media_type = ?2
-        AND source_id in (?3)
-        LIMIT ?4, ?5
+        AND group_name like ?
+        AND source_id in ({})
+        LIMIT ?, ?
     "#,
-        )?
-        .query_map(
-            params![
-                filters.query,
-                (filters.media_type as u8),
-                filters.source_ids.join(","),
-                offset,
-                PAGE_SIZE,
-            ],
-            row_to_group,
-        )?
+        generate_placeholders(filters.source_ids.len())
+    );
+    let query = to_sql_like(filters.query);
+    params.push(&query);
+    params.extend(to_to_sql(&filters.source_ids));
+    params.push(&offset);
+    params.push(&PAGE_SIZE);
+    let channels: Vec<Channel> = sql
+        .prepare(&sql_query)?
+        .query_map(params_from_iter(params), row_to_group)?
         .filter_map(Result::ok)
         .collect();
     Ok(channels)
@@ -260,7 +294,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
     let channel = Channel {
         id: row.get("id")?,
         name: row.get("name")?,
-        group: row.get("group")?,
+        group: row.get("group_name")?,
         image: row.get("image")?,
         media_type: row.get("media_type")?,
         source_id: row.get("source_id")?,
@@ -283,10 +317,16 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
 
 pub fn delete_source(id: i64) -> Result<()> {
     let sql = get_conn()?;
-    sql.execute(r#"
+    sql.execute(
+        r#"
+        DELETE FROM channels
+        WHERE source_id = ?1;
+
         DELETE FROM sources
-        WHERE id = ?1
-    "#, [id])?;
+        WHERE id = ?1;
+    "#,
+        [id],
+    )?;
     Ok(())
 }
 
@@ -319,16 +359,41 @@ pub fn favorite_channel(channel_id: i64, favorite: bool) -> Result<()> {
     Ok(())
 }
 
+pub fn get_sources() -> Result<Vec<Source>> {
+    let sql = get_conn()?;
+    let sources: Vec<Source> = sql
+        .prepare("SELECT * FROM sources")?
+        .query_map([], row_to_source)?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(sources)
+}
+
+fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
+    Ok(Source {
+        id: row.get("id")?,
+        name: row.get("name")?,
+        username: row.get("username")?,
+        password: row.get("password")?,
+        url: row.get("url")?,
+        source_type: row.get("source_type")?,
+        url_origin: None,
+    })
+}
+
 #[cfg(test)]
 mod test_sql {
     use std::collections::HashMap;
 
     use crate::{
+        media_type,
         settings::{RECORDING_PATH, USE_STREAM_CACHING},
         sql::{create_structure, drop_db, structure_exists},
+        types::Filters,
+        view_type,
     };
 
-    use super::update_settings;
+    use super::{get_sources, search, update_settings};
 
     #[test]
     fn test_structure_exists() {
@@ -346,5 +411,47 @@ mod test_sql {
         map.insert(RECORDING_PATH.to_string(), "somePath".to_string());
         update_settings(map.clone()).unwrap();
         update_settings(map).unwrap();
+    }
+
+    #[test]
+    fn test_search() {
+        let results = search(Filters {
+            media_types: Some(vec![media_type::LIVESTREAM, media_type::MOVIE]),
+            page: 1,
+            query: Some("Fra".to_string()),
+            source_ids: get_sources()
+                .unwrap()
+                .iter()
+                .map(|x| x.id.unwrap())
+                .collect(),
+            view_type: view_type::ALL,
+        })
+        .unwrap();
+        println!("{:?}\n\n", results);
+        println!("{}", results.len());
+    }
+
+    #[test]
+    fn test_search_group() {
+        let results = search(Filters {
+            media_types: None,
+            page: 1,
+            query: Some("Fra".to_string()),
+            source_ids: get_sources()
+                .unwrap()
+                .iter()
+                .map(|x| x.id.unwrap())
+                .collect(),
+            view_type: view_type::CATEGORIES,
+        })
+        .unwrap();
+        println!("{:?}\n\n", results);
+        println!("{}", results.len());
+    }
+
+    #[test]
+    fn test_get_sources() {
+        let results = get_sources().unwrap();
+        println!("{:?}", results);
     }
 }
