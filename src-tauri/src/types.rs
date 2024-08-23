@@ -9,6 +9,7 @@ pub struct Channel {
     pub image: Option<String>,
     pub media_type: u8,
     pub source_id: i64,
+    pub series_id: Option<i64>
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -36,4 +37,6 @@ pub struct Filters {
     pub media_types: Option<Vec<u8>>,
     pub view_type: u8,
     pub page: u8,
+    pub group_name: Option<String>,
+    pub series_id: Option<i64>
 }

@@ -176,6 +176,7 @@ fn convert_xtream_live_to_channel(
                 stream.container_extension,
             )?)
         },
+        series_id: None
     })
 }
 
@@ -205,23 +206,26 @@ fn get_media_type_string(stream_type: u8) -> Result<String> {
     }
 }
 
-pub async fn get_episodes(mut source: Source, series_id: u64) -> Result<Vec<Channel>> {
+pub async fn get_episodes(series_id: i64) -> Result<Vec<Channel>> {
+    let mut source = sql::get_source_from_series_id(series_id)?;
     let mut url = build_xtream_url(&mut source)?;
     url.query_pairs_mut()
         .append_pair("series_id", &series_id.to_string());
     let episodes = (get_xtream_http_data::<XtreamSeries>(url, GET_SERIES_INFO).await?).episodes;
     let episodes: Vec<XtreamEpisode> = episodes.into_values().flat_map(|episode| episode).collect();
     let mut channels: Vec<Channel> = Vec::new();
+    let mut sql = sql::get_conn()?;
+    let tx = sql.transaction()?;
     for episode in episodes {
-        episode_to_channel(episode, &source)
-            .map(|channel| channels.push(channel))
-            .unwrap_or_else(print_error_stack);
+        let episode = episode_to_channel(episode, &source, series_id)?;
+        sql::insert_channel(&tx, episode)?;
     }
+    tx.commit()?;
     channels.sort_by(|a, b| a.name.cmp(&b.name));
     Ok(channels)
 }
 
-fn episode_to_channel(episode: XtreamEpisode, source: &Source) -> Result<Channel> {
+fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: i64) -> Result<Channel> {
     Ok(Channel {
         id: None,
         group: None,
@@ -235,6 +239,7 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source) -> Result<Channel
             media_type::SERIE,
             Some(episode.container_extension),
         )?),
+        series_id: Some(series_id)
     })
 }
 
@@ -268,15 +273,6 @@ mod test_xtream {
     #[tokio::test]
     async fn test_get_episodes() {
         let episodes = get_episodes(
-            Source {
-                id: Some(1),
-                name: "my-xtream".to_string(),
-                username: Some(env::var("OPEN_TV_TEST_XTREAM_USERNAME").unwrap()),
-                password: Some(env::var("OPEN_TV_TEST_XTREAM_PASSWORD").unwrap()),
-                url: Some(env::var("OPEN_TV_TEST_XTREAM_LINK").unwrap()),
-                url_origin: None,
-                source_type: source_type::XTREAM,
-            },
             7542,
         )
         .await

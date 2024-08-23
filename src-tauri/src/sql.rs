@@ -9,7 +9,7 @@ use anyhow::{Context, Result};
 use directories::ProjectDirs;
 use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::{params, params_from_iter, OptionalExtension, Row, ToSql, Transaction};
+use rusqlite::{params, params_from_iter, OptionalExtension, Row, Transaction};
 
 const PAGE_SIZE: u8 = 36;
 static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
@@ -58,7 +58,9 @@ CREATE TABLE "channels" (
   "media_type" integer,
   "source_id" integer,
   "favorite" integer,
+  "series_id" integer,
   FOREIGN KEY (source_id) REFERENCES sources(id)
+  FOREIGN KEY (series_id) REFERENCES channels(id)
 );
 
 CREATE TABLE "settings" (
@@ -176,22 +178,21 @@ pub fn update_settings(map: HashMap<String, String>) -> Result<()> {
 }
 
 pub fn search(filters: Filters) -> Result<Vec<Channel>> {
-    if filters.view_type == view_type::CATEGORIES {
+    if filters.view_type == view_type::CATEGORIES
+        && filters.group_name.is_none()
+        && filters.series_id.is_none()
+    {
         return search_group(filters);
     }
     let sql = get_conn()?;
     let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
-    let favorite_sql = favorite_to_sql_string(filters.view_type == view_type::FAVORITES);
-    let sql_query = format!(
+    let mut sql_query = format!(
         r#"
         SELECT * FROM CHANNELS
         WHERE name LIKE ?
         AND media_type IN ({})
 		AND source_id IN ({})
-        AND url IS NOT NULL
-        AND favorite IN ({})
-		LIMIT ?, ?
-    "#,
+        AND url IS NOT NULL"#,
         generate_placeholders(
             filters
                 .media_types
@@ -200,19 +201,25 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
                 .len()
         ),
         generate_placeholders(filters.source_ids.len()),
-        generate_placeholders(favorite_sql.len())
     );
+    if filters.view_type == view_type::FAVORITES {
+        sql_query += "\nAND favorite = 1";
+    }
+    if let Some(series_id) = filters.series_id {
+        sql_query += &format!("\nAND series_id = {series_id}")
+    } else if let Some(group_name) = filters.group_name {
+        sql_query += &format!("\nAND group_name = {group_name}");
+    }
+    sql_query += "\nLIMIT ?, ?";
+
     let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(
-        3 + filters.media_types.as_ref().unwrap().len()
-            + filters.source_ids.len()
-            + favorite_sql.len(),
+        3 + filters.media_types.as_ref().unwrap().len() + filters.source_ids.len(),
     );
     let query = to_sql_like(filters.query);
     let media_types = filters.media_types.unwrap();
     params.push(&query);
     params.extend(to_to_sql(&media_types));
     params.extend(to_to_sql(&filters.source_ids));
-    params.extend(to_to_sql(&favorite_sql));
     params.push(&offset);
     params.push(&PAGE_SIZE);
     let channels: Vec<Channel> = sql
@@ -236,13 +243,6 @@ fn generate_placeholders(size: usize) -> String {
 
 fn to_sql_like(query: Option<String>) -> String {
     query.map(|x| format!("%{x}%")).unwrap_or("%".to_string())
-}
-
-fn favorite_to_sql_string(value: bool) -> Vec<u8> {
-    match value {
-        true => vec![1],
-        false => vec![0, 1],
-    }
 }
 
 pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
@@ -286,6 +286,7 @@ fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         media_type: media_type::GROUP,
         source_id: row.get("source_id")?,
         url: None,
+        series_id: None,
     };
     Ok(channel)
 }
@@ -299,6 +300,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         media_type: row.get("media_type")?,
         source_id: row.get("source_id")?,
         url: row.get("url")?,
+        series_id: None,
     };
     Ok(channel)
 }
@@ -381,6 +383,14 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
     })
 }
 
+pub fn get_source_from_series_id(series_id: i64) -> Result<Source> {
+    let sql = get_conn()?;
+    Ok(sql.query_row(r#"
+    SELECT * FROM sources where id = (
+        SELECT source_id FROM channels WHERE url = ?
+    )"#, [series_id], row_to_source)?)
+}
+
 #[cfg(test)]
 mod test_sql {
     use std::collections::HashMap;
@@ -425,6 +435,8 @@ mod test_sql {
                 .map(|x| x.id.unwrap())
                 .collect(),
             view_type: view_type::ALL,
+            group_name: None,
+            series_id: None,
         })
         .unwrap();
         println!("{:?}\n\n", results);
@@ -443,6 +455,8 @@ mod test_sql {
                 .map(|x| x.id.unwrap())
                 .collect(),
             view_type: view_type::CATEGORIES,
+            group_name: None,
+            series_id: None,
         })
         .unwrap();
         println!("{:?}\n\n", results);

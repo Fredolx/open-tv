@@ -88,8 +88,8 @@ async fn refresh_source(source: Source) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn get_episodes(source: Source, series_id: u64) -> Result<Vec<Channel>, String> {
-    xtream::get_episodes(source, series_id)
+async fn get_episodes(series_id: i64) -> Result<Vec<Channel>, String> {
+    xtream::get_episodes(series_id)
         .await
         .map_err(map_err_frontend)
 }
