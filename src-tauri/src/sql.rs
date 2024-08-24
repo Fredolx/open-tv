@@ -73,6 +73,8 @@ ON channels(name);
 
 CREATE INDEX index_channel_group ON channels(group_name);
 
+CREATE UNIQUE INDEX channels_unique ON channels(name, url);
+
 CREATE UNIQUE INDEX index_source_name ON sources(name);
 "#,
     )?;
@@ -202,24 +204,32 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         ),
         generate_placeholders(filters.source_ids.len()),
     );
+    let mut baked_params = 3;
     if filters.view_type == view_type::FAVORITES {
         sql_query += "\nAND favorite = 1";
     }
-    if let Some(series_id) = filters.series_id {
-        sql_query += &format!("\nAND series_id = {series_id}")
-    } else if let Some(group_name) = filters.group_name {
-        sql_query += &format!("\nAND group_name = {group_name}");
+    if filters.series_id.is_some() {
+        sql_query += &format!("\nAND series_id = ?");
+        baked_params += 1;
+    } else if filters.group_name.is_some() {
+        sql_query += &format!("\nAND group_name = ?");
+        baked_params += 1;
     }
     sql_query += "\nLIMIT ?, ?";
-
     let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(
-        3 + filters.media_types.as_ref().unwrap().len() + filters.source_ids.len(),
+        baked_params + filters.media_types.as_ref().unwrap().len() + filters.source_ids.len(),
     );
     let query = to_sql_like(filters.query);
     let media_types = filters.media_types.unwrap();
     params.push(&query);
     params.extend(to_to_sql(&media_types));
     params.extend(to_to_sql(&filters.source_ids));
+    if let Some(ref series_id) = filters.series_id {
+        params.push(series_id);
+    }
+    else if let Some(ref group) = filters.group_name {
+        params.push(group);
+    }
     params.push(&offset);
     params.push(&PAGE_SIZE);
     let channels: Vec<Channel> = sql
@@ -385,10 +395,14 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
 
 pub fn get_source_from_series_id(series_id: i64) -> Result<Source> {
     let sql = get_conn()?;
-    Ok(sql.query_row(r#"
+    Ok(sql.query_row(
+        r#"
     SELECT * FROM sources where id = (
         SELECT source_id FROM channels WHERE url = ?
-    )"#, [series_id], row_to_source)?)
+    )"#,
+        [series_id],
+        row_to_source,
+    )?)
 }
 
 #[cfg(test)]

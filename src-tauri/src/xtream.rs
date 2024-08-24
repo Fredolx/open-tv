@@ -161,10 +161,10 @@ fn convert_xtream_live_to_channel(
 ) -> Result<Channel> {
     Ok(Channel {
         id: None,
-        group: category_name,
-        image: stream.stream_icon.or(stream.cover),
+        group: category_name.map(|x| x.trim().to_string()),
+        image: stream.stream_icon.or(stream.cover).map(|x| x.trim().to_string()),
         media_type: stream_type.clone(),
-        name: stream.name.context("No name")?,
+        name: stream.name.context("No name")?.trim().to_string(),
         source_id: source.id.unwrap(),
         url: if stream_type == media_type::SERIE {
             Some(stream.series_id.context("no series id")?.to_string())
@@ -231,7 +231,7 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: i64) -
         group: None,
         image: episode.info.map(|info| info.movie_image).unwrap_or(None),
         media_type: media_type::MOVIE,
-        name: episode.title,
+        name: episode.title.trim().to_string(),
         source_id: source.id.context("Invalid ID")?,
         url: Some(get_url(
             episode.id,

@@ -15,7 +15,6 @@ const ARG_RECORD: &str = "--stream-record=";
 
 pub async fn play(channel: Channel, record: bool) -> Result<()> {
     let args = get_play_args(channel, record)?;
-
     let mut cmd = Command::new("mpv")
         .args(args) // Add any arguments your command needs
         .stdout(Stdio::piped())
@@ -30,7 +29,6 @@ pub async fn play(channel: Channel, record: bool) -> Result<()> {
             break;
         }
     }
-
     Ok(())
 }
 
@@ -38,6 +36,7 @@ pub async fn play(channel: Channel, record: bool) -> Result<()> {
 fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
     let mut args = Vec::new();
     let settings = get_settings()?;
+    args.push(channel.url.context("no url")?);
     if channel.media_type != media_type::LIVESTREAM {
         args.push(ARG_SAVE_POSITION_ON_QUIT.to_string());
     }

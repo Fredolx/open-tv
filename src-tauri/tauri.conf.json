@@ -1,12 +1,12 @@
 {
   "productName": "open-tv",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "dev.fredol.open-tv",
   "build": {
     "frontendDist": "../dist/open-tv/browser",
     "devUrl": "http://localhost:4200",
     "beforeDevCommand": "npm run start",
-    "beforeBuildCommand": "npm run build"
+    "beforeBuildCommand": "ng build --configuration=production"
   },
   "app": {
     "windows": [

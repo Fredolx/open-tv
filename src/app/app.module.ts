@@ -14,6 +14,8 @@ import { LoadingComponent } from './loading/loading.component';
 import { SourceNameExistsValidator } from './setup/validators/source-name-exists-validator.directive';
 import { NotEmptyValidatorDirective } from './setup/validators/not-empty-validator.directive';
 import { ConfirmModalComponent } from './setup/confirm-modal/confirm-modal.component';
+import { HomeComponent } from './home/home.component';
+import { ChannelTileComponent } from './channel-tile/channel-tile.component';
 
 @NgModule({
   declarations: [
@@ -23,6 +25,8 @@ import { ConfirmModalComponent } from './setup/confirm-modal/confirm-modal.compo
     SourceNameExistsValidator,
     NotEmptyValidatorDirective,
     ConfirmModalComponent,
+    HomeComponent,
+    ChannelTileComponent,
   ],
   imports: [
     BrowserModule,
