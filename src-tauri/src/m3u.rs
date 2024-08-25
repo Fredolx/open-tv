@@ -1,5 +1,7 @@
 use std::{
+    collections::HashMap,
     fs::File,
+    hash::Hash,
     io::{BufRead, BufReader},
     sync::LazyLock,
 };
@@ -8,6 +10,7 @@ use anyhow::{bail, Context, Result};
 use bytes::Bytes;
 use regex::{Captures, Regex};
 use reqwest::Response;
+use rusqlite::Transaction;
 use types::{Channel, Source};
 
 use crate::{
@@ -33,6 +36,7 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
     let mut problematic_lines: usize = 0;
     let mut lines_count: usize = 0;
     let new_source = sql::create_or_find_source_by_name(&mut source)?;
+    let mut groups: HashMap<String, i64> = HashMap::new();
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
@@ -48,12 +52,12 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
         let l2 = match l2.with_context(|| format!("(l2) Error on line: {c2}, skipping")) {
             Ok(line) => line,
             Err(e) => {
-                problematic_lines+= 1;
+                problematic_lines += 1;
                 print_error_stack(e);
                 continue;
             }
         };
-        let channel = match get_channel_from_lines(l1, l2, source.id.unwrap())
+        let mut channel = match get_channel_from_lines(l1, l2, source.id.unwrap())
             .with_context(|| format!("Failed to process lines #{c1} #{c2}, skipping"))
         {
             Ok(val) => val,
@@ -63,13 +67,17 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
                 continue;
             }
         };
+        sql::set_channel_group_id(&mut groups, &mut channel, &tx, source.id.as_ref().unwrap())
+            .unwrap_or_else(print_error_stack);
         sql::insert_channel(&tx, channel)?;
     }
     if problematic_lines > lines_count / 2 {
         if new_source {
             delete_source(source.id.context("no source id")?).unwrap_or_default();
         }
-        return Err(anyhow::anyhow!("Too many problematic lines, read considered failed"))
+        return Err(anyhow::anyhow!(
+            "Too many problematic lines, read considered failed"
+        ));
     }
     tx.commit()?;
     Ok(())
@@ -93,18 +101,23 @@ pub async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
 async fn process_chunks(source: &Source, mut response: Response) -> Result<()> {
     let mut str_buffer: String = String::new();
     let mut skipped_first = false;
+    let mut groups: HashMap<String, i64> = HashMap::new();
 
     while let Some(chunk) = response.chunk().await? {
         let split = get_lines_from_chunk(chunk, &mut str_buffer, skipped_first)?;
         if !skipped_first {
             skipped_first = true;
         }
-        process_chunk_split(split, &source)?;
+        process_chunk_split(split, &source, &mut groups)?;
     }
     Ok(())
 }
 
-fn process_chunk_split(split: Vec<String>, source: &Source) -> Result<()> {
+fn process_chunk_split(
+    split: Vec<String>,
+    source: &Source,
+    groups: &mut HashMap<String, i64>,
+) -> Result<()> {
     let mut two_lines = Vec::new();
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
@@ -113,7 +126,7 @@ fn process_chunk_split(split: Vec<String>, source: &Source) -> Result<()> {
         if two_lines.len() == 2 {
             let first = two_lines.remove(0);
             let second = two_lines.remove(0);
-            let channel = match get_channel_from_lines(
+            let mut channel = match get_channel_from_lines(
                 first.to_string(),
                 second.to_string(),
                 source.id.unwrap(),
@@ -126,6 +139,8 @@ fn process_chunk_split(split: Vec<String>, source: &Source) -> Result<()> {
                     continue;
                 }
             };
+            sql::set_channel_group_id(groups, &mut channel, &tx, source.id.as_ref().unwrap())
+                .unwrap_or_else(print_error_stack);
             sql::insert_channel(&tx, channel)?;
         }
     }
@@ -193,7 +208,8 @@ fn get_channel_from_lines(first: String, second: String, source_id: i64) -> Resu
         url: Some(second.trim().to_string()),
         media_type: get_media_type(second),
         source_id: source_id,
-        series_id: None
+        series_id: None,
+        group_id: None,
     };
     //let group
     Ok(channel)

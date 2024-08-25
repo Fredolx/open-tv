@@ -5,7 +5,7 @@ use crate::{
     types::{Channel, Filters, Source},
     view_type,
 };
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use directories::ProjectDirs;
 use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
@@ -52,15 +52,16 @@ CREATE TABLE "sources" (
 CREATE TABLE "channels" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,
   "name" varchar(100),
-  "group_name" varchar(100),
   "image" varchar(500),
   "url" varchar(500),
   "media_type" integer,
   "source_id" integer,
   "favorite" integer,
   "series_id" integer,
+  "group_id" integer,
   FOREIGN KEY (source_id) REFERENCES sources(id)
   FOREIGN KEY (series_id) REFERENCES channels(id)
+  FOREIGN KEY (group_id) REFERENCES groups(id)
 );
 
 CREATE TABLE "settings" (
@@ -68,14 +69,21 @@ CREATE TABLE "settings" (
   "value" VARCHAR(100)
 );
 
-CREATE INDEX index_channel_name
-ON channels(name);
+CREATE TABLE "groups" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" varchar(100),
+  "image" varchar(500),
+  "source_id" integer,
+  FOREIGN KEY (source_id) REFERENCES sources(id)
+);
 
-CREATE INDEX index_channel_group ON channels(group_name);
-
+CREATE INDEX index_channel_name ON channels(name);
 CREATE UNIQUE INDEX channels_unique ON channels(name, url);
 
 CREATE UNIQUE INDEX index_source_name ON sources(name);
+
+CREATE UNIQUE INDEX index_group_unique on groups(name, source_id);
+CREATE INDEX index_group_name ON groups(name);
 "#,
     )?;
     Ok(())
@@ -133,18 +141,63 @@ pub fn create_or_find_source_by_name(source: &mut Source) -> Result<bool> {
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
-INSERT INTO channels (name, group_name, image, url, source_id, media_type, favorite) 
+INSERT OR IGNORE INTO channels (name, group_id, image, url, source_id, media_type, favorite) 
 VALUES (?1, ?2, ?3, ?4, ?5, ?6, false); 
 "#,
         params![
             channel.name,
-            channel.group,
+            channel.group_id,
             channel.image,
             channel.url,
             channel.source_id,
             channel.media_type as u8
         ],
     )?;
+    Ok(())
+}
+
+fn insert_group(
+    tx: &Transaction,
+    group: &str,
+    image: &Option<String>,
+    source_id: &i64,
+) -> Result<i64> {
+    let rows_changed = tx.execute(
+        r#"
+        INSERT OR IGNORE INTO groups (name, image, source_id) 
+        VALUES (?1, ?2, ?3); 
+        "#,
+        params![group, &image, source_id],
+    )?;
+    if rows_changed == 0 {
+        return Err(anyhow!("Failed to insert group"));
+    }
+    Ok(tx.last_insert_rowid())
+}
+
+pub fn set_channel_group_id(
+    groups: &mut HashMap<String, i64>,
+    channel: &mut Channel,
+    tx: &Transaction,
+    source_id: &i64,
+) -> Result<()> {
+    if channel.group.is_none() {
+        return Ok(());
+    }
+    if !groups.contains_key(channel.group.as_ref().unwrap()) {
+        let id = insert_group(
+            tx,
+            channel.group.as_ref().unwrap(),
+            &channel.image,
+            source_id,
+        )?;
+        groups.insert(channel.group.clone().unwrap(), id);
+        channel.group_id = Some(id);
+    } else {
+        channel.group_id = groups
+            .get(channel.group.as_ref().unwrap())
+            .map(|x| x.to_owned());
+    }
     Ok(())
 }
 
@@ -181,7 +234,7 @@ pub fn update_settings(map: HashMap<String, String>) -> Result<()> {
 
 pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     if filters.view_type == view_type::CATEGORIES
-        && filters.group_name.is_none()
+        && filters.group_id.is_none()
         && filters.series_id.is_none()
     {
         return search_group(filters);
@@ -211,8 +264,8 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     if filters.series_id.is_some() {
         sql_query += &format!("\nAND series_id = ?");
         baked_params += 1;
-    } else if filters.group_name.is_some() {
-        sql_query += &format!("\nAND group_name = ?");
+    } else if filters.group_id.is_some() {
+        sql_query += &format!("\nAND group_id = ?");
         baked_params += 1;
     }
     sql_query += "\nLIMIT ?, ?";
@@ -226,8 +279,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     params.extend(to_to_sql(&filters.source_ids));
     if let Some(ref series_id) = filters.series_id {
         params.push(series_id);
-    }
-    else if let Some(ref group) = filters.group_name {
+    } else if let Some(ref group) = filters.group_id {
         params.push(group);
     }
     params.push(&offset);
@@ -261,14 +313,9 @@ pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
     let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(3 + filters.source_ids.len());
     let sql_query = format!(
         r#"
-        SELECT id, group_name, image, source_id
-        FROM (
-            SELECT *,
-                ROW_NUMBER() OVER (PARTITION BY group_name ORDER BY id) AS row_num
-            FROM channels
-        ) ranked_channels
-        WHERE row_num = 1
-        AND group_name like ?
+        SELECT *
+        FROM groups
+        WHERE name like ?
         AND source_id in ({})
         LIMIT ?, ?
     "#,
@@ -290,13 +337,14 @@ pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
 fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
     let channel = Channel {
         id: row.get("id")?,
-        name: row.get("group_name")?,
+        name: row.get("name")?,
         group: None,
         image: row.get("image")?,
         media_type: media_type::GROUP,
-        source_id: row.get("source_id")?,
         url: None,
         series_id: None,
+        group_id: None,
+        source_id: row.get("source_id")?,
     };
     Ok(channel)
 }
@@ -305,12 +353,13 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
     let channel = Channel {
         id: row.get("id")?,
         name: row.get("name")?,
-        group: row.get("group_name")?,
+        group_id: row.get("group_id")?,
         image: row.get("image")?,
         media_type: row.get("media_type")?,
         source_id: row.get("source_id")?,
         url: row.get("url")?,
         series_id: None,
+        group: None,
     };
     Ok(channel)
 }
@@ -449,7 +498,7 @@ mod test_sql {
                 .map(|x| x.id.unwrap())
                 .collect(),
             view_type: view_type::ALL,
-            group_name: None,
+            group_id: None,
             series_id: None,
         })
         .unwrap();
@@ -469,7 +518,7 @@ mod test_sql {
                 .map(|x| x.id.unwrap())
                 .collect(),
             view_type: view_type::CATEGORIES,
-            group_name: None,
+            group_id: None,
             series_id: None,
         })
         .unwrap();

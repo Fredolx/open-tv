@@ -33,6 +33,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   chkMovie = true;
   chkSerie = true;
   current_series_name?: string;
+  current_group_name?: string;
   reachedMax = false;
   readonly PAGE_SIZE = 36;
 
@@ -67,10 +68,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   async addEvents() {
-    this.subscriptions.push(this.memory.SetGroupNode.subscribe(async group => {
+    this.subscriptions.push(this.memory.SetGroupNode.subscribe(async idName => {
       this.clearSearch();
-      console.dir(group);
-      this.filters!.group_name = group;
+      this.filters!.group_id = idName.id;
+      this.current_group_name = idName.name;
       await this.load();
     }));
   }
@@ -82,7 +83,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   async loadMore() {
     this.filters!.page++;
-    this.load();
+    this.load(true);
   }
 
   async load(more = false) {
@@ -275,7 +276,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       return;
     this.filters!.page = 1;
     this.filters!.series_id = undefined;
-    this.filters!.group_name = undefined;
+    this.filters!.group_id = undefined;
     this.reachedMax = false;
     this.filters!.view_type = viewMode;
     this.clearSearch();
@@ -299,8 +300,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   goBackHotkey() {
-    if (this.filters?.group_name || this.filters?.series_id) {
-      if (this.filters.group_name && this.focusArea == FocusArea.Filters) {
+    if (this.filters?.group_id || this.filters?.series_id) {
+      if (this.filters.group_id && this.focusArea == FocusArea.Filters) {
         this.focusArea = FocusArea.Tiles;
         this.focus = 0;
       }
@@ -314,7 +315,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (this.filters?.series_id)
       this.filters!.series_id = undefined;
     else {
-      this.filters!.group_name = undefined;
+      this.filters!.group_id = undefined;
     }
     await this.load();
   }

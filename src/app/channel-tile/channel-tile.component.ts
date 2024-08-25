@@ -25,7 +25,7 @@ export class ChannelTileComponent {
 
   async click(record = false) {
     if (this.channel?.media_type == MediaType.group) {
-       this.memory.SetGroupNode.next(this.channel.name!);
+       this.memory.SetGroupNode.next({id: this.channel.id, name: this.channel.name});
        return;
     }
     this.starting = true;

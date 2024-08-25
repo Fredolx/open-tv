@@ -136,10 +136,15 @@ fn process_xtream(
         .collect();
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
+    let mut groups: HashMap<String, i64> = HashMap::new();
     for live in streams {
         let category_name = get_cat_name(&cats, live.category_id.clone());
         convert_xtream_live_to_channel(live, &source, stream_type.clone(), category_name)
-            .and_then(|channel| sql::insert_channel(&tx, channel))
+            .and_then(|mut channel| {
+                sql::set_channel_group_id(&mut groups, &mut channel, &tx, source.id.as_ref().unwrap()).unwrap_or_else(print_error_stack);
+                sql::insert_channel(&tx, channel)?;
+                Ok(())
+            })
             .unwrap_or_else(print_error_stack);
     }
     tx.commit()?;
@@ -176,6 +181,7 @@ fn convert_xtream_live_to_channel(
                 stream.container_extension,
             )?)
         },
+        group_id: None,
         series_id: None
     })
 }
@@ -239,7 +245,8 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: i64) -
             media_type::SERIE,
             Some(episode.container_extension),
         )?),
-        series_id: Some(series_id)
+        series_id: Some(series_id),
+        group_id: None
     })
 }
 

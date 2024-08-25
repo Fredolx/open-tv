@@ -45,10 +45,10 @@
             </div>
         </div>
 
-        <div class="mb-3 clickable" (click)="goBack()" *ngIf="(filters?.view_type == viewModeEnum.Categories && filters?.group_name) || filters?.series_id">
+        <div class="mb-3 clickable" (click)="goBack()" *ngIf="(filters?.view_type == viewModeEnum.Categories && filters?.group_id) || filters?.series_id">
             <span style="font-size: 1.5em;" class="arrow mdi mdi-arrow-left-circle"></span>
             &nbsp;
-            <h4 *ngIf="filters?.group_name" class="d-inline">Viewing: {{this.filters?.group_name}}</h4>
+            <h4 *ngIf="filters?.group_id" class="d-inline">Viewing: {{this.current_group_name}}</h4>
             <h4 *ngIf="filters?.series_id" class="d-inline">Viewing: {{this.current_series_name}}</h4>
         </div>
         <div class="row gy-3">

@@ -7,6 +7,6 @@ export class Filters {
     public media_types!: MediaType[];
     public view_type!: ViewMode
     public page!: number;
-    public group_name?: string;
+    public group_id?: number;
     public series_id?: number;
 }
