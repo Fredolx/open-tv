@@ -14,6 +14,7 @@ const ARG_CACHE: &str = "--cache";
 const ARG_RECORD: &str = "--stream-record=";
 
 pub async fn play(channel: Channel, record: bool) -> Result<()> {
+    println!("{} playing", channel.url.as_ref().unwrap());
     let args = get_play_args(channel, record)?;
     let mut cmd = Command::new("mpv")
         .args(args) // Add any arguments your command needs

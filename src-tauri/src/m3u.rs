@@ -1,7 +1,6 @@
 use std::{
     collections::HashMap,
     fs::File,
-    hash::Hash,
     io::{BufRead, BufReader},
     sync::LazyLock,
 };
@@ -10,7 +9,6 @@ use anyhow::{bail, Context, Result};
 use bytes::Bytes;
 use regex::{Captures, Regex};
 use reqwest::Response;
-use rusqlite::Transaction;
 use types::{Channel, Source};
 
 use crate::{

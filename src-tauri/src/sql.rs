@@ -111,7 +111,7 @@ pub fn create_or_initialize_db() -> Result<()> {
 
 pub fn drop_db() -> Result<()> {
     let sql = get_conn()?;
-    sql.execute_batch("DROP TABLE channels; DROP TABLE sources; DROP TABLE settings;")?;
+    sql.execute_batch("DROP TABLE channels; DROP TABLE groups; DROP TABLE sources; DROP TABLE settings;")?;
     Ok(())
 }
 
@@ -504,6 +504,11 @@ mod test_sql {
         .unwrap();
         println!("{:?}\n\n", results);
         println!("{}", results.len());
+    }
+
+    #[test]
+    fn test_drop_db() {
+        drop_db().unwrap();
     }
 
     #[test]

@@ -18,7 +18,7 @@
                 [ngClass]="{'active': filters?.view_type == viewModeEnum.Favorites}">Favorites</button>
         </div>
 
-        <div class="mx-auto mb-3 filterBox" *ngIf="filtersVisible()">
+        <div class="mx-auto filterBox" style="margin-bottom: 1rem;" *ngIf="filtersVisible()" @fadeInOut>
             <div class="form-check form-check-inline form-switch">
                 <input [(ngModel)]="chkLiveStream" (ngModelChange)="updateMediaTypes(mediaTypeEnum.livestream)" class="form-check-input"
                     id="filter-0" type="checkbox">
@@ -51,7 +51,7 @@
             <h4 *ngIf="filters?.group_id" class="d-inline">Viewing: {{this.current_group_name}}</h4>
             <h4 *ngIf="filters?.series_id" class="d-inline">Viewing: {{this.current_series_name}}</h4>
         </div>
-        <div class="row gy-3">
+        <div class="row gy-3" [ngClass]="{'channels-anim': channelsAnim }">
             <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
                 class="col-lg-4 col-md-4" [id]="i" [channel]="channel"></app-channel-tile>
         </div>

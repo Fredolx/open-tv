@@ -12,11 +12,24 @@ import { invoke } from '@tauri-apps/api/core';
 import { Source } from '../models/source';
 import { Filters } from '../models/filters';
 import { SourceType } from '../models/sourceType';
+import { animate, style, transition, trigger } from '@angular/animations';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrl: './home.component.css'
+  styleUrl: './home.component.css',
+  animations: [
+    trigger('fadeInOut', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('500ms', style({ opacity: 1 }))
+      ]),
+      transition(':leave', [
+        style({ opacity: 1, height: '*', padding: '*', margin: '*' }),
+        animate('500ms', style({ opacity: 0, height: 0, padding: '0', margin: '0' }))
+      ])
+    ])
+  ]
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
   channels: Channel[] = [];
@@ -36,6 +49,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   current_group_name?: string;
   reachedMax = false;
   readonly PAGE_SIZE = 36;
+  channelsAnim = false;
+  animationTimeout: any;
+  channelsAnimOut = false;
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
     this.getSources();
@@ -87,18 +103,32 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   async load(more = false) {
+    if (!more) {
+      this.playAnims();
+    }
     try {
       let channels: Channel[] = await invoke('search', { filters: this.filters });
-      if (!more)
+      if (!more) {
         this.channels = channels;
-      else
+      }
+      else {
         this.channels = this.channels.concat(channels);
+      }
       if (channels.length < this.PAGE_SIZE)
         this.reachedMax = true;
     }
     catch (e) {
-     console.error(e); 
+      console.error(e);
     }
+  }
+
+  playAnims() {
+    this.channelsAnim = false;
+    setTimeout(() => {
+      this.channelsAnim = true;
+      clearTimeout(this.animationTimeout);
+      this.animationTimeout = setTimeout(() => this.channelsAnim = false, 500);
+    }, 0)
   }
 
   // @HostListener('window:scroll', ['$event'])
@@ -317,6 +347,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     else {
       this.filters!.group_id = undefined;
     }
+    this.filters!.page = 1;
+    this.clearSearch();
     await this.load();
   }
 
