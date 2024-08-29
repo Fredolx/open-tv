@@ -4,6 +4,7 @@ import { Channel } from '../models/channel';
 import { MemoryService } from '../memory.service';
 import { MediaType } from '../models/mediaType';
 import { invoke } from '@tauri-apps/api/core';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-channel-tile',
@@ -11,7 +12,7 @@ import { invoke } from '@tauri-apps/api/core';
   styleUrl: './channel-tile.component.css'
 })
 export class ChannelTileComponent {
-  constructor(public memory: MemoryService) { }
+  constructor(public memory: MemoryService, private toastr: ToastrService) { }
   @Input() channel?: Channel;
   @Input() id!: Number;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
@@ -25,16 +26,16 @@ export class ChannelTileComponent {
 
   async click(record = false) {
     if (this.channel?.media_type == MediaType.group) {
-       this.memory.SetGroupNode.next({id: this.channel.id, name: this.channel.name});
-       return;
+      this.memory.SetGroupNode.next({ id: this.channel.id, name: this.channel.name });
+      return;
     }
     this.starting = true;
     try {
-      await invoke("play", {channel: this.channel, record: record});
+      await invoke("play", { channel: this.channel, record: record });
     }
-    catch(e) {
+    catch (e) {
       console.error(e)
-    } 
+    }
     this.starting = false;
   }
 
@@ -55,8 +56,24 @@ export class ChannelTileComponent {
     this.showImage = false;
   }
 
-  favorite() {
-    
+  async favorite() {
+    let call = 'favorite_channel';
+    let msg = `Added ${this.channel?.name} to favorites`;
+    if (this.channel?.favorite) {
+      call = 'unfavorite_channel';
+      msg = `Removed ${this.channel?.name} from favorites`
+    }
+    try {
+      await invoke(call, { channelId: this.channel!.id });
+      this.channel!.favorite = !this.channel!.favorite
+      this.toastr.success(msg);
+    }
+    catch (e) {
+      console.error(e);
+      this.toastr.error(`Failed to add/remove ${this.channel?.name} to/from favorites`);
+    }
+    if (this.alreadyExistsInFav)
+      this.memory.RefreshFavs.next(true);
   }
 
   async record() {

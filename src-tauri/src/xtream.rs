@@ -181,6 +181,7 @@ fn convert_xtream_live_to_channel(
                 stream.container_extension,
             )?)
         },
+        favorite: false,
         group_id: None,
         series_id: None
     })
@@ -246,7 +247,8 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: i64) -
             Some(episode.container_extension),
         )?),
         series_id: Some(series_id),
-        group_id: None
+        group_id: None,
+        favorite: false
     })
 }
 

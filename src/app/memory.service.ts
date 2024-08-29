@@ -14,4 +14,5 @@ export class MemoryService {
   public Sources: Source[] = [];
   public currentContextMenu?: MatMenuTrigger;
   public Loading = false;
+  public RefreshFavs: Subject<boolean> = new Subject();
 }

@@ -344,6 +344,7 @@ fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         url: None,
         series_id: None,
         group_id: None,
+        favorite: false,
         source_id: row.get("source_id")?,
     };
     Ok(channel)
@@ -358,6 +359,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         media_type: row.get("media_type")?,
         source_id: row.get("source_id")?,
         url: row.get("url")?,
+        favorite: row.get("favorite")?,
         series_id: None,
         group: None,
     };

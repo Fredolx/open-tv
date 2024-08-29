@@ -10,7 +10,8 @@ pub struct Channel {
     pub media_type: u8,
     pub source_id: i64,
     pub series_id: Option<i64>,
-    pub group_id: Option<i64>
+    pub group_id: Option<i64>,
+    pub favorite: bool
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

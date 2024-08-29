@@ -90,6 +90,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.current_group_name = idName.name;
       await this.load();
     }));
+    this.subscriptions.push(this.memory.RefreshFavs.subscribe(_ => {
+      if (this.filters?.view_type == ViewMode.Favorites)
+        this.load();
+    }));
   }
 
   clearSearch() {
@@ -133,7 +137,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   // @HostListener('window:scroll', ['$event'])
   // async scroll(event: any) {
-  //   if (window.innerHeight + window.scrollY - window.document.documentElement.offsetHeight == 0) {
+  //   if (window.document.documentElement.scrollHeight - (window.scrollY + window.document.documentElement.offsetHeight) == 0) {
   //     await this.loadMore();
   //   }
   // }

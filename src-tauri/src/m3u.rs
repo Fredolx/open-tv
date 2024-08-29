@@ -208,6 +208,7 @@ fn get_channel_from_lines(first: String, second: String, source_id: i64) -> Resu
         source_id: source_id,
         series_id: None,
         group_id: None,
+        favorite: false
     };
     //let group
     Ok(channel)
