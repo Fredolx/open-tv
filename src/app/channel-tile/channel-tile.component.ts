@@ -59,12 +59,14 @@ export class ChannelTileComponent {
   async favorite() {
     let call = 'favorite_channel';
     let msg = `Added ${this.channel?.name} to favorites`;
-    if (this.channel?.favorite) {
+    if (this.channel!.favorite) {
       call = 'unfavorite_channel';
       msg = `Removed ${this.channel?.name} from favorites`
     }
     try {
       await invoke(call, { channelId: this.channel!.id });
+      if (this.channel!.favorite)
+        this.memory.RefreshFavs.next(true);
       this.channel!.favorite = !this.channel!.favorite
       this.toastr.success(msg);
     }
@@ -72,8 +74,6 @@ export class ChannelTileComponent {
       console.error(e);
       this.toastr.error(`Failed to add/remove ${this.channel?.name} to/from favorites`);
     }
-    if (this.alreadyExistsInFav)
-      this.memory.RefreshFavs.next(true);
   }
 
   async record() {

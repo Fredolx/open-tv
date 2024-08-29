@@ -203,7 +203,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         command: async _ => {
           this.chkLiveStream = !this.chkLiveStream
           this.updateMediaTypes(MediaType.livestream)
-          await this.load();
         }
       },
       {
@@ -215,7 +214,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         command: async _ => {
           this.chkMovie = !this.chkMovie
           this.updateMediaTypes(MediaType.movie)
-          await this.load();
         }
       },
       {
@@ -227,7 +225,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         command: async _ => {
           this.chkSerie = !this.chkSerie
           this.updateMediaTypes(MediaType.serie)
-          await this.load();
         }
       },
       {
@@ -298,7 +295,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (index == -1)
       this.filters!.media_types.push(mediaType);
     else
-      this.filters!.media_types = this.filters!.media_types.splice(index, 1);
+      this.filters!.media_types.splice(index, 1);
+    console.dir(this.filters);
+    this.load();
   }
 
   filtersVisible() {
