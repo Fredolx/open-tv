@@ -1,3 +1,15 @@
+# This project NEEDS your help. Please consider donating on [Github](https://github.com/sponsors/Fredolx), [Patreon](https://www.patreon.com/fredol) or directly by [crypto](#crypto)
+I've been developing and maintaining this project alone and for entirely for free over the past 2 years. I am in dire need of support to continue developing this project. I've never added annoying donation pop-ups or anything of the sort to make sure you have the fastest and cleanest IPTV experience and I'm committed to keep this project FREE & OPEN-SOURCE. To keep that commitment, I need your support!
+
+I'm currently developing a big rework of the app in Rust to allow for new big features that have been requested by the community for some time:
+
+- Multi IPTV Sources with per-source filtering
+- Even faster search & start-up
+- Flatpak publishing
+- 3x less memory usage and 95% leaner executable (100+ MB to 5 MB)
+
+I've been making some huge progress on another branch (rust-rewrite). If you can please donate, I will be able to finish it and deliver you those improvements I've carefully crafted for **you**
+
 # Open-TV
 
 Simple & fast IPTV app made with Electron and Angular
@@ -12,14 +24,6 @@ Simple & fast IPTV app made with Electron and Angular
 - Recording & favorites
 - Fully customizable player through mpv conf
 - Bad/slow/unstable stream mitigations
-
-## Planned features
-
-- ~~Xtream support~~ (Partially completed)
-- ~~Providing better support for bad streams~~
-- Add more stream caching options
-- Add custom configurations for specific channels
-- Publishing on Flathub
 
 ## Prerequisites
 The app both depends on mpv and ffmpeg. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion and on OpenSUSE you will need to 
@@ -73,22 +77,9 @@ Why disabling:
   - If you have a good internet/provider and want lower latency
   - Can prevent some weird bugs/slowdowns
 
-## Build
-For building from source, you will need those packages
+## Crypto
+ETH:
 ```
-rpm dpkg fakeroot
+0x171D5B628eff75c98c141aD5584FffA209274365
 ```
-For node and npm, I would strongly suggest to use NVM (node version manager) to get the latest LTS.
 
-And then to build
-```
-cd ng-open-tv
-npm run prod
-cd ../electron-open-tv
-npm run publish
-```
-You can add/edit targets in forge.config.js. 
-On Windows, to prepackage mpv, place it in /libs (you will need to also create the folder).
-
-## Repackaging
-I am fine if you repackage the app on open source platforms like the AUR or Snap. As long as proper credit is given and it's free. I do not authorize any repackaging on proprietary platforms like the Microsoft Store.
