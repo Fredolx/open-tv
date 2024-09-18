@@ -14,7 +14,7 @@
         <form #form="ngForm" (ngSubmit)="submit()">
             <div class="row mt-2 justify-content-center">
                 <div class="col-lg-6 col-md-8">
-                    <input #name="ngModel" source-name-exists name="name" empty class="form-control" [(ngModel)]="source.name"
+                    <input autocomplete="off" #name="ngModel" source-name-exists name="name" empty class="form-control" [(ngModel)]="source.name"
                         placeholder="Nickname for this source">
                 </div>
             </div>
@@ -27,20 +27,20 @@
             <div *ngIf="source.source_type != sourceTypeEnum.M3U">
                 <div class="row justify-content-center mt-2">
                     <div class="col-lg-6 col-md-8">
-                        <input name="url" empty class="form-control" [(ngModel)]="source.url" placeholder="URL">
+                        <input autocomplete="off" name="url" empty class="form-control" [(ngModel)]="source.url" placeholder="URL">
                     </div>
                 </div>
             </div>
             <div *ngIf="source.source_type == sourceTypeEnum.Xtream">
                 <div class="row mt-2 justify-content-center">
                     <div class="col-lg-6 col-md-8">
-                        <input name="username" empty class="form-control" [(ngModel)]="source.username"
+                        <input autocomplete="off" name="username" empty class="form-control" [(ngModel)]="source.username"
                             placeholder="Username">
                     </div>
                 </div>
                 <div class="row mt-2 justify-content-center">
                     <div class="col-lg-6 col-md-8">
-                        <input name="password" empty class="form-control" [(ngModel)]="source.password"
+                        <input autocomplete="off" name="password" empty class="form-control" [(ngModel)]="source.password"
                             placeholder="Password">
                     </div>
                 </div>
