@@ -5,7 +5,7 @@ use std::{
     sync::LazyLock,
 };
 
-use anyhow::{bail, Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use bytes::Bytes;
 use regex::{Captures, Regex};
 use reqwest::Response;
@@ -87,12 +87,12 @@ pub async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
     let response = client.get(&url).send().await?;
 
     let new_source = sql::create_or_find_source_by_name(&mut source)?;
-    process_chunks(&source, response).await.or_else(|e| {
+    if let Err(e) = process_chunks(&source, response).await {
         if new_source {
-            delete_source(source.id.context("no source id")?).unwrap_or_default();
+            let _ = delete_source(source.id.unwrap()).map_err(print_error_stack);
         }
-        Err(e)
-    })?;
+        return Err(e);
+    }
     Ok(())
 }
 
@@ -100,13 +100,16 @@ async fn process_chunks(source: &Source, mut response: Response) -> Result<()> {
     let mut str_buffer: String = String::new();
     let mut skipped_first = false;
     let mut groups: HashMap<String, i64> = HashMap::new();
-
+    let mut count = 0;
     while let Some(chunk) = response.chunk().await? {
         let split = get_lines_from_chunk(chunk, &mut str_buffer, skipped_first)?;
         if !skipped_first {
             skipped_first = true;
         }
-        process_chunk_split(split, &source, &mut groups)?;
+        count += process_chunk_split(split, &source, &mut groups)?;
+    }
+    if count == 0 {
+        return Err(anyhow!("No valid lines found"));
     }
     Ok(())
 }
@@ -115,7 +118,8 @@ fn process_chunk_split(
     split: Vec<String>,
     source: &Source,
     groups: &mut HashMap<String, i64>,
-) -> Result<()> {
+) -> Result<u64> {
+    let mut count = 0;
     let mut two_lines = Vec::new();
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
@@ -140,10 +144,11 @@ fn process_chunk_split(
             sql::set_channel_group_id(groups, &mut channel, &tx, source.id.as_ref().unwrap())
                 .unwrap_or_else(print_error_stack);
             sql::insert_channel(&tx, channel)?;
+            count += 1;
         }
     }
     tx.commit()?;
-    Ok(())
+    Ok(count)
 }
 
 fn get_lines_from_chunk(

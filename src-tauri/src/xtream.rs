@@ -4,6 +4,7 @@ use std::str::FromStr;
 use crate::media_type;
 use crate::print_error_stack;
 use crate::sql;
+use crate::sql::delete_source;
 use crate::types::Channel;
 use crate::types::Source;
 use anyhow::anyhow;
@@ -107,9 +108,11 @@ pub async fn get_xtream(mut source: Source) -> Result<()> {
         });
     if fail_count > 2 {
         if new_source {
-            sql::delete_source(source.id.context("no source id")?).unwrap_or_default();
+            let _ = delete_source(source.id.context("no source id")?).map_err(print_error_stack);
         }
-        return Err(anyhow!("Too many Xtream requests failed"));
+        return Err(anyhow::anyhow!(
+            "Too many Xtream requests failed"
+        ));
     }
     Ok(())
 }

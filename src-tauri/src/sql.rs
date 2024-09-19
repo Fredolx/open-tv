@@ -378,19 +378,27 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     Ok(())
 }
 
-pub fn delete_source(id: i64) -> Result<()> {
+pub fn delete_source(id: i64) -> Result<bool> {
     let sql = get_conn()?;
     sql.execute(
         r#"
         DELETE FROM channels
-        WHERE source_id = ?1;
-
+        WHERE source_id = ?;
+    "#, params![id])?;
+    let count = sql.execute(r#"
         DELETE FROM sources
-        WHERE id = ?1;
-    "#,
-        [id],
-    )?;
-    Ok(())
+        WHERE id = ?;
+    "#, params![id])?;
+    let success = count != 1;
+    Ok(success)
+}
+
+pub fn get_channel_count_by_source(id: i64) -> Result<u64> {
+    let sql = get_conn()?;
+    let count = sql.
+        query_row("SELECT COUNT(*) FROM channels WHERE source_id = ?", 
+            params![id], |row| row.get::<_, u64>(0))?;
+    Ok(count)
 }
 
 pub fn source_name_exists(name: String) -> Result<bool> {

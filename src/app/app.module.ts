@@ -16,6 +16,7 @@ import { NotEmptyValidatorDirective } from './setup/validators/not-empty-validat
 import { ConfirmModalComponent } from './setup/confirm-modal/confirm-modal.component';
 import { HomeComponent } from './home/home.component';
 import { ChannelTileComponent } from './channel-tile/channel-tile.component';
+import { SettingsComponent } from './settings/settings.component';
 
 @NgModule({
   declarations: [
@@ -27,6 +28,7 @@ import { ChannelTileComponent } from './channel-tile/channel-tile.component';
     ConfirmModalComponent,
     HomeComponent,
     ChannelTileComponent,
+    SettingsComponent,
   ],
   imports: [
     BrowserModule,
