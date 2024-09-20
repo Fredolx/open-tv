@@ -33,7 +33,8 @@ pub fn run() {
             favorite_channel,
             unfavorite_channel,
             source_name_exists,
-            get_sources
+            get_sources,
+            delete_source
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -112,4 +113,9 @@ fn source_name_exists(name: String) -> Result<bool, String> {
 #[tauri::command(async)]
 fn get_sources() -> Result<Vec<Source>, String> {
     sql::get_sources().map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn delete_source(id: i64) -> Result<(), String> {
+    sql::delete_source(id).map_err(map_err_frontend)
 }

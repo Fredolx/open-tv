@@ -32,5 +32,6 @@ pub fn update_settings(settings: Settings) -> Result<()> {
             use_stream_caching.to_string(),
         );
     }
+    sql::update_settings(map)?;
     Ok(())
 }

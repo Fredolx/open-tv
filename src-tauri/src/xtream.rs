@@ -108,7 +108,7 @@ pub async fn get_xtream(mut source: Source) -> Result<()> {
         });
     if fail_count > 2 {
         if new_source {
-            let _ = delete_source(source.id.context("no source id")?).map_err(print_error_stack);
+            delete_source(source.id.context("no source id")?).unwrap_or_else(print_error_stack);
         }
         return Err(anyhow::anyhow!(
             "Too many Xtream requests failed"

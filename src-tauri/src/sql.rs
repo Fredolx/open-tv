@@ -378,7 +378,7 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     Ok(())
 }
 
-pub fn delete_source(id: i64) -> Result<bool> {
+pub fn delete_source(id: i64) -> Result<()> {
     let sql = get_conn()?;
     sql.execute(
         r#"
@@ -389,8 +389,10 @@ pub fn delete_source(id: i64) -> Result<bool> {
         DELETE FROM sources
         WHERE id = ?;
     "#, params![id])?;
-    let success = count != 1;
-    Ok(success)
+    if count != 1 {
+        return Err(anyhow!("No sources were deleted"));
+    }
+    Ok(())
 }
 
 pub fn get_channel_count_by_source(id: i64) -> Result<u64> {

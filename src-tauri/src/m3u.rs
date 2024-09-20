@@ -71,7 +71,7 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
     }
     if problematic_lines > lines_count / 2 {
         if new_source {
-            delete_source(source.id.context("no source id")?).unwrap_or_default();
+            delete_source(source.id.context("no source id")?).unwrap_or_else(print_error_stack);
         }
         return Err(anyhow::anyhow!(
             "Too many problematic lines, read considered failed"
@@ -89,7 +89,7 @@ pub async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
     let new_source = sql::create_or_find_source_by_name(&mut source)?;
     if let Err(e) = process_chunks(&source, response).await {
         if new_source {
-            let _ = delete_source(source.id.unwrap()).map_err(print_error_stack);
+            delete_source(source.id.unwrap()).unwrap_or_else(print_error_stack);
         }
         return Err(e);
     }

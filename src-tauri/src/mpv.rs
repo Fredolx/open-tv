@@ -1,6 +1,8 @@
 use anyhow::{Context, Result};
+use chrono::Local;
 use directories::UserDirs;
-use std::{process::Stdio, time::Duration};
+use url::Url;
+use std::{path::Path, process::Stdio, str::FromStr, time::Duration};
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     process::Command,
@@ -47,12 +49,24 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
     }
     if record {
         let record_path = match settings.recording_path {
-            Some(path) => path,
+            Some(path) => get_path(path),
             None => get_default_record_path()?,
         };
         args.push(format!("{ARG_RECORD}{record_path}"));
     }
     Ok(args)
+}
+
+fn get_path(path_str: String) -> String {
+    let path = Path::new(&path_str);
+    let path = path.join(get_file_name());
+    return path.to_string_lossy().to_string(); // Check if it causes problems for some OS languages?
+}
+
+fn get_file_name() -> String {
+    let current_time = Local::now();
+    let formatted_time = current_time.format("%Y-%m-%d-%H-%M-%S").to_string();
+    format!("{formatted_time}.mp4")
 }
 
 fn get_default_record_path() -> Result<String> {

@@ -1,0 +1,24 @@
+.arrow {
+    position: absolute;
+    top: 2%;
+    left: 2%;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.author {
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+a {
+    text-decoration: none;
+}
+
+.btn.disabled {
+    pointer-events: auto !important;
+}
