@@ -21,6 +21,7 @@
     width: 1.5rem;
     cursor: pointer;
     transition: transform 0.3s ease;
+    user-select: none;
 }
 
 .eye:hover {

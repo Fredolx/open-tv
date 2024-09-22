@@ -378,11 +378,24 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     Ok(())
 }
 
+pub fn delete_groups_by_source(source_id: i64) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(r#"
+        DELETE FROM groups
+        WHERE source_id = ?
+    "#, params!(source_id))?;
+    Ok(())
+}
+
 pub fn delete_source(id: i64) -> Result<()> {
     let sql = get_conn()?;
     sql.execute(
         r#"
         DELETE FROM channels
+        WHERE source_id = ?;
+    "#, params![id])?;
+    sql.execute(r#"
+        DELETE FROM groups
         WHERE source_id = ?;
     "#, params![id])?;
     let count = sql.execute(r#"

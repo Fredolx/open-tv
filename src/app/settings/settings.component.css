@@ -2,8 +2,14 @@
     position: absolute;
     top: 2%;
     left: 2%;
-    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
     cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.arrow:hover {
+    transform: scale(125%);
 }
 
 .author {
@@ -38,5 +44,5 @@ button .plus {
 }
 
 button:hover .plus {
-    transform: scale(150%);
+    transform: scale(125%);
 }

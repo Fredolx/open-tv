@@ -34,7 +34,8 @@ pub fn run() {
             unfavorite_channel,
             source_name_exists,
             get_sources,
-            delete_source
+            delete_source,
+            refresh_all
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -86,6 +87,13 @@ async fn refresh_source(source: Source) -> Result<(), String> {
     utils::refresh_source(source)
         .await
         .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn refresh_all() -> Result<(), String> {
+    utils::refresh_all()
+    .await
+    .map_err(map_err_frontend)
 }
 
 #[tauri::command]

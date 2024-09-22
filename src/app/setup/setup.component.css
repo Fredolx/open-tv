@@ -1,0 +1,13 @@
+.arrow {
+    position: absolute;
+    top: 2%;
+    left: 2%;
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.arrow:hover {
+    transform: scale(125%);
+}

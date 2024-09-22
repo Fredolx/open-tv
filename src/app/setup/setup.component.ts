@@ -7,6 +7,7 @@ import { SourceType } from '../models/sourceType';
 import { Source } from '../models/source';
 import { open } from '@tauri-apps/plugin-dialog';
 import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
+import { MemoryService } from '../memory.service';
 @Component({
   selector: 'app-setup',
   templateUrl: './setup.component.html',
@@ -14,7 +15,7 @@ import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
 })
 export class SetupComponent {
   constructor(private nav: Router,
-    private toastr: ToastrService, private modalService: NgbModal) { }
+    private toastr: ToastrService, private modalService: NgbModal, public memory: MemoryService) { }
   loading = false;
   sourceTypeEnum = SourceType;
   source: Source = {
@@ -25,6 +26,10 @@ export class SetupComponent {
 
   switchMode(sourceType: SourceType) {
     this.source.source_type = sourceType;
+  }
+
+  goBack() {
+    this.nav.navigateByUrl("settings")
   }
 
   async getM3U() {

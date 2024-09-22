@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { open } from '@tauri-apps/plugin-dialog';
 import { Source } from '../models/source';
+import { MemoryService } from '../memory.service';
 
 @Component({
   selector: 'app-settings',
@@ -13,7 +14,6 @@ import { Source } from '../models/source';
   styleUrl: './settings.component.css'
 })
 export class SettingsComponent {
-  loading = false;
   subscriptions: Subscription[] = [];
   settings: Settings = {
     use_stream_caching: true,
@@ -21,10 +21,18 @@ export class SettingsComponent {
   sources: Source[] = [];
   @ViewChild('mpvParams') mpvParams!: ElementRef;
 
-  constructor(private router: Router, private toastr: ToastrService) { }
+  constructor(private router: Router, public memory: MemoryService, private nav: Router) { }
 
   ngOnInit(): void {
+    this.getSettings();
+    this.getSources();
+  }
+
+  getSettings() {
     invoke('get_settings').then(x => this.settings = x as Settings);
+  }
+
+  getSources() {
     invoke('get_sources').then(x => this.sources = x as Source[]);
   }
 
@@ -39,11 +47,24 @@ export class SettingsComponent {
       ).subscribe(async () => {
         await this.updateSettings();
       }));
+    this.subscriptions.push(this.memory.RefreshSources.subscribe(_ => {
+      if (this.sources.length == 1) {
+        this.memory.AddingAdditionalSource = false;
+        this.nav.navigateByUrl("setup");
+      }
+      else {
+        this.getSources();
+      }
+    }));
   }
 
-  async deleteSource(id: number) {
-    this.tryIPC("Successfully deleted source", "Failed to delete source", () => invoke("delete_source", {id: id}));
-    //Reload sources?
+  addSource() {
+    this.memory.AddingAdditionalSource = true;
+    this.nav.navigateByUrl("setup");
+  }
+
+  async refreshAll() {
+    await this.memory.tryIPC("Successfully updated all sources", "Failed to refresh sources", () => invoke("refresh_all"));
   }
 
   async goBack() {
@@ -55,21 +76,6 @@ export class SettingsComponent {
     if (this.settings.mpv_params)
       this.settings.mpv_params = this.settings.mpv_params?.trim();
     await invoke("update_settings", {settings: this.settings});
-  }
-
-  async tryIPC<T>(
-    successMessage: string,
-    errorMessage: string,
-    action: () => Promise<T>
-  ): Promise<void> {
-    this.loading = true;
-    try {
-      await action();
-      this.toastr.success(successMessage);
-    } catch (e) {
-      this.toastr.error(errorMessage);
-    }
-    this.loading = false;
   }
 
   async selectFolder() {
