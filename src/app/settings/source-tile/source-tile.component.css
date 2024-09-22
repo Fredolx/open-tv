@@ -13,7 +13,7 @@
 }
 
 .field {
-    min-width: 7rem; 
+    min-width: 12rem; 
     display: inline-block;
 }
 
@@ -51,5 +51,10 @@ button .trash-lid {
 
 button:hover .trash-lid {
     transform: translateY(-15%);
+}
+
+.wrap-text {
+    overflow: hidden;
+    overflow-wrap: break-word;
 }
 
