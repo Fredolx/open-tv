@@ -17,6 +17,7 @@ import { ConfirmModalComponent } from './setup/confirm-modal/confirm-modal.compo
 import { HomeComponent } from './home/home.component';
 import { ChannelTileComponent } from './channel-tile/channel-tile.component';
 import { SettingsComponent } from './settings/settings.component';
+import { SourceTileComponent } from './settings/source-tile/source-tile.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { SettingsComponent } from './settings/settings.component';
     HomeComponent,
     ChannelTileComponent,
     SettingsComponent,
+    SourceTileComponent,
   ],
   imports: [
     BrowserModule,

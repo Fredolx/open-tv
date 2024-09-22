@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { open } from '@tauri-apps/plugin-dialog';
+import { Source } from '../models/source';
 
 @Component({
   selector: 'app-settings',
@@ -14,13 +15,17 @@ import { open } from '@tauri-apps/plugin-dialog';
 export class SettingsComponent {
   loading = false;
   subscriptions: Subscription[] = [];
-  settings: Settings = {};
+  settings: Settings = {
+    use_stream_caching: true,
+  };
+  sources: Source[] = [];
   @ViewChild('mpvParams') mpvParams!: ElementRef;
 
   constructor(private router: Router, private toastr: ToastrService) { }
 
   ngOnInit(): void {
     invoke('get_settings').then(x => this.settings = x as Settings);
+    invoke('get_sources').then(x => this.sources = x as Source[]);
   }
 
   ngAfterViewInit(): void {

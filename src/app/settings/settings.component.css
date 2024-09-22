@@ -7,10 +7,7 @@
 }
 
 .author {
-    position: absolute;
-    bottom: 5%;
-    left: 50%;
-    transform: translateX(-50%);
+    text-align: center;
     font-size: 0.9rem;
     cursor: pointer;
 }
@@ -21,4 +18,25 @@ a {
 
 .btn.disabled {
     pointer-events: auto !important;
+}
+
+button .refresh {
+    display: inline;
+    height: 1.5rem;
+    width: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+  
+  button:hover .refresh {
+    transform: rotate(360deg);
+  }
+
+button .plus {
+    width: 1.5rem;
+    height: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+button:hover .plus {
+    transform: scale(150%);
 }
