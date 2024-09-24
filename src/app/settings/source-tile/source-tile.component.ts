@@ -26,11 +26,11 @@ export class SourceTileComponent {
   }
 
   async refresh() {
-    this.memory.tryIPC("Successfully updated source", "Failed to refresh source", () => invoke("refresh_source", {source: this.source}))
+    await this.memory.tryIPC("Successfully updated source", "Failed to refresh source", () => invoke("refresh_source", {source: this.source}));
   }
 
   async delete() {
-    this.memory.tryIPC("Successfully deleted source", "Failed to delete source", () => invoke("delete_source", {id: this.source?.id}));
+    await this.memory.tryIPC("Successfully deleted source", "Failed to delete source", () => invoke("delete_source", {id: this.source?.id}));
     this.memory.RefreshSources.next(true);
   }
 }

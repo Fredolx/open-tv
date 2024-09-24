@@ -184,8 +184,9 @@ fn extract_non_empty_capture(caps: Captures) -> Option<String> {
         .filter(|s| !s.trim().is_empty())
 }
 
-fn get_channel_from_lines(first: String, second: String, source_id: i64) -> Result<Channel> {
-    if second.trim().is_empty() {
+fn get_channel_from_lines(first: String, mut second: String, source_id: i64) -> Result<Channel> {
+    second = second.trim().to_string();
+    if second.is_empty() {
         bail!("second line is empty");
     }
     let name = NAME_REGEX
@@ -208,19 +209,18 @@ fn get_channel_from_lines(first: String, second: String, source_id: i64) -> Resu
         name: name.trim().to_string(),
         group: group.map(|x| x.trim().to_string()),
         image: image.map(|x| x.trim().to_string()),
-        url: Some(second.trim().to_string()),
+        url: Some(second.clone()),
         media_type: get_media_type(second),
         source_id: source_id,
         series_id: None,
         group_id: None,
         favorite: false
     };
-    //let group
     Ok(channel)
 }
 
 fn get_media_type(url: String) -> u8 {
-    let media_type = if url.ends_with(".mp4") || url.ends_with("mkv") {
+    let media_type = if url.ends_with(".mp4") || url.ends_with(".mkv") {
         media_type::MOVIE
     } else {
         media_type::LIVESTREAM

@@ -18,7 +18,7 @@ export class LoadingComponent {
 
   ngOnInit() {
     this.displayRandomText();
-    setInterval(() => this.displayRandomText(), 5000); // Change text every 5 seconds
+    setInterval(() => this.displayRandomText(), 3500);
   }
 
   displayRandomText() {

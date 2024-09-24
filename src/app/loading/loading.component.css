@@ -5,7 +5,7 @@
     background: black;
     border-radius: 10px;
     overflow: hidden;
-    animation: tvShadow 5s infinite;
+    animation: tvShadow 3.5s infinite;
 }
 
 .test-pattern {
@@ -21,7 +21,7 @@
         #CC0000 71.4% 85.68%, 
         #0000CC 85.68% 100%
     );
-    animation: tvOnOff 5s infinite;
+    animation: tvOnOff 3.5s infinite;
 }
 
 .bars {
@@ -78,7 +78,7 @@
 
 .text-item {
     opacity: 0;
-    animation: textOpacity 5s infinite;
+    animation: textOpacity 3.5s infinite;
 }
 
 @keyframes textOpacity {
