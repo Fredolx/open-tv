@@ -129,8 +129,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       else {
         this.channels = this.channels.concat(channels);
       }
-      if (channels.length < this.PAGE_SIZE)
-        this.reachedMax = true;
+      this.reachedMax = channels.length < this.PAGE_SIZE
     }
     catch (e) {
       console.error(e);
