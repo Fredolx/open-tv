@@ -24,22 +24,6 @@
     width: fit-content;
 }
 
-.channels-anim {
-    animation: slideFadeIn 500ms ease-out forwards;
-}
-
-@keyframes slideFadeIn {
-    0% {
-        opacity: 1;
-    }
-    15% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
 .form-check {
     margin-bottom: 0 !important;
 }

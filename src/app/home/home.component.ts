@@ -12,7 +12,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Source } from '../models/source';
 import { Filters } from '../models/filters';
 import { SourceType } from '../models/sourceType';
-import { animate, style, transition, trigger } from '@angular/animations';
+import { animate, state, style, transition, trigger } from '@angular/animations';
 
 @Component({
   selector: 'app-home',
@@ -21,13 +21,27 @@ import { animate, style, transition, trigger } from '@angular/animations';
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
-        style({ opacity: 0 }),
-        animate('500ms', style({ opacity: 1 }))
+        style({ opacity: 0, height: 0, padding: '0', margin: '0' }),
+        animate('250ms', style({ opacity: 1, height: '*', padding: '*', margin: '*' }))
       ]),
       transition(':leave', [
         style({ opacity: 1, height: '*', padding: '*', margin: '*' }),
-        animate('500ms', style({ opacity: 0, height: 0, padding: '0', margin: '0' }))
+        animate('250ms', style({ opacity: 0, height: 0, padding: '0', margin: '0' }))
       ])
+    ]),
+    trigger('fade', [
+      state('visible', style({
+        opacity: 1,
+      })),
+      state('hidden', style({
+        opacity: 0,
+      })),
+      transition('visible => hidden', [
+        animate('250ms ease-out')
+      ]),
+      transition('hidden => visible', [
+        animate('250ms ease-in')
+      ]),
     ])
   ]
 })
@@ -49,9 +63,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   current_group_name?: string;
   reachedMax = false;
   readonly PAGE_SIZE = 36;
-  channelsAnim = false;
-  animationTimeout: any;
-  channelsAnimOut = false;
+  channelsVisible = true;
+  prevSearchValue?: String;
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
     this.getSources();
@@ -107,13 +120,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   async load(more = false) {
-    if (!more) {
-      this.playAnims();
-    }
     try {
       let channels: Channel[] = await invoke('search', { filters: this.filters });
       if (!more) {
         this.channels = channels;
+        this.channelsVisible = true;
       }
       else {
         this.channels = this.channels.concat(channels);
@@ -124,15 +135,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     catch (e) {
       console.error(e);
     }
-  }
-
-  playAnims() {
-    this.channelsAnim = false;
-    setTimeout(() => {
-      this.channelsAnim = true;
-      clearTimeout(this.animationTimeout);
-      this.animationTimeout = setTimeout(() => this.channelsAnim = false, 500);
-    }, 0)
   }
 
   // @HostListener('window:scroll', ['$event'])
@@ -152,6 +154,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(
       fromEvent(this.search.nativeElement, 'keyup').pipe(
         map((event: any) => {
+          if (this.channelsVisible && event.target.value != this.prevSearchValue)
+            this.channelsVisible = false;
+          this.prevSearchValue = event.target.value;
           return event.target.value;
         })
         , debounceTime(300)

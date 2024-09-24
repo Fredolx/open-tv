@@ -51,12 +51,12 @@
             <h4 *ngIf="filters?.group_id" class="d-inline">Viewing: {{this.current_group_name}}</h4>
             <h4 *ngIf="filters?.series_id" class="d-inline">Viewing: {{this.current_series_name}}</h4>
         </div>
-        <div class="row gy-3" [ngClass]="{'channels-anim': channelsAnim }">
+        <div class="row gy-3" [@fade]="channelsVisible ? 'visible' : 'hidden'">
             <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
                 class="col-lg-4 col-md-4" [id]="i" [channel]="channel"></app-channel-tile>
         </div>
     </div>
-    <button *ngIf="reachedMax === false" (click)="loadMore()" class="btn btn-outline-primary mx-auto d-block mt-3">Load
+    <button [@fade]="channelsVisible ? 'visible' : 'hidden'" *ngIf="reachedMax === false" (click)="loadMore()" class="btn btn-outline-primary mx-auto d-block mt-3">Load
         More</button>
 </div>
 <app-loading [hidden]="!this.memory.Loading"></app-loading>
