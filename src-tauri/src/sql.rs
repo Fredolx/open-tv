@@ -41,7 +41,7 @@ fn create_structure() -> Result<()> {
     sql.execute_batch(
         r#"
 CREATE TABLE "sources" (
-  "id"          INTEGER PRIMARY KEY AUTOINCREMENT,
+  "id"          INTEGER PRIMARY KEY,
   "name"        varchar(100),
   "source_type" integer,
   "url"         varchar(500),
@@ -50,7 +50,7 @@ CREATE TABLE "sources" (
 );
 
 CREATE TABLE "channels" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "id" INTEGER PRIMARY KEY,
   "name" varchar(100),
   "image" varchar(500),
   "url" varchar(500),
@@ -70,7 +70,7 @@ CREATE TABLE "settings" (
 );
 
 CREATE TABLE "groups" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "id" INTEGER PRIMARY KEY,
   "name" varchar(100),
   "image" varchar(500),
   "source_id" integer,
@@ -82,8 +82,15 @@ CREATE UNIQUE INDEX channels_unique ON channels(name, url);
 
 CREATE UNIQUE INDEX index_source_name ON sources(name);
 
-CREATE UNIQUE INDEX index_group_unique on groups(name, source_id);
+CREATE UNIQUE INDEX index_group_unique ON groups(name, source_id);
 CREATE INDEX index_group_name ON groups(name);
+
+CREATE INDEX index_channel_source_id ON channels(source_id);
+CREATE INDEX index_channel_favorite ON channels(favorite);
+CREATE INDEX index_channel_series_id ON channels(series_id);
+CREATE INDEX index_channel_group_id ON channels(group_id);
+
+CREATE INDEX index_group_source_id ON groups(source_id);
 "#,
     )?;
     Ok(())
