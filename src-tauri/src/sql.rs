@@ -89,6 +89,7 @@ CREATE INDEX index_channel_source_id ON channels(source_id);
 CREATE INDEX index_channel_favorite ON channels(favorite);
 CREATE INDEX index_channel_series_id ON channels(series_id);
 CREATE INDEX index_channel_group_id ON channels(group_id);
+CREATE INDEX index_channel_media_type ON channels(media_type);
 
 CREATE INDEX index_group_source_id ON groups(source_id);
 "#,
