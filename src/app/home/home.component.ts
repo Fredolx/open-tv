@@ -300,7 +300,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.filters!.media_types.push(mediaType);
     else
       this.filters!.media_types.splice(index, 1);
-    console.dir(this.filters);
     this.load();
   }
 
