@@ -34,9 +34,8 @@
                 <input [(ngModel)]="settings.use_stream_caching" (ngModelChange)="updateSettings()" class="form-check-input" type="checkbox">
             </div>
         </div>
-
     </div>
-
+    
     <h2 class="mt-4 mb-4 text-center">Sources</h2>
     <ng-container *ngFor="let source of sources; let i = index">
         <div [ngClass]="{'mt-3': i != 0}">

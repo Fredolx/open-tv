@@ -29,7 +29,11 @@ export class SettingsComponent {
   }
 
   getSettings() {
-    invoke('get_settings').then(x => this.settings = x as Settings);
+    invoke('get_settings').then(x => {
+      this.settings = x as Settings
+      if (this.settings.use_stream_caching == undefined)
+        this.settings.use_stream_caching = true;
+    });
   }
 
   getSources() {
