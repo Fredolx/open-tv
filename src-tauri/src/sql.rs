@@ -46,7 +46,8 @@ CREATE TABLE "sources" (
   "source_type" integer,
   "url"         varchar(500),
   "username"    varchar(100),
-  "password"    varchar(100)
+  "password"    varchar(100),
+  "enabled"     integer DEFAULT 1
 );
 
 CREATE TABLE "channels" (
@@ -81,6 +82,7 @@ CREATE INDEX index_channel_name ON channels(name);
 CREATE UNIQUE INDEX channels_unique ON channels(name, url);
 
 CREATE UNIQUE INDEX index_source_name ON sources(name);
+CREATE INDEX index_source_enabled ON sources(enabled);
 
 CREATE UNIQUE INDEX index_group_unique ON groups(name, source_id);
 CREATE INDEX index_group_name ON groups(name);
@@ -463,6 +465,16 @@ pub fn get_sources() -> Result<Vec<Source>> {
     Ok(sources)
 }
 
+pub fn get_enabled_sources() -> Result<Vec<Source>> {
+    let sql = get_conn()?;
+    let sources: Vec<Source> = sql
+        .prepare("SELECT * FROM sources WHERE enabled = 1")?
+        .query_map([], row_to_source)?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(sources)
+}
+
 fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
     Ok(Source {
         id: row.get("id")?,
@@ -472,6 +484,7 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
         url: row.get("url")?,
         source_type: row.get("source_type")?,
         url_origin: None,
+        enabled: row.get("enabled")?
     })
 }
 
@@ -485,6 +498,16 @@ pub fn get_source_from_series_id(series_id: i64) -> Result<Source> {
         [series_id],
         row_to_source,
     )?)
+}
+
+pub fn set_source_enabled(value: bool, source_id: i64) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(r#"
+        UPDATE sources
+        SET enabled = ?
+        WHERE id = ?
+    "#, params![value, source_id])?;
+    Ok(())
 }
 
 #[cfg(test)]

@@ -277,6 +277,7 @@ mod test_xtream {
             url: Some(env::var("OPEN_TV_TEST_XTREAM_LINK").unwrap()),
             url_origin: None,
             source_type: source_type::XTREAM,
+            enabled: true
         })
         .await
         .unwrap();

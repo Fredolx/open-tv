@@ -264,6 +264,7 @@ mod test_m3u {
             username: None,
             url_origin: None,
             source_type: crate::source_type::M3U,
+            enabled: true
         };
         read_m3u8(source).unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
@@ -282,6 +283,7 @@ mod test_m3u {
             username: None,
             url_origin: None,
             source_type: crate::source_type::M3U_LINK,
+            enabled: true
         };
         get_m3u8_from_link(source).await.unwrap();
         let time = now.elapsed().as_millis().to_string();

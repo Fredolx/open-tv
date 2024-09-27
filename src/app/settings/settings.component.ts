@@ -37,7 +37,13 @@ export class SettingsComponent {
   }
 
   getSources() {
-    invoke('get_sources').then(x => this.sources = x as Source[]);
+    invoke('get_sources').then(x => {
+      this.sources = x as Source[];
+      if (this.sources.length == 0) {
+        this.memory.AddingAdditionalSource = false;
+        this.nav.navigateByUrl("setup");
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -52,13 +58,7 @@ export class SettingsComponent {
         await this.updateSettings();
       }));
     this.subscriptions.push(this.memory.RefreshSources.subscribe(_ => {
-      if (this.sources.length == 1) {
-        this.memory.AddingAdditionalSource = false;
-        this.nav.navigateByUrl("setup");
-      }
-      else {
-        this.getSources();
-      }
+      this.getSources();
     }));
   }
 
@@ -92,6 +92,10 @@ export class SettingsComponent {
       this.settings.recording_path = folder;
       await this.updateSettings();
     }
+  }
+
+  oneEnabledSource() {
+    return this.sources.filter(x => x.enabled === true).length == 1;
   }
 
   ngOnDestroy(): void {

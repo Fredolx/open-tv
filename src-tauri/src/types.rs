@@ -23,6 +23,7 @@ pub struct Source {
     pub username: Option<String>,
     pub password: Option<String>,
     pub source_type: u8,
+    pub enabled: bool
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

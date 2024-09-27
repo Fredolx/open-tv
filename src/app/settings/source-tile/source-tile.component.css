@@ -3,6 +3,7 @@
     background-color: #343a40;
     width: 100%;
     padding: 1rem;
+    position: relative;
 }
 
 .thin-line {
@@ -58,3 +59,27 @@ button:hover .trash-lid {
     overflow-wrap: break-word;
 }
 
+.check-disabled {
+    position: absolute;
+    height: 3rem;
+    width: 3rem;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.check {
+    position: absolute;
+    height: 3rem;
+    width: 3rem;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    color: white;
+}
+
+.check:hover {
+    transform: translateY(-50%) scale(125%)
+}

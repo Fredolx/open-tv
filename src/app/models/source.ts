@@ -7,4 +7,5 @@ export class Source {
     username?: string;
     password?: string;
     source_type?: SourceType;
+    enabled?: boolean;
 }

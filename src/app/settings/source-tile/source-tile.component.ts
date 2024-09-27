@@ -16,7 +16,13 @@ export class SourceTileComponent {
   showUsername = false;
   showPassword = false;
   loading = false;
+  @Input("oneEnabledSource")
+  oneEnabledSource: boolean = true;
   constructor(public memory: MemoryService) {
+  }
+
+  disableDisallowed() {
+    return this.oneEnabledSource === true && this.source?.enabled === true;
   }
 
   get_source_type_name() {
@@ -30,7 +36,14 @@ export class SourceTileComponent {
   }
 
   async delete() {
-    await this.memory.tryIPC("Successfully deleted source", "Failed to delete source", () => invoke("delete_source", {id: this.source?.id}));
+      await this.memory.tryIPC("Successfully deleted source", "Failed to delete source", () => invoke("delete_source", {id: this.source?.id}));
+      this.memory.RefreshSources.next(true);
+  }
+
+  async toggleEnabled() {
+    if (this.disableDisallowed())
+      return;
+    await this.memory.tryIPC("Successfully toggled source", "Failed to toggle source", () => invoke("toggle_source", {value: !this.source?.enabled, sourceId: this.source?.id}));
     this.memory.RefreshSources.next(true);
   }
 }

@@ -19,7 +19,8 @@ export class SetupComponent {
   loading = false;
   sourceTypeEnum = SourceType;
   source: Source = {
-    source_type: SourceType.M3U
+    source_type: SourceType.M3U,
+    enabled: true
   };
   ngOnInit(): void {
   }
