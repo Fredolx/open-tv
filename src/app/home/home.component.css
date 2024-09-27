@@ -37,3 +37,13 @@
 .clickable {
     cursor: pointer;
 }
+
+.go-back-arrow {
+    height: 2.5rem;
+    width: 2.5rem;
+    transition: transform 0.3s ease;
+}
+
+.go-back-arrow:hover {
+    transform: scale(125%)
+}
