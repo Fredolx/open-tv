@@ -2,8 +2,8 @@
     position: absolute;
     top: 2%;
     left: 2%;
-    width: 2rem;
-    height: 2rem;
+    width: 2.5rem;
+    height: 2.5rem;
     cursor: pointer;
     transition: transform 0.3s ease;
 }
