@@ -1,6 +1,5 @@
 @import './assets/css/bootstrap.min.css';
 @import 'ngx-toastr/toastr';
-@import './assets/css/materialdesignicons.min.css';
 @import '@angular/material/prebuilt-themes/pink-bluegrey.css';
 
 body {
