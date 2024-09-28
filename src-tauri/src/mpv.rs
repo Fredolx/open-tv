@@ -1,23 +1,26 @@
 use anyhow::{Context, Result};
 use chrono::Local;
 use directories::UserDirs;
-use std::{path::Path, process::Stdio, time::Duration};
+use which::which;
+use std::{env::{consts::OS, current_exe}, path::Path, process::Stdio, time::Duration};
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     process::Command,
     time::timeout,
 };
+use std::sync::LazyLock;
 use crate::{media_type, settings::get_settings, types::Channel};
 
 const MPV_END_STR: [&str; 3] = ["AO", "VO", "AV"];
 const ARG_SAVE_POSITION_ON_QUIT: &str = "--save-position-on-quit";
 const ARG_CACHE: &str = "--cache";
 const ARG_RECORD: &str = "--stream-record=";
+static MPV_PATH: LazyLock<String> = LazyLock::new(|| get_mpv_path());
 
 pub async fn play(channel: Channel, record: bool) -> Result<()> {
     println!("{} playing", channel.url.as_ref().unwrap());
     let args = get_play_args(channel, record)?;
-    let mut cmd = Command::new("mpv")
+    let mut cmd = Command::new(MPV_PATH.clone())
         .args(args) // Add any arguments your command needs
         .stdout(Stdio::piped())
         .spawn()?;
@@ -32,6 +35,17 @@ pub async fn play(channel: Channel, record: bool) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn get_mpv_path() -> String {
+    if OS != "windows" || which("mpv").is_ok() {
+        return "mpv".to_string();
+    }
+    let mut path = current_exe().unwrap();
+    path.pop();
+    path.push("deps");
+    path.push("mpv.exe");
+    return path.to_string_lossy().to_string();
 }
 
 //@TODO: Ask the user to set a custom recording path if default can't be found
