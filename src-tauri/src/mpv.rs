@@ -1,8 +1,7 @@
 use anyhow::{Context, Result};
 use chrono::Local;
 use directories::UserDirs;
-use url::Url;
-use std::{path::Path, process::Stdio, str::FromStr, time::Duration};
+use std::{path::Path, process::Stdio, time::Duration};
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     process::Command,

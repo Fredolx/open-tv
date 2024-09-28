@@ -1,7 +1,7 @@
 [package]
 name = "open_tv"
-version = "0.1.0"
-description = "A Tauri App"
+version = "1.0.0"
+description = "The best open-source IPTV app"
 authors = ["Frédéric Lachapelle"]
 license = ""
 repository = ""
