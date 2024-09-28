@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="DepsFolder" Name="deps">
+        <Component Id="MpvComponent" Guid="*">
+          <File Id="MpvExe" 
+                Source="C:\open-tv-deps\mpv.exe" 
+                KeyPath="yes" 
+          />
+        </Component>
+        <Component Id="FfmpegComponent" Guid="*">
+          <File Id="FfmpegExe" 
+                Source="C:\open-tv-deps\ffmpeg.exe" 
+                KeyPath="yes" 
+          />
+        </Component>
+        <Component Id="YtDlpComponent" Guid="*">
+          <File Id="YtDlpExe" 
+                Source="C:\open-tv-deps\yt-dlp.exe" 
+                KeyPath="yes" 
+          />
+        </Component>
+      </Directory>
+    </DirectoryRef>
+
+    <ComponentGroup Id="DependencyComponents">
+      <ComponentRef Id="MpvComponent" />
+      <ComponentRef Id="FfmpegComponent" />
+      <ComponentRef Id="YtDlpComponent" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>

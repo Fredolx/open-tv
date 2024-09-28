@@ -31,7 +31,15 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "windows": {
+      "wix": {
+        "language": "en-US",
+        "fragmentPaths": ["./windows/fragments/deps.wxs"],
+        "componentGroupRefs": ["DependencyComponents"],
+        "componentRefs": ["MpvComponent", "FfmpegComponent", "YtDlpComponent"]
+      }
+    }
   },
   "$schema": "../node_modules/@tauri-apps/cli/schema.json"
 }
