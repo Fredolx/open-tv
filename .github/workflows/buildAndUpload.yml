@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         node-version: [20.x]
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-13]
 
     steps:
     - uses: actions/checkout@v4
@@ -97,17 +97,17 @@ jobs:
         npm install
 
     - name: Build
-      if: matrix.os == 'macos-latest'
+      if: startsWith(matrix.os, 'macos-')
       run: |
         CI=true npm run tauri build
     
     - name: Build
-      if: matrix.os != 'macos-latest'
+      if: startsWith(matrix.os, 'macos-')
       run: |
         npm run tauri build
 
     - name: Install tree
-      if: matrix.os == 'macos-latest'
+      if: startsWith(matrix.os, 'macos-')
       run: |
         brew install tree
 
@@ -115,7 +115,7 @@ jobs:
       shell: powershell
       if: matrix.os == 'windows-latest'
       run: |
-        cd src-tauri\target\release\bundle
+        cd src-tauri/target/release/bundle
         tree /F
 
     - name: View files
@@ -123,3 +123,43 @@ jobs:
       run: |
         cd src-tauri/target/release/bundle
         tree
+
+    - name: Upload MSI
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: open-tv-windows
+        path: src-tauri/target/release/bundle/msi/*.msi
+        retention-days: 60
+
+    - name: Upload DEB
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: open-tv-debian
+        path: src-tauri/target/release/bundle/deb/*.deb
+        retention-days: 60
+
+    - name: Upload RPM
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: open-tv-redhat
+        path: src-tauri/target/release/bundle/rpm/*.rpm
+        retention-days: 60
+
+    - name: Upload DMG ARM64
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: open-tv-mac-arm64
+        path: src-tauri/target/release/bundle/dmg/*.dmg
+        retention-days: 60
+
+    - name: Upload DMG AMD64
+      if: matrix.os == 'macos-13'
+      uses: actions/upload-artifact@v4
+      with:
+        name: open-tv-mac-AMD64
+        path: src-tauri/target/release/bundle/dmg/*.dmg
+        retention-days: 60

@@ -39,6 +39,14 @@
         "componentGroupRefs": ["DependencyComponents"],
         "componentRefs": ["MpvComponent", "FfmpegComponent", "YtDlpComponent"]
       }
+    },
+    "linux": {
+      "deb": {
+        "depends": ["mpv", "ffmpeg", "yt-dlp"]
+      },
+      "rpm": {
+        "depends": ["mpv", "ffmpeg", "yt-dlp"]
+      }
     }
   },
   "$schema": "../node_modules/@tauri-apps/cli/schema.json"
