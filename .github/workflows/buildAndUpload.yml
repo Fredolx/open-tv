@@ -105,3 +105,16 @@ jobs:
       if: matrix.os != 'macos'
       run: |
         npm run tauri build
+
+    - name: View files
+      shell: powershell
+      if: matrix.os == 'windows'
+      run: |
+        cd src-tauri\target\release\bundle
+        tree /F
+
+    - name: View files
+      if: matrix.os != 'windows'
+      run: |
+        cd src-tauri\target\release\bundle
+        tree
