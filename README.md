@@ -77,9 +77,24 @@ Why disabling:
   - If you have a good internet/provider and want lower latency
   - Can prevent some weird bugs/slowdowns
 
-## Crypto
+## Donate Crypto (Thank you!)
+BTC:
+```
+bc1q7v27u4mrxhtqzl97pcp4vl52npss760epsheu3
+```
+
 ETH:
 ```
 0x171D5B628eff75c98c141aD5584FffA209274365
+```
+
+LTC:
+```
+ltc1qzxgp2grt9ayvpv0dur7lgzgf88yp09h2ytmga0
+```
+
+BCH:
+```
+bitcoincash:qz4mauqyytkvhp9yze0qhgn2nnlv4z5glckyysxg2n
 ```
 
