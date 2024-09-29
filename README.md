@@ -98,3 +98,12 @@ BCH:
 bitcoincash:qz4mauqyytkvhp9yze0qhgn2nnlv4z5glckyysxg2n
 ```
 
+SOL:
+```
+AM7roSrxBKrS5mG7q6aXnQHZKh3ArtBxvG3x1B1VjKhj
+```
+
+BNB:
+```
+0x0C8C5217a8044b3736aD82CCFB9f099597b65253
+```
