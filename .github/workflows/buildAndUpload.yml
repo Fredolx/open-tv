@@ -97,29 +97,29 @@ jobs:
         npm install
 
     - name: Build
-      if: matrix.os == 'macos'
+      if: matrix.os == 'macos-latest'
       run: |
         CI=true npm run tauri build
     
     - name: Build
-      if: matrix.os != 'macos'
+      if: matrix.os != 'macos-latest'
       run: |
         npm run tauri build
 
     - name: Install tree
-      if: matrix.os == 'macos'
+      if: matrix.os == 'macos-latest'
       run: |
         brew install tree
 
     - name: View files
       shell: powershell
-      if: matrix.os == 'windows'
+      if: matrix.os == 'windows-latest'
       run: |
         cd src-tauri\target\release\bundle
         tree /F
 
     - name: View files
-      if: matrix.os != 'windows'
+      if: matrix.os != 'windows-latest'
       run: |
         cd src-tauri/target/release/bundle
         tree
