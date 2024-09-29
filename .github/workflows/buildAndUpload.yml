@@ -38,7 +38,7 @@ jobs:
         7z e .\mpv.7z -oC:\open-tv-deps mpv.exe
 
     - name: Download ffmpeg
-    if: matrix.os == 'windows-latest'
+      if: matrix.os == 'windows-latest'
       shell: powershell
       run: |
         $retryCount = 3
@@ -56,7 +56,7 @@ jobs:
         7z e .\ffmpeg.zip -oC:\open-tv-deps ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe
 
     - name: Download yt-dlp
-    if: matrix.os == 'windows-latest'
+      if: matrix.os == 'windows-latest'
       shell: powershell
       run: |
         $retryCount = 3
@@ -99,4 +99,3 @@ jobs:
     - name: Build
       run: |
         npm run tauri build
-
