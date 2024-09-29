@@ -12,16 +12,11 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v3
-
-    - uses: actions/setup-python@v4
-      if: matrix.os == 'macos-latest'
-      with:
-        python-version: '3.10'
+    - uses: actions/checkout@v4
 
     - name: Download mpv
       if: matrix.os == 'windows-latest'
@@ -31,7 +26,7 @@ jobs:
         $retryDelay = 5
         for ($i = 1; $i -le $retryCount; $i++) {
             try {
-                Invoke-WebRequest -UserAgent "Wget" -Uri "https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.35.1-x86_64.7z" -OutFile .\mpv.7z
+                Invoke-WebRequest -UserAgent "Wget" -Uri "https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.39.0-x86_64.7z" -OutFile .\mpv.7z
                 break
             }
             catch {
@@ -39,64 +34,69 @@ jobs:
                 Start-Sleep -Seconds $retryDelay
             }
         }
-        New-Item -Path '.\libs' -ItemType Directory
-        7z e .\mpv.7z -olibs mpv.exe
+        New-Item -Path 'C:\open-tv-deps' -ItemType Directory
+        7z e .\mpv.7z -oC:\open-tv-deps mpv.exe
+
+    - name: Download ffmpeg
+    if: matrix.os == 'windows-latest'
+      shell: powershell
+      run: |
+        $retryCount = 3
+        $retryDelay = 5
+        for ($i = 1; $i -le $retryCount; $i++) {
+            try {
+                Invoke-WebRequest -UserAgent "Wget" -Uri "https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-win64-gpl.zip" -OutFile .\ffmpeg.zip
+                break
+            }
+            catch {
+                Write-Host "Error occurred: $_. Retrying in $retryDelay seconds..."
+                Start-Sleep -Seconds $retryDelay
+            }
+        }
+        7z e .\ffmpeg.zip -oC:\open-tv-deps ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe
+
+    - name: Download yt-dlp
+    if: matrix.os == 'windows-latest'
+      shell: powershell
+      run: |
+        $retryCount = 3
+        $retryDelay = 5
+        for ($i = 1; $i -le $retryCount; $i++) {
+            try {
+                Invoke-WebRequest -UserAgent "Wget" -Uri "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" -OutFile yt-dlp.exe
+                break
+            }
+            catch {
+                Write-Host "Error occurred: $_. Retrying in $retryDelay seconds..."
+                Start-Sleep -Seconds $retryDelay
+            }
+        }
+        Move-Item -Path yt-dlp.exe -Destination C:\open-tv-deps
 
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
 
     - name: Install deps linux
       if: matrix.os == 'ubuntu-latest'
       run: | 
-        sudo apt install rpm dpkg fakeroot
-
-    - name: Install yarn
-      run: |
-        npm install yarn -g    
-
-    - name: Build Angular App
-      working-directory: ./ng-open-tv
-      run: |
-        npm install
-        npm run prod
+        sudo apt update
+        sudo apt install libwebkit2gtk-4.1-dev \
+          build-essential \
+          curl \
+          wget \
+          file \
+          libxdo-dev \
+          libssl-dev \
+          libayatana-appindicator3-dev \
+          librsvg2-dev
       
-    - name: Build Electron app
-      working-directory: ./electron-open-tv
+    - name: Install deps project
       run: |
         npm install
-        npm run publish
-        
-    - name: Upload DEB Artifact
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3.1.2
-      with:
-        name: open-tv-debian-amd64
-        path: ./electron-open-tv/out/make/deb/x64/*.deb
-        retention-days: 3
-        
-    - name: Upload RPM Artifact
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3.1.2
-      with:
-        name: open-tv-redhat-amd64
-        path: ./electron-open-tv/out/make/rpm/x64/*.rpm
-        retention-days: 3
-    
-    - name: Upload Squirrel Artifact
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v3.1.2
-      with:
-        name: open-tv-windows-squirrel-amd64
-        path: ./electron-open-tv/out/make/squirrel.windows/x64/*.exe
-        retention-days: 3
 
-    - name: Upload DMG Artifact
-      if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v3.1.2
-      with:
-        name: open-tv-macos-amd64
-        path: ./electron-open-tv/out/make/*.dmg
-        retention-days: 3
+    - name: Build
+      run: |
+        npm run tauri build
 
