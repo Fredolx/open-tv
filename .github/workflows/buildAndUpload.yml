@@ -97,5 +97,11 @@ jobs:
         npm install
 
     - name: Build
+      if: matrix.os == 'macos'
+      run: |
+        CI=true npm run tauri build
+    
+    - name: Build
+      if: matrix.os != 'macos'
       run: |
         npm run tauri build
