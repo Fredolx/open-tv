@@ -116,5 +116,5 @@ jobs:
     - name: View files
       if: matrix.os != 'windows'
       run: |
-        cd src-tauri\target\release\bundle
+        cd src-tauri/target/release/bundle
         tree
