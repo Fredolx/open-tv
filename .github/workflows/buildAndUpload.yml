@@ -102,7 +102,6 @@ jobs:
         CI=true npm run tauri build
     
     - name: Build
-      if: startsWith(matrix.os, 'macos-')
       run: |
         npm run tauri build
 
