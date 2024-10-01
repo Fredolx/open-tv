@@ -200,7 +200,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       },
       {
         key: "ctrl + q",
-        label: "Media viewModeEnumType Filters",
+        label: "Media Type Filters",
         description: "Enable/Disable livestreams",
         preventDefault: true,
         allowIn: [AllowIn.Input],

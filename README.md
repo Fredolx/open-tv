@@ -21,8 +21,7 @@ If you use Arch Linux, you can also [install it from the AUR](https://aur.archli
 ## Prerequisites
 If you are on Windows or use the flatpak on Linux; SKIP THIS PART. 
 
-The app both depends on mpv, ffmpeg and yt-dlp. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion and on OpenSUSE you will need to 
-install codecs with opi beforehand.
+The app both depends on mpv, ffmpeg and yt-dlp. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion and on OpenSUSE you will need to install codecs with opi beforehand.
 
 The Windows build **comes with mpv included** (.msi), but you should still install mpv from a package manager of your choice to always have the latest version installed
 
