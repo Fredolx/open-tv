@@ -1,50 +1,44 @@
-# Open-TV
+# Open TV
 
 Simple & fast IPTV app made with Electron and Angular
 
-![alt text](https://github.com/Fredolx/open-tv/blob/main/demo.png)
+![Image of the app](https://github.com/Fredolx/open-tv/blob/main/demo1.png)
 
-## Features
+Completely rewritten to accommodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience.
 
-- Super fast
-- M3U file, M3U link support and partial Xtream support
-- Easy to use
-- Recording & favorites
-- Fully customizable player through mpv conf
-- Bad/slow/unstable stream mitigations
-
-## Planned features
-
-- ~~Xtream support~~ (Partially completed)
-- ~~Providing better support for bad streams~~
-- Add more stream caching options
-- Add custom configurations for specific channels
-- Publishing on Flathub
-
-## Prerequisites
-The app both depends on mpv and ffmpeg. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion and on OpenSUSE you will need to 
-install codecs with opi beforehand.
-
-The Windows build **comes with mpv included**, but you should still install mpv from a package manager of your choice to always have the latest version installed
-
-```
-sudo dnf install mpv #Fedora
-sudo zypper install mpv #OpenSUSE
-sudo pacman -Syu mpv #Arch
-sudo apt install mpv #Debian/Ubuntu
-scoop install mpv # Windows
-choco install mpv # Windows alternative
-```
-
-The .deb package should include mpv as a dependency but [due to a bug in electron forge it's not working](https://github.com/electron/forge/issues/3127). So install it manually alongside ffmpeg if you want full functionality on Ubuntu/Debian.
-
-## Feedback
-Feel free to submit any kind of feedback by creating a new issue.
+## Features:
+- Import your IPTV channels from any source (M3U File, M3U link, Xtream) 🗃️
+- Record while watching 🎥
+- Multi IPTV sources 🎊
+- Control the UI from a TV remote 📺
+- Super low RAM usage, crazy speeds, and instant search 🚅
+- Refresh your sources when you need it 🔄
+- Add channels to favorites 🌟
 
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
-
+Open TV is also now available on [Flathub](TBD) 🎊
 If you use Arch Linux, you can also [install it from the AUR](https://aur.archlinux.org/packages/open-tv-bin) 
+
+## Prerequisites
+If you are on Windows or use the flatpak on Linux; SKIP THIS PART. 
+
+The app both depends on mpv, ffmpeg and yt-dlp. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion and on OpenSUSE you will need to 
+install codecs with opi beforehand.
+
+The Windows build **comes with mpv included** (.msi), but you should still install mpv from a package manager of your choice to always have the latest version installed
+
+```
+sudo dnf install mpv ffmpeg yt-dlp #Fedora
+sudo zypper install mpv ffmpeg yt-dlp #OpenSUSE
+sudo pacman -Syu mpv ffmpeg yt-dlp #Arch
+sudo apt install mpv ffmpeg yt-dlp #Debian/Ubuntu
+scoop install mpv ffmpeg yt-dlp # Windows
+choco install mpv ffmpeg yt-dlp # Windows alternative
+```
+
+## Feedback
+Feel free to submit any kind of feedback by creating a new issue.
 
 ## Hotkeys
 * F1: Help
