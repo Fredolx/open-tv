@@ -5,38 +5,44 @@
   <project_license>GPL-2.0</project_license>
   <name>Open TV</name>
   <summary>Fast And Powerful IPTV App</summary>
+  <content_rating type="oars-1.1" />
   <description>
-    <p>Fast And Powerful IPTV App</p>
+    <p>Completely rewritten to accomodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience</p>
+    <p>Features:</p>
+    <ul>
+      <li>Import your IPTV channels from any source (M3U File, M3U link, Xtream) 🗃️</li>
+      <li>Record while watching 🎥</li>
+      <li>Multi IPTV sources 🎊</li>
+      <li>Control the UI from a TV remote 📺</li>
+      <li>Super low ram usage, crazy speeds and instant search 🚅</li>
+      <li>Refresh your sources when you need it 🔄</li>
+      <li>Add channels to favorites 🌟</li>
+    </ul>
+    <p>PLEASE consider donating, I've been developing this app solo for the past 2 years! Instructions on my github (https://github.com/Fredolx/open-tv)</p>
   </description>
   <developer_name>Frédéric Lachapelle</developer_name>
   <categories>
     <category>AudioVideo</category>
-    <category>Player</category>
   </categories>
   <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
-  <url type="homepage">https://github.com/Fredolx/open-tv</url>
-  <provides>
-    <binary>open_tv</binary>
-  </provides>
   <releases>
     <release version="1.0.0" date="2024-10-01">
       <description>
-        <p>Release 1.0.0</p>
+        <p>
+          Please See Official Changelog at github.com/fredolx/open-tv/releases
+        </p>
       </description>
     </release>
   </releases>
-  <screenshots>
-    <screenshot type="default">
-      <image>https://github.com/Fredolx/open-tv/raw/main/screenshots/default.png</image>
-    </screenshot>
-    <screenshot>
-      <image>https://github.com/Fredolx/open-tv/raw/main/screenshots/secondary.png</image>
-    </screenshot>
-  </screenshots>
-  <icon type="cached">open-tv</icon>
-  <translation>
-    <languages>
-      <language>en</language>
-    </languages>
-  </translation>
+ <screenshots>
+  <screenshot type="default">
+   <image>https://mpv.io/images/mpv-screenshot-0935decb.png</image>
+   <caption>The main window showing the application in action</caption>
+  </screenshot>
+ </screenshots>
+ <developer_name>The mpv player contributors</developer_name>
+ <url type="homepage">https://github.com/Fredolx/open-tv</url>
+ <url type="bugtracker">https://github.com/Fredolx/open-tv/issues</url>
+ <url type="faq">https://github.com/Fredolx/open-tv</url>
+ <url type="help">https://github.com/Fredolx/open-tv/issues</url>
 </component>
