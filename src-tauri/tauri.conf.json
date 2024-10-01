@@ -1,5 +1,5 @@
 {
-  "productName": "open-tv",
+  "productName": "Open TV",
   "version": "1.0.0",
   "identifier": "dev.fredol.open-tv",
   "build": {
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "open-tv",
+        "title": "Open TV",
         "width": 800,
         "height": 600,
         "resizable": true,
