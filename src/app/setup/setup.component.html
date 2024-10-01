@@ -16,7 +16,7 @@
         <form #form="ngForm" (ngSubmit)="submit()">
             <div class="row mt-2 justify-content-center">
                 <div class="col-lg-6 col-md-8">
-                    <input autocomplete="off" #name="ngModel" source-name-exists name="name" empty class="form-control" [(ngModel)]="source.name"
+                    <input tabindex="0" autocomplete="off" #name="ngModel" source-name-exists name="name" empty class="form-control" [(ngModel)]="source.name"
                         placeholder="Nickname for this source">
                 </div>
             </div>
