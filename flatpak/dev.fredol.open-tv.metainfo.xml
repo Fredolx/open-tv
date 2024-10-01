@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>dev.fredol.open-tv</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0</project_license>
+  <name>Open TV</name>
+  <summary>Fast And Powerful IPTV App</summary>
+  <description>
+    <p>Fast And Powerful IPTV App</p>
+  </description>
+  <developer_name>Frédéric Lachapelle</developer_name>
+  <categories>
+    <category>AudioVideo</category>
+    <category>Player</category>
+  </categories>
+  <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
+  <url type="homepage">https://github.com/Fredolx/open-tv</url>
+  <provides>
+    <binary>open_tv</binary>
+  </provides>
+  <releases>
+    <release version="1.0.0" date="2024-10-01">
+      <description>
+        <p>Release 1.0.0</p>
+      </description>
+    </release>
+  </releases>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://github.com/Fredolx/open-tv/raw/main/screenshots/default.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/Fredolx/open-tv/raw/main/screenshots/secondary.png</image>
+    </screenshot>
+  </screenshots>
+  <icon type="cached">open-tv</icon>
+  <translation>
+    <languages>
+      <language>en</language>
+    </languages>
+  </translation>
+</component>
