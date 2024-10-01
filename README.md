@@ -1,10 +1,8 @@
 # Open TV
 
-Simple & fast IPTV app made with Electron and Angular
-
-![Image of the app](https://github.com/Fredolx/open-tv/blob/main/demo1.png)
-
 Completely rewritten to accommodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience.
+
+![Image of the app](https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/rust-rewrite/demo1.png)
 
 ## Features:
 - Import your IPTV channels from any source (M3U File, M3U link, Xtream) 🗃️
@@ -66,23 +64,3 @@ Why disabling:
   - If the stream often drops completely. It will prevent the stream from jumping too far ahead/behind
   - If you have a good internet/provider and want lower latency
   - Can prevent some weird bugs/slowdowns
-
-## Build
-For building from source, you will need those packages
-```
-rpm dpkg fakeroot
-```
-For node and npm, I would strongly suggest to use NVM (node version manager) to get the latest LTS.
-
-And then to build
-```
-cd ng-open-tv
-npm run prod
-cd ../electron-open-tv
-npm run publish
-```
-You can add/edit targets in forge.config.js. 
-On Windows, to prepackage mpv, place it in /libs (you will need to also create the folder).
-
-## Repackaging
-I am fine if you repackage the app on open source platforms like the AUR or Snap. As long as proper credit is given and it's free. I do not authorize any repackaging on proprietary platforms like the Microsoft Store.

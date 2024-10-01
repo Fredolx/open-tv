@@ -20,8 +20,7 @@
     </ul>
     <p>PLEASE consider donating, I've been developing this app solo for the past 2 years! Instructions on my github (https://github.com/Fredolx/open-tv)</p>
   </description>
-  <developer_name>Frédéric Lachapelle</developer_name>
-  <categories>
+    <categories>
     <category>AudioVideo</category>
   </categories>
   <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
@@ -29,18 +28,18 @@
     <release version="1.0.0" date="2024-10-01">
       <description>
         <p>
-          Please See Official Changelog at github.com/fredolx/open-tv/releases
+          Please see the official changelog at github.com/fredolx/open-tv/releases
         </p>
       </description>
     </release>
   </releases>
  <screenshots>
   <screenshot type="default">
-   <image>https://mpv.io/images/mpv-screenshot-0935decb.png</image>
-   <caption>The main window showing the application in action</caption>
+   <image>https://github.com/Fredolx/open-tv/blob/rust-rewrite/demo1.png?raw=true</image>
+   <caption>Open TV's Main Window</caption>
   </screenshot>
  </screenshots>
- <developer_name>The mpv player contributors</developer_name>
+ <developer_name>Frédéric Lachapelle</developer_name>
  <url type="homepage">https://github.com/Fredolx/open-tv</url>
  <url type="bugtracker">https://github.com/Fredolx/open-tv/issues</url>
  <url type="faq">https://github.com/Fredolx/open-tv</url>
