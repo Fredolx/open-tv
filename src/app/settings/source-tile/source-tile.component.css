@@ -63,16 +63,16 @@ button:hover .trash-lid {
     position: absolute;
     height: 3rem;
     width: 3rem;
-    right: 2rem;
+    right: 1rem;
     top: 50%;
     transform: translateY(-50%);
 }
 
 .check {
     position: absolute;
-    height: 3rem;
-    width: 3rem;
-    right: 2rem;
+    height: 2.5rem;
+    width: 2.5rem;
+    right: 1rem;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
