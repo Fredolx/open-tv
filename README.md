@@ -9,7 +9,6 @@ I've been developing and maintaining this project alone and for entirely for fre
 
 The app rewrite is done 🎊 Thank you to all who have donated during the last 3 months. I still need your support for the next updates!
 
-
 ![Image of the app](https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/demo1.png)
 
 ## Features:
@@ -23,7 +22,9 @@ The app rewrite is done 🎊 Thank you to all who have donated during the last 3
 
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
-Open TV is also now available on [Flathub](TBD) 🎊
+
+Open TV is also now available on Flatub (LINK AVAILAIBLE SOON) 🎊
+
 If you use Arch Linux, you can also [install it from the AUR](https://aur.archlinux.org/packages/open-tv-bin) 
 
 ## Prerequisites
