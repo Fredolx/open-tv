@@ -12,12 +12,15 @@ export class MemoryService {
 
   constructor(private toastr: ToastrService ) { }
   public SetGroupNode: Subject<IdName> = new Subject();
+  public SetSeriesNode: Subject<IdName> = new Subject();
   public Sources: Source[] = [];
   public currentContextMenu?: MatMenuTrigger;
   public Loading = false;
   public RefreshFavs: Subject<boolean> = new Subject();
   public RefreshSources: Subject<boolean> = new Subject();
   public AddingAdditionalSource = false;
+  public SeriesRefreshed: Map<Number, boolean> = new Map();
+  public HideChannels: Subject<boolean> = new Subject();
 
   async tryIPC<T>(
     successMessage: string,

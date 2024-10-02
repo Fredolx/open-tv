@@ -29,6 +29,22 @@ export class ChannelTileComponent {
       this.memory.SetGroupNode.next({ id: this.channel.id, name: this.channel.name });
       return;
     }
+    if(this.channel?.media_type == MediaType.serie) {
+      let id = Number.parseInt(this.channel.url);
+      if (!this.memory.SeriesRefreshed.has(id)) {
+        this.memory.HideChannels.next(false);
+        try {
+          await invoke('get_episodes', {seriesId: id});
+          this.memory.SeriesRefreshed.set(id, true);
+        }
+        catch(e) {
+          console.error(e);
+          this.toastr.error("Failed to fetch series");
+        }
+      }
+      this.memory.SetSeriesNode.next({id: id, name: this.channel.name});
+      return;
+    }
     this.starting = true;
     try {
       await invoke("play", { channel: this.channel, record: record });

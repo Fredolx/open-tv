@@ -216,14 +216,19 @@ fn get_media_type_string(stream_type: u8) -> Result<String> {
     }
 }
 
-pub async fn get_episodes(series_id: i64) -> Result<Vec<Channel>> {
+pub async fn get_episodes(series_id: i64) -> Result<()> {
+    if sql::series_has_episodes(series_id).unwrap_or_else(|e| {
+        print_error_stack(e);
+        return false;
+    }) {
+        return Ok(());
+    }
     let mut source = sql::get_source_from_series_id(series_id)?;
     let mut url = build_xtream_url(&mut source)?;
     url.query_pairs_mut()
         .append_pair("series_id", &series_id.to_string());
     let episodes = (get_xtream_http_data::<XtreamSeries>(url, GET_SERIES_INFO).await?).episodes;
     let episodes: Vec<XtreamEpisode> = episodes.into_values().flat_map(|episode| episode).collect();
-    let mut channels: Vec<Channel> = Vec::new();
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
     for episode in episodes {
@@ -231,8 +236,7 @@ pub async fn get_episodes(series_id: i64) -> Result<Vec<Channel>> {
         sql::insert_channel(&tx, episode)?;
     }
     tx.commit()?;
-    channels.sort_by(|a, b| a.name.cmp(&b.name));
-    Ok(channels)
+    Ok(())
 }
 
 fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: i64) -> Result<Channel> {
@@ -263,7 +267,7 @@ mod test_xtream {
     use crate::source_type;
     use crate::sql::{self, drop_db};
     use crate::types::Source;
-    use crate::xtream::{get_episodes, get_xtream};
+    use crate::xtream::{get_xtream};
 
     #[tokio::test]
     async fn test_get_xtream() {
@@ -281,17 +285,5 @@ mod test_xtream {
         })
         .await
         .unwrap();
-    }
-
-    #[tokio::test]
-    async fn test_get_episodes() {
-        let episodes = get_episodes(
-            7542,
-        )
-        .await
-        .unwrap();
-        for episode in episodes {
-            println!("{}", episode.name);
-        }
     }
 }

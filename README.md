@@ -2,7 +2,7 @@
 
 Completely rewritten to accommodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience.
 
-![Image of the app](https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/rust-rewrite/demo1.png)
+![Image of the app](https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/demo1.png)
 
 ## Features:
 - Import your IPTV channels from any source (M3U File, M3U link, Xtream) 🗃️

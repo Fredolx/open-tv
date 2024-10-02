@@ -99,7 +99,7 @@ async fn refresh_all() -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn get_episodes(series_id: i64) -> Result<Vec<Channel>, String> {
+async fn get_episodes(series_id: i64) -> Result<(), String> {
     xtream::get_episodes(series_id)
         .await
         .map_err(map_err_frontend)

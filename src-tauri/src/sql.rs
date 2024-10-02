@@ -151,8 +151,8 @@ pub fn create_or_find_source_by_name(source: &mut Source) -> Result<bool> {
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
-INSERT OR IGNORE INTO channels (name, group_id, image, url, source_id, media_type, favorite) 
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, false); 
+INSERT OR IGNORE INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite) 
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, false); 
 "#,
         params![
             channel.name,
@@ -160,7 +160,8 @@ VALUES (?1, ?2, ?3, ?4, ?5, ?6, false);
             channel.image,
             channel.url,
             channel.source_id,
-            channel.media_type as u8
+            channel.media_type as u8,
+            channel.series_id
         ],
     )?;
     Ok(())
@@ -283,7 +284,10 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         baked_params + filters.media_types.as_ref().unwrap().len() + filters.source_ids.len(),
     );
     let query = to_sql_like(filters.query);
-    let media_types = filters.media_types.unwrap();
+    let media_types = match filters.series_id.is_some() {
+        true => vec![1],
+        false => filters.media_types.unwrap()
+    };
     params.push(&query);
     params.extend(to_to_sql(&media_types));
     params.extend(to_to_sql(&filters.source_ids));
@@ -311,6 +315,21 @@ fn generate_placeholders(size: usize) -> String {
         .take(size)
         .collect::<Vec<_>>()
         .join(",")
+}
+
+pub fn series_has_episodes(series_id: i64) -> Result<bool> {
+    let sql = get_conn()?;
+    let series_exists = sql.query_row(r#"
+      SELECT 1 
+      FROM channels
+      WHERE series_id = ?
+      LIMIT 1
+    "#, 
+    params![series_id], 
+    |row| row.get::<_, u8>(0))
+    .optional()?
+    .is_some();
+    Ok(series_exists)
 }
 
 fn to_sql_like(query: Option<String>) -> String {
@@ -436,7 +455,7 @@ pub fn source_name_exists(name: String) -> Result<bool> {
     WHERE name = ?1
     "#,
             [name],
-            |row| row.get::<_, i32>(0),
+            |row| row.get::<_, u8>(0),
         )
         .optional()?
         .is_some())

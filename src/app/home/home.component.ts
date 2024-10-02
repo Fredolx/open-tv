@@ -97,6 +97,15 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   async addEvents() {
+    this.subscriptions.push(this.memory.HideChannels.subscribe(val => {
+      this.channelsVisible = val;
+    }));
+    this.subscriptions.push(this.memory.SetSeriesNode.subscribe(async idName => {
+      this.clearSearch();
+      this.filters!.series_id = idName.id;
+      this.current_series_name = idName.name;
+      await this.load();
+    }));
     this.subscriptions.push(this.memory.SetGroupNode.subscribe(async idName => {
       this.clearSearch();
       this.filters!.group_id = idName.id;
@@ -304,7 +313,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   filtersVisible() {
-    return this.filters?.view_type != this.viewModeEnum.Categories;
+    return this.filters?.view_type != this.viewModeEnum.Categories && !this.filters?.series_id;
   }
 
   async switchMode(viewMode: ViewMode) {
