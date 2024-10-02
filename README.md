@@ -23,7 +23,7 @@ The app rewrite is done 🎊 Thank you to all who have donated during the last 3
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
 
-Open TV is also now available on Flatub (LINK AVAILAIBLE SOON) 🎊
+Open TV is also now available on Flathub (LINK AVAILAIBLE SOON) 🎊
 
 If you use Arch Linux, you can also [install it from the AUR](https://aur.archlinux.org/packages/open-tv-bin) 
 
