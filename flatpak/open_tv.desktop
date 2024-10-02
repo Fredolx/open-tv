@@ -1,0 +1,8 @@
+[Desktop Entry]
+Categories=AudioVideo
+Comment=Fast And Powerful IPTV App
+Exec=open_tv
+Icon=dev.fredol.open-tv
+Name=Open TV
+Terminal=false
+Type=Application

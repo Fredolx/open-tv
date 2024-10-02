@@ -1,0 +1,85 @@
+.source {
+    border-radius: 0.25rem;
+    background-color: #343a40;
+    width: 100%;
+    padding: 1rem;
+    position: relative;
+}
+
+.thin-line {
+    height: 1px;        /* Adjust the height to change the thickness */
+    background-color: white;
+    width: 100%;        /* Optional: Set the width as per your layout */
+    margin: 0;          /* Optional: Control margin if needed */
+}
+
+.field {
+    min-width: 12rem; 
+    display: inline-block;
+}
+
+.eye {
+    width: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    user-select: none;
+}
+
+.eye:hover {
+    transform: scale(125%)
+}
+
+button .refresh {
+    display: inline;
+    height: 1.5rem;
+    width: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+  
+  button:hover .refresh {
+    transform: rotate(360deg);
+  }
+
+button .trash {
+    height: 1.5rem;
+    width: 1.5rem;
+    overflow: visible;
+}
+
+button .trash-lid {
+    transition: transform 0.3s ease;
+}
+
+button:hover .trash-lid {
+    transform: translateY(-15%);
+}
+
+.wrap-text {
+    overflow: hidden;
+    overflow-wrap: break-word;
+}
+
+.check-disabled {
+    position: absolute;
+    height: 3rem;
+    width: 3rem;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.check {
+    position: absolute;
+    height: 3rem;
+    width: 3rem;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    color: white;
+}
+
+.check:hover {
+    transform: translateY(-50%) scale(125%)
+}

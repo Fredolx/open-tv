@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>dev.fredol.open-tv</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0</project_license>
+  <name>Open TV</name>
+  <summary>Fast And Powerful IPTV App</summary>
+  <content_rating type="oars-1.1" />
+  <description>
+    <p>Completely rewritten to accomodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience</p>
+    <p>Features:</p>
+    <ul>
+      <li>Import your IPTV channels from any source (M3U File, M3U link, Xtream) 🗃️</li>
+      <li>Record while watching 🎥</li>
+      <li>Multi IPTV sources 🎊</li>
+      <li>Control the UI from a TV remote 📺</li>
+      <li>Super low ram usage, crazy speeds and instant search 🚅</li>
+      <li>Refresh your sources when you need it 🔄</li>
+      <li>Add channels to favorites 🌟</li>
+    </ul>
+    <p>PLEASE consider donating, I've been developing this app solo for the past 2 years! Instructions on my github (https://github.com/Fredolx/open-tv)</p>
+  </description>
+    <categories>
+    <category>AudioVideo</category>
+  </categories>
+  <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
+  <releases>
+    <release version="1.0.0" date="2024-10-01">
+      <description>
+        <p>
+          Please see the official changelog at github.com/fredolx/open-tv/releases
+        </p>
+      </description>
+    </release>
+  </releases>
+ <screenshots>
+  <screenshot type="default">
+   <image>https://github.com/Fredolx/open-tv/blob/main/demo1.png?raw=true</image>
+   <caption>Open TV's Main Window</caption>
+  </screenshot>
+  <screenshot type="default">
+    <image>https://github.com/Fredolx/open-tv/blob/main/demo2.png?raw=true</image>
+    <caption>Open TV's Settings Window</caption>
+   </screenshot>
+ </screenshots>
+ <developer_name>Frédéric Lachapelle</developer_name>
+ <url type="homepage">https://github.com/Fredolx/open-tv</url>
+ <url type="bugtracker">https://github.com/Fredolx/open-tv/issues</url>
+ <url type="faq">https://github.com/Fredolx/open-tv</url>
+ <url type="help">https://github.com/Fredolx/open-tv/issues</url>
+</component>

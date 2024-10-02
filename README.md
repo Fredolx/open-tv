@@ -1,54 +1,50 @@
+# Open TV
+
 # This project NEEDS your help. Please consider donating on [Github](https://github.com/sponsors/Fredolx), [Patreon](https://www.patreon.com/fredol) or directly by [crypto](#crypto)
 I've been developing and maintaining this project alone and for entirely for free over the past 2 years. I am in dire need of support to continue developing this project. I've never added annoying donation pop-ups or anything of the sort to make sure you have the fastest and cleanest IPTV experience and I'm committed to keep this project FREE & OPEN-SOURCE. To keep that commitment, I need your support!
 
-I'm currently developing a big rework of the app in Rust to allow for new big features that have been requested by the community for some time:
+~~I'm currently developing a big rework of the app in Rust to allow for new big features that have been requested by the community for some time...~~
 
-- Multi IPTV Sources with per-source filtering
-- Even faster search & start-up
-- Flatpak publishing
-- 3x less memory usage and 95% leaner executable (100+ MB to 5 MB)
-
-I've been making some huge progress on another branch (rust-rewrite). If you can please donate, I will be able to finish it and deliver you those improvements I've carefully crafted for **you**
+The app rewrite is done 🎊 Thank you to all who have donated during the last 3 months. I still need your support for the next updates!
 
 # Open-TV
 
-Simple & fast IPTV app made with Electron and Angular
+Completely rewritten to accommodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience.
 
-![alt text](https://github.com/Fredolx/open-tv/blob/main/demo.png)
+![Image of the app](https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/demo1.png)
 
-## Features
-
-- Super fast
-- M3U file, M3U link support and partial Xtream support
-- Easy to use
-- Recording & favorites
-- Fully customizable player through mpv conf
-- Bad/slow/unstable stream mitigations
-
-## Prerequisites
-The app both depends on mpv and ffmpeg. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion and on OpenSUSE you will need to 
-install codecs with opi beforehand.
-
-The Windows build **comes with mpv included**, but you should still install mpv from a package manager of your choice to always have the latest version installed
-
-```
-sudo dnf install mpv #Fedora
-sudo zypper install mpv #OpenSUSE
-sudo pacman -Syu mpv #Arch
-sudo apt install mpv #Debian/Ubuntu
-scoop install mpv # Windows
-choco install mpv # Windows alternative
-```
-
-The .deb package should include mpv as a dependency but [due to a bug in electron forge it's not working](https://github.com/electron/forge/issues/3127). So install it manually alongside ffmpeg if you want full functionality on Ubuntu/Debian.
-
-## Feedback
-Feel free to submit any kind of feedback by creating a new issue.
+## Features:
+- Import your IPTV channels from any source (M3U File, M3U link, Xtream) 🗃️
+- Record while watching 🎥
+- Multi IPTV sources 🎊
+- Control the UI from a TV remote 📺
+- Super low RAM usage, crazy speeds, and instant search 🚅
+- Refresh your sources when you need it 🔄
+- Add channels to favorites 🌟
 
 ## Install
 You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
-
+Open TV is also now available on [Flathub](TBD) 🎊
 If you use Arch Linux, you can also [install it from the AUR](https://aur.archlinux.org/packages/open-tv-bin) 
+
+## Prerequisites
+If you are on Windows or use the flatpak on Linux; SKIP THIS PART. 
+
+The app both depends on mpv, ffmpeg and yt-dlp. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion and on OpenSUSE you will need to install codecs with opi beforehand.
+
+The Windows build **comes with mpv included** (.msi), but you should still install mpv from a package manager of your choice to always have the latest version installed
+
+```
+sudo dnf install mpv ffmpeg yt-dlp #Fedora
+sudo zypper install mpv ffmpeg yt-dlp #OpenSUSE
+sudo pacman -Syu mpv ffmpeg yt-dlp #Arch
+sudo apt install mpv ffmpeg yt-dlp #Debian/Ubuntu
+scoop install mpv ffmpeg yt-dlp # Windows
+choco install mpv ffmpeg yt-dlp # Windows alternative
+```
+
+## Feedback
+Feel free to submit any kind of feedback by creating a new issue.
 
 ## Hotkeys
 * F1: Help

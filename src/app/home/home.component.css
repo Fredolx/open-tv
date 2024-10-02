@@ -1,0 +1,49 @@
+.settings {
+    position: absolute;
+    top: 2%;
+    right: 2%;
+    height: 2.5rem;
+    width: 2.5rem;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.settings:hover {
+    transform: scale(125%) rotate(360deg)
+}
+
+.reserve-settings-space {
+    margin-top: 2rem;
+}
+
+@media screen and (max-width: 627px) {
+    .reserve-settings-space {
+        margin-top: 5rem;
+    }
+}
+
+.filterBox {
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #343a40;
+    display: block;
+    width: fit-content;
+}
+
+.form-check {
+    margin-bottom: 0 !important;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.go-back-arrow {
+    height: 2.5rem;
+    width: 2.5rem;
+    transition: transform 0.3s ease;
+}
+
+.go-back-arrow:hover {
+    transform: scale(125%)
+}

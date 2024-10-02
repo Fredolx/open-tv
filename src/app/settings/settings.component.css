@@ -1,0 +1,53 @@
+.arrow {
+    position: absolute;
+    top: 2%;
+    left: 2%;
+    width: 2.5rem;
+    height: 2.5rem;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.arrow:hover {
+    transform: scale(125%);
+}
+
+.author {
+    text-align: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+a {
+    text-decoration: none;
+}
+
+.btn.disabled {
+    pointer-events: auto !important;
+}
+
+button .refresh {
+    display: inline;
+    height: 1.5rem;
+    width: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+  
+  button:hover .refresh {
+    transform: rotate(360deg);
+  }
+
+button .plus {
+    width: 1.5rem;
+    height: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+button:hover .plus {
+    transform: scale(125%);
+}
+
+.folder {
+    height: 1rem;
+    width: 1rem;
+}

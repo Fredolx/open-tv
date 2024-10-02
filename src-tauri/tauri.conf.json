@@ -1,0 +1,53 @@
+{
+  "productName": "Open TV",
+  "version": "1.0.0",
+  "identifier": "dev.fredol.open-tv",
+  "build": {
+    "frontendDist": "../dist/open-tv/browser",
+    "devUrl": "http://localhost:4200",
+    "beforeDevCommand": "npm run start",
+    "beforeBuildCommand": "ng build --configuration=production"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Open TV",
+        "width": 800,
+        "height": 600,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "wix": {
+        "language": "en-US",
+        "fragmentPaths": ["./windows/fragments/deps.wxs"],
+        "componentGroupRefs": ["DependencyComponents"],
+        "componentRefs": ["MpvComponent", "FfmpegComponent", "YtDlpComponent"]
+      }
+    },
+    "linux": {
+      "deb": {
+        "depends": ["mpv", "ffmpeg", "yt-dlp"]
+      },
+      "rpm": {
+        "depends": ["mpv", "ffmpeg", "yt-dlp"]
+      }
+    }
+  },
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json"
+}

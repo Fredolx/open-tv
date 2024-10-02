@@ -1,0 +1,37 @@
+@import './assets/css/bootstrap.min.css';
+@import 'ngx-toastr/toastr';
+@import '@angular/material/prebuilt-themes/pink-bluegrey.css';
+
+body {
+    background-color: #202124;
+    color: white;
+}
+
+.help-modal__container {
+    .help-modal {
+        background-color: #202124 !important;
+
+        .item {
+            background-color: #202124 !important;
+
+            .key {
+                background-color: #202124 !important;
+            }
+
+            .description {
+                color: white !important;
+            }
+        }
+    }
+}
+
+.modal-content {
+    border-radius: 22px !important;
+    background-color: #292b2c;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+html, body { height: fit-content }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
