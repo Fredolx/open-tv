@@ -1,5 +1,7 @@
 # Open TV
 
+Completely rewritten to accommodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience.
+
 # This project NEEDS your help. Please consider donating on [Github](https://github.com/sponsors/Fredolx), [Patreon](https://www.patreon.com/fredol) or directly by [crypto](#crypto)
 I've been developing and maintaining this project alone and for entirely for free over the past 2 years. I am in dire need of support to continue developing this project. I've never added annoying donation pop-ups or anything of the sort to make sure you have the fastest and cleanest IPTV experience and I'm committed to keep this project FREE & OPEN-SOURCE. To keep that commitment, I need your support!
 
@@ -7,9 +9,6 @@ I've been developing and maintaining this project alone and for entirely for fre
 
 The app rewrite is done 🎊 Thank you to all who have donated during the last 3 months. I still need your support for the next updates!
 
-# Open-TV
-
-Completely rewritten to accommodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience.
 
 ![Image of the app](https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/demo1.png)
 
