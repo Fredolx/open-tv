@@ -35,11 +35,11 @@
   </releases>
  <screenshots>
   <screenshot type="default">
-   <image>https://github.com/Fredolx/open-tv/blob/main/demo1.png?raw=true</image>
+   <image>https://raw.githubusercontent.com/Fredolx/open-tv/e1109260283e0e2ccc896732095a32b5449dd4cf/screenshots/demo2_linux.png</image>
    <caption>Open TV's Main Window</caption>
   </screenshot>
-  <screenshot type="default">
-    <image>https://github.com/Fredolx/open-tv/blob/main/demo2.png?raw=true</image>
+  <screenshot>
+    <image>https://raw.githubusercontent.com/Fredolx/open-tv/e1109260283e0e2ccc896732095a32b5449dd4cf/screenshots/demo1_linux.png</image>
     <caption>Open TV's Settings Window</caption>
    </screenshot>
  </screenshots>

@@ -1,4 +1,0 @@
-#!/bin/sh
-
-ln -snf "$(xdg-user-dir PICTURES)" "$HOME/.var/app/io.mpv.Mpv/Pictures"
-exec mpv-bin "$@"
