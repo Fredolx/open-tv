@@ -29,6 +29,13 @@
   </categories>
   <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
   <releases>
+    <release version="1.0.1" date="2024-10-08">
+      <description>
+        <p>
+          Please see the official changelog at github.com/fredolx/open-tv/releases
+        </p>
+      </description>
+    </release>
     <release version="1.0.0" date="2024-10-01">
       <description>
         <p>
@@ -39,11 +46,11 @@
   </releases>
  <screenshots>
   <screenshot type="default">
-   <image>https://raw.githubusercontent.com/Fredolx/open-tv/e1109260283e0e2ccc896732095a32b5449dd4cf/screenshots/demo2_linux.png</image>
+   <image>https://raw.githubusercontent.com/Fredolx/open-tv/bbd50743a376c2f992e94cebe055da8a2d2943c2/screenshots/demo1_linux.png</image>
    <caption>Open TV's Main Window</caption>
   </screenshot>
   <screenshot>
-    <image>https://raw.githubusercontent.com/Fredolx/open-tv/e1109260283e0e2ccc896732095a32b5449dd4cf/screenshots/demo1_linux.png</image>
+    <image>https://raw.githubusercontent.com/Fredolx/open-tv/bbd50743a376c2f992e94cebe055da8a2d2943c2/screenshots/demo2_linux.png</image>
     <caption>Open TV's Settings Window</caption>
    </screenshot>
  </screenshots>
