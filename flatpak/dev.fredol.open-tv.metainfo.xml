@@ -6,6 +6,10 @@
   <name>Open TV</name>
   <summary>Fast And Powerful IPTV App</summary>
   <content_rating type="oars-1.1" />
+  <branding>
+    <color type="primary" scheme_preference="light">#4549cc</color>
+    <color type="primary" scheme_preference="dark">#4549cc</color>
+  </branding>
   <description>
     <p>Completely rewritten to accomodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience</p>
     <p>Features:</p>
