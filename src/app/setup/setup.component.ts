@@ -43,7 +43,7 @@ export class SetupComponent {
       return;
     }
     this.loading = true;
-    this.source.url = file.path
+    this.source.url = file
     try {
       await invoke("get_m3u8", { source: this.source });
       this.success();
