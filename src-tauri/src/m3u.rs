@@ -1,20 +1,16 @@
 use std::{
     collections::HashMap,
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Write},
     sync::LazyLock,
 };
 
-use anyhow::{anyhow, bail, Context, Result};
-use bytes::Bytes;
+use anyhow::{bail, Context, Result};
 use regex::{Captures, Regex};
-use reqwest::Response;
 use types::{Channel, Source};
 
 use crate::{
-    media_type, print_error_stack,
-    sql::{self, delete_source},
-    types,
+    media_type, print_error_stack, source_type, sql::{self, delete_source}, types
 };
 
 static NAME_REGEX: LazyLock<Regex> =
@@ -27,8 +23,12 @@ static GROUP_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"group-title="(?P<group>[^"]*)""#).unwrap());
 
 pub fn read_m3u8(mut source: Source) -> Result<()> {
+    let path = match source.source_type {
+        source_type::M3U_LINK => get_tmp_path(),
+        _ => source.url.clone().context("no file path found")?
+    };
     let file =
-        File::open(source.url.clone().context("No path")?).context("Failed to open m3u8 file")?;
+        File::open(path).context("Failed to open m3u8 file")?;
     let reader = BufReader::new(file);
     let mut lines = reader.lines().enumerate().skip(1);
     let mut problematic_lines: usize = 0;
@@ -47,7 +47,7 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
                 continue;
             }
         };
-        let l2 = match l2.with_context(|| format!("(l2) Error on line: {c2}, skipping")) {
+        let mut l2 = match l2.with_context(|| format!("(l2) Error on line: {c2}, skipping")) {
             Ok(line) => line,
             Err(e) => {
                 problematic_lines += 1;
@@ -55,6 +55,17 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
                 continue;
             }
         };
+        if l2.starts_with("#EXTVLCOPT") {
+            let res = lines.next().context("EOF")?;
+            lines_count = res.0;
+            l2 = match res.1.with_context(|| format!("Error on line: {lines_count}, previous line skipped due to #EXTVLCOPT, skipping")) {
+                Ok(line) => line,
+                Err(e) => {
+                    print_error_stack(e);
+                    continue;
+                }
+            };
+        }
         let mut channel = match get_channel_from_lines(l1, l2, source.id.unwrap())
             .with_context(|| format!("Failed to process lines #{c1} #{c2}, skipping"))
         {
@@ -81,101 +92,28 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
     Ok(())
 }
 
-pub async fn get_m3u8_from_link(mut source: Source) -> Result<()> {
+pub async fn get_m3u8_from_link(source: Source) -> Result<()> {
     let client = reqwest::Client::new();
     let url = source.url.clone().context("Invalid source")?;
-    let response = client.get(&url).send().await?;
+    let mut response = client.get(&url).send().await?;
 
-    let new_source = sql::create_or_find_source_by_name(&mut source)?;
-    if let Err(e) = process_chunks(&source, response).await {
-        if new_source {
-            delete_source(source.id.unwrap()).unwrap_or_else(print_error_stack);
-        }
-        return Err(e);
-    }
-    Ok(())
-}
-
-async fn process_chunks(source: &Source, mut response: Response) -> Result<()> {
-    let mut str_buffer: String = String::new();
-    let mut skipped_first = false;
-    let mut groups: HashMap<String, i64> = HashMap::new();
-    let mut count = 0;
+    let mut file = std::fs::File::create(get_tmp_path())?;
     while let Some(chunk) = response.chunk().await? {
-        let split = get_lines_from_chunk(chunk, &mut str_buffer, skipped_first)?;
-        if !skipped_first {
-            skipped_first = true;
-        }
-        count += process_chunk_split(split, &source, &mut groups)?;
+        file.write(&chunk)?;
     }
-    if count == 0 {
-        return Err(anyhow!("No valid lines found"));
-    }
-    Ok(())
+    read_m3u8(source)
 }
 
-fn process_chunk_split(
-    split: Vec<String>,
-    source: &Source,
-    groups: &mut HashMap<String, i64>,
-) -> Result<u64> {
-    let mut count = 0;
-    let mut two_lines = Vec::new();
-    let mut sql = sql::get_conn()?;
-    let tx = sql.transaction()?;
-    for line in split {
-        two_lines.push(line);
-        if two_lines.len() == 2 {
-            let first = two_lines.remove(0);
-            let second = two_lines.remove(0);
-            let mut channel = match get_channel_from_lines(
-                first.to_string(),
-                second.to_string(),
-                source.id.unwrap(),
-            )
-            .with_context(|| format!("Failed to process lines:\n{first}\n{second}"))
-            {
-                Ok(val) => val,
-                Err(e) => {
-                    print_error_stack(e);
-                    continue;
-                }
-            };
-            sql::set_channel_group_id(groups, &mut channel, &tx, source.id.as_ref().unwrap())
-                .unwrap_or_else(print_error_stack);
-            sql::insert_channel(&tx, channel)?;
-            count += 1;
-        }
+fn get_tmp_path() -> String {
+    let mut path = directories::ProjectDirs::from("dev", "fredol", "open-tv")
+        .unwrap()
+        .cache_dir()
+        .to_owned();
+    if !path.exists() {
+        std::fs::create_dir_all(&path).unwrap();
     }
-    tx.commit()?;
-    Ok(count)
-}
-
-fn get_lines_from_chunk(
-    chunk: Bytes,
-    str_buffer: &mut String,
-    skipped_first: bool,
-) -> Result<Vec<String>> {
-    let lossy = String::from_utf8_lossy(&chunk);
-    let lossy = lossy.into_owned();
-    str_buffer.push_str(&lossy);
-    let mut split: Vec<String> = str_buffer.split('\n').map(String::from).collect();
-    str_buffer.clear();
-    if !skipped_first {
-        split.remove(0);
-    }
-    let last = split.last().context("failed to get last")?;
-    if !last.ends_with('\n') {
-        _ = std::mem::replace(str_buffer, last.to_string());
-        split.pop();
-    }
-    let len = split.len();
-    if len > 0 && len % 2 != 0 {
-        let mut ele = split.pop().context("failed to pop")?;
-        ele.push('\n');
-        str_buffer.insert_str(0, &ele);
-    }
-    Ok(split)
+    path.push("get.m3u");
+    return path.to_string_lossy().to_string();
 }
 
 fn extract_non_empty_capture(caps: Captures) -> Option<String> {
