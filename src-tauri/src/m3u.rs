@@ -70,8 +70,8 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
         sql::insert_channel(&tx, channel)?;
     }
     if problematic_lines > lines_count / 2 {
-        if new_source {
-            delete_source(source.id.context("no source id")?).unwrap_or_else(print_error_stack);
+        tx.rollback().unwrap_or_else(|e| eprintln!("{:?}", e));
+        if new_source {delete_source(source.id.context("no source id")?).unwrap_or_else(print_error_stack);
         }
         return Err(anyhow::anyhow!(
             "Too many problematic lines, read considered failed"
