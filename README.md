@@ -2,6 +2,13 @@
 
 Completely rewritten to accommodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience.
 
+<a href="https://flathub.org/apps/dev.fredol.open-tv">
+  <img src="https://dl.flathub.org/assets/badges/flathub-badge-en.svg" width="300"/>
+</a>
+<a href="https://apps.microsoft.com/detail/9PBWX3RKR1QX?launch=true&mode=mini">
+	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="350"/>
+</a>
+
 # This project NEEDS your help. Please consider donating on [Github](https://github.com/sponsors/Fredolx), [Patreon](https://www.patreon.com/fredol) or directly by [crypto](#crypto)
 I've been developing and maintaining this project alone and for entirely for free over the past 2 years. I am in dire need of support to continue developing this project. I've never added annoying donation pop-ups or anything of the sort to make sure you have the fastest and cleanest IPTV experience and I'm committed to keep this project FREE & OPEN-SOURCE. To keep that commitment, I need your support!
 
