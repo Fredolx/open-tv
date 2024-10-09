@@ -15,6 +15,15 @@ const MPV_END_STR: [&str; 3] = ["AO", "VO", "AV"];
 const ARG_SAVE_POSITION_ON_QUIT: &str = "--save-position-on-quit";
 const ARG_CACHE: &str = "--cache";
 const ARG_RECORD: &str = "--stream-record=";
+const ARG_TITLE: &str = "--title=";
+const MPV_BIN_NAME: &str = "mpv";
+static MACOS_POTENTIAL_PATHS: [&str; 4] = [
+        "/opt/local/bin/mpv",                            // MacPorts
+        "/opt/homebrew/bin/mpv",                         // Homebrew on AARCH64 Mac
+        "/usr/local/bin/mpv",                            // Homebrew on AMD64 Mac,
+        "/Applications/IINA.app/Contents/MacOS/iina-cli" // IINA as fallback
+];
+
 static MPV_PATH: LazyLock<String> = LazyLock::new(|| get_mpv_path());
 
 pub async fn play(channel: Channel, record: bool) -> Result<()> {
@@ -38,14 +47,30 @@ pub async fn play(channel: Channel, record: bool) -> Result<()> {
 }
 
 fn get_mpv_path() -> String {
-    if OS != "windows" || which("mpv").is_ok() {
-        return "mpv".to_string();
+    if OS == "linux" || which("mpv").is_ok() {
+        return MPV_BIN_NAME.to_string();
     }
+    else if OS == "macos" {
+        return get_mpv_path_mac();
+    }
+    return get_mpv_path_win();
+}
+
+fn get_mpv_path_win() -> String {
     let mut path = current_exe().unwrap();
     path.pop();
     path.push("deps");
     path.push("mpv.exe");
     return path.to_string_lossy().to_string();
+}
+
+fn get_mpv_path_mac() -> String {
+    return MACOS_POTENTIAL_PATHS.iter().find(|path| Path::new(path).exists())
+    .map(|s| s.to_string())
+    .unwrap_or_else(|| {
+        eprintln!("Could not find MPV or IINA for MacOS host");
+        return MPV_BIN_NAME.to_string();
+    });
 }
 
 //@TODO: Ask the user to set a custom recording path if default can't be found
@@ -67,6 +92,7 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
         };
         args.push(format!("{ARG_RECORD}{record_path}"));
     }
+    args.push(format!("{}{}", ARG_TITLE, channel.name));
     Ok(args)
 }
 
