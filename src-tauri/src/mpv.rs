@@ -17,11 +17,10 @@ const ARG_CACHE: &str = "--cache";
 const ARG_RECORD: &str = "--stream-record=";
 const ARG_TITLE: &str = "--title=";
 const MPV_BIN_NAME: &str = "mpv";
-static MACOS_POTENTIAL_PATHS: [&str; 4] = [
-        "/opt/local/bin/mpv",                            // MacPorts
-        "/opt/homebrew/bin/mpv",                         // Homebrew on AARCH64 Mac
-        "/usr/local/bin/mpv",                            // Homebrew on AMD64 Mac,
-        "/Applications/IINA.app/Contents/MacOS/iina-cli" // IINA as fallback
+static MACOS_POTENTIAL_PATHS: [&str; 3] = [
+        "/opt/local/bin/mpv",       // MacPorts                            
+        "/opt/homebrew/bin/mpv",    // Homebrew on AARCH64 Mac                         
+        "/usr/local/bin/mpv"        // Homebrew on AMD64 Mac
 ];
 
 static MPV_PATH: LazyLock<String> = LazyLock::new(|| get_mpv_path());
