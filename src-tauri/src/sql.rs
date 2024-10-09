@@ -251,7 +251,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         return search_group(filters);
     }
     let sql = get_conn()?;
-    let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
+    let offset: u16 = filters.page as u16 * PAGE_SIZE as u16 - PAGE_SIZE as u16;
     let mut sql_query = format!(
         r#"
         SELECT * FROM CHANNELS
