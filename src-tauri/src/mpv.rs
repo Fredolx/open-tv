@@ -109,7 +109,7 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
         #[cfg(not(target_os = "windows"))]
         let mut params = shell_words::split(&mpv_params)?;
         #[cfg(target_os = "windows")]
-        let mut params = winsplit::split(&mpv_params)?;
+        let mut params = winsplit::split(&mpv_params);
         args.append(&mut params);
     }
     Ok(args)
