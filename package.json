@@ -38,7 +38,7 @@
     "@angular/cli": "^17.3.8",
     "@angular/compiler-cli": "^17.3.0",
     "@angular/localize": "^17.3.0",
-    "@tauri-apps/cli": "^2.0.2",
+    "@tauri-apps/cli": "^2.0.3",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
