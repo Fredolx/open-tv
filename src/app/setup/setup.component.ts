@@ -8,6 +8,7 @@ import { Source } from '../models/source';
 import { open } from '@tauri-apps/plugin-dialog';
 import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
 import { MemoryService } from '../memory.service';
+import { ErrorService } from '../error.service';
 @Component({
   selector: 'app-setup',
   templateUrl: './setup.component.html',
@@ -15,7 +16,7 @@ import { MemoryService } from '../memory.service';
 })
 export class SetupComponent {
   constructor(private nav: Router,
-    private toastr: ToastrService, private modalService: NgbModal, public memory: MemoryService) { }
+    private toastr: ToastrService, private modalService: NgbModal, public memory: MemoryService, private error: ErrorService) { }
   loading = false;
   sourceTypeEnum = SourceType;
   source: Source = {
@@ -49,8 +50,7 @@ export class SetupComponent {
       this.success();
     }
     catch (e) {
-      console.error(e);
-      this.toastr.error("Could not parse selected file");
+      this.error.handleError(e, "Could not parse selected file");
     }
     this.loading = false;
   }
@@ -87,7 +87,7 @@ export class SetupComponent {
       this.success();
     }
     catch (e) {
-      this.error(e);
+      this.error.handleError(e, "Invalid URL or credentials. Please try again");
     }
     this.loading = false;
   }
@@ -115,12 +115,8 @@ export class SetupComponent {
       this.success();
     }
     catch (e) {
-      this.error(e);
+      this.error.handleError(e, "Invalid URL or credentials. Please try again");
     }
     this.loading = false;
-  }
-  error(e: any) {
-    console.error(e)
-    this.toastr.error("Invalid URL or credentials. Try again with the same or a different URL");
   }
 }

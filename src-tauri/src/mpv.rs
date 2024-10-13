@@ -1,26 +1,29 @@
-use anyhow::{Context, Result};
+use crate::{media_type, settings::get_settings, types::Channel};
+use anyhow::{bail, Context, Result};
 use chrono::Local;
 use directories::UserDirs;
-use which::which;
-use std::{env::{consts::OS, current_exe}, path::Path, process::Stdio, time::Duration};
+use std::sync::LazyLock;
+use std::{
+    env::{consts::OS, current_exe},
+    path::Path,
+    process::Stdio,
+};
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     process::Command,
-    time::timeout,
 };
-use std::sync::LazyLock;
-use crate::{media_type, settings::get_settings, types::Channel};
+use which::which;
 
-const MPV_END_STR: [&str; 3] = ["AO", "VO", "AV"];
 const ARG_SAVE_POSITION_ON_QUIT: &str = "--save-position-on-quit";
 const ARG_CACHE: &str = "--cache";
 const ARG_RECORD: &str = "--stream-record=";
 const ARG_TITLE: &str = "--title=";
+const ARG_MSG_LEVEL: &str = "--msg-level=all=error";
 const MPV_BIN_NAME: &str = "mpv";
-static MACOS_POTENTIAL_PATHS: [&str; 3] = [
-        "/opt/local/bin/mpv",       // MacPorts                            
-        "/opt/homebrew/bin/mpv",    // Homebrew on AARCH64 Mac                         
-        "/usr/local/bin/mpv"        // Homebrew on AMD64 Mac
+const MACOS_POTENTIAL_PATHS: [&str; 3] = [
+    "/opt/local/bin/mpv",    // MacPorts
+    "/opt/homebrew/bin/mpv", // Homebrew on AARCH64 Mac
+    "/usr/local/bin/mpv",    // Homebrew on AMD64 Mac
 ];
 
 static MPV_PATH: LazyLock<String> = LazyLock::new(|| get_mpv_path());
@@ -29,17 +32,26 @@ pub async fn play(channel: Channel, record: bool) -> Result<()> {
     println!("{} playing", channel.url.as_ref().unwrap());
     let args = get_play_args(channel, record)?;
     let mut cmd = Command::new(MPV_PATH.clone())
-        .args(args) // Add any arguments your command needs
+        .args(args)
         .stdout(Stdio::piped())
         .spawn()?;
 
-    let stdout = cmd.stdout.take().context("No stdout")?;
-    let mut reader = BufReader::new(stdout).lines();
-    let read_timeout = Duration::from_secs(25);
-    // Read stdout line by line with a timeout
-    while let Ok(Some(line)) = timeout(read_timeout, reader.next_line()).await? {
-        if MPV_END_STR.iter().any(|x| x.contains(&line)) {
-            break;
+    cmd.wait().await?;
+    let stdout = cmd.stdout.take();
+    if let Some(stdout) = stdout {
+        let mut error: String = "".to_string();
+        let mut lines = BufReader::new(stdout).lines();
+        let mut first = true;
+        while let Some(line) = lines.next_line().await? {
+            error += &line;
+            if !first {
+                error += "\n"
+            } else {
+                first = false;
+            }
+        }
+        if error != "" {
+            bail!(error);
         }
     }
     Ok(())
@@ -48,8 +60,7 @@ pub async fn play(channel: Channel, record: bool) -> Result<()> {
 fn get_mpv_path() -> String {
     if OS == "linux" || which("mpv").is_ok() {
         return MPV_BIN_NAME.to_string();
-    }
-    else if OS == "macos" {
+    } else if OS == "macos" {
         return get_mpv_path_mac();
     }
     return get_mpv_path_win();
@@ -64,15 +75,16 @@ fn get_mpv_path_win() -> String {
 }
 
 fn get_mpv_path_mac() -> String {
-    return MACOS_POTENTIAL_PATHS.iter().find(|path| Path::new(path).exists())
-    .map(|s| s.to_string())
-    .unwrap_or_else(|| {
-        eprintln!("Could not find MPV or IINA for MacOS host");
-        return MPV_BIN_NAME.to_string();
-    });
+    return MACOS_POTENTIAL_PATHS
+        .iter()
+        .find(|path| Path::new(path).exists())
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| {
+            eprintln!("Could not find MPV for MacOS host");
+            return MPV_BIN_NAME.to_string();
+        });
 }
 
-//@TODO: Ask the user to set a custom recording path if default can't be found
 fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
     let mut args = Vec::new();
     let settings = get_settings()?;
@@ -92,6 +104,14 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
         args.push(format!("{ARG_RECORD}{record_path}"));
     }
     args.push(format!("{}{}", ARG_TITLE, channel.name));
+    args.push(ARG_MSG_LEVEL.to_string());
+    if let Some(mpv_params) = settings.mpv_params {
+        #[cfg(not(target_os = "windows"))]
+        let mut params = shell_words::split(&mpv_params)?;
+        #[cfg(target_os = "windows")]
+        let mut params = winsplit::split(&mpv_params)?;
+        args.append(&mut params);
+    }
     Ok(args)
 }
 

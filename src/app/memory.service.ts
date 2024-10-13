@@ -4,13 +4,14 @@ import { Subject } from 'rxjs';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { IdName } from './models/idName';
 import { ToastrService } from 'ngx-toastr';
+import { ErrorService } from './error.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MemoryService {
 
-  constructor(private toastr: ToastrService ) { }
+  constructor(private toastr: ToastrService, private error: ErrorService) { }
   public SetGroupNode: Subject<IdName> = new Subject();
   public SetSeriesNode: Subject<IdName> = new Subject();
   public Sources: Source[] = [];
@@ -32,8 +33,7 @@ export class MemoryService {
       await action();
       this.toastr.success(successMessage);
     } catch (e) {
-      console.error(e);
-      this.toastr.error(errorMessage);
+      this.error.handleError(e);
     }
     this.Loading = false;
   }

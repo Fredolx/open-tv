@@ -2,15 +2,15 @@ use anyhow::Error;
 use types::{Channel, Filters, Settings, Source};
 
 pub mod m3u;
+pub mod media_type;
 pub mod mpv;
 pub mod settings;
+pub mod source_type;
 pub mod sql;
 pub mod types;
 pub mod utils;
-pub mod xtream;
-pub mod source_type;
-pub mod media_type;
 pub mod view_type;
+pub mod xtream;
 
 fn print_error_stack(e: Error) {
     eprintln!("{:?}", e);
@@ -18,7 +18,10 @@ fn print_error_stack(e: Error) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    std::env::set_var("RUST_BACKTRACE", "1");
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             get_m3u8,
@@ -93,9 +96,7 @@ async fn refresh_source(source: Source) -> Result<(), String> {
 
 #[tauri::command]
 async fn refresh_all() -> Result<(), String> {
-    utils::refresh_all()
-    .await
-    .map_err(map_err_frontend)
+    utils::refresh_all().await.map_err(map_err_frontend)
 }
 
 #[tauri::command]

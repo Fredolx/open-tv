@@ -110,9 +110,7 @@ pub async fn get_xtream(mut source: Source) -> Result<()> {
         if new_source {
             delete_source(source.id.context("no source id")?).unwrap_or_else(print_error_stack);
         }
-        return Err(anyhow::anyhow!(
-            "Too many Xtream requests failed"
-        ));
+        return Err(anyhow::anyhow!("Too many Xtream requests failed"));
     }
     Ok(())
 }
@@ -144,7 +142,13 @@ fn process_xtream(
         let category_name = get_cat_name(&cats, live.category_id.clone());
         convert_xtream_live_to_channel(live, &source, stream_type.clone(), category_name)
             .and_then(|mut channel| {
-                sql::set_channel_group_id(&mut groups, &mut channel, &tx, source.id.as_ref().unwrap()).unwrap_or_else(print_error_stack);
+                sql::set_channel_group_id(
+                    &mut groups,
+                    &mut channel,
+                    &tx,
+                    source.id.as_ref().unwrap(),
+                )
+                .unwrap_or_else(print_error_stack);
                 sql::insert_channel(&tx, channel)?;
                 Ok(())
             })
@@ -170,7 +174,10 @@ fn convert_xtream_live_to_channel(
     Ok(Channel {
         id: None,
         group: category_name.map(|x| x.trim().to_string()),
-        image: stream.stream_icon.or(stream.cover).map(|x| x.trim().to_string()),
+        image: stream
+            .stream_icon
+            .or(stream.cover)
+            .map(|x| x.trim().to_string()),
         media_type: stream_type.clone(),
         name: stream.name.context("No name")?.trim().to_string(),
         source_id: source.id.unwrap(),
@@ -186,7 +193,7 @@ fn convert_xtream_live_to_channel(
         },
         favorite: false,
         group_id: None,
-        series_id: None
+        series_id: None,
     })
 }
 
@@ -255,7 +262,7 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: i64) -
         )?),
         series_id: Some(series_id),
         group_id: None,
-        favorite: false
+        favorite: false,
     })
 }
 
@@ -267,7 +274,7 @@ mod test_xtream {
     use crate::source_type;
     use crate::sql::{self, drop_db};
     use crate::types::Source;
-    use crate::xtream::{get_xtream};
+    use crate::xtream::get_xtream;
 
     #[tokio::test]
     async fn test_get_xtream() {
@@ -281,7 +288,7 @@ mod test_xtream {
             url: Some(env::var("OPEN_TV_TEST_XTREAM_LINK").unwrap()),
             url_origin: None,
             source_type: source_type::XTREAM,
-            enabled: true
+            enabled: true,
         })
         .await
         .unwrap();

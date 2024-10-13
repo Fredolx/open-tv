@@ -5,6 +5,10 @@ import { MemoryService } from '../memory.service';
 import { MediaType } from '../models/mediaType';
 import { invoke } from '@tauri-apps/api/core';
 import { ToastrService } from 'ngx-toastr';
+import { take } from 'rxjs';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ErrorModalComponent } from '../error-modal/error-modal.component';
+import { ErrorService } from '../error.service';
 
 @Component({
   selector: 'app-channel-tile',
@@ -12,7 +16,7 @@ import { ToastrService } from 'ngx-toastr';
   styleUrl: './channel-tile.component.css'
 })
 export class ChannelTileComponent {
-  constructor(public memory: MemoryService, private toastr: ToastrService) { }
+  constructor(public memory: MemoryService, private toastr: ToastrService, private error: ErrorService) { }
   @Input() channel?: Channel;
   @Input() id!: Number;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
@@ -38,8 +42,7 @@ export class ChannelTileComponent {
           this.memory.SeriesRefreshed.set(id, true);
         }
         catch(e) {
-          console.error(e);
-          this.toastr.error("Failed to fetch series");
+          this.error.handleError(e, "Failed to fetch series");
         }
       }
       this.memory.SetSeriesNode.next({id: id, name: this.channel.name});
@@ -50,10 +53,11 @@ export class ChannelTileComponent {
       await invoke("play", { channel: this.channel, record: record });
     }
     catch (e) {
-      console.error(e)
+      this.error.handleError(e);
     }
     this.starting = false;
   }
+
 
   onRightClick(event: MouseEvent) {
     if (this.channel?.media_type == MediaType.group)
@@ -87,8 +91,7 @@ export class ChannelTileComponent {
       this.toastr.success(msg);
     }
     catch (e) {
-      console.error(e);
-      this.toastr.error(`Failed to add/remove ${this.channel?.name} to/from favorites`);
+      this.error.handleError(e, `Failed to add/remove ${this.channel?.name} to/from favorites`);
     }
   }
 

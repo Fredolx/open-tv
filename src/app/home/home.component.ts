@@ -13,6 +13,7 @@ import { Source } from '../models/source';
 import { Filters } from '../models/filters';
 import { SourceType } from '../models/sourceType';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { ErrorService } from '../error.service';
 
 @Component({
   selector: 'app-home',
@@ -66,7 +67,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   channelsVisible = true;
   prevSearchValue?: String;
 
-  constructor(private router: Router, public memory: MemoryService, public toast: ToastrService) {
+  constructor(private router: Router, public memory: MemoryService, public toast: ToastrService, private error: ErrorService) {
     this.getSources();
   }
 
@@ -87,7 +88,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       }
     })
       .catch(e => {
-        console.error(e);
+        this.error.handleError(e);
         this.reset();
       })
   }
@@ -141,7 +142,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.reachedMax = channels.length < this.PAGE_SIZE
     }
     catch (e) {
-      console.error(e);
+      this.error.handleError(e);
     }
   }
 

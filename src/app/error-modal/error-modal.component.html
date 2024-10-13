@@ -1,0 +1,15 @@
+<div class="modal-header">
+    <h4 class="modal-title lbl">Error</h4>
+    <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
+</div>
+<div class="modal-body">
+    <p class="lbl">
+        The following error has occured, <a target="_blank" href="https://github.com/Fredolx/open-tv/issues">you may report it here</a>
+    </p>
+    <textarea autocomplete="false" spellcheck="false" readonly class="error-area">
+        {{error}}
+    </textarea>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-secondary" (click)="copy()">Copy</button>
+</div>

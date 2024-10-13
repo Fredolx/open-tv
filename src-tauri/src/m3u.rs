@@ -10,7 +10,9 @@ use regex::{Captures, Regex};
 use types::{Channel, Source};
 
 use crate::{
-    media_type, print_error_stack, source_type, sql::{self, delete_source}, types
+    media_type, print_error_stack, source_type,
+    sql::{self, delete_source},
+    types,
 };
 
 static NAME_REGEX: LazyLock<Regex> =
@@ -25,10 +27,9 @@ static GROUP_REGEX: LazyLock<Regex> =
 pub fn read_m3u8(mut source: Source) -> Result<()> {
     let path = match source.source_type {
         source_type::M3U_LINK => get_tmp_path(),
-        _ => source.url.clone().context("no file path found")?
+        _ => source.url.clone().context("no file path found")?,
     };
-    let file =
-        File::open(path).context("Failed to open m3u8 file")?;
+    let file = File::open(path).context("Failed to open m3u8 file")?;
     let reader = BufReader::new(file);
     let mut lines = reader.lines().enumerate().skip(1);
     let mut problematic_lines: usize = 0;
@@ -82,7 +83,8 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
     }
     if problematic_lines > lines_count / 2 {
         tx.rollback().unwrap_or_else(|e| eprintln!("{:?}", e));
-        if new_source {delete_source(source.id.context("no source id")?).unwrap_or_else(print_error_stack);
+        if new_source {
+            delete_source(source.id.context("no source id")?).unwrap_or_else(print_error_stack);
         }
         return Err(anyhow::anyhow!(
             "Too many problematic lines, read considered failed"
@@ -152,7 +154,7 @@ fn get_channel_from_lines(first: String, mut second: String, source_id: i64) -> 
         source_id: source_id,
         series_id: None,
         group_id: None,
-        favorite: false
+        favorite: false,
     };
     Ok(channel)
 }
@@ -202,7 +204,7 @@ mod test_m3u {
             username: None,
             url_origin: None,
             source_type: crate::source_type::M3U,
-            enabled: true
+            enabled: true,
         };
         read_m3u8(source).unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
@@ -221,7 +223,7 @@ mod test_m3u {
             username: None,
             url_origin: None,
             source_type: crate::source_type::M3U_LINK,
-            enabled: true
+            enabled: true,
         };
         get_m3u8_from_link(source).await.unwrap();
         let time = now.elapsed().as_millis().to_string();

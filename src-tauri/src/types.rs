@@ -11,7 +11,7 @@ pub struct Channel {
     pub source_id: i64,
     pub series_id: Option<i64>,
     pub group_id: Option<i64>,
-    pub favorite: bool
+    pub favorite: bool,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -23,7 +23,7 @@ pub struct Source {
     pub username: Option<String>,
     pub password: Option<String>,
     pub source_type: u8,
-    pub enabled: bool
+    pub enabled: bool,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -41,5 +41,5 @@ pub struct Filters {
     pub view_type: u8,
     pub page: u8,
     pub series_id: Option<i64>,
-    pub group_id: Option<i64>
+    pub group_id: Option<i64>,
 }

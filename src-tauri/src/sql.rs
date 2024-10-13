@@ -121,7 +121,9 @@ pub fn create_or_initialize_db() -> Result<()> {
 
 pub fn drop_db() -> Result<()> {
     let sql = get_conn()?;
-    sql.execute_batch("DROP TABLE channels; DROP TABLE groups; DROP TABLE sources; DROP TABLE settings;")?;
+    sql.execute_batch(
+        "DROP TABLE channels; DROP TABLE groups; DROP TABLE sources; DROP TABLE settings;",
+    )?;
     Ok(())
 }
 
@@ -286,7 +288,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     let query = to_sql_like(filters.query);
     let media_types = match filters.series_id.is_some() {
         true => vec![1],
-        false => filters.media_types.unwrap()
+        false => filters.media_types.unwrap(),
     };
     params.push(&query);
     params.extend(to_to_sql(&media_types));
@@ -319,16 +321,19 @@ fn generate_placeholders(size: usize) -> String {
 
 pub fn series_has_episodes(series_id: i64) -> Result<bool> {
     let sql = get_conn()?;
-    let series_exists = sql.query_row(r#"
+    let series_exists = sql
+        .query_row(
+            r#"
       SELECT 1 
       FROM channels
       WHERE series_id = ?
       LIMIT 1
-    "#, 
-    params![series_id], 
-    |row| row.get::<_, u8>(0))
-    .optional()?
-    .is_some();
+    "#,
+            params![series_id],
+            |row| row.get::<_, u8>(0),
+        )
+        .optional()?
+        .is_some();
     Ok(series_exists)
 }
 
@@ -409,10 +414,13 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
 
 pub fn delete_groups_by_source(source_id: i64) -> Result<()> {
     let sql = get_conn()?;
-    sql.execute(r#"
+    sql.execute(
+        r#"
         DELETE FROM groups
         WHERE source_id = ?
-    "#, params!(source_id))?;
+    "#,
+        params!(source_id),
+    )?;
     Ok(())
 }
 
@@ -422,15 +430,23 @@ pub fn delete_source(id: i64) -> Result<()> {
         r#"
         DELETE FROM channels
         WHERE source_id = ?;
-    "#, params![id])?;
-    sql.execute(r#"
+    "#,
+        params![id],
+    )?;
+    sql.execute(
+        r#"
         DELETE FROM groups
         WHERE source_id = ?;
-    "#, params![id])?;
-    let count = sql.execute(r#"
+    "#,
+        params![id],
+    )?;
+    let count = sql.execute(
+        r#"
         DELETE FROM sources
         WHERE id = ?;
-    "#, params![id])?;
+    "#,
+        params![id],
+    )?;
     if count != 1 {
         return Err(anyhow!("No sources were deleted"));
     }
@@ -439,9 +455,11 @@ pub fn delete_source(id: i64) -> Result<()> {
 
 pub fn get_channel_count_by_source(id: i64) -> Result<u64> {
     let sql = get_conn()?;
-    let count = sql.
-        query_row("SELECT COUNT(*) FROM channels WHERE source_id = ?", 
-            params![id], |row| row.get::<_, u64>(0))?;
+    let count = sql.query_row(
+        "SELECT COUNT(*) FROM channels WHERE source_id = ?",
+        params![id],
+        |row| row.get::<_, u64>(0),
+    )?;
     Ok(count)
 }
 
@@ -503,7 +521,7 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
         url: row.get("url")?,
         source_type: row.get("source_type")?,
         url_origin: None,
-        enabled: row.get("enabled")?
+        enabled: row.get("enabled")?,
     })
 }
 
@@ -521,11 +539,14 @@ pub fn get_source_from_series_id(series_id: i64) -> Result<Source> {
 
 pub fn set_source_enabled(value: bool, source_id: i64) -> Result<()> {
     let sql = get_conn()?;
-    sql.execute(r#"
+    sql.execute(
+        r#"
         UPDATE sources
         SET enabled = ?
         WHERE id = ?
-    "#, params![value, source_id])?;
+    "#,
+        params![value, source_id],
+    )?;
     Ok(())
 }
 
