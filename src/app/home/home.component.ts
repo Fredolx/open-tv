@@ -72,9 +72,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   getSources() {
-    invoke("get_enabled_sources").then(sources => {
-      this.memory.Sources = sources as Source[];
-      if (this.memory.Sources.length == 0)
+    invoke("get_sources").then(sources => {
+      this.memory.Sources = (sources as Source[]).filter(x => x.enabled);
+      if ((sources as Source[]).length == 0)
         this.reset();
       else {
         this.filters = {

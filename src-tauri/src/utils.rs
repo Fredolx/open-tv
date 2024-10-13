@@ -2,6 +2,7 @@ use crate::{m3u, source_type, sql, types::Source, xtream};
 use anyhow::{anyhow, Context, Result};
 
 pub async fn refresh_source(source: Source) -> Result<()> {
+    
     sql::delete_channels_by_source(source.id.context("no source ID")?)?;
     sql::delete_groups_by_source(source.id.context("no source ID")?)?;
     match source.source_type {
@@ -20,3 +21,5 @@ pub async fn refresh_all() -> Result<()> {
     }
     Ok(())
 }
+
+

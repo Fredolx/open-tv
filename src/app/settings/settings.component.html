@@ -42,7 +42,7 @@
     <h2 class="mt-4 mb-4 text-center">Sources</h2>
     <ng-container *ngFor="let source of sources; let i = index">
         <div [ngClass]="{'mt-3': i != 0}">
-            <app-source-tile [oneEnabledSource]="oneEnabledSource()" [source]="source"></app-source-tile>
+            <app-source-tile [source]="source"></app-source-tile>
         </div>
     </ng-container>
     

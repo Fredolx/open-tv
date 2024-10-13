@@ -16,13 +16,7 @@ export class SourceTileComponent {
   showUsername = false;
   showPassword = false;
   loading = false;
-  @Input("oneEnabledSource")
-  oneEnabledSource: boolean = true;
   constructor(public memory: MemoryService) {
-  }
-
-  disableDisallowed() {
-    return this.oneEnabledSource === true && this.source?.enabled === true;
   }
 
   get_source_type_name() {
@@ -41,8 +35,6 @@ export class SourceTileComponent {
   }
 
   async toggleEnabled() {
-    if (this.disableDisallowed())
-      return;
     await this.memory.tryIPC("Successfully toggled source", "Failed to toggle source", () => invoke("toggle_source", {value: !this.source?.enabled, sourceId: this.source?.id}));
     this.memory.RefreshSources.next(true);
   }

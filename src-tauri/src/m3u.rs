@@ -10,9 +10,7 @@ use regex::{Captures, Regex};
 use types::{Channel, Source};
 
 use crate::{
-    media_type, print_error_stack, source_type,
-    sql::{self, delete_source},
-    types,
+    log, media_type, source_type, sql::{self, delete_source}, types, utils
 };
 
 static NAME_REGEX: LazyLock<Regex> =
@@ -43,16 +41,16 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
         let l1 = match l1.with_context(|| format!("(l1) Error on line: {c1}, skipping")) {
             Ok(line) => line,
             Err(e) => {
+                log::log(format!("{:?}", e));
                 problematic_lines += 1;
-                print_error_stack(e);
                 continue;
             }
         };
         let mut l2 = match l2.with_context(|| format!("(l2) Error on line: {c2}, skipping")) {
             Ok(line) => line,
             Err(e) => {
+                log::log(format!("{:?}", e));
                 problematic_lines += 1;
-                print_error_stack(e);
                 continue;
             }
         };
@@ -62,7 +60,7 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
             l2 = match res.1.with_context(|| format!("Error on line: {lines_count}, previous line skipped due to #EXTVLCOPT, skipping")) {
                 Ok(line) => line,
                 Err(e) => {
-                    print_error_stack(e);
+                    log::log(format!("{:?}", e));
                     continue;
                 }
             };
@@ -72,19 +70,19 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
         {
             Ok(val) => val,
             Err(e) => {
+                log::log(format!("{:?}", e));
                 problematic_lines += 2;
-                print_error_stack(e);
                 continue;
             }
         };
         sql::set_channel_group_id(&mut groups, &mut channel, &tx, source.id.as_ref().unwrap())
-            .unwrap_or_else(print_error_stack);
+            .unwrap_or_else(|e| log::log(format!("{:?}", e)));
         sql::insert_channel(&tx, channel)?;
     }
     if problematic_lines > lines_count / 2 {
         tx.rollback().unwrap_or_else(|e| eprintln!("{:?}", e));
         if new_source {
-            delete_source(source.id.context("no source id")?).unwrap_or_else(print_error_stack);
+            delete_source(source.id.context("no source id")?).unwrap_or_else(|e| log::log(format!("{:?}", e)));
         }
         return Err(anyhow::anyhow!(
             "Too many problematic lines, read considered failed"

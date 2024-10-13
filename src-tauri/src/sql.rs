@@ -183,7 +183,7 @@ fn insert_group(
         params![group, &image, source_id],
     )?;
     if rows_changed == 0 {
-        return Err(anyhow!("Failed to insert group"));
+        return Err(anyhow!("Failed to insert group: {}", group));
     }
     Ok(tx.last_insert_rowid())
 }
@@ -405,7 +405,8 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     sql.execute(
         r#"
         DELETE FROM channels
-        WHERE source_id = ?1;
+        WHERE source_id = ?1
+        AND favorite = 0;
     "#,
         params![source_id.to_string()],
     )?;
@@ -418,6 +419,11 @@ pub fn delete_groups_by_source(source_id: i64) -> Result<()> {
         r#"
         DELETE FROM groups
         WHERE source_id = ?
+        AND ID not in (
+            SELECT group_id 
+            FROM channels
+            WHERE favorite = 1
+        )
     "#,
         params!(source_id),
     )?;

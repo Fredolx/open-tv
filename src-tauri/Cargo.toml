@@ -36,6 +36,8 @@ chrono = "0.4.38"
 which = "6.0.3"
 tauri-plugin-clipboard-manager = "2.0.1"
 tauri-plugin-shell = "2"
+simplelog = "0.12.2"
+log = "0.4.22"
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
 shell-words = "1.1.0"
 [target.'cfg(target_os = "windows")'.dependencies]

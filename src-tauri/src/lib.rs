@@ -11,14 +11,10 @@ pub mod types;
 pub mod utils;
 pub mod view_type;
 pub mod xtream;
-
-fn print_error_stack(e: Error) {
-    eprintln!("{:?}", e);
-}
+pub mod log;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    std::env::set_var("RUST_BACKTRACE", "1");
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())

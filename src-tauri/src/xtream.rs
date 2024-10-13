@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 use crate::media_type;
-use crate::print_error_stack;
 use crate::sql;
 use crate::sql::delete_source;
 use crate::types::Channel;
@@ -13,6 +12,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use tokio::join;
 use url::Url;
+use crate::log;
 
 const GET_LIVE_STREAMS: &str = "get_live_streams";
 const GET_VODS: &str = "get_vod_streams";
@@ -88,14 +88,14 @@ pub async fn get_xtream(mut source: Source) -> Result<()> {
     let mut fail_count = 0;
     live.and_then(|live| process_xtream(live, live_cats?, &source, media_type::LIVESTREAM))
         .unwrap_or_else(|e| {
-            print_error_stack(e);
+            log::log(format!("{:?}", e));
             fail_count += 1;
         });
     vods.and_then(|vods: Vec<XtreamStream>| {
         process_xtream(vods, vods_cats?, &source, media_type::MOVIE)
     })
     .unwrap_or_else(|e| {
-        print_error_stack(e);
+        log::log(format!("{:?}", e));
         fail_count += 1;
     });
     series
@@ -103,12 +103,12 @@ pub async fn get_xtream(mut source: Source) -> Result<()> {
             process_xtream(series, series_cats?, &source, media_type::SERIE)
         })
         .unwrap_or_else(|e| {
-            print_error_stack(e);
+            log::log(format!("{:?}", e));
             fail_count += 1;
         });
     if fail_count > 2 {
         if new_source {
-            delete_source(source.id.context("no source id")?).unwrap_or_else(print_error_stack);
+            delete_source(source.id.context("no source id")?).unwrap_or_else(|e| log::log(format!("{:?}", e)));
         }
         return Err(anyhow::anyhow!("Too many Xtream requests failed"));
     }
@@ -148,11 +148,11 @@ fn process_xtream(
                     &tx,
                     source.id.as_ref().unwrap(),
                 )
-                .unwrap_or_else(print_error_stack);
+                .unwrap_or_else(|e| log::log(format!("{:?}", e)));
                 sql::insert_channel(&tx, channel)?;
                 Ok(())
             })
-            .unwrap_or_else(print_error_stack);
+            .unwrap_or_else(|e| log::log(format!("{:?}", e)));
     }
     tx.commit()?;
     Ok(())
@@ -225,7 +225,7 @@ fn get_media_type_string(stream_type: u8) -> Result<String> {
 
 pub async fn get_episodes(series_id: i64) -> Result<()> {
     if sql::series_has_episodes(series_id).unwrap_or_else(|e| {
-        print_error_stack(e);
+        log::log(format!("{:?}", e));
         return false;
     }) {
         return Ok(());
