@@ -10,7 +10,7 @@ use regex::{Captures, Regex};
 use types::{Channel, Source};
 
 use crate::{
-    log, media_type, source_type, sql::{self, delete_source}, types, utils
+    log, media_type, source_type, sql::{self, delete_source}, types
 };
 
 static NAME_REGEX: LazyLock<Regex> =
