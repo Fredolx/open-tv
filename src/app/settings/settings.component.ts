@@ -3,7 +3,6 @@ import { debounceTime, distinctUntilChanged, fromEvent, map, Subscription } from
 import { Settings } from '../models/settings';
 import { invoke } from '@tauri-apps/api/core';
 import { Router } from '@angular/router';
-import { ToastrService } from 'ngx-toastr';
 import { open } from '@tauri-apps/plugin-dialog';
 import { Source } from '../models/source';
 import { MemoryService } from '../memory.service';
@@ -92,10 +91,6 @@ export class SettingsComponent {
       this.settings.recording_path = folder;
       await this.updateSettings();
     }
-  }
-
-  oneEnabledSource() {
-    return this.sources.filter(x => x.enabled === true).length == 1;
   }
 
   ngOnDestroy(): void {

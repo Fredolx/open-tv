@@ -5,9 +5,6 @@ import { MemoryService } from '../memory.service';
 import { MediaType } from '../models/mediaType';
 import { invoke } from '@tauri-apps/api/core';
 import { ToastrService } from 'ngx-toastr';
-import { take } from 'rxjs';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ErrorModalComponent } from '../error-modal/error-modal.component';
 import { ErrorService } from '../error.service';
 
 @Component({
@@ -29,6 +26,8 @@ export class ChannelTileComponent {
   }
 
   async click(record = false) {
+    if (this.starting === true)
+      return;
     if (this.channel?.media_type == MediaType.group) {
       this.memory.SetGroupNode.next({ id: this.channel.id, name: this.channel.name });
       return;
