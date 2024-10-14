@@ -1,6 +1,7 @@
 @import './assets/css/bootstrap.min.css';
 @import 'ngx-toastr/toastr';
 @import '@angular/material/prebuilt-themes/pink-bluegrey.css';
+@import './assets/css/roboto.css';
 
 body {
     background-color: #202124;
@@ -35,4 +36,4 @@ body {
 }
 
 html, body { height: fit-content }
-body { margin: 0; font-family: sans-serif; }
+body { margin: 0; font-family: "Roboto", sans-serif }
