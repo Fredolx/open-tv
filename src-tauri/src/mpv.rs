@@ -36,22 +36,27 @@ pub async fn play(channel: Channel, record: bool) -> Result<()> {
         .stdout(Stdio::piped())
         .spawn()?;
 
-    cmd.wait().await?;
-    let stdout = cmd.stdout.take();
-    if let Some(stdout) = stdout {
-        let mut error: String = "".to_string();
-        let mut lines = BufReader::new(stdout).lines();
-        let mut first = true;
-        while let Some(line) = lines.next_line().await? {
-            error += &line;
-            if !first {
-                error += "\n"
-            } else {
-                first = false;
+    let status = cmd.wait().await?;
+    if !status.success() {
+        let stdout = cmd.stdout.take();
+        if let Some(stdout) = stdout {
+            let mut error: String = "".to_string();
+            let mut lines = BufReader::new(stdout).lines();
+            let mut first = true;
+            while let Some(line) = lines.next_line().await? {
+                error += &line;
+                if !first {
+                    error += "\n"
+                } else {
+                    first = false;
+                }
             }
-        }
-        if error != "" {
-            bail!(error);
+            if error != "" {
+                bail!(error);
+            }
+            else {
+                bail!("Mpv encountered an unknown error");
+            }
         }
     }
     Ok(())
