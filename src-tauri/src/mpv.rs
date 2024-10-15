@@ -1,3 +1,4 @@
+use crate::log;
 use crate::{media_type, settings::get_settings, types::Channel};
 use anyhow::{bail, Context, Result};
 use chrono::Local;
@@ -19,14 +20,17 @@ const ARG_CACHE: &str = "--cache";
 const ARG_RECORD: &str = "--stream-record=";
 const ARG_TITLE: &str = "--title=";
 const ARG_MSG_LEVEL: &str = "--msg-level=all=error";
+const ARG_YTDLP_PATH: &str = "--script-opts=ytdl_hook-ytdl_path=";
 const MPV_BIN_NAME: &str = "mpv";
+const YTDLP_BIN_NAME: &str = "yt-dlp";
 const MACOS_POTENTIAL_PATHS: [&str; 3] = [
-    "/opt/local/bin/mpv",    // MacPorts
-    "/opt/homebrew/bin/mpv", // Homebrew on AARCH64 Mac
-    "/usr/local/bin/mpv",    // Homebrew on AMD64 Mac
+    "/opt/local/bin",    // MacPorts
+    "/opt/homebrew/bin", // Homebrew on AARCH64 Mac
+    "/usr/local/bin",    // Homebrew on AMD64 Mac
 ];
 
 static MPV_PATH: LazyLock<String> = LazyLock::new(|| get_mpv_path());
+static YTDLP_PATH: LazyLock<String> = LazyLock::new(|| find_macos_bin(YTDLP_BIN_NAME.to_string()));
 
 pub async fn play(channel: Channel, record: bool) -> Result<()> {
     println!("{} playing", channel.url.as_ref().unwrap());
@@ -53,8 +57,7 @@ pub async fn play(channel: Channel, record: bool) -> Result<()> {
             }
             if error != "" {
                 bail!(error);
-            }
-            else {
+            } else {
                 bail!("Mpv encountered an unknown error");
             }
         }
@@ -66,7 +69,7 @@ fn get_mpv_path() -> String {
     if OS == "linux" || which("mpv").is_ok() {
         return MPV_BIN_NAME.to_string();
     } else if OS == "macos" {
-        return get_mpv_path_mac();
+        return find_macos_bin(MPV_BIN_NAME.to_string());
     }
     return get_mpv_path_win();
 }
@@ -79,14 +82,21 @@ fn get_mpv_path_win() -> String {
     return path.to_string_lossy().to_string();
 }
 
-fn get_mpv_path_mac() -> String {
+fn find_macos_bin(bin: String) -> String {
     return MACOS_POTENTIAL_PATHS
         .iter()
-        .find(|path| Path::new(path).exists())
-        .map(|s| s.to_string())
+        .map(|path| {
+            let mut path = Path::new(path).to_path_buf();
+            path.push(&bin);
+            return path;
+        })
+        .find(|path| {        
+            path.exists()
+        })
+        .map(|s| s.to_string_lossy().to_string())
         .unwrap_or_else(|| {
-            eprintln!("Could not find MPV for MacOS host");
-            return MPV_BIN_NAME.to_string();
+            log::log(format!("Could not find {} on MacOS host", bin));
+            return bin;
         });
 }
 
@@ -107,6 +117,9 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
             None => get_default_record_path()?,
         };
         args.push(format!("{ARG_RECORD}{record_path}"));
+    }
+    if OS == "macos" && *MPV_PATH != MPV_BIN_NAME {
+        args.push(format!("{}{}", ARG_YTDLP_PATH, *YTDLP_PATH));
     }
     args.push(format!("{}{}", ARG_TITLE, channel.name));
     args.push(ARG_MSG_LEVEL.to_string());
