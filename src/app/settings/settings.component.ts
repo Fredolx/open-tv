@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { open } from '@tauri-apps/plugin-dialog';
 import { Source } from '../models/source';
 import { MemoryService } from '../memory.service';
+import { ViewMode } from '../models/viewMode';
 
 @Component({
   selector: 'app-settings',
@@ -16,7 +17,9 @@ export class SettingsComponent {
   subscriptions: Subscription[] = [];
   settings: Settings = {
     use_stream_caching: true,
+    default_view: ViewMode.All
   };
+  viewModeEnum = ViewMode;
   sources: Source[] = [];
   @ViewChild('mpvParams') mpvParams!: ElementRef;
 
@@ -32,6 +35,8 @@ export class SettingsComponent {
       this.settings = x as Settings
       if (this.settings.use_stream_caching == undefined)
         this.settings.use_stream_caching = true;
+      if (this.settings.default_view == undefined)
+        this.settings.default_view = ViewMode.All;
     });
   }
 
