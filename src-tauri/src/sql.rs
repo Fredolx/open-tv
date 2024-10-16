@@ -61,7 +61,6 @@ CREATE TABLE "channels" (
   "series_id" integer,
   "group_id" integer,
   FOREIGN KEY (source_id) REFERENCES sources(id)
-  FOREIGN KEY (series_id) REFERENCES channels(id)
   FOREIGN KEY (group_id) REFERENCES groups(id)
 );
 
@@ -254,6 +253,10 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     }
     let sql = get_conn()?;
     let offset: u16 = filters.page as u16 * PAGE_SIZE as u16 - PAGE_SIZE as u16;
+    let media_types = match filters.series_id.is_some() {
+        true => vec![1],
+        false => filters.media_types.clone().unwrap(),
+    };
     let mut sql_query = format!(
         r#"
         SELECT * FROM CHANNELS
@@ -262,16 +265,13 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
 		AND source_id IN ({})
         AND url IS NOT NULL"#,
         generate_placeholders(
-            filters
-                .media_types
-                .as_ref()
-                .context("no media types")?
-                .len()
+            media_types.len()
         ),
         generate_placeholders(filters.source_ids.len()),
     );
+    eprintln!("{:?}\n{:?}", &filters, sql_query);
     let mut baked_params = 3;
-    if filters.view_type == view_type::FAVORITES {
+    if filters.view_type == view_type::FAVORITES && filters.series_id.is_none() {
         sql_query += "\nAND favorite = 1";
     }
     if filters.series_id.is_some() {
@@ -283,13 +283,9 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     }
     sql_query += "\nLIMIT ?, ?";
     let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(
-        baked_params + filters.media_types.as_ref().unwrap().len() + filters.source_ids.len(),
+        baked_params + media_types.len() + filters.source_ids.len(),
     );
     let query = to_sql_like(filters.query);
-    let media_types = match filters.series_id.is_some() {
-        true => vec![1],
-        false => filters.media_types.unwrap(),
-    };
     params.push(&query);
     params.extend(to_to_sql(&media_types));
     params.extend(to_to_sql(&filters.source_ids));
