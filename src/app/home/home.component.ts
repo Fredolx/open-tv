@@ -162,7 +162,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const clientHeight = window.innerHeight || document.documentElement.clientHeight;
     if (scrollTop + clientHeight >= scrollHeight - 1) {
-      console.log("a");
       await this.loadMore();
     }
   }
