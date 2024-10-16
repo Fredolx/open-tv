@@ -67,6 +67,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   readonly PAGE_SIZE = 36;
   channelsVisible = true;
   prevSearchValue?: String;
+  loading = false;
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService, private error: ErrorService) {
     this.getSources();
@@ -135,6 +136,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   async load(more = false) {
+    this.loading = true;
     try {
       let channels: Channel[] = await invoke('search', { filters: this.filters });
       if (!more) {
@@ -149,19 +151,21 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     catch (e) {
       this.error.handleError(e);
     }
+    this.loading = false;
   }
 
-  // @HostListener('window:scroll', ['$event'])
-  // async scroll(event: any) {
-  //   if (window.document.documentElement.scrollHeight - (window.scrollY + window.document.documentElement.offsetHeight) == 0) {
-  //     await this.loadMore();
-  //   }
-  // }
-
-  // @HostListener('window:resize', ['$event'])
-  // onResize(event: any) {
-  //   this.currentWindowSize = event.target.innerWidth;
-  // }
+  @HostListener('window:scroll', ['$event'])
+  async scroll(event: any) {
+    if (this.reachedMax === true || this.loading === true)
+      return;
+    const scrollHeight = document.documentElement.scrollHeight;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const clientHeight = window.innerHeight || document.documentElement.clientHeight;
+    if (scrollTop + clientHeight >= scrollHeight - 1) {
+      console.log("a");
+      await this.loadMore();
+    }
+  }
 
   ngAfterViewInit(): void {
     this.addEvents().then(_ => _);
