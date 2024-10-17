@@ -33,7 +33,7 @@ export class MemoryService {
       await action();
       this.toastr.success(successMessage);
     } catch (e) {
-      this.error.handleError(e);
+      this.error.handleError(e, errorMessage);
     }
     this.Loading = false;
   }

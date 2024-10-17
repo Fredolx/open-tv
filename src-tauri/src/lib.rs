@@ -36,7 +36,8 @@ pub fn run() {
             delete_source,
             refresh_all,
             get_enabled_sources,
-            toggle_source
+            toggle_source,
+            delete_database
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -135,4 +136,9 @@ fn delete_source(id: i64) -> Result<(), String> {
 #[tauri::command(async)]
 fn toggle_source(value: bool, source_id: i64) -> Result<(), String> {
     sql::set_source_enabled(value, source_id).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn delete_database() -> Result<(), String> {
+    sql::delete_database().map_err(map_err_frontend)
 }

@@ -35,5 +35,9 @@ body {
     display: none;
 }
 
-html, body { height: fit-content }
+.selectable {
+    user-select: auto;
+}
+
+html, body { height: fit-content; user-select: none; }
 body { margin: 0; font-family: "Roboto", sans-serif }

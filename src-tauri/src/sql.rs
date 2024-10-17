@@ -111,6 +111,11 @@ fn structure_exists() -> Result<bool> {
     Ok(table_exists)
 }
 
+pub fn delete_database() -> Result<()> {
+    std::fs::remove_file(get_and_create_sqlite_db_path())?;
+    std::process::exit(0);
+}
+
 pub fn create_or_initialize_db() -> Result<()> {
     if !structure_exists()? {
         create_structure()?;

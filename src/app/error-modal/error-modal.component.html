@@ -6,6 +6,16 @@
     <p class="lbl">
         The following error has occured, <a target="_blank" href="https://github.com/Fredolx/open-tv/issues">you may report it here</a>
     </p>
+    <p>
+        You may also find detailed logs of what could have caused the errors in $XDG_CACHE_HOME. That corresponds to:
+    </p>
+    <ul>
+        <li>Windows: <span class="selectable">%localappdata%\fredol\open-tv\cache\logs</span></li>
+        <li>Linux: <span class="selectable">~/.cache/open-tv/logs</span> or <span class="selectable">~/.var/app/dev.fredol.open-tv/cache/open-tv/logs</span></li>
+        <li>MacOS: <span class="selectable">~/Library/Caches/dev.fredol.open-tv/logs</span></li>
+    </ul>
+    <p>Note that if you are still experiencing errors for browsing Xtream series after upgrading to 1.0.3, you may need to use the new "Delete everything" button in the bottom of the settings page.</p>
+    <p>Please attach those logs (if they exist) and the error below to your bug request. Thank you!</p>
     <textarea autocomplete="false" spellcheck="false" readonly class="error-area">
         {{error}}
     </textarea>
