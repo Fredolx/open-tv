@@ -22,6 +22,7 @@ const ARG_RECORD: &str = "--stream-record=";
 const ARG_TITLE: &str = "--title=";
 const ARG_MSG_LEVEL: &str = "--msg-level=all=error";
 const ARG_YTDLP_PATH: &str = "--script-opts=ytdl_hook-ytdl_path=";
+const ARG_VOLUME: &str = "--volume=";
 const MPV_BIN_NAME: &str = "mpv";
 const YTDLP_BIN_NAME: &str = "yt-dlp";
 const MACOS_POTENTIAL_PATHS: [&str; 3] = [
@@ -124,6 +125,9 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
     }
     args.push(format!("{}{}", ARG_TITLE, channel.name));
     args.push(ARG_MSG_LEVEL.to_string());
+    if let Some(volume) = settings.volume {
+        args.push(format!("{ARG_VOLUME}{volume}"));
+    }
     if let Some(mpv_params) = settings.mpv_params {
         #[cfg(not(target_os = "windows"))]
         let mut params = shell_words::split(&mpv_params)?;

@@ -29,7 +29,7 @@
                 [ngbTooltip]="'Launch parameters applied to all channels. Leave as-is if you don\'t know what this is'">Global
                 MPV Parameters</span>
         </div>
-        <div class="col col-lg-6 col-md-8">
+        <div class="col">
             <textarea #mpvParams id="mpvParams" [(ngModel)]="settings.mpv_params"
                 placeholder="mpv params like: --hwdec auto. Don't touch this unless you know what you're doing!"
                 class="form-control"></textarea>
@@ -46,6 +46,16 @@
                 <option [ngValue]="viewModeEnum.Categories">Categories</option>
                 <option [ngValue]="viewModeEnum.Favorites">Favorites</option>
             </select>
+        </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+        <div class="col-4">
+            <span>Volume on start</span>
+        </div>
+        <div class="col d-inline-flex">
+            <input type="range" style="flex-grow: 10; width: auto;" step="1" class="form-range" min="0" max="100" [(ngModel)]="settings.volume" (ngModelChange)="updateSettings()">
+            <span style="flex-grow: 0.5;" class="text-end">{{settings.volume}}</span>
         </div>
     </div>
 

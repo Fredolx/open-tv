@@ -17,7 +17,8 @@ export class SettingsComponent {
   subscriptions: Subscription[] = [];
   settings: Settings = {
     use_stream_caching: true,
-    default_view: ViewMode.All
+    default_view: ViewMode.All,
+    volume: 100
   };
   viewModeEnum = ViewMode;
   sources: Source[] = [];
@@ -37,6 +38,8 @@ export class SettingsComponent {
         this.settings.use_stream_caching = true;
       if (this.settings.default_view == undefined)
         this.settings.default_view = ViewMode.All;
+      if (this.settings.volume == undefined)
+        this.settings.volume = 100;
     });
   }
 

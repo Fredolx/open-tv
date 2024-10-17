@@ -3,4 +3,5 @@ export class Settings {
     use_stream_caching?: boolean;
     mpv_params?: string;
     default_view?: number;
+    volume?: number;
 }
