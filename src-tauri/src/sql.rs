@@ -274,7 +274,6 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         ),
         generate_placeholders(filters.source_ids.len()),
     );
-    eprintln!("{:?}\n{:?}", &filters, sql_query);
     let mut baked_params = 3;
     if filters.view_type == view_type::FAVORITES && filters.series_id.is_none() {
         sql_query += "\nAND favorite = 1";

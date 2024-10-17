@@ -80,7 +80,7 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
         sql::insert_channel(&tx, channel)?;
     }
     if problematic_lines > lines_count / 2 {
-        tx.rollback().unwrap_or_else(|e| eprintln!("{:?}", e));
+        tx.rollback().unwrap_or_else(|e| log::log(format!("{:?}", e)));
         if new_source {
             delete_source(source.id.context("no source id")?).unwrap_or_else(|e| log::log(format!("{:?}", e)));
         }
