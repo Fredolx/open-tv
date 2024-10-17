@@ -16,7 +16,8 @@ use tokio::{
 use which::which;
 
 const ARG_SAVE_POSITION_ON_QUIT: &str = "--save-position-on-quit";
-const ARG_CACHE: &str = "--cache";
+const ARG_CACHE: &str = "--cache=";
+const ARG_NO: &str = "no";
 const ARG_RECORD: &str = "--stream-record=";
 const ARG_TITLE: &str = "--title=";
 const ARG_MSG_LEVEL: &str = "--msg-level=all=error";
@@ -108,7 +109,7 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
         args.push(ARG_SAVE_POSITION_ON_QUIT.to_string());
     }
     if settings.use_stream_caching == Some(false) {
-        let stream_caching_arg = format!("{ARG_CACHE} no",);
+        let stream_caching_arg = format!("{ARG_CACHE}{ARG_NO}",);
         args.push(stream_caching_arg);
     }
     if record {
