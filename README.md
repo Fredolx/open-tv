@@ -2,11 +2,11 @@
 
 Completely rewritten to accommodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience.
 
-<a href="https://flathub.org/apps/dev.fredol.open-tv">
-  <img src="https://dl.flathub.org/assets/badges/flathub-badge-en.svg" width="300"/>
-</a>
 <a href="https://apps.microsoft.com/detail/9PBWX3RKR1QX?launch=true&mode=mini">
 	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="350"/>
+</a>
+<a href="https://flathub.org/apps/dev.fredol.open-tv">
+  <img src="https://dl.flathub.org/assets/badges/flathub-badge-en.svg" width="300"/>
 </a>
 <a href="https://aur.archlinux.org/packages/open-tv-bin">
   <img src="https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/readme_imgs/aur-open-tv.svg" width="350" />
