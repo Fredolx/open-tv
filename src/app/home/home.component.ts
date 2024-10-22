@@ -14,6 +14,7 @@ import { Filters } from '../models/filters';
 import { SourceType } from '../models/sourceType';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { ErrorService } from '../error.service';
+import { Settings } from '../models/settings';
 
 @Component({
   selector: 'app-home',
@@ -66,20 +67,25 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   readonly PAGE_SIZE = 36;
   channelsVisible = true;
   prevSearchValue?: String;
+  loading = false;
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService, private error: ErrorService) {
     this.getSources();
   }
 
   getSources() {
-    invoke("get_sources").then(sources => {
-      this.memory.Sources = (sources as Source[]).filter(x => x.enabled);
-      if ((sources as Source[]).length == 0)
+    let get_settings = invoke("get_settings");
+    let get_sources = invoke("get_sources");
+    Promise.all([get_settings, get_sources]).then(data => {
+      let settings = data[0] as Settings;
+      let sources = data[1] as Source[];
+      this.memory.Sources = sources.filter(x => x.enabled);
+      if (sources.length == 0)
         this.reset();
       else {
         this.filters = {
           source_ids: this.memory.Sources.map(x => x.id!),
-          view_type: ViewMode.All,
+          view_type: settings.default_view ?? ViewMode.All,
           media_types: [MediaType.livestream, MediaType.movie, MediaType.serie],
           page: 1
         }
@@ -130,6 +136,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   async load(more = false) {
+    this.loading = true;
     try {
       let channels: Channel[] = await invoke('search', { filters: this.filters });
       if (!more) {
@@ -144,19 +151,20 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     catch (e) {
       this.error.handleError(e);
     }
+    this.loading = false;
   }
 
-  // @HostListener('window:scroll', ['$event'])
-  // async scroll(event: any) {
-  //   if (window.document.documentElement.scrollHeight - (window.scrollY + window.document.documentElement.offsetHeight) == 0) {
-  //     await this.loadMore();
-  //   }
-  // }
-
-  // @HostListener('window:resize', ['$event'])
-  // onResize(event: any) {
-  //   this.currentWindowSize = event.target.innerWidth;
-  // }
+  @HostListener('window:scroll', ['$event'])
+  async scroll(event: any) {
+    if (this.reachedMax === true || this.loading === true)
+      return;
+    const scrollHeight = document.documentElement.scrollHeight;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const clientHeight = window.innerHeight || document.documentElement.clientHeight;
+    if (scrollTop + clientHeight >= scrollHeight - 1) {
+      await this.loadMore();
+    }
+  }
 
   ngAfterViewInit(): void {
     this.addEvents().then(_ => _);
@@ -314,7 +322,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   filtersVisible() {
-    return this.filters?.view_type != this.viewModeEnum.Categories && !this.filters?.series_id;
+    return !((this.filters?.view_type == this.viewModeEnum.Categories && !this.filters?.group_id) || this.filters?.series_id);
   }
 
   async switchMode(viewMode: ViewMode) {

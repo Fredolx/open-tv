@@ -31,6 +31,8 @@ pub struct Settings {
     pub recording_path: Option<String>,
     pub mpv_params: Option<String>,
     pub use_stream_caching: Option<bool>,
+    pub default_view: Option<u8>,
+    pub volume: Option<u8>
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

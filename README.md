@@ -9,7 +9,7 @@ Completely rewritten to accommodate new features and to be even speedier, Open T
 	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="350"/>
 </a>
 
-# This project NEEDS your help. Please consider donating on [Github](https://github.com/sponsors/Fredolx), [Patreon](https://www.patreon.com/fredol) or directly by [crypto](#crypto)
+# This project NEEDS your help. Please consider donating on [Github](https://github.com/sponsors/Fredolx), [Patreon](https://www.patreon.com/fredol), [Paypal](https://paypal.me/fredolx) or directly by [crypto](#crypto)
 I've been developing and maintaining this project alone and for entirely for free over the past 2 years. I am in dire need of support to continue developing this project. I've never added annoying donation pop-ups or anything of the sort to make sure you have the fastest and cleanest IPTV experience and I'm committed to keep this project FREE & OPEN-SOURCE. To keep that commitment, I need your support!
 
 ~~I'm currently developing a big rework of the app in Rust to allow for new big features that have been requested by the community for some time...~~
@@ -37,11 +37,17 @@ If you use Arch Linux, you can also [install it from the AUR](https://aur.archli
 ## Prerequisites
 If you are on Windows or use the flatpak on Linux; SKIP THIS PART. 
 
-The app both depends on mpv, ffmpeg and yt-dlp. ffmpeg is a depedency of mpv on all package managers. On Fedora you will need to add rpmfusion and on OpenSUSE you will need to install codecs with opi beforehand.
+The app depends on mpv, ffmpeg and yt-dlp. 
+If you are on MacOS, you must use Brew or MacPorts to install those dependencies. 
 
-The Windows build **comes with mpv included** (.msi), but you should still install mpv from a package manager of your choice to always have the latest version installed
+On Fedora, you must add rpmfusion to install those packages.
+
+On Debian or LTS distro, I would strongly suggest using a backport for yt-dlp.
+
+The Windows build **comes with mpv included** (.msi), but you can still install mpv from a package manager of your choice to always have the latest version installed
 
 ```
+brew install mpv ffmpeg yt-dlp #MacOS
 sudo dnf install mpv ffmpeg yt-dlp #Fedora
 sudo zypper install mpv ffmpeg yt-dlp #OpenSUSE
 sudo pacman -Syu mpv ffmpeg yt-dlp #Arch
