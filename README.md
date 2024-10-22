@@ -8,6 +8,9 @@ Completely rewritten to accommodate new features and to be even speedier, Open T
 <a href="https://apps.microsoft.com/detail/9PBWX3RKR1QX?launch=true&mode=mini">
 	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="350"/>
 </a>
+<a href="https://aur.archlinux.org/packages/open-tv-bin">
+  <img src="https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/readme_imgs/aur-open-tv.svg" width="350" />
+</a>
 
 # This project NEEDS your help. Please consider donating on [Github](https://github.com/sponsors/Fredolx), [Patreon](https://www.patreon.com/fredol), [Paypal](https://paypal.me/fredolx) or directly by [crypto](#crypto)
 I've been developing and maintaining this project alone and for entirely for free over the past 2 years. I am in dire need of support to continue developing this project. I've never added annoying donation pop-ups or anything of the sort to make sure you have the fastest and cleanest IPTV experience and I'm committed to keep this project FREE & OPEN-SOURCE. To keep that commitment, I need your support!
@@ -26,13 +29,6 @@ The app rewrite is done 🎊 Thank you to all who have donated during the last 3
 - Super low RAM usage, crazy speeds, and instant search 🚅
 - Refresh your sources when you need it 🔄
 - Add channels to favorites 🌟
-
-## Install
-You can install the latest version from [Releases](https://github.com/Fredolx/open-tv/releases/)
-
-Open TV is also now available on Flathub (LINK AVAILAIBLE SOON) 🎊
-
-If you use Arch Linux, you can also [install it from the AUR](https://aur.archlinux.org/packages/open-tv-bin) 
 
 ## Prerequisites
 If you are on Windows or use the flatpak on Linux; SKIP THIS PART. 
