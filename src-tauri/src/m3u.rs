@@ -60,9 +60,13 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
                 continue;
             }
         };
-        let (fail, headers) = extract_headers(&mut l2, &mut lines)?; 
-        if fail {
-            continue;
+        let mut headers: Option<ChannelHttpHeaders> = None;
+        if l2.starts_with("#EXTVLCOPT") {
+            let (fail, _headers) = extract_headers(&mut l2, &mut lines)?; 
+            if fail {
+                continue;
+            }
+            headers = _headers;
         }
         let mut channel = match get_channel_from_lines(l1, l2, source.id.unwrap())
             .with_context(|| format!("Failed to process lines #{c1} #{c2}, skipping"))
@@ -155,7 +159,7 @@ fn extract_headers(l2: &mut String, lines: &mut Skip<Enumerate<Lines<BufReader<F
         }
     }
     if at_least_one {
-        return Ok((true, Some(headers)));
+        return Ok((false, Some(headers)));
     }
     else {
         return Ok((true, None));

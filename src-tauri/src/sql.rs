@@ -35,7 +35,6 @@ fn get_and_create_sqlite_db_path() -> String {
     return path.to_string_lossy().to_string();
 }
 
-//@TODO: Nullable types
 fn create_structure() -> Result<()> {
     let sql = get_conn()?;
     sql.execute_batch(
@@ -189,7 +188,7 @@ pub fn insert_channel_headers(tx: &Transaction, headers: ChannelHttpHeaders) -> 
     tx.execute(
         r#"
 INSERT OR IGNORE INTO channel_http_headers (channel_id, referrer, user_agent, http_origin) 
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, false); 
+VALUES (?, ?, ?, ?); 
 "#,
         params![
             headers.channel_id,
@@ -248,11 +247,13 @@ pub fn set_channel_group_id(
 
 pub fn get_channel_headers_by_id(id: i64) -> Result<Option<ChannelHttpHeaders>> {
     let sql = get_conn()?;
-    let headers = sql.query_row(
-        "SELECT * FROM channel_http_headers WHERE channel_id = ?",
-        params![id],
-        row_to_channel_headers,
-    ).optional()?;
+    let headers = sql
+        .query_row(
+            "SELECT * FROM channel_http_headers WHERE channel_id = ?",
+            params![id],
+            row_to_channel_headers,
+        )
+        .optional()?;
     Ok(headers)
 }
 
@@ -263,7 +264,7 @@ fn row_to_channel_headers(row: &Row) -> Result<ChannelHttpHeaders, rusqlite::Err
         http_origin: row.get("http_origin")?,
         referrer: row.get("referrer")?,
         user_agent: row.get("user_agent")?,
-        ignore_ssl: row.get("ignore_ssl")?
+        ignore_ssl: row.get("ignore_ssl")?,
     })
 }
 
@@ -450,8 +451,18 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     let sql = get_conn()?;
     sql.execute(
         r#"
+        DELETE
+        FROM channel_http_headers ch
+        JOIN channels c ON ch.channel_id = c.id
+        WHERE c.source_id = ?
+        AND c.favorite = 0;
+    "#,
+        params![source_id.to_string()],
+    )?;
+    sql.execute(
+        r#"
         DELETE FROM channels
-        WHERE source_id = ?1
+        WHERE source_id = ?
         AND favorite = 0;
     "#,
         params![source_id.to_string()],

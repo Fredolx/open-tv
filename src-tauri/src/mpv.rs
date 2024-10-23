@@ -43,6 +43,7 @@ static YTDLP_PATH: LazyLock<String> = LazyLock::new(|| find_macos_bin(YTDLP_BIN_
 pub async fn play(channel: Channel, record: bool) -> Result<()> {
     println!("{} playing", channel.url.as_ref().unwrap());
     let args = get_play_args(channel, record)?;
+    println!("with args: {:?}", args);
     let mut cmd = Command::new(MPV_PATH.clone())
         .args(args)
         .stdout(Stdio::piped())
@@ -169,7 +170,7 @@ fn set_headers(headers: Option<ChannelHttpHeaders>, args: &mut Vec<String>) {
 fn get_path(path_str: String) -> String {
     let path = Path::new(&path_str);
     let path = path.join(get_file_name());
-    return path.to_string_lossy().to_string(); // Check if it causes problems for some OS languages?
+    return path.to_string_lossy().to_string();
 }
 
 fn get_file_name() -> String {
