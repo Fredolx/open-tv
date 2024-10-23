@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::LazyLock};
 
 use crate::{
     media_type,
-    types::{Channel, Filters, Source},
+    types::{Channel, ChannelHttpHeaders, Filters, Source},
     view_type,
 };
 use anyhow::{anyhow, Context, Result};
@@ -64,6 +64,16 @@ CREATE TABLE "channels" (
   FOREIGN KEY (group_id) REFERENCES groups(id)
 );
 
+CREATE TABLE "channel_http_headers" (
+  "id" INTEGER PRIMARY KEY,
+  "channel_id" integer,
+  "referrer" varchar(500),
+  "user_agent" varchar(500),
+  "http_origin" varchar(500),
+  "ignore_ssl" integer DEFAULT 0,
+  FOREIGN KEY (channel_id) REFERENCES channels(id)
+);
+
 CREATE TABLE "settings" (
   "key" VARCHAR(50) PRIMARY KEY,
   "value" VARCHAR(100)
@@ -93,6 +103,8 @@ CREATE INDEX index_channel_group_id ON channels(group_id);
 CREATE INDEX index_channel_media_type ON channels(media_type);
 
 CREATE INDEX index_group_source_id ON groups(source_id);
+
+CREATE INDEX index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
 "#,
     )?;
     Ok(())
@@ -173,6 +185,22 @@ VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, false);
     Ok(())
 }
 
+pub fn insert_channel_headers(tx: &Transaction, headers: ChannelHttpHeaders) -> Result<()> {
+    tx.execute(
+        r#"
+INSERT OR IGNORE INTO channel_http_headers (channel_id, referrer, user_agent, http_origin) 
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, false); 
+"#,
+        params![
+            headers.channel_id,
+            headers.referrer,
+            headers.user_agent,
+            headers.http_origin
+        ],
+    )?;
+    Ok(())
+}
+
 fn insert_group(
     tx: &Transaction,
     group: &str,
@@ -216,6 +244,27 @@ pub fn set_channel_group_id(
             .map(|x| x.to_owned());
     }
     Ok(())
+}
+
+pub fn get_channel_headers_by_id(id: i64) -> Result<Option<ChannelHttpHeaders>> {
+    let sql = get_conn()?;
+    let headers = sql.query_row(
+        "SELECT * FROM channel_http_headers WHERE channel_id = ?",
+        params![id],
+        row_to_channel_headers,
+    ).optional()?;
+    Ok(headers)
+}
+
+fn row_to_channel_headers(row: &Row) -> Result<ChannelHttpHeaders, rusqlite::Error> {
+    Ok(ChannelHttpHeaders {
+        id: row.get("id")?,
+        channel_id: row.get("channel_id")?,
+        http_origin: row.get("http_origin")?,
+        referrer: row.get("referrer")?,
+        user_agent: row.get("user_agent")?,
+        ignore_ssl: row.get("ignore_ssl")?
+    })
 }
 
 pub fn get_settings() -> Result<HashMap<String, String>> {
@@ -269,9 +318,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         AND media_type IN ({})
 		AND source_id IN ({})
         AND url IS NOT NULL"#,
-        generate_placeholders(
-            media_types.len()
-        ),
+        generate_placeholders(media_types.len()),
         generate_placeholders(filters.source_ids.len()),
     );
     let mut baked_params = 3;
@@ -286,9 +333,8 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         baked_params += 1;
     }
     sql_query += "\nLIMIT ?, ?";
-    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(
-        baked_params + media_types.len() + filters.source_ids.len(),
-    );
+    let mut params: Vec<&dyn rusqlite::ToSql> =
+        Vec::with_capacity(baked_params + media_types.len() + filters.source_ids.len());
     let query = to_sql_like(filters.query);
     params.push(&query);
     params.extend(to_to_sql(&media_types));

@@ -45,3 +45,13 @@ pub struct Filters {
     pub series_id: Option<i64>,
     pub group_id: Option<i64>,
 }
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct ChannelHttpHeaders {
+    pub id: Option<i64>,
+    pub channel_id: Option<i64>,
+    pub referrer: Option<String>,
+    pub user_agent: Option<String>,
+    pub http_origin: Option<String>,
+    pub ignore_ssl: bool
+}
