@@ -41,7 +41,8 @@ pub fn run() {
             add_custom_channel,
             get_channel_headers,
             edit_custom_channel,
-            delete_custom_channel
+            delete_custom_channel,
+            add_custom_source
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -165,4 +166,10 @@ fn delete_custom_channel(id: i64) ->  Result<(), String> {
 #[tauri::command(async)]
 fn get_channel_headers(id: i64) -> Result<Option<ChannelHttpHeaders>, String> {
     sql::get_channel_headers_by_id(id).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn add_custom_source() -> Result<(), String> {
+    sql::create_or_find_source_by_name(&mut sql::get_custom_source()).map_err(map_err_frontend)?;
+    Ok(())
 }

@@ -75,7 +75,23 @@ export class SetupComponent {
         break;
       case SourceType.Xtream:
         await this.getXtream();
+        break;
+      case SourceType.Custom:
+        await this.startWithCustomOnly();
+        break;
     }
+  }
+
+  async startWithCustomOnly() {
+    this.loading = true;
+    try {
+      await invoke('add_custom_source');
+      this.nav.navigateByUrl("");
+    }
+    catch(e) {
+      this.error.handleError(e, "Invalid URL or credentials. Please try again");
+    }
+    this.loading = false;
   }
 
   async getM3ULink() {

@@ -21,3 +21,13 @@ button .anim-svg {
 button:hover .anim-svg {
     transform: scale(125%);
 }
+
+button .pen {
+    width: 1.5rem;
+    height: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+button:hover .pen {
+    transform: scale(125%);
+}
