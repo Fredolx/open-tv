@@ -17,11 +17,12 @@ export class MemoryService {
   public Sources: Source[] = [];
   public currentContextMenu?: MatMenuTrigger;
   public Loading = false;
-  public RefreshFavs: Subject<boolean> = new Subject();
+  public Refresh: Subject<boolean> = new Subject();
   public RefreshSources: Subject<boolean> = new Subject();
   public AddingAdditionalSource = false;
   public SeriesRefreshed: Map<Number, boolean> = new Map();
   public HideChannels: Subject<boolean> = new Subject();
+  public ReservedChannelSourceId?: number
 
   async tryIPC<T>(
     successMessage: string,

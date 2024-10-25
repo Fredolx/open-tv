@@ -1,0 +1,20 @@
+.text-small {
+    font-size: 0.85rem;
+    color: lightgray;
+}
+
+.error {
+    font-size: 0.9rem;
+    padding-left: 0;
+}
+
+button .save-floppy {
+    height: 1.5rem;
+    width: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+button:hover .save-floppy {
+    transform: scale(125%);
+}
+

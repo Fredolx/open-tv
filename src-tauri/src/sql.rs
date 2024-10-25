@@ -1,7 +1,9 @@
 use std::{collections::HashMap, sync::LazyLock};
 
+use crate::log::log;
+use crate::types::CustomChannel;
 use crate::{
-    media_type,
+    media_type, source_type,
     types::{Channel, ChannelHttpHeaders, Filters, Source},
     view_type,
 };
@@ -12,6 +14,8 @@ use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::{params, params_from_iter, OptionalExtension, Row, Transaction};
 
 const PAGE_SIZE: u8 = 36;
+pub const CUSTOM_CHANNELS_SOURCE_RESERVED_NAME: &str = "My custom channels";
+const CUSTOM_CHANNELS_GROUP_RESERVED_NAME: &str = "Custom channels";
 static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
 
 pub fn get_conn() -> Result<PooledConnection<SqliteConnectionManager>> {
@@ -70,7 +74,7 @@ CREATE TABLE "channel_http_headers" (
   "user_agent" varchar(500),
   "http_origin" varchar(500),
   "ignore_ssl" integer DEFAULT 0,
-  FOREIGN KEY (channel_id) REFERENCES channels(id)
+  FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
 );
 
 CREATE TABLE "settings" (
@@ -103,7 +107,7 @@ CREATE INDEX index_channel_media_type ON channels(media_type);
 
 CREATE INDEX index_group_source_id ON groups(source_id);
 
-CREATE INDEX index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
+CREATE UNIQUE INDEX index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
 "#,
     )?;
     Ok(())
@@ -169,7 +173,7 @@ pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
 INSERT OR IGNORE INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite) 
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, false); 
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8); 
 "#,
         params![
             channel.name,
@@ -178,7 +182,8 @@ VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, false);
             channel.url,
             channel.source_id,
             channel.media_type as u8,
-            channel.series_id
+            channel.series_id,
+            channel.favorite
         ],
     )?;
     Ok(())
@@ -451,16 +456,6 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     let sql = get_conn()?;
     sql.execute(
         r#"
-        DELETE
-        FROM channel_http_headers ch
-        JOIN channels c ON ch.channel_id = c.id
-        WHERE c.source_id = ?
-        AND c.favorite = 0;
-    "#,
-        params![source_id.to_string()],
-    )?;
-    sql.execute(
-        r#"
         DELETE FROM channels
         WHERE source_id = ?
         AND favorite = 0;
@@ -527,6 +522,9 @@ pub fn get_channel_count_by_source(id: i64) -> Result<u64> {
 }
 
 pub fn source_name_exists(name: String) -> Result<bool> {
+    if name.to_lowercase().trim() == CUSTOM_CHANNELS_SOURCE_RESERVED_NAME.to_lowercase() {
+        return Ok(true);
+    }
     let sql = get_conn()?;
     Ok(sql
         .query_row(
@@ -610,6 +608,138 @@ pub fn set_source_enabled(value: bool, source_id: i64) -> Result<()> {
     "#,
         params![value, source_id],
     )?;
+    Ok(())
+}
+
+pub fn add_custom_channel(channel: CustomChannel) -> Result<()> {
+    let mut source = get_custom_source();
+    create_or_find_source_by_name(&mut source)?;
+    let mut sql = get_conn()?;
+    let tx = sql.transaction()?;
+    match add_custom_channel_tx(&tx, channel, source.id.unwrap()) {
+        Ok(_) => {
+            tx.commit()?;
+            Ok(())
+        },
+        Err(e) => {
+            tx.rollback().unwrap_or_else(|e| log(format!("{:?}", e)));
+            return Err(e.context("Failed to add custom channel"));
+        }
+    }
+}
+
+fn add_custom_channel_tx(
+    tx: &Transaction,
+    mut channel: CustomChannel,
+    source_id: i64,
+) -> Result<()> {
+    channel.data.group_id = Some(get_or_create_group(
+        CUSTOM_CHANNELS_GROUP_RESERVED_NAME,
+        source_id,
+        tx,
+    )?);
+    channel.data.source_id = source_id;
+    insert_channel(tx, channel.data)?;
+    if let Some(mut headers) = channel.headers {
+        headers.channel_id = Some(tx.last_insert_rowid());
+        insert_channel_headers(tx, headers)?;
+    }
+    Ok(())
+}
+
+fn get_or_create_group(name: &str, source_id: i64, tx: &Transaction) -> Result<i64> {
+    let id = tx
+        .query_row(
+            "SELECT id FROM groups WHERE name = ?",
+            params![name],
+            |row| row.get("id"),
+        )
+        .optional()?;
+    if id.is_none() {
+        tx.execute(
+            "INSERT INTO groups (name, source_id) VALUES (?, ?)",
+            params![name, source_id],
+        )?;
+        return Ok(tx.last_insert_rowid());
+    }
+    Ok(id.context("No group id")?)
+}
+
+pub fn get_custom_source() -> Source {
+    Source {
+        id: None,
+        name: CUSTOM_CHANNELS_SOURCE_RESERVED_NAME.to_string(),
+        enabled: true,
+        username: None,
+        password: None,
+        source_type: source_type::CUSTOM,
+        url: None,
+        url_origin: None,
+    }
+}
+
+pub fn edit_custom_channel(channel: CustomChannel) -> Result<()> {
+    let mut sql = get_conn()?;
+    let tx = sql.transaction()?;
+    match edit_custom_channel_tx(channel, &tx) {
+        Ok(_) => {
+            tx.commit()?;
+            Ok(())
+        },
+        Err(e) => {
+            tx.rollback().unwrap_or_else(|e| log(format!("{:?}", e)));
+            return Err(e);
+        }
+    }
+}
+
+fn edit_custom_channel_tx(channel: CustomChannel, tx: &Transaction) -> Result<()> {
+    tx.execute(
+        r#"
+        UPDATE channels
+        SET name = ?, image = ?, url = ?, media_type = ?
+        WHERE id = ?
+    "#,
+        params![
+            channel.data.name,
+            channel.data.image,
+            channel.data.url,
+            channel.data.media_type,
+            channel.data.id
+        ],
+    )?;
+    if let Some(mut headers) = channel.headers {
+        headers.channel_id = channel.data.id;
+        tx.execute(
+            r#"
+            INSERT INTO channel_http_headers (referrer, user_agent, http_origin, ignore_ssl, channel_id)
+            VALUES (?1, ?2, ?3, ?4, ?5)
+            ON CONFLICT(channel_id) DO UPDATE SET 
+                referrer = ?1, 
+                user_agent = ?2, 
+                http_origin = ?3, 
+                ignore_ssl = ?4
+        "#,
+            params![
+                headers.referrer,
+                headers.user_agent,
+                headers.http_origin,
+                headers.ignore_ssl,
+                headers.channel_id
+            ],
+        )?;
+    } else {
+        tx.execute(
+            "DELETE FROM channel_http_headers WHERE channel_id = ?",
+            params![channel.data.id],
+        )?;
+    }
+    Ok(())
+}
+
+pub fn delete_custom_channel(id: i64) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute("DELETE FROM channels WHERE id = ?", params![id])?;
     Ok(())
 }
 

@@ -19,6 +19,7 @@ import { ChannelTileComponent } from './channel-tile/channel-tile.component';
 import { SettingsComponent } from './settings/settings.component';
 import { SourceTileComponent } from './settings/source-tile/source-tile.component';
 import { ErrorModalComponent } from './error-modal/error-modal.component';
+import { EditChannelModalComponent } from './edit-channel-modal/edit-channel-modal.component';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { ErrorModalComponent } from './error-modal/error-modal.component';
     SettingsComponent,
     SourceTileComponent,
     ErrorModalComponent,
+    EditChannelModalComponent,
   ],
   imports: [
     BrowserModule,

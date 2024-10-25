@@ -138,7 +138,7 @@ fn extract_headers(l2: &mut String, lines: &mut Skip<Enumerate<Lines<BufReader<F
         http_origin: None,
         referrer: None,
         user_agent: None,
-        ignore_ssl: false
+        ignore_ssl: None
     };
     let mut at_least_one: bool = false;
     while l2.starts_with("#EXTVLCOPT") {

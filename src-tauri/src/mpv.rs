@@ -160,8 +160,10 @@ fn set_headers(headers: Option<ChannelHttpHeaders>, args: &mut Vec<String>) {
     if let Some(user_agent) = headers.user_agent {
         args.push(format!("{ARG_USER_AGENT}{user_agent}"));
     }
-    if headers.ignore_ssl {
-        args.push(ARG_IGNORE_SSL.to_string());
+    if let Some(ignore_ssl) = headers.ignore_ssl {
+        if ignore_ssl == true {
+            args.push(ARG_IGNORE_SSL.to_string());
+        }
     }
     let headers = headers_vec.join(",");
     args.push(format!("{ARG_HTTP_HEADERS}{headers}"));

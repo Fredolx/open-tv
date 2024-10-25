@@ -16,6 +16,7 @@ export class SourceTileComponent {
   showUsername = false;
   showPassword = false;
   loading = false;
+  sourceTypeEnum = SourceType;
   constructor(public memory: MemoryService) {
   }
 

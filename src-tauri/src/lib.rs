@@ -1,5 +1,5 @@
 use anyhow::Error;
-use types::{Channel, Filters, Settings, Source};
+use types::{Channel, ChannelHttpHeaders, CustomChannel, Filters, Settings, Source};
 
 pub mod m3u;
 pub mod media_type;
@@ -37,7 +37,11 @@ pub fn run() {
             refresh_all,
             get_enabled_sources,
             toggle_source,
-            delete_database
+            delete_database,
+            add_custom_channel,
+            get_channel_headers,
+            edit_custom_channel,
+            delete_custom_channel
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -141,4 +145,24 @@ fn toggle_source(value: bool, source_id: i64) -> Result<(), String> {
 #[tauri::command(async)]
 fn delete_database() -> Result<(), String> {
     sql::delete_database().map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn add_custom_channel(channel: CustomChannel) -> Result<(), String> {
+    sql::add_custom_channel(channel).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn edit_custom_channel(channel: CustomChannel) -> Result<(), String> {
+    sql::edit_custom_channel(channel).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn delete_custom_channel(id: i64) ->  Result<(), String> {
+    sql::delete_custom_channel(id).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn get_channel_headers(id: i64) -> Result<Option<ChannelHttpHeaders>, String> {
+    sql::get_channel_headers_by_id(id).map_err(map_err_frontend)
 }

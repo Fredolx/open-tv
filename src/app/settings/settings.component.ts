@@ -7,6 +7,8 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { Source } from '../models/source';
 import { MemoryService } from '../memory.service';
 import { ViewMode } from '../models/viewMode';
+import { EditChannelModalComponent } from '../edit-channel-modal/edit-channel-modal.component';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-settings',
@@ -24,7 +26,7 @@ export class SettingsComponent {
   sources: Source[] = [];
   @ViewChild('mpvParams') mpvParams!: ElementRef;
 
-  constructor(private router: Router, public memory: MemoryService, private nav: Router) { }
+  constructor(private router: Router, public memory: MemoryService, private nav: Router, private modal: NgbModal) { }
 
   ngOnInit(): void {
     this.getSettings();
@@ -103,6 +105,11 @@ export class SettingsComponent {
 
   async deleteAll() {
     this.memory.tryIPC("Successfully deleted everything", "Failed to delete everything", () => invoke('delete_database'))
+  }
+
+  async addCustomChannel() {
+    const modalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', });
+    modalRef.componentInstance.name = "EditCustomChannelModal";
   }
 
   ngOnDestroy(): void {

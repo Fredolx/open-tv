@@ -53,5 +53,11 @@ pub struct ChannelHttpHeaders {
     pub referrer: Option<String>,
     pub user_agent: Option<String>,
     pub http_origin: Option<String>,
-    pub ignore_ssl: bool
+    pub ignore_ssl: Option<bool>
+}
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct CustomChannel {
+    pub data: Channel,
+    pub headers: Option<ChannelHttpHeaders>
 }

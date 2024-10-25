@@ -68,6 +68,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   channelsVisible = true;
   prevSearchValue?: String;
   loading = false;
+  readonly CUSTOM_CHANNELS_SOURCE_RESERVED_NAME = "My custom channels";
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService, private error: ErrorService) {
     this.getSources();
@@ -79,6 +80,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     Promise.all([get_settings, get_sources]).then(data => {
       let settings = data[0] as Settings;
       let sources = data[1] as Source[];
+      this.memory.ReservedChannelSourceId = sources.find(x => x.name == this.CUSTOM_CHANNELS_SOURCE_RESERVED_NAME)?.id;
       this.memory.Sources = sources.filter(x => x.enabled);
       if (sources.length == 0)
         this.reset();
@@ -119,10 +121,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.current_group_name = idName.name;
       await this.load();
     }));
-    this.subscriptions.push(this.memory.RefreshFavs.subscribe(_ => {
-      if (this.filters?.view_type == ViewMode.Favorites)
+    this.subscriptions.push(this.memory.Refresh.subscribe(favs => {
+      if (favs === false || this.filters?.view_type == ViewMode.Favorites )
         this.load();
     }));
+
   }
 
   clearSearch() {

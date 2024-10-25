@@ -6,6 +6,8 @@ import { MediaType } from '../models/mediaType';
 import { invoke } from '@tauri-apps/api/core';
 import { ToastrService } from 'ngx-toastr';
 import { ErrorService } from '../error.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { EditChannelModalComponent } from '../edit-channel-modal/edit-channel-modal.component';
 
 @Component({
   selector: 'app-channel-tile',
@@ -13,7 +15,7 @@ import { ErrorService } from '../error.service';
   styleUrl: './channel-tile.component.css'
 })
 export class ChannelTileComponent {
-  constructor(public memory: MemoryService, private toastr: ToastrService, private error: ErrorService) { }
+  constructor(public memory: MemoryService, private toastr: ToastrService, private error: ErrorService, private modal: NgbModal) { }
   @Input() channel?: Channel;
   @Input() id!: Number;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
@@ -29,22 +31,22 @@ export class ChannelTileComponent {
     if (this.starting === true)
       return;
     if (this.channel?.media_type == MediaType.group) {
-      this.memory.SetGroupNode.next({ id: this.channel.id, name: this.channel.name });
+      this.memory.SetGroupNode.next({ id: this.channel.id!, name: this.channel.name! });
       return;
     }
-    if(this.channel?.media_type == MediaType.serie) {
-      let id = Number.parseInt(this.channel.url);
+    if (this.channel?.media_type == MediaType.serie) {
+      let id = Number.parseInt(this.channel.url!);
       if (!this.memory.SeriesRefreshed.has(id)) {
         this.memory.HideChannels.next(false);
         try {
-          await invoke('get_episodes', {seriesId: id});
+          await invoke('get_episodes', { seriesId: id });
           this.memory.SeriesRefreshed.set(id, true);
         }
-        catch(e) {
+        catch (e) {
           this.error.handleError(e, "Failed to fetch series");
         }
       }
-      this.memory.SetSeriesNode.next({id: id, name: this.channel.name});
+      this.memory.SetSeriesNode.next({ id: id, name: this.channel.name! });
       return;
     }
     this.starting = true;
@@ -61,7 +63,7 @@ export class ChannelTileComponent {
   onRightClick(event: MouseEvent) {
     if (this.channel?.media_type == MediaType.group)
       return;
-    this.alreadyExistsInFav = this.channel!.favorite;
+    this.alreadyExistsInFav = this.channel!.favorite!;
     event.preventDefault();
     this.menuTopLeftPosition.x = event.clientX;
     this.menuTopLeftPosition.y = event.clientY;
@@ -85,7 +87,7 @@ export class ChannelTileComponent {
     try {
       await invoke(call, { channelId: this.channel!.id });
       if (this.channel!.favorite)
-        this.memory.RefreshFavs.next(true);
+        this.memory.Refresh.next(true);
       this.channel!.favorite = !this.channel!.favorite
       this.toastr.success(msg);
     }
@@ -100,5 +102,22 @@ export class ChannelTileComponent {
 
   isMovie() {
     return this.channel?.media_type != MediaType.livestream;
+  }
+
+  isCustomChannel(): boolean {
+    return this.channel?.source_id == this.memory.ReservedChannelSourceId;
+  }
+
+  edit() {
+    const modalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', });
+    modalRef.componentInstance.name = "EditCustomChannelModal";
+    modalRef.componentInstance.editing = true;
+    modalRef.componentInstance.channel.data = { ...this.channel };
+  }
+
+  async delete() {
+    await this.memory.tryIPC("Successfully deleted channel", "Failed to delete channel",
+      () => invoke('delete_custom_channel', { id: this.channel?.id }))
+    this.memory.Refresh.next(false);
   }
 }
