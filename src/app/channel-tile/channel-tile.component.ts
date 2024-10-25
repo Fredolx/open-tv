@@ -115,6 +115,12 @@ export class ChannelTileComponent {
     modalRef.componentInstance.channel.data = { ...this.channel };
   }
 
+  share() {
+    this.memory.tryIPC(`Successfully exported channel to Downloads/${this.channel?.id}.json`,
+      "Failed to export channel",
+      () => invoke('share_custom_channel', { channel: this.channel }))
+  }
+
   async delete() {
     await this.memory.tryIPC("Successfully deleted channel", "Failed to delete channel",
       () => invoke('delete_custom_channel', { id: this.channel?.id }))

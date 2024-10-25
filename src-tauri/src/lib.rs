@@ -1,6 +1,7 @@
 use anyhow::Error;
 use types::{Channel, ChannelHttpHeaders, CustomChannel, Filters, Settings, Source};
 
+pub mod log;
 pub mod m3u;
 pub mod media_type;
 pub mod mpv;
@@ -11,7 +12,7 @@ pub mod types;
 pub mod utils;
 pub mod view_type;
 pub mod xtream;
-pub mod log;
+pub mod share;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -42,7 +43,8 @@ pub fn run() {
             get_channel_headers,
             edit_custom_channel,
             delete_custom_channel,
-            add_custom_source
+            add_custom_source,
+            share_custom_channel
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -159,7 +161,7 @@ fn edit_custom_channel(channel: CustomChannel) -> Result<(), String> {
 }
 
 #[tauri::command(async)]
-fn delete_custom_channel(id: i64) ->  Result<(), String> {
+fn delete_custom_channel(id: i64) -> Result<(), String> {
     sql::delete_custom_channel(id).map_err(map_err_frontend)
 }
 
@@ -172,4 +174,9 @@ fn get_channel_headers(id: i64) -> Result<Option<ChannelHttpHeaders>, String> {
 fn add_custom_source() -> Result<(), String> {
     sql::create_or_find_source_by_name(&mut sql::get_custom_source()).map_err(map_err_frontend)?;
     Ok(())
+}
+
+#[tauri::command(async)]
+fn share_custom_channel(channel: Channel) -> Result<(), String> {
+    share::share_custom_channel(channel).map_err(map_err_frontend)
 }
