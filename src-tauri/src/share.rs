@@ -4,6 +4,9 @@ use directories::UserDirs;
 use crate::types::CustomChannel;
 use crate::{sql, types::Channel};
 
+const CHANNEL_SHARE_EXTENSION: &str = ".otv";
+const PLAYLIST_SHARE_EXTENSION: &str = ".otvp";
+
 pub fn share_custom_channel(channel: Channel) -> Result<()> {
     let channel = get_custom_channel(channel)?;
     let path = get_download_path(channel.data.id.context("No id on channel?")?)?;
@@ -14,7 +17,7 @@ fn get_download_path(id: i64) -> Result<String> {
     let path = UserDirs::new().context("No user dirs?")?;
     let path = path.download_dir().context("No downloads folder")?;
     let mut path = path.to_path_buf();
-    path.push(format!("{id}.json"));
+    path.push(format!("{id}{CHANNEL_SHARE_EXTENSION}"));
     Ok(path.to_string_lossy().to_string())
 }
 

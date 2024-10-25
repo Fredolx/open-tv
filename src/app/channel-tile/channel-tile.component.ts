@@ -116,7 +116,7 @@ export class ChannelTileComponent {
   }
 
   share() {
-    this.memory.tryIPC(`Successfully exported channel to Downloads/${this.channel?.id}.json`,
+    this.memory.tryIPC(`Successfully exported channel to Downloads/${this.channel?.id}.otv`,
       "Failed to export channel",
       () => invoke('share_custom_channel', { channel: this.channel }))
   }
