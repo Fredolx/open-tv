@@ -83,3 +83,13 @@ button:hover .trash-lid {
 .check:hover {
     transform: translateY(-50%) scale(125%)
 }
+
+button .pen {
+    width: 1.5rem;
+    height: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+button:hover .pen {
+    transform: scale(125%);
+}

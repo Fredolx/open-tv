@@ -4,6 +4,8 @@ import { SourceType } from '../../models/sourceType';
 import { invoke } from '@tauri-apps/api/core';
 import { ToastrService } from 'ngx-toastr';
 import { MemoryService } from '../../memory.service';
+import { EditChannelModalComponent } from '../../edit-channel-modal/edit-channel-modal.component';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-source-tile',
@@ -17,7 +19,8 @@ export class SourceTileComponent {
   showPassword = false;
   loading = false;
   sourceTypeEnum = SourceType;
-  constructor(public memory: MemoryService) {
+
+  constructor(public memory: MemoryService, private modal: NgbModal) {
   }
 
   get_source_type_name() {
@@ -38,5 +41,11 @@ export class SourceTileComponent {
   async toggleEnabled() {
     await this.memory.tryIPC("Successfully toggled source", "Failed to toggle source", () => invoke("toggle_source", {value: !this.source?.enabled, sourceId: this.source?.id}));
     this.memory.RefreshSources.next(true);
+  }
+
+  async addCustomChannel() {
+    const modalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', });
+    modalRef.componentInstance.name = "EditCustomChannelModal";
+    modalRef.componentInstance.channel.data.source_id = this.source?.id;
   }
 }

@@ -22,7 +22,7 @@ export class MemoryService {
   public AddingAdditionalSource = false;
   public SeriesRefreshed: Map<Number, boolean> = new Map();
   public HideChannels: Subject<boolean> = new Subject();
-  public ReservedChannelSourceId?: number
+  public CustomChannelsIds: Set<number> = new Set();
 
   async tryIPC<T>(
     successMessage: string,

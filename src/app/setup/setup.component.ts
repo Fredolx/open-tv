@@ -77,15 +77,15 @@ export class SetupComponent {
         await this.getXtream();
         break;
       case SourceType.Custom:
-        await this.startWithCustomOnly();
+        await this.custom();
         break;
     }
   }
 
-  async startWithCustomOnly() {
+  async custom() {
     this.loading = true;
     try {
-      await invoke('add_custom_source');
+      await invoke('add_custom_source', {name: this.source.name});
       this.nav.navigateByUrl("");
     }
     catch(e) {

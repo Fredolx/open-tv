@@ -14,8 +14,6 @@ use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::{params, params_from_iter, OptionalExtension, Row, Transaction};
 
 const PAGE_SIZE: u8 = 36;
-pub const CUSTOM_CHANNELS_SOURCE_RESERVED_NAME: &str = "My custom channels";
-const CUSTOM_CHANNELS_GROUP_RESERVED_NAME: &str = "Custom channels";
 static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
 
 pub fn get_conn() -> Result<PooledConnection<SqliteConnectionManager>> {
@@ -522,9 +520,6 @@ pub fn get_channel_count_by_source(id: i64) -> Result<u64> {
 }
 
 pub fn source_name_exists(name: String) -> Result<bool> {
-    if name.to_lowercase().trim() == CUSTOM_CHANNELS_SOURCE_RESERVED_NAME.to_lowercase() {
-        return Ok(true);
-    }
     let sql = get_conn()?;
     Ok(sql
         .query_row(
@@ -612,15 +607,13 @@ pub fn set_source_enabled(value: bool, source_id: i64) -> Result<()> {
 }
 
 pub fn add_custom_channel(channel: CustomChannel) -> Result<()> {
-    let mut source = get_custom_source();
-    create_or_find_source_by_name(&mut source)?;
     let mut sql = get_conn()?;
     let tx = sql.transaction()?;
-    match add_custom_channel_tx(&tx, channel, source.id.unwrap()) {
+    match add_custom_channel_tx(&tx, channel) {
         Ok(_) => {
             tx.commit()?;
             Ok(())
-        },
+        }
         Err(e) => {
             tx.rollback().unwrap_or_else(|e| log(format!("{:?}", e)));
             return Err(e.context("Failed to add custom channel"));
@@ -628,17 +621,7 @@ pub fn add_custom_channel(channel: CustomChannel) -> Result<()> {
     }
 }
 
-fn add_custom_channel_tx(
-    tx: &Transaction,
-    mut channel: CustomChannel,
-    source_id: i64,
-) -> Result<()> {
-    channel.data.group_id = Some(get_or_create_group(
-        CUSTOM_CHANNELS_GROUP_RESERVED_NAME,
-        source_id,
-        tx,
-    )?);
-    channel.data.source_id = source_id;
+fn add_custom_channel_tx(tx: &Transaction, mut channel: CustomChannel) -> Result<()> {
     insert_channel(tx, channel.data)?;
     if let Some(mut headers) = channel.headers {
         headers.channel_id = Some(tx.last_insert_rowid());
@@ -647,28 +630,10 @@ fn add_custom_channel_tx(
     Ok(())
 }
 
-fn get_or_create_group(name: &str, source_id: i64, tx: &Transaction) -> Result<i64> {
-    let id = tx
-        .query_row(
-            "SELECT id FROM groups WHERE name = ?",
-            params![name],
-            |row| row.get("id"),
-        )
-        .optional()?;
-    if id.is_none() {
-        tx.execute(
-            "INSERT INTO groups (name, source_id) VALUES (?, ?)",
-            params![name, source_id],
-        )?;
-        return Ok(tx.last_insert_rowid());
-    }
-    Ok(id.context("No group id")?)
-}
-
-pub fn get_custom_source() -> Source {
+pub fn get_custom_source(name: String) -> Source {
     Source {
         id: None,
-        name: CUSTOM_CHANNELS_SOURCE_RESERVED_NAME.to_string(),
+        name: name.to_string(),
         enabled: true,
         username: None,
         password: None,
@@ -685,7 +650,7 @@ pub fn edit_custom_channel(channel: CustomChannel) -> Result<()> {
         Ok(_) => {
             tx.commit()?;
             Ok(())
-        },
+        }
         Err(e) => {
             tx.rollback().unwrap_or_else(|e| log(format!("{:?}", e)));
             return Err(e);

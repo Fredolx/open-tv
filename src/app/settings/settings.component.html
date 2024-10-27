@@ -80,28 +80,22 @@
         </div>
     </ng-container>
 
-    <div class="mt-4">
-        <button [disabled]="memory.Loading" (click)="addCustomChannel()" class="btn btn-success d-inline-flex align-items-center">
-            <span>Add custom channel</span>
-            <svg class="pen ms-1" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20.7,7C20.4,7.4 20,7.7 20,8C20,8.3 20.3,8.6 20.6,9C21.1,9.5 21.6,9.9 21.5,10.4C21.5,10.9 21,11.4 20.5,11.9L16.4,16L15,14.7L19.2,10.5L18.2,9.5L16.8,10.9L13,7.1L17,3.3C17.4,2.9 18,2.9 18.4,3.3L20.7,5.6C21.1,6 21.1,6.7 20.7,7M3,17.2L12.6,7.6L16.3,11.4L6.8,21H3V17.2M7,2V5H10V7H7V10H5V7H2V5H5V2H7Z" />
-            </svg>
-        </button>
+    <div class="mt-4 d-flex flex-wrap gap-3">
         <button [disabled]="memory.Loading" (click)="addSource()"
-            class="btn btn-primary d-inline-flex align-items-center ms-3">
+            class="btn btn-primary d-inline-flex align-items-center">
             <span>Add source </span>
             <svg class="plus ms-1" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
             </svg>
         </button>
         <button [disabled]="memory.Loading" (click)="refreshAll()"
-            class="btn btn-secondary ms-0 ms-md-3 mt-2 mt-md-0 d-inline-flex align-items-center">Refresh all
+            class="btn btn-secondary d-inline-flex align-items-center">Refresh all
             <svg class="refresh ms-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path fill="currentColor"
                     d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" />
             </svg>
         </button>
-        <button ngbTooltip="Use this if an upgrade didn't fix a bug you're experiencing" class="btn btn-danger ms-3 ms-sm-3 ms-md-0 ms-lg-3 ms-xl-3 mt-2 mt-lg-0 d-inline-flex align-items-center" [disabled]="memory.Loading" (click)="deleteAll()">Delete everything
+        <button ngbTooltip="Use this if an upgrade didn't fix a bug you're experiencing" class="btn btn-danger d-inline-flex align-items-center" [disabled]="memory.Loading" (click)="deleteAll()">Delete everything
             <svg class="nuke" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M14.04,12H10V11H5.5A3.5,3.5 0 0,1 2,7.5A3.5,3.5 0 0,1 5.5,4C6.53,4 7.45,4.44 8.09,5.15C8.5,3.35 10.08,2 12,2C13.92,2 15.5,3.35 15.91,5.15C16.55,4.44 17.47,4 18.5,4A3.5,3.5 0 0,1 22,7.5A3.5,3.5 0 0,1 18.5,11H14.04V12M10,16.9V15.76H5V13.76H19V15.76H14.04V16.92L20,19.08C20.58,19.29 21,19.84 21,20.5A1.5,1.5 0 0,1 19.5,22H4.5A1.5,1.5 0 0,1 3,20.5C3,19.84 3.42,19.29 4,19.08L10,16.9Z" />
             </svg>

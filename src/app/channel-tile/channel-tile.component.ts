@@ -105,7 +105,7 @@ export class ChannelTileComponent {
   }
 
   isCustomChannel(): boolean {
-    return this.channel?.source_id == this.memory.ReservedChannelSourceId;
+    return this.memory.CustomChannelsIds!.has(this.channel?.source_id!);
   }
 
   edit() {

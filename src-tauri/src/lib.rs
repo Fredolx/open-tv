@@ -171,8 +171,8 @@ fn get_channel_headers(id: i64) -> Result<Option<ChannelHttpHeaders>, String> {
 }
 
 #[tauri::command(async)]
-fn add_custom_source() -> Result<(), String> {
-    sql::create_or_find_source_by_name(&mut sql::get_custom_source()).map_err(map_err_frontend)?;
+fn add_custom_source(name: String) -> Result<(), String> {
+    sql::create_or_find_source_by_name(&mut sql::get_custom_source(name)).map_err(map_err_frontend)?;
     Ok(())
 }
 

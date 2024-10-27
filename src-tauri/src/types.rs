@@ -61,3 +61,4 @@ pub struct CustomChannel {
     pub data: Channel,
     pub headers: Option<ChannelHttpHeaders>
 }
+

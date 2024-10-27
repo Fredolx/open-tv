@@ -26,7 +26,7 @@ export class SettingsComponent {
   sources: Source[] = [];
   @ViewChild('mpvParams') mpvParams!: ElementRef;
 
-  constructor(private router: Router, public memory: MemoryService, private nav: Router, private modal: NgbModal) { }
+  constructor(private router: Router, public memory: MemoryService, private nav: Router) { }
 
   ngOnInit(): void {
     this.getSettings();
@@ -107,10 +107,7 @@ export class SettingsComponent {
     this.memory.tryIPC("Successfully deleted everything", "Failed to delete everything", () => invoke('delete_database'))
   }
 
-  async addCustomChannel() {
-    const modalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "EditCustomChannelModal";
-  }
+
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(x => x.unsubscribe());

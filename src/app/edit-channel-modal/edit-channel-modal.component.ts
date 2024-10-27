@@ -34,7 +34,6 @@ export class EditChannelModalComponent {
 
   async save() {
     let channel = { ...this.channel };
-    channel.data.source_id = -1;
     channel.data.favorite = true;
     if (
       !channel.headers?.http_origin &&
