@@ -134,9 +134,16 @@ export class ChannelTileComponent {
   }
 
   share() {
-    this.memory.tryIPC(`Successfully exported channel to Downloads/${this.channel?.id}.otv`,
-      "Failed to export channel",
-      () => invoke('share_custom_channel', { channel: this.channel }))
+    if (this.channel?.media_type == MediaType.group) {
+      this.memory.tryIPC(`Successfully exported category to Downloads/${this.channel?.id}.otvg`,
+        "Failed to export channel",
+        () => invoke('share_custom_group', { group: this.channel }));
+    }
+    else {
+      this.memory.tryIPC(`Successfully exported channel to Downloads/${this.channel?.id}.otv`,
+        "Failed to export channel",
+        () => invoke('share_custom_channel', { channel: this.channel }));
+    }
   }
 
   async delete() {

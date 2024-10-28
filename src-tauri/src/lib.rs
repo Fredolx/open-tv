@@ -1,5 +1,5 @@
 use anyhow::Error;
-use types::{Channel, ChannelHttpHeaders, CustomChannel, CustomChannelExtraData, Filters, Group, IdName, Settings, Source};
+use types::{Channel, ChannelHttpHeaders, CustomChannel, CustomChannelExtraData, ExportedGroup, Filters, Group, IdName, Settings, Source};
 
 pub mod log;
 pub mod m3u;
@@ -51,7 +51,8 @@ pub fn run() {
             add_custom_group,
             delete_custom_group,
             group_not_empty,
-            group_exists
+            group_exists,
+            share_custom_group
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -218,4 +219,10 @@ fn group_not_empty(id: i64) -> Result<bool, String> {
 fn group_exists(name: Option<String>, source_id: i64) -> Result<bool, String> {
     sql::group_exists(name, source_id).map_err(map_err_frontend)
 }
+
+#[tauri::command(async)]
+fn share_custom_group(group: Channel) -> Result<(), String> {
+    share::share_custom_group(group).map_err(map_err_frontend)
+}
+
 

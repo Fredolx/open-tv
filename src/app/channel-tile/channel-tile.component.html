@@ -19,7 +19,7 @@
         </button>
         <button [hidden]="isMovie()" mat-menu-item (click)="record()">Record</button>
         <button [hidden]="!isCustomChannel()" mat-menu-item (click)="edit()">Edit</button>
-        <button [hidden]="!isCustomChannel() || this.channel?.media_type == mediaTypeEnum.group" mat-menu-item (click)="share()">Share</button>
+        <button [hidden]="!isCustomChannel()" mat-menu-item (click)="share()">Share</button>
         <button [hidden]="!isCustomChannel()" mat-menu-item (click)="delete()">Delete</button>
 	</ng-template>
 </mat-menu>

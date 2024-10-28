@@ -840,6 +840,47 @@ pub fn group_not_empty(id: i64) -> Result<bool> {
         .is_some())
 }
 
+pub fn get_custom_channels_by_group(id: i64) -> Result<Vec<CustomChannel>> {
+    let sql = get_conn()?;
+    let result = sql
+        .prepare(
+        r#"
+            SELECT c.name, c.image, c.url, c.media_type, ch.referrer, ch.user_agent,  ch.http_origin, ch.ignore_ssl
+            FROM channels c
+            LEFT JOIN channel_http_headers ch on ch.channel_id = c.id
+            WHERE c.group_id = ?
+        "#)?
+        .query_map(params![id],row_to_custom_channel)?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(result)
+}
+
+fn row_to_custom_channel(row: &Row) -> Result<CustomChannel, rusqlite::Error> {
+   Ok(CustomChannel {
+    data: Channel {
+        name: row.get("name")?,
+        image: row.get("image")?,
+        url: row.get("url")?,
+        media_type: row.get("media_type")?,
+        favorite: false,
+        group_id: None,
+        group: None,
+        id: None,
+        series_id: None,
+        source_id: None
+    },
+    headers: Some(ChannelHttpHeaders {
+        http_origin: row.get("http_origin")?,
+        ignore_ssl: row.get("ignore_ssl")?,
+        referrer: row.get("referrer")?,
+        user_agent: row.get("user_agent")?,
+        channel_id: None,
+        id: None
+    })
+   })
+}
+
 #[cfg(test)]
 mod test_sql {
     use std::collections::HashMap;

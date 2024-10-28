@@ -217,7 +217,7 @@ fn get_channel_from_lines(first: String, mut second: String, source_id: i64) -> 
         image: image.map(|x| x.trim().to_string()),
         url: Some(second.clone()),
         media_type: get_media_type(second),
-        source_id: source_id,
+        source_id: Some(source_id),
         series_id: None,
         group_id: None,
         favorite: false,

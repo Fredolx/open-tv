@@ -180,7 +180,7 @@ fn convert_xtream_live_to_channel(
             .map(|x| x.trim().to_string()),
         media_type: stream_type.clone(),
         name: stream.name.context("No name")?.trim().to_string(),
-        source_id: source.id.unwrap(),
+        source_id: source.id,
         url: if stream_type == media_type::SERIE {
             Some(stream.series_id.context("no series id")?.to_string())
         } else {
@@ -254,7 +254,7 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: i64) -
         image: episode.info.map(|info| info.movie_image).unwrap_or(None),
         media_type: media_type::MOVIE,
         name: episode.title.trim().to_string(),
-        source_id: source.id.context("Invalid ID")?,
+        source_id: source.id,
         url: Some(get_url(
             episode.id,
             &source,

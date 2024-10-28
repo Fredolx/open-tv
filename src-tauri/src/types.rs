@@ -2,14 +2,18 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Channel {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i64>,
     pub name: String,
     pub url: Option<String>,
     pub group: Option<String>,
     pub image: Option<String>,
     pub media_type: u8,
-    pub source_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub series_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub group_id: Option<i64>,
     pub favorite: bool,
 }
@@ -48,7 +52,9 @@ pub struct Filters {
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct ChannelHttpHeaders {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub channel_id: Option<i64>,
     pub referrer: Option<String>,
     pub user_agent: Option<String>,
@@ -64,10 +70,12 @@ pub struct CustomChannel {
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Group {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i64>,
     pub name: String,
     pub image: Option<String>,
-    pub source_id: i64
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_id: Option<i64>
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -81,3 +89,10 @@ pub struct CustomChannelExtraData {
     pub headers: Option<ChannelHttpHeaders>,
     pub group: Option<Group>
 }
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct ExportedGroup {
+    pub group: Group,
+    pub channels: Vec<CustomChannel>
+}
+
