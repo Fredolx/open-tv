@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::LazyLock};
 
 use crate::log::log;
-use crate::types::CustomChannel;
+use crate::types::{CustomChannel, CustomChannelExtraData, Group, IdName};
 use crate::{
     media_type, source_type,
     types::{Channel, ChannelHttpHeaders, Filters, Source},
@@ -662,7 +662,7 @@ fn edit_custom_channel_tx(channel: CustomChannel, tx: &Transaction) -> Result<()
     tx.execute(
         r#"
         UPDATE channels
-        SET name = ?, image = ?, url = ?, media_type = ?
+        SET name = ?, image = ?, url = ?, media_type = ?, group_id = ?
         WHERE id = ?
     "#,
         params![
@@ -670,6 +670,7 @@ fn edit_custom_channel_tx(channel: CustomChannel, tx: &Transaction) -> Result<()
             channel.data.image,
             channel.data.url,
             channel.data.media_type,
+            channel.data.group_id,
             channel.data.id
         ],
     )?;
@@ -706,6 +707,99 @@ pub fn delete_custom_channel(id: i64) -> Result<()> {
     let sql = get_conn()?;
     sql.execute("DELETE FROM channels WHERE id = ?", params![id])?;
     Ok(())
+}
+
+pub fn group_exists(name: Option<String>, source_id: i64) -> Result<bool> {
+    let sql = get_conn()?;
+    Ok(sql
+        .query_row(
+            r#"
+            SELECT 1 
+            FROM groups 
+            WHERE name = ? AND source_id = ?
+        "#,
+            params![name, source_id],
+            |row| row.get::<_, u8>(0),
+        )
+        .optional()?
+        .is_some())
+}
+
+pub fn add_custom_group(group: Group) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
+        INSERT INTO groups (name, image, source_id) 
+        VALUES (?, ?, ?)
+    "#,
+        params!(group.name, group.image, group.source_id),
+    )?;
+    Ok(())
+}
+
+pub fn group_auto_complete(query: Option<String>, source_id: i64) -> Result<Vec<IdName>> {
+    let sql = get_conn()?;
+    let groups = sql
+        .prepare(
+            r#"
+        SELECT id, name 
+        FROM groups
+        WHERE name LIKE ?
+        AND source_id = ?
+    "#,
+        )?
+        .query_map(params![to_sql_like(query), source_id], row_to_id_name)?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(groups)
+}
+
+fn row_to_id_name(row: &Row) -> Result<IdName, rusqlite::Error> {
+    Ok(IdName {
+        id: row.get("id")?,
+        name: row.get("name")?,
+    })
+}
+
+pub fn edit_custom_group(group: Group) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
+        UPDATE groups 
+        SET name = ?, image = ?
+        WHERE id = ?
+    "#,
+        params![group.name, group.image, group.id],
+    )?;
+    Ok(())
+}
+
+fn get_group_by_id(id: i64) -> Result<Option<Group>> {
+    let sql = get_conn()?;
+    let group: Option<Group> = sql
+        .query_row(
+            "SELECT * FROM groups WHERE id = ?",
+            params![id],
+            row_to_custom_group,
+        )
+        .optional()?;
+    Ok(group)
+}
+
+fn row_to_custom_group(row: &Row) -> Result<Group, rusqlite::Error> {
+    Ok(Group {
+        id: row.get("id")?,
+        name: row.get("name")?,
+        image: row.get("image")?,
+        source_id: row.get("source_id")?
+    })
+}
+
+pub fn get_custom_channel_extra_data(id: i64, group_id: i64) -> Result<CustomChannelExtraData> {
+    Ok(CustomChannelExtraData {
+        headers: get_channel_headers_by_id(id)?,
+        group: get_group_by_id(group_id)?
+    })
 }
 
 #[cfg(test)]

@@ -6,6 +6,7 @@ import { ToastrService } from 'ngx-toastr';
 import { MemoryService } from '../../memory.service';
 import { EditChannelModalComponent } from '../../edit-channel-modal/edit-channel-modal.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { EditGroupModalComponent } from '../../edit-group-modal/edit-group-modal.component';
 
 @Component({
   selector: 'app-source-tile',
@@ -47,5 +48,11 @@ export class SourceTileComponent {
     const modalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', });
     modalRef.componentInstance.name = "EditCustomChannelModal";
     modalRef.componentInstance.channel.data.source_id = this.source?.id;
+  }
+
+  async addCustomGroup() {
+    const modalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', });
+    modalRef.componentInstance.name = "EditCustomGroupModal";
+    modalRef.componentInstance.group.source_id = this.source?.id;
   }
 }

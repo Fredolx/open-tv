@@ -62,3 +62,22 @@ pub struct CustomChannel {
     pub headers: Option<ChannelHttpHeaders>
 }
 
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct Group {
+    pub id: Option<i64>,
+    pub name: String,
+    pub image: Option<String>,
+    pub source_id: i64
+}
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct IdName {
+    pub id: i64,
+    pub name: String
+}
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct CustomChannelExtraData {
+    pub headers: Option<ChannelHttpHeaders>,
+    pub group: Option<Group>
+}

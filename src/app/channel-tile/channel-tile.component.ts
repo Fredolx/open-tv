@@ -8,6 +8,7 @@ import { ToastrService } from 'ngx-toastr';
 import { ErrorService } from '../error.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EditChannelModalComponent } from '../edit-channel-modal/edit-channel-modal.component';
+import { EditGroupModalComponent } from '../edit-group-modal/edit-group-modal.component';
 
 @Component({
   selector: 'app-channel-tile',
@@ -24,6 +25,8 @@ export class ChannelTileComponent {
   starting: boolean = false;
   // less reactive but prevents the user from seeing the change in action
   alreadyExistsInFav = false;
+  mediaTypeEnum = MediaType;
+
   ngOnInit(): void {
   }
 
@@ -61,8 +64,6 @@ export class ChannelTileComponent {
 
 
   onRightClick(event: MouseEvent) {
-    if (this.channel?.media_type == MediaType.group)
-      return;
     this.alreadyExistsInFav = this.channel!.favorite!;
     event.preventDefault();
     this.menuTopLeftPosition.x = event.clientX;
@@ -109,6 +110,21 @@ export class ChannelTileComponent {
   }
 
   edit() {
+    if (this.channel?.media_type == MediaType.group)
+      this.edit_group();
+    else {
+      this.edit_channel();
+    }
+  }
+
+  edit_group() {
+    const modalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', });
+    modalRef.componentInstance.name = "EditCustomGroupModal";
+    modalRef.componentInstance.editing = true;
+    modalRef.componentInstance.group = { id: this.channel!.id, name: this.channel!.name, image: this.channel!.image, source_id: this.channel!.source_id };
+  }
+
+  edit_channel() {
     const modalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', });
     modalRef.componentInstance.name = "EditCustomChannelModal";
     modalRef.componentInstance.editing = true;

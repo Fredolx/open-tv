@@ -1,18 +1,18 @@
 use anyhow::Error;
-use types::{Channel, ChannelHttpHeaders, CustomChannel, Filters, Settings, Source};
+use types::{Channel, ChannelHttpHeaders, CustomChannel, CustomChannelExtraData, Filters, Group, IdName, Settings, Source};
 
 pub mod log;
 pub mod m3u;
 pub mod media_type;
 pub mod mpv;
 pub mod settings;
+pub mod share;
 pub mod source_type;
 pub mod sql;
 pub mod types;
 pub mod utils;
 pub mod view_type;
 pub mod xtream;
-pub mod share;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -40,11 +40,15 @@ pub fn run() {
             toggle_source,
             delete_database,
             add_custom_channel,
-            get_channel_headers,
+            get_custom_channel_extra_data,
             edit_custom_channel,
             delete_custom_channel,
             add_custom_source,
-            share_custom_channel
+            share_custom_channel,
+            group_auto_complete,
+            edit_custom_channel,
+            edit_custom_group,
+            add_custom_group
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -166,13 +170,14 @@ fn delete_custom_channel(id: i64) -> Result<(), String> {
 }
 
 #[tauri::command(async)]
-fn get_channel_headers(id: i64) -> Result<Option<ChannelHttpHeaders>, String> {
-    sql::get_channel_headers_by_id(id).map_err(map_err_frontend)
+fn get_custom_channel_extra_data(id: i64, group_id: i64) -> Result<CustomChannelExtraData, String> {
+    sql::get_custom_channel_extra_data(id, group_id).map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
 fn add_custom_source(name: String) -> Result<(), String> {
-    sql::create_or_find_source_by_name(&mut sql::get_custom_source(name)).map_err(map_err_frontend)?;
+    sql::create_or_find_source_by_name(&mut sql::get_custom_source(name))
+        .map_err(map_err_frontend)?;
     Ok(())
 }
 
@@ -180,3 +185,19 @@ fn add_custom_source(name: String) -> Result<(), String> {
 fn share_custom_channel(channel: Channel) -> Result<(), String> {
     share::share_custom_channel(channel).map_err(map_err_frontend)
 }
+
+#[tauri::command(async)]
+fn group_auto_complete(query: Option<String>, source_id: i64) -> Result<Vec<IdName>, String> {
+    sql::group_auto_complete(query, source_id).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn edit_custom_group(group: Group) -> Result<(), String>  {
+    sql::edit_custom_group(group).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn add_custom_group(group: Group) -> Result<(), String> {
+    sql::add_custom_group(group).map_err(map_err_frontend)
+}
+

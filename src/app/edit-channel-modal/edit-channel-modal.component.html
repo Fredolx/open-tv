@@ -26,6 +26,9 @@
             <div *ngIf="name.errors?.['required'] && name.dirty" class="col text-danger error">
                 This field is required
             </div>
+            <div *ngIf="name.errors?.['groupNameExists'] && name.dirty" class="col text-danger error">
+                This field is required
+            </div>
         </div>
         <div class="row mt-3 align-items-center">
             <div class="col-4">
@@ -61,6 +64,14 @@
                     <option [ngValue]="mediaTypeEnum.livestream">Livestream</option>
                     <option [ngValue]="mediaTypeEnum.movie">Movie</option>
                 </select>
+            </div>
+        </div>
+        <div class="row mt-3 align-items-center">
+            <div class="col-4">
+                <span>Category</span>
+            </div>
+            <div class="col">
+                <input id="typeahead-basic" name="group" type="text" class="form-control" [(ngModel)]="group" [ngbTypeahead]="search" (selectItem)="selectGroup($event)" [resultFormatter]="formatter" [inputFormatter]="formatter"/>
             </div>
         </div>
         <div class="row mt-1 ps-3 align-items-center">
@@ -112,7 +123,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button [disabled]="!form.valid" class="btn btn-primary d-inline-flex align-items-center" type="submit">
+        <button [disabled]="!form.valid || loading" class="btn btn-primary d-inline-flex align-items-center" type="submit">
             <span>Save</span>
             <svg class="ms-1 save-floppy" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path

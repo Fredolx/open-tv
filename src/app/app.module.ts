@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { NgbModalModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModalModule, NgbTooltipModule, NgbTypeaheadModule } from '@ng-bootstrap/ng-bootstrap';
 import { FormsModule } from '@angular/forms';
 import { MatMenuModule } from '@angular/material/menu'
 import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
@@ -20,6 +20,8 @@ import { SettingsComponent } from './settings/settings.component';
 import { SourceTileComponent } from './settings/source-tile/source-tile.component';
 import { ErrorModalComponent } from './error-modal/error-modal.component';
 import { EditChannelModalComponent } from './edit-channel-modal/edit-channel-modal.component';
+import { EditGroupModalComponent } from './edit-group-modal/edit-group-modal.component';
+import { GroupNameExistsValidator } from './edit-group-modal/validators/group-name-exists.directive';
 
 @NgModule({
   declarations: [
@@ -35,6 +37,8 @@ import { EditChannelModalComponent } from './edit-channel-modal/edit-channel-mod
     SourceTileComponent,
     ErrorModalComponent,
     EditChannelModalComponent,
+    EditGroupModalComponent,
+    GroupNameExistsValidator,
   ],
   imports: [
     BrowserModule,
@@ -45,7 +49,8 @@ import { EditChannelModalComponent } from './edit-channel-modal/edit-channel-mod
     ToastrModule.forRoot(),
     KeyboardShortcutsModule.forRoot(),
     MatMenuModule,
-    NgbModalModule
+    NgbModalModule,
+    NgbTypeaheadModule
   ],
   providers: [
     provideAnimationsAsync()
