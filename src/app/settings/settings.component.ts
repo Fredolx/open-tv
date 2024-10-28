@@ -107,8 +107,6 @@ export class SettingsComponent {
     this.memory.tryIPC("Successfully deleted everything", "Failed to delete everything", () => invoke('delete_database'))
   }
 
-
-
   ngOnDestroy(): void {
     this.subscriptions.forEach(x => x.unsubscribe());
   }

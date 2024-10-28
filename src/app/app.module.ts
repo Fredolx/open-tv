@@ -22,6 +22,7 @@ import { ErrorModalComponent } from './error-modal/error-modal.component';
 import { EditChannelModalComponent } from './edit-channel-modal/edit-channel-modal.component';
 import { EditGroupModalComponent } from './edit-group-modal/edit-group-modal.component';
 import { GroupNameExistsValidator } from './edit-group-modal/validators/group-name-exists.directive';
+import { DeleteGroupModalComponent } from './delete-group-modal/delete-group-modal.component';
 
 @NgModule({
   declarations: [
@@ -39,6 +40,7 @@ import { GroupNameExistsValidator } from './edit-group-modal/validators/group-na
     EditChannelModalComponent,
     EditGroupModalComponent,
     GroupNameExistsValidator,
+    DeleteGroupModalComponent,
   ],
   imports: [
     BrowserModule,

@@ -17,8 +17,14 @@
                 <span>Name <span class="text-danger">*</span></span>
             </div>
             <div class="col">
-                <input #name="ngModel" name="name" required class="form-control" [(ngModel)]="group.name"
+                <input #name="ngModel" group-name-exists [originalName]="originalName" [sourceId]="this.group.source_id" name="name" required class="form-control" [(ngModel)]="group.name"
                     placeholder="My cool category" />
+            </div>
+        </div>
+        <div class="row mt-1 ps-3">
+            <div class="col-4"></div>
+            <div *ngIf="name.errors?.['groupNameExists']" class="col-lg-6 col-md-8 text-danger ps-0">
+                This source name is already taken
             </div>
         </div>
         <div class="row mt-3 align-items-center">

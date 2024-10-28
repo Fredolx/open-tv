@@ -14,6 +14,7 @@ export class EditGroupModalComponent {
   editing: boolean = false;
   group: Group = {};
   loading = false;
+  originalName?: string;
 
   constructor(public activeModal: NgbActiveModal, private error: ErrorService, private memory: MemoryService) {
 

@@ -39,6 +39,12 @@ export class EditChannelModalComponent implements OnInit {
 
   }
 
+  checkEmpty(val: IdName | string) {
+    if (val == "") {
+      this.channel.data.group_id = undefined;
+    }
+  }
+
   selectGroup(e: NgbTypeaheadSelectItemEvent) {
     this.channel.data.group_id = (e.item as IdName).id;
   }

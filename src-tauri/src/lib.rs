@@ -48,7 +48,10 @@ pub fn run() {
             group_auto_complete,
             edit_custom_channel,
             edit_custom_group,
-            add_custom_group
+            add_custom_group,
+            delete_custom_group,
+            group_not_empty,
+            group_exists
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -199,5 +202,20 @@ fn edit_custom_group(group: Group) -> Result<(), String>  {
 #[tauri::command(async)]
 fn add_custom_group(group: Group) -> Result<(), String> {
     sql::add_custom_group(group).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn delete_custom_group(id: i64, new_id: Option<i64>, do_channels_update: bool) -> Result<(), String> {
+    sql::delete_custom_group(id, new_id, do_channels_update).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn group_not_empty(id: i64) -> Result<bool, String> {
+    sql::group_not_empty(id).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn group_exists(name: Option<String>, source_id: i64) -> Result<bool, String> {
+    sql::group_exists(name, source_id).map_err(map_err_frontend)
 }
 

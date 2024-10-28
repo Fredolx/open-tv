@@ -9,6 +9,7 @@ import { ErrorService } from '../error.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EditChannelModalComponent } from '../edit-channel-modal/edit-channel-modal.component';
 import { EditGroupModalComponent } from '../edit-group-modal/edit-group-modal.component';
+import { DeleteGroupModalComponent } from '../delete-group-modal/delete-group-modal.component';
 
 @Component({
   selector: 'app-channel-tile',
@@ -122,6 +123,7 @@ export class ChannelTileComponent {
     modalRef.componentInstance.name = "EditCustomGroupModal";
     modalRef.componentInstance.editing = true;
     modalRef.componentInstance.group = { id: this.channel!.id, name: this.channel!.name, image: this.channel!.image, source_id: this.channel!.source_id };
+    modalRef.componentInstance.originalName = this.channel!.name;
   }
 
   edit_channel() {
@@ -138,6 +140,43 @@ export class ChannelTileComponent {
   }
 
   async delete() {
+    if (this.channel?.media_type == MediaType.group)
+      this.deleteGroup();
+    else
+      await this.deleteChannel();
+  }
+
+  async deleteGroup() {
+    try {
+      if (await invoke("group_not_empty", { id: this.channel?.id })) {
+        this.openDeleteGroupModal();
+      }
+      else
+        await this.deleteGroupNoReplace();
+    }
+    catch (e) {
+      this.error.handleError(e);
+    }
+  }
+
+  async deleteGroupNoReplace() {
+    try {
+      await invoke('delete_custom_group', { id: this.channel?.id, doChannelsUpdate: false });
+      this.memory.Refresh.next(false);
+      this.error.success("Successfully deleted category");
+    }
+    catch (e) {
+      this.error.handleError(e);
+    }
+  }
+
+  openDeleteGroupModal() {
+    const modalRef = this.modal.open(DeleteGroupModalComponent, { backdrop: 'static', size: 'xl', });
+    modalRef.componentInstance.name = "DeleteGroupModal";
+    modalRef.componentInstance.group = { ...this.channel };
+  }
+
+  async deleteChannel() {
     await this.memory.tryIPC("Successfully deleted channel", "Failed to delete channel",
       () => invoke('delete_custom_channel', { id: this.channel?.id }))
     this.memory.Refresh.next(false);

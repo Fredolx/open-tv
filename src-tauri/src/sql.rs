@@ -117,7 +117,7 @@ fn structure_exists() -> Result<bool> {
         .query_row(
             "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'channels' LIMIT 1",
             [],
-            |row| row.get::<_, i32>(0),
+            |row| row.get::<_, u8>(0),
         )
         .optional()?
         .is_some();
@@ -791,15 +791,53 @@ fn row_to_custom_group(row: &Row) -> Result<Group, rusqlite::Error> {
         id: row.get("id")?,
         name: row.get("name")?,
         image: row.get("image")?,
-        source_id: row.get("source_id")?
+        source_id: row.get("source_id")?,
     })
 }
 
 pub fn get_custom_channel_extra_data(id: i64, group_id: i64) -> Result<CustomChannelExtraData> {
     Ok(CustomChannelExtraData {
         headers: get_channel_headers_by_id(id)?,
-        group: get_group_by_id(group_id)?
+        group: get_group_by_id(group_id)?,
     })
+}
+
+pub fn delete_custom_group(id: i64, new_id: Option<i64>, do_channels_update: bool) -> Result<()> {
+    let sql = get_conn()?;
+    if do_channels_update {
+        sql.execute(
+            r#"
+        UPDATE channels
+        SET group_id = ?
+        WHERE group_id = ?
+    "#,
+            params![new_id, id],
+        )?;
+    }
+    sql.execute(
+        r#"
+        DELETE FROM groups 
+        WHERE id = ?
+    "#,
+        params![id],
+    )?;
+    Ok(())
+}
+
+pub fn group_not_empty(id: i64) -> Result<bool> {
+    let sql = get_conn()?;
+    Ok(sql
+        .query_row(
+            r#"
+                SELECT 1
+                FROM channels
+                WHERE group_id = ?
+            "#,
+            params![id],
+            |row| row.get::<_, u8>(0),
+        )
+        .optional()?
+        .is_some())
 }
 
 #[cfg(test)]
