@@ -108,3 +108,7 @@ BNB:
 ```
 0x0C8C5217a8044b3736aD82CCFB9f099597b65253
 ```
+
+## Disclaimer
+
+Open TV is an independent open-source project created to provide a fast and powerful IPTV experience. The name "Open TV" is used solely to represent this specific software and its purpose as described in the project documentation. Any other software, applications, or products bearing the same or similar name are unrelated to this project. Any resemblance to other software or applications is purely coincidental and unintended. We do not intend to cause confusion or imply affiliation with any other products or organizations that may share a similar name.
