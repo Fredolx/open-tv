@@ -136,4 +136,8 @@ export class SetupComponent {
     }
     this.loading = false;
   }
+
+  async nuke() {
+    this.memory.tryIPC("Successfully deleted everything", "Failed to delete everything", () => invoke('delete_database'))
+  }
 }

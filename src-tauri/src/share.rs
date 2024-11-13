@@ -136,11 +136,14 @@ fn import_playlist(data: String, name_override: Option<String>) -> Result<()> {
             for mut channel in group.channels {
                 channel.data.group_id = Some(group_id);
                 channel.data.source_id = Some(source_id);
-                sql::add_custom_channel(tx, channel)?
+                sql::add_custom_channel(tx, channel)?;
             }
+        }
+        for mut channel in data.channels {
+            channel.data.source_id = Some(source_id);
+            sql::add_custom_channel(&tx, channel)?;
         }
         Ok(())
     })?;
     Ok(())
 }
-

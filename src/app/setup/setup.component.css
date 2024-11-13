@@ -31,3 +31,22 @@ button .pen {
 button:hover .pen {
     transform: scale(125%);
 }
+
+.nuke-btn {
+    position: absolute;
+    right: 2%;
+    bottom: 2%;
+    border-radius: 50%;
+    width: 3rem;
+    height: 3rem;
+}
+
+button .nuke {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease;
+}
+
+button:hover .nuke {
+    transform: scale(125%);
+}

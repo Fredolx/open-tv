@@ -10,9 +10,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::str::FromStr;
-use std::sync::Arc;
 use tokio::join;
-use tokio::sync::Mutex;
 use url::Url;
 
 const GET_LIVE_STREAMS: &str = "get_live_streams";

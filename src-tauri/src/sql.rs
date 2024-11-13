@@ -1,9 +1,7 @@
 use std::{collections::HashMap, sync::LazyLock};
 
 use crate::log::log;
-use crate::types::{
-    CustomChannel, CustomChannelExtraData, ExportedGroup, Group, IdName,
-};
+use crate::types::{CustomChannel, CustomChannelExtraData, ExportedGroup, Group, IdName};
 use crate::{
     media_type, source_type,
     types::{Channel, ChannelHttpHeaders, Filters, Source},
@@ -14,6 +12,7 @@ use directories::ProjectDirs;
 use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::{params, params_from_iter, OptionalExtension, Row, Transaction};
+use rusqlite_migration::{Migrations, M};
 
 const PAGE_SIZE: u8 = 36;
 static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
@@ -91,7 +90,7 @@ CREATE TABLE "groups" (
 );
 
 CREATE INDEX index_channel_name ON channels(name);
-CREATE UNIQUE INDEX channels_unique ON channels(name, url);
+CREATE UNIQUE INDEX channels_unique ON channels(name, url, source_id);
 
 CREATE UNIQUE INDEX index_source_name ON sources(name);
 CREATE INDEX index_source_enabled ON sources(enabled);
@@ -135,6 +134,31 @@ pub fn create_or_initialize_db() -> Result<()> {
     if !structure_exists()? {
         create_structure()?;
     }
+    else {
+        apply_migrations()?;
+    }
+    Ok(())
+}
+
+fn apply_migrations() -> Result<()> {
+    let mut sql = get_conn()?;
+    let migrations = Migrations::new(vec![
+        M::up(r#"
+            DROP INDEX IF EXISTS channels_unique;
+            CREATE UNIQUE INDEX channels_unique ON channels(name, url, source_id);
+            CREATE TABLE IF NOT EXISTS "channel_http_headers" (
+                "id" INTEGER PRIMARY KEY,
+                "channel_id" integer,
+                "referrer" varchar(500),
+                "user_agent" varchar(500),
+                "http_origin" varchar(500),
+                "ignore_ssl" integer DEFAULT 0,
+                FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
+        "#),
+    ]);
+    migrations.to_latest(&mut sql)?;
     Ok(())
 }
 
@@ -606,10 +630,20 @@ pub fn set_source_enabled(value: bool, source_id: i64) -> Result<()> {
 pub fn add_custom_channel(tx: &Transaction, channel: CustomChannel) -> Result<()> {
     insert_channel(tx, channel.data)?;
     if let Some(mut headers) = channel.headers {
+        if channel_headers_empty(&headers) {
+            return Ok(());
+        }
         headers.channel_id = Some(tx.last_insert_rowid());
         insert_channel_headers(tx, headers)?;
     }
     Ok(())
+}
+
+fn channel_headers_empty(headers: &ChannelHttpHeaders) -> bool {
+    return headers.ignore_ssl.is_none()
+        && headers.http_origin.is_none()
+        && headers.referrer.is_none()
+        && headers.user_agent.is_none();
 }
 
 pub fn get_custom_source(name: String) -> Source {
@@ -792,13 +826,16 @@ fn row_to_custom_group(row: &Row) -> Result<Group, rusqlite::Error> {
     })
 }
 
-pub fn get_custom_channel_extra_data(id: i64, group_id: Option<i64>) -> Result<CustomChannelExtraData> {
+pub fn get_custom_channel_extra_data(
+    id: i64,
+    group_id: Option<i64>,
+) -> Result<CustomChannelExtraData> {
     Ok(CustomChannelExtraData {
         headers: get_channel_headers_by_id(id)?,
         group: match group_id {
             None => None,
-            Some(group) => get_group_by_id(group)? 
-        }
+            Some(group) => get_group_by_id(group)?,
+        },
     })
 }
 

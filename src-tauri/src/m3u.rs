@@ -7,9 +7,7 @@ use regex::{Captures, Regex};
 use types::{Channel, Source};
 
 use crate::{
-    log, media_type, source_type,
-    sql::{self, delete_source},
-    types::{self, ChannelHttpHeaders},
+    log, media_type, source_type, sql, types::{self, ChannelHttpHeaders}
 };
 
 static NAME_REGEX: LazyLock<Regex> =
@@ -28,7 +26,7 @@ static HTTP_REFERRER_REGEX: LazyLock<Regex> =
 static HTTP_USER_AGENT_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"http-user-agent=(?P<user_agent>.+)"#).unwrap());
 
-pub fn read_m3u8(mut source: Source) -> Result<()> {
+pub fn read_m3u8(source: Source) -> Result<()> {
     let path = match source.source_type {
         source_type::M3U_LINK => get_tmp_path(),
         _ => source.url.clone().context("no file path found")?,

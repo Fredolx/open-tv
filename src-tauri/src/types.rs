@@ -70,6 +70,7 @@ pub struct ChannelHttpHeaders {
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct CustomChannel {
     pub data: Channel,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub headers: Option<ChannelHttpHeaders>
 }
 
