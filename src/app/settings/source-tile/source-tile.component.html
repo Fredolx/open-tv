@@ -71,11 +71,20 @@
                     d="M17 14V17H14V19H17V22H19V19H22V17H19V14M20 11V12.3C19.4 12.1 18.7 12 18 12C16.8 12 15.6 12.4 14.7 13H7V11H20M12.1 17H7V15H12.8C12.5 15.6 12.2 16.3 12.1 17M7 7H20V9H7V7M5 19H7V21H3V3H7V5H5V19Z" />
             </svg>
         </button>
-        <button [disabled]="memory.Loading" *ngIf="source?.source_type == sourceTypeEnum.Custom"
-            (click)="share()" class="btn btn-primary d-inline-flex align-items-center">
+        <button [disabled]="memory.Loading" *ngIf="source?.source_type == sourceTypeEnum.Custom" (click)="share()"
+            class="btn btn-primary d-inline-flex align-items-center">
             <span>Share</span>
             <svg class="pen ms-1" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M12,1L8,5H11V14H13V5H16M18,23H6C4.89,23 4,22.1 4,21V9A2,2 0 0,1 6,7H9V9H6V21H18V9H15V7H18A2,2 0 0,1 20,9V21A2,2 0 0,1 18,23Z" />
+                <path
+                    d="M12,1L8,5H11V14H13V5H16M18,23H6C4.89,23 4,22.1 4,21V9A2,2 0 0,1 6,7H9V9H6V21H18V9H15V7H18A2,2 0 0,1 20,9V21A2,2 0 0,1 18,23Z" />
+            </svg>
+        </button>
+        <button [disabled]="memory.Loading" *ngIf="source?.source_type == sourceTypeEnum.Custom" (click)="import()"
+            class="btn btn-primary d-inline-flex align-items-center">
+            <span>Import</span>
+            <svg fill="currentColor" class="pen ms-1" viewBox="0 0 24 24">
+                <path
+                    d="M6,2C4.89,2 4,2.9 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13M10.05,11.22L12.88,14.05L15,11.93V19H7.93L10.05,16.88L7.22,14.05" />
             </svg>
         </button>
         <button [disabled]="memory.Loading" (click)="delete()"
@@ -87,6 +96,7 @@
                 <path class="trash-lid" id="rect2" d="m 7.4391144,0.7970474 h 9.1808116 v 2.538746 H 7.4391144 Z" />
             </svg>
         </button>
+
     </div>
     <svg (click)="toggleEnabled()" class="check" *ngIf="source?.enabled" fill="currentColor" viewBox="0 0 24 24">
         <path

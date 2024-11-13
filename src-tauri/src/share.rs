@@ -11,8 +11,8 @@ use crate::types::Source;
 use crate::{sql, types::Channel};
 
 const CHANNEL_SHARE_EXTENSION: &str = ".otv";
+const GROUP_SHARE_EXTENSION: &str = ".otvg";
 const PLAYLIST_SHARE_EXTENSION: &str = ".otvp";
-const GROUP_SHARE_EXTENSION: &str = ".ovtg";
 
 pub fn share_custom_channel(channel: Channel) -> Result<()> {
     let channel = get_custom_channel(channel)?;

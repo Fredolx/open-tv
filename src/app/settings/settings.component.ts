@@ -9,6 +9,7 @@ import { MemoryService } from '../memory.service';
 import { ViewMode } from '../models/viewMode';
 import { EditChannelModalComponent } from '../edit-channel-modal/edit-channel-modal.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ImportModalComponent } from '../import-modal/import-modal.component';
 
 @Component({
   selector: 'app-settings',
@@ -26,7 +27,7 @@ export class SettingsComponent {
   sources: Source[] = [];
   @ViewChild('mpvParams') mpvParams!: ElementRef;
 
-  constructor(private router: Router, public memory: MemoryService, private nav: Router) { }
+  constructor(private router: Router, public memory: MemoryService, private nav: Router, private modal: NgbModal) { }
 
   ngOnInit(): void {
     this.getSettings();
@@ -101,6 +102,12 @@ export class SettingsComponent {
       this.settings.recording_path = folder;
       await this.updateSettings();
     }
+  }
+
+  import() {
+    const modalRef = this.modal.open(ImportModalComponent, { backdrop: 'static', size: 'xl', });
+    modalRef.componentInstance.name = "ImportModalComponent";
+    modalRef.componentInstance.onlyPlaylists = true;
   }
 
   async deleteAll() {

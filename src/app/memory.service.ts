@@ -28,14 +28,17 @@ export class MemoryService {
     successMessage: string,
     errorMessage: string,
     action: () => Promise<T>
-  ): Promise<void> {
+  ): Promise<boolean> {
     this.Loading = true;
+    let error = false;
     try {
       await action();
       this.toastr.success(successMessage);
     } catch (e) {
       this.error.handleError(e, errorMessage);
+      error = true;
     }
     this.Loading = false;
+    return error;
   }
 }

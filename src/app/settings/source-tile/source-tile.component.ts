@@ -7,6 +7,7 @@ import { MemoryService } from '../../memory.service';
 import { EditChannelModalComponent } from '../../edit-channel-modal/edit-channel-modal.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EditGroupModalComponent } from '../../edit-group-modal/edit-group-modal.component';
+import { ImportModalComponent } from '../../import-modal/import-modal.component';
 
 @Component({
   selector: 'app-source-tile',
@@ -54,6 +55,13 @@ export class SourceTileComponent {
     const modalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', });
     modalRef.componentInstance.name = "EditCustomGroupModal";
     modalRef.componentInstance.group.source_id = this.source?.id;
+  }
+
+  async import() {
+    const modalRef = this.modal.open(ImportModalComponent, { backdrop: 'static', size: 'xl', });
+    modalRef.componentInstance.name = "ImportModalComponent";
+    modalRef.componentInstance.source_id = this.source?.id;
+    modalRef.componentInstance.onlyPlaylists = false;
   }
 
   async share() {
