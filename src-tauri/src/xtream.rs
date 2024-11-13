@@ -1,10 +1,6 @@
-use std::collections::HashMap;
-use std::str::FromStr;
-
 use crate::log;
 use crate::media_type;
 use crate::sql;
-use crate::sql::delete_source;
 use crate::types::Channel;
 use crate::types::Source;
 use anyhow::anyhow;
@@ -12,7 +8,11 @@ use anyhow::{Context, Result};
 use rusqlite::Transaction;
 use serde::Deserialize;
 use serde::Serialize;
+use std::collections::HashMap;
+use std::str::FromStr;
+use std::sync::Arc;
 use tokio::join;
+use tokio::sync::Mutex;
 use url::Url;
 
 const GET_LIVE_STREAMS: &str = "get_live_streams";
@@ -76,9 +76,6 @@ fn build_xtream_url(source: &mut Source) -> Result<Url> {
 
 pub async fn get_xtream(mut source: Source) -> Result<()> {
     let url = build_xtream_url(&mut source)?;
-    let mut sql = sql::get_conn()?;
-    let tx = sql.transaction()?;
-    source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
     let (live, live_cats, vods, vods_cats, series, series_cats) = join!(
         get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_LIVE_STREAMS),
         get_xtream_http_data::<Vec<XtreamCategory>>(url.clone(), GET_LIVE_STREAM_CATEGORIES),
@@ -87,6 +84,9 @@ pub async fn get_xtream(mut source: Source) -> Result<()> {
         get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_SERIES),
         get_xtream_http_data::<Vec<XtreamCategory>>(url.clone(), GET_SERIES_CATEGORIES),
     );
+    let mut sql = sql::get_conn()?;
+    let tx = sql.transaction()?;
+    source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
     let mut fail_count = 0;
     live.and_then(|live| process_xtream(&tx, live, live_cats?, &source, media_type::LIVESTREAM))
         .unwrap_or_else(|e| {
