@@ -29,8 +29,14 @@ export class EditGroupModalComponent {
     this.loading = false;
   }
 
+  sanitize() {
+    this.group.name = this.group.name?.trim();
+    this.group.image = this.group.image?.trim();
+  }
+
   async edit_group() {
     try {
+      this.sanitize();
       await invoke("edit_custom_group", { group: this.group });
       this.error.success("Successfully updated category");
       this.memory.Refresh.next(false);
@@ -43,6 +49,7 @@ export class EditGroupModalComponent {
 
   async add_group() {
     try {
+      this.sanitize();
       await invoke("add_custom_group", { group: this.group })
       this.error.success("Successfully added category");
       this.memory.RefreshSources.next(true);

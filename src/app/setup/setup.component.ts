@@ -66,6 +66,7 @@ export class SetupComponent {
   }
 
   async submit() {
+    this.source.name = this.source.name?.trim();
     switch (this.source.source_type) {
       case SourceType.M3U:
         await this.getM3U()

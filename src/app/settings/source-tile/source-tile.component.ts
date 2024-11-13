@@ -25,22 +25,22 @@ export class SourceTileComponent {
   }
 
   get_source_type_name() {
-    if(!this.source)
+    if (!this.source)
       return null;
     return SourceType[this.source.source_type!];
   }
 
   async refresh() {
-    await this.memory.tryIPC("Successfully updated source", "Failed to refresh source", () => invoke("refresh_source", {source: this.source}));
+    await this.memory.tryIPC("Successfully updated source", "Failed to refresh source", () => invoke("refresh_source", { source: this.source }));
   }
 
   async delete() {
-      await this.memory.tryIPC("Successfully deleted source", "Failed to delete source", () => invoke("delete_source", {id: this.source?.id}));
-      this.memory.RefreshSources.next(true);
+    await this.memory.tryIPC("Successfully deleted source", "Failed to delete source", () => invoke("delete_source", { id: this.source?.id }));
+    this.memory.RefreshSources.next(true);
   }
 
   async toggleEnabled() {
-    await this.memory.tryIPC("Successfully toggled source", "Failed to toggle source", () => invoke("toggle_source", {value: !this.source?.enabled, sourceId: this.source?.id}));
+    await this.memory.tryIPC("Successfully toggled source", "Failed to toggle source", () => invoke("toggle_source", { value: !this.source?.enabled, sourceId: this.source?.id }));
     this.memory.RefreshSources.next(true);
   }
 
@@ -54,5 +54,13 @@ export class SourceTileComponent {
     const modalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', });
     modalRef.componentInstance.name = "EditCustomGroupModal";
     modalRef.componentInstance.group.source_id = this.source?.id;
+  }
+
+  async share() {
+    await this.memory.tryIPC(
+      `Successfully exported source in ~/Downloads/${this.source?.id}.otvp`,
+      "Failed to export source",
+      () => invoke("share_custom_source", { source: this.source })
+    );
   }
 }

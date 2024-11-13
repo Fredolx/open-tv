@@ -20,11 +20,16 @@ pub struct Channel {
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Source {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i64>,
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url_origin: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub username: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub password: Option<String>,
     pub source_type: u8,
     pub enabled: bool,
@@ -96,3 +101,9 @@ pub struct ExportedGroup {
     pub channels: Vec<CustomChannel>
 }
 
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct ExportedSource {
+    pub source: Source,
+    pub groups: Vec<ExportedGroup>,
+    pub channels: Vec<CustomChannel>
+}

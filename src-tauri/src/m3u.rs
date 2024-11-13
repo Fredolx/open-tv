@@ -38,10 +38,10 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
     let mut lines = reader.lines().enumerate().skip(1);
     let mut problematic_lines: usize = 0;
     let mut lines_count: usize = 0;
-    let new_source = sql::create_or_find_source_by_name(&mut source)?;
     let mut groups: HashMap<String, i64> = HashMap::new();
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
+    let source_id = sql::create_or_find_source_by_name(&tx, &source)?;
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
         lines_count = c2;
         let l1 = match l1.with_context(|| format!("(l1) Error on line: {c1}, skipping")) {
@@ -68,7 +68,7 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
             }
             headers = _headers;
         }
-        let mut channel = match get_channel_from_lines(l1, l2, source.id.unwrap())
+        let mut channel = match get_channel_from_lines(l1, l2, source_id)
             .with_context(|| format!("Failed to process lines #{c1} #{c2}, skipping"))
         {
             Ok(val) => val,
@@ -89,10 +89,6 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
     if problematic_lines > lines_count / 2 {
         tx.rollback()
             .unwrap_or_else(|e| log::log(format!("{:?}", e)));
-        if new_source {
-            delete_source(source.id.context("no source id")?)
-                .unwrap_or_else(|e| log::log(format!("{:?}", e)));
-        }
         return Err(anyhow::anyhow!(
             "Too many problematic lines, read considered failed"
         ));

@@ -21,10 +21,16 @@
                     placeholder="My cool category" />
             </div>
         </div>
-        <div class="row mt-1 ps-3">
+        <div *ngIf="name.errors?.['groupNameExists']" class="row mt-1 ps-3">
             <div class="col-4"></div>
-            <div *ngIf="name.errors?.['groupNameExists']" class="col-lg-6 col-md-8 text-danger ps-0">
-                This source name is already taken
+            <div class="col-lg-6 col-md-8 text-danger ps-0">
+                This group name is already taken
+            </div>
+        </div>
+        <div *ngIf="name.errors?.['required'] && name.dirty" class="row mt-1 ps-3">
+            <div class="col-4"></div>
+            <div class="col-lg-6 col-md-8 text-danger ps-0">
+                This field is required
             </div>
         </div>
         <div class="row mt-3 align-items-center">

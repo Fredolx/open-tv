@@ -1,0 +1,29 @@
+<div class="modal-header">
+    <h4 class="modal-title lbl">
+        Override import name
+    </h4>
+    <button type="button" class="btn-close btn-close-white" aria-label="Close"
+        (click)="activeModal.dismiss('Cross click')"></button>
+</div>
+<form #form="ngForm" (ngSubmit)="selectFile()">
+    <p>Optionally choose a new name for the import (to avoid duplicates, for example)</p>
+    <div class="modal-body">
+        <div class="row mt-3 align-items-center">
+            <div class="col-4">
+                <span>Name</span>
+            </div>
+            <div class="col">
+                <input #name="ngModel" name="name" required class="form-control" [(ngModel)]="name" />
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button [disabled]="!form.valid || memory.Loading" class="btn btn-primary d-inline-flex align-items-center"
+            type="submit">
+            <span>Import</span>
+            <svg class="ms-1 import" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M14 2H6C4.89 2 4 2.9 4 4V20C4 21.11 4.89 22 6 22H18C19.11 22 20 21.11 20 20V8L14 2M18 20H6V4H13V9H18V20M15 11.93V19H7.93L10.05 16.88L7.22 14.05L10.05 11.22L12.88 14.05L15 11.93Z" />
+            </svg>
+        </button>
+    </div>
+</form>

@@ -71,8 +71,18 @@ export class EditChannelModalComponent implements OnInit {
     }
   }
 
+  sanitize() {
+    this.channel.data.name = this.channel.data.name?.trim();
+    this.channel.data.image = this.channel.data.image?.trim();
+    this.channel.data.url = this.channel.data.url?.trim();
+    this.channel.headers!.http_origin = this.channel.headers?.http_origin?.trim();
+    this.channel.headers!.user_agent = this.channel.headers?.user_agent?.trim();
+    this.channel.headers!.referrer = this.channel.headers?.referrer?.trim();
+  }
+
   async save() {
     this.loading = true;
+    this.sanitize();
     let channel = { ...this.channel };
     channel.data.favorite = true;
     if (
@@ -85,7 +95,7 @@ export class EditChannelModalComponent implements OnInit {
     }
     if (this.editing === true)
       await this.update_channel(channel);
-    else 
+    else
       await this.add_channel(channel);
     this.loading = false;
   }

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
+use crate::log;
 use crate::media_type;
 use crate::sql;
 use crate::sql::delete_source;
@@ -8,11 +9,11 @@ use crate::types::Channel;
 use crate::types::Source;
 use anyhow::anyhow;
 use anyhow::{Context, Result};
+use rusqlite::Transaction;
 use serde::Deserialize;
 use serde::Serialize;
 use tokio::join;
 use url::Url;
-use crate::log;
 
 const GET_LIVE_STREAMS: &str = "get_live_streams";
 const GET_VODS: &str = "get_vod_streams";
@@ -75,8 +76,9 @@ fn build_xtream_url(source: &mut Source) -> Result<Url> {
 
 pub async fn get_xtream(mut source: Source) -> Result<()> {
     let url = build_xtream_url(&mut source)?;
-    let new_source = sql::create_or_find_source_by_name(&mut source)?;
-
+    let mut sql = sql::get_conn()?;
+    let tx = sql.transaction()?;
+    source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
     let (live, live_cats, vods, vods_cats, series, series_cats) = join!(
         get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_LIVE_STREAMS),
         get_xtream_http_data::<Vec<XtreamCategory>>(url.clone(), GET_LIVE_STREAM_CATEGORIES),
@@ -86,13 +88,13 @@ pub async fn get_xtream(mut source: Source) -> Result<()> {
         get_xtream_http_data::<Vec<XtreamCategory>>(url.clone(), GET_SERIES_CATEGORIES),
     );
     let mut fail_count = 0;
-    live.and_then(|live| process_xtream(live, live_cats?, &source, media_type::LIVESTREAM))
+    live.and_then(|live| process_xtream(&tx, live, live_cats?, &source, media_type::LIVESTREAM))
         .unwrap_or_else(|e| {
             log::log(format!("{:?}", e));
             fail_count += 1;
         });
     vods.and_then(|vods: Vec<XtreamStream>| {
-        process_xtream(vods, vods_cats?, &source, media_type::MOVIE)
+        process_xtream(&tx, vods, vods_cats?, &source, media_type::MOVIE)
     })
     .unwrap_or_else(|e| {
         log::log(format!("{:?}", e));
@@ -100,18 +102,20 @@ pub async fn get_xtream(mut source: Source) -> Result<()> {
     });
     series
         .and_then(|series: Vec<XtreamStream>| {
-            process_xtream(series, series_cats?, &source, media_type::SERIE)
+            process_xtream(&tx, series, series_cats?, &source, media_type::SERIE)
         })
         .unwrap_or_else(|e| {
             log::log(format!("{:?}", e));
             fail_count += 1;
         });
     if fail_count > 2 {
-        if new_source {
-            delete_source(source.id.context("no source id")?).unwrap_or_else(|e| log::log(format!("{:?}", e)));
+        match tx.rollback() {
+            Ok(_) => {}
+            Err(e) => log::log(format!("Failed to rollback tx: {:?}", e)),
         }
         return Err(anyhow::anyhow!("Too many Xtream requests failed"));
     }
+    tx.commit()?;
     Ok(())
 }
 
@@ -126,6 +130,7 @@ where
 }
 
 fn process_xtream(
+    tx: &Transaction,
     streams: Vec<XtreamStream>,
     cats: Vec<XtreamCategory>,
     source: &Source,
@@ -135,8 +140,6 @@ fn process_xtream(
         .into_iter()
         .map(|f| (f.category_id, f.category_name))
         .collect();
-    let mut sql = sql::get_conn()?;
-    let tx = sql.transaction()?;
     let mut groups: HashMap<String, i64> = HashMap::new();
     for live in streams {
         let category_name = get_cat_name(&cats, live.category_id.clone());
@@ -154,7 +157,6 @@ fn process_xtream(
             })
             .unwrap_or_else(|e| log::log(format!("{:?}", e)));
     }
-    tx.commit()?;
     Ok(())
 }
 

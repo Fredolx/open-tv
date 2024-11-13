@@ -23,11 +23,12 @@ export class GroupNameExistsValidator implements AsyncValidator {
   constructor() { }
 
   validate(control: AbstractControl): Observable<ValidationErrors | null> {
-    if (!control.value || (this.originalName && control.value == this.originalName)) {
+    let value = control.value?.trim();
+    if (!value || (this.originalName && value == this.originalName)) {
       return of(null); // No validation needed if the field is empty
     }
     return timer(300).pipe(
-      switchMap(() => from(invoke("group_exists", { name: control.value, sourceId: this.sourceId }))),
+      switchMap(() => from(invoke("group_exists", { name: value, sourceId: this.sourceId }))),
       map(exists => exists === true ? { groupNameExists: true } : null)
     )
   }
