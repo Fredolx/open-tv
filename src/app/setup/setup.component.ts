@@ -80,16 +80,47 @@ export class SetupComponent {
       case SourceType.Custom:
         await this.custom();
         break;
+      case SourceType.CustomImport:
+        await this.customImport();
+        break;
+    }
+  }
+
+  async customImport() {
+    const file = await open({
+      multiple: false,
+      directory: false,
+      canCreateDirectories: false,
+      title: "Select Open TV export file (.otvp)",
+      filters: [
+        {
+          name: "Extension filter",
+          extensions: ["otvp"]
+        }
+      ]
+    });
+    if (file == null) {
+      return;
+    }
+    let nameOverride = this.source.name?.trim();
+    if (nameOverride == "")
+      nameOverride = undefined;
+    try {
+      await invoke("import", { path: file, nameOverride: nameOverride });
+      this.success();
+    }
+    catch(e) {
+      this.error.handleError(e, "Invalid URL or credentials. Please try again");
     }
   }
 
   async custom() {
     this.loading = true;
     try {
-      await invoke('add_custom_source', {name: this.source.name});
-      this.nav.navigateByUrl("");
+      await invoke('add_custom_source', { name: this.source.name });
+      this.success();
     }
-    catch(e) {
+    catch (e) {
       this.error.handleError(e, "Invalid URL or credentials. Please try again");
     }
     this.loading = false;

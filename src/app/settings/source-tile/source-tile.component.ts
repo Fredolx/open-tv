@@ -61,7 +61,6 @@ export class SourceTileComponent {
     const modalRef = this.modal.open(ImportModalComponent, { backdrop: 'static', size: 'xl', });
     modalRef.componentInstance.name = "ImportModalComponent";
     modalRef.componentInstance.source_id = this.source?.id;
-    modalRef.componentInstance.onlyPlaylists = false;
   }
 
   async share() {

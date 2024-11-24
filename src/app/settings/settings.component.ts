@@ -104,12 +104,6 @@ export class SettingsComponent {
     }
   }
 
-  import() {
-    const modalRef = this.modal.open(ImportModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "ImportModalComponent";
-    modalRef.componentInstance.onlyPlaylists = true;
-  }
-
   async deleteAll() {
     this.memory.tryIPC("Successfully deleted everything", "Failed to delete everything", () => invoke('delete_database'))
   }

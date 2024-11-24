@@ -13,24 +13,22 @@ import { MemoryService } from '../memory.service';
 export class ImportModalComponent {
   source_id?: number;
   nameOverride?: string;
-  onlyPlaylists: boolean = false;
   constructor(public activeModal: NgbActiveModal, public memory: MemoryService) {
 
   }
 
   async selectFile() {
-    let filters: DialogFilter[] = [
-      {
-        name: "Extension filter",
-        extensions: this.onlyPlaylists ? ["otvp"] : ["otv", "otvg"]
-      }
-    ]
     const file = await open({
       multiple: false,
       directory: false,
       canCreateDirectories: false,
-      title: "Select Open TV export file",
-      filters: filters
+      title: "Select Open TV export file (.otv, .otvg)",
+      filters:  [
+        {
+          name: "Extension filter",
+          extensions: ["otv", "otvg"]
+        }
+      ]
     });
     if (file == null) {
       return;
