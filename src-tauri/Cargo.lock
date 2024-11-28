@@ -2880,7 +2880,7 @@ dependencies = [
 
 [[package]]
 name = "open_tv"
-version = "1.0.3"
+version = "1.1.0"
 dependencies = [
  "anyhow",
  "bytes",
