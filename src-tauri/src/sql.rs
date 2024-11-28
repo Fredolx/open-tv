@@ -66,16 +66,6 @@ CREATE TABLE "channels" (
   FOREIGN KEY (group_id) REFERENCES groups(id)
 );
 
-CREATE TABLE "channel_http_headers" (
-  "id" INTEGER PRIMARY KEY,
-  "channel_id" integer,
-  "referrer" varchar(500),
-  "user_agent" varchar(500),
-  "http_origin" varchar(500),
-  "ignore_ssl" integer DEFAULT 0,
-  FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
-);
-
 CREATE TABLE "settings" (
   "key" VARCHAR(50) PRIMARY KEY,
   "value" VARCHAR(100)
@@ -90,7 +80,7 @@ CREATE TABLE "groups" (
 );
 
 CREATE INDEX index_channel_name ON channels(name);
-CREATE UNIQUE INDEX channels_unique ON channels(name, url, source_id);
+CREATE UNIQUE INDEX channels_unique ON channels(name, url);
 
 CREATE UNIQUE INDEX index_source_name ON sources(name);
 CREATE INDEX index_source_enabled ON sources(enabled);
@@ -105,8 +95,6 @@ CREATE INDEX index_channel_group_id ON channels(group_id);
 CREATE INDEX index_channel_media_type ON channels(media_type);
 
 CREATE INDEX index_group_source_id ON groups(source_id);
-
-CREATE UNIQUE INDEX index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
 "#,
     )?;
     Ok(())
@@ -134,9 +122,7 @@ pub fn create_or_initialize_db() -> Result<()> {
     if !structure_exists()? {
         create_structure()?;
     }
-    else {
-        apply_migrations()?;
-    }
+    apply_migrations()?;
     Ok(())
 }
 
