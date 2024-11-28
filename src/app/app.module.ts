@@ -24,6 +24,7 @@ import { EditGroupModalComponent } from './edit-group-modal/edit-group-modal.com
 import { GroupNameExistsValidator } from './edit-group-modal/validators/group-name-exists.directive';
 import { DeleteGroupModalComponent } from './delete-group-modal/delete-group-modal.component';
 import { ImportModalComponent } from './import-modal/import-modal.component';
+import { ConfirmDeleteModalComponent } from './confirm-delete-modal/confirm-delete-modal.component';
 
 @NgModule({
   declarations: [
@@ -43,6 +44,7 @@ import { ImportModalComponent } from './import-modal/import-modal.component';
     GroupNameExistsValidator,
     DeleteGroupModalComponent,
     ImportModalComponent,
+    ConfirmDeleteModalComponent,
   ],
   imports: [
     BrowserModule,

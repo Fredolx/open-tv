@@ -9,6 +9,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
 import { MemoryService } from '../memory.service';
 import { ErrorService } from '../error.service';
+import { ConfirmDeleteModalComponent } from '../confirm-delete-modal/confirm-delete-modal.component';
 @Component({
   selector: 'app-setup',
   templateUrl: './setup.component.html',
@@ -16,7 +17,7 @@ import { ErrorService } from '../error.service';
 })
 export class SetupComponent {
   constructor(private nav: Router,
-    private toastr: ToastrService, private modalService: NgbModal, public memory: MemoryService, private error: ErrorService) { }
+    private toastr: ToastrService, private modalService: NgbModal, public memory: MemoryService, private error: ErrorService, private modal: NgbModal) { }
   loading = false;
   sourceTypeEnum = SourceType;
   source: Source = {
@@ -169,6 +170,7 @@ export class SetupComponent {
   }
 
   async nuke() {
-    this.memory.tryIPC("Successfully deleted everything", "Failed to delete everything", () => invoke('delete_database'))
+    const modalRef = this.modal.open(ConfirmDeleteModalComponent, { backdrop: 'static', size: 'xl', });
+    modalRef.componentInstance.name = "ConfirmDeleteModal";
   }
 }
