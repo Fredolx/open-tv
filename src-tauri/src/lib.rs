@@ -56,7 +56,8 @@ pub fn run() {
             group_exists,
             share_custom_group,
             share_custom_source,
-            import
+            import,
+            channel_exists
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -252,4 +253,9 @@ fn import(
     name_override: Option<String>,
 ) -> Result<(), String> {
     share::import(path, source_id, name_override).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn channel_exists(name: String, url: String, source_id: i64) -> Result<bool, String> {
+    sql::channel_exists(&name, &url, source_id).map_err(map_err_frontend)
 }

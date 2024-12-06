@@ -8,3 +8,7 @@ button:hover .import {
     transform: scale(125%);
 }
 
+.notice {
+    font-size: 0.9rem;
+    color: lightgray;
+}

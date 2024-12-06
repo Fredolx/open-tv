@@ -17,7 +17,7 @@
                 <span>Name <span class="text-danger">*</span></span>
             </div>
             <div class="col">
-                <input #name="ngModel" name="name" required class="form-control" [(ngModel)]="channel.data.name"
+                <input #name="ngModel" (ngModelChange)="onNameChange($event)" name="name" required class="form-control" [(ngModel)]="channel.data.name"
                     placeholder="My cool channel" />
             </div>
         </div>
@@ -41,7 +41,7 @@
                 <span>Url <span class="text-danger">*</span></span>
             </div>
             <div class="col">
-                <input #url="ngModel" name="url" required class="form-control" [(ngModel)]="channel.data.url"
+                <input #url="ngModel" name="url" (ngModelChange)="onUrlChange($event)" required class="form-control" [(ngModel)]="channel.data.url"
                     placeholder="Youtube, Twitch, anything" />
             </div>
         </div>
@@ -121,8 +121,11 @@
             </div>
         </div>
     </div>
+    <p *ngIf="channelExists" class="text-danger error mt-2">
+        Channel already exists
+    </p>
     <div class="modal-footer">
-        <button [disabled]="!form.valid || loading" class="btn btn-primary d-inline-flex align-items-center"
+        <button [disabled]="!form.valid || loading || channelExists" class="btn btn-primary d-inline-flex align-items-center"
             type="submit">
             <span>Save</span>
             <svg class="ms-1 save-floppy" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">

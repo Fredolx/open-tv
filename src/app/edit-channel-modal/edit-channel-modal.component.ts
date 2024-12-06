@@ -5,7 +5,7 @@ import { MediaType } from '../models/mediaType';
 import { Channel, invoke } from '@tauri-apps/api/core';
 import { MemoryService } from '../memory.service';
 import { ChannelHeaders } from '../models/channelHeaders';
-import { debounceTime, distinctUntilChanged, from, map, Observable, OperatorFunction, switchMap } from 'rxjs';
+import { combineLatest, debounceTime, distinctUntilChanged, filter, from, map, Observable, OperatorFunction, Subject, Subscription, switchMap, tap } from 'rxjs';
 import { IdName } from '../models/idName';
 import { CustomChanelExtraData } from '../models/customChannelExtraData';
 import { ErrorService } from '../error.service';
@@ -34,9 +34,21 @@ export class EditChannelModalComponent implements OnInit {
     );
   formatter = (result: IdName) => result.name;
   loading: boolean = false;
+  channelExists = false;
+  nameSubject = new Subject<string>();
+  urlSubject = new Subject<string>();
+  subscriptions: Subscription[] = [];
 
   constructor(public activeModal: NgbActiveModal, private memory: MemoryService, private error: ErrorService) {
 
+  }
+
+  onNameChange(val: string)  {
+    this.nameSubject.next(val);
+  }
+
+  onUrlChange(val: string)  {
+    this.urlSubject.next(val);
   }
 
   checkEmpty(val: IdName | string) {
@@ -68,6 +80,17 @@ export class EditChannelModalComponent implements OnInit {
         this.error.handleError(e);
       }
       this.loading = false;
+    }
+    else {
+      combineLatest([this.nameSubject, this.urlSubject])
+      .pipe(
+        filter(([name, url]) => name != '' && name != null && url != '' && url != null),
+        tap(() => this.loading = true),
+        debounceTime(300), 
+      )
+      .subscribe(([name, url]) => {
+        this.channelExistsFn(name, url).then(() => this.loading = false);
+      });
     }
   }
 
@@ -112,16 +135,26 @@ export class EditChannelModalComponent implements OnInit {
     }
   }
 
+  async channelExistsFn(url: string, name: string) {
+    this.channelExists = false;
+    this.channelExists = await invoke('channel_exists', { name: name, url: url, sourceId: this.channel.data.source_id }) as boolean;
+    console.log(this.channelExists);
+  }
+
   async add_channel(channel: CustomChannel) {
     try {
       await invoke("add_custom_channel", { channel: channel });
       this.memory.RefreshSources.next(true);
-      this.error.success("Successfully updated channel");
+      this.error.success("Successfully added channel");
       this.activeModal.close('close');
     }
     catch (e) {
       this.error.handleError(e);
     }
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(x => x.unsubscribe());
   }
 }
 

@@ -39,5 +39,10 @@ body {
     user-select: auto;
 }
 
+p {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
 html, body { height: fit-content; user-select: none; }
 body { margin: 0; font-family: "Roboto", sans-serif }
