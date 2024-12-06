@@ -82,7 +82,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       let sources = data[1] as Source[];
       sources.filter(x => x.source_type == SourceType.Custom)
         .map(x => x.id!)
-        .forEach(x => this.memory.CustomChannelsIds?.add(x));
+        .forEach(x => this.memory.CustomSourceIds?.add(x));
       this.memory.Sources = sources.filter(x => x.enabled);
       if (sources.length == 0)
         this.reset();
