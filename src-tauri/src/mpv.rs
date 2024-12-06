@@ -27,6 +27,8 @@ const ARG_VOLUME: &str = "--volume=";
 const ARG_HTTP_HEADERS: &str = "--http-header-fields=";
 const ARG_USER_AGENT: &str = "--user-agent=";
 const ARG_IGNORE_SSL: &str = "--ytdl-raw-options=no-check-certificates=True";
+const ARG_PREFETCH_PLAYLIST: &str = "--prefetch-playlist=yes";
+const ARG_LOOP_PLAYLIST: &str = "--loop-playlist=inf";
 const MPV_BIN_NAME: &str = "mpv";
 const YTDLP_BIN_NAME: &str = "yt-dlp";
 const HTTP_ORIGIN: &str = "origin:";
@@ -131,6 +133,8 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
     }
     args.push(format!("{}{}", ARG_TITLE, channel.name));
     args.push(ARG_MSG_LEVEL.to_string());
+    args.push(ARG_PREFETCH_PLAYLIST.to_string());
+    args.push(ARG_LOOP_PLAYLIST.to_string());
     if let Some(volume) = settings.volume {
         args.push(format!("{ARG_VOLUME}{volume}"));
     }
