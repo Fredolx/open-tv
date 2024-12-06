@@ -20,6 +20,7 @@ export class EditChannelModalComponent implements OnInit {
     data: {},
     headers: {}
   }
+  beforeEditChannel?: CustomChannel;
   mediaTypeEnum = MediaType;
   editing: boolean = false;
   group?: IdName;
@@ -43,11 +44,11 @@ export class EditChannelModalComponent implements OnInit {
 
   }
 
-  onNameChange(val: string)  {
+  onNameChange(val: string) {
     this.nameSubject.next(val);
   }
 
-  onUrlChange(val: string)  {
+  onUrlChange(val: string) {
     this.urlSubject.next(val);
   }
 
@@ -81,17 +82,18 @@ export class EditChannelModalComponent implements OnInit {
       }
       this.loading = false;
     }
-    else {
-      combineLatest([this.nameSubject, this.urlSubject])
+    combineLatest([this.nameSubject, this.urlSubject])
       .pipe(
         filter(([name, url]) => name != '' && name != null && url != '' && url != null),
         tap(() => this.loading = true),
-        debounceTime(300), 
+        debounceTime(300),
       )
       .subscribe(([name, url]) => {
         this.channelExistsFn(name, url).then(() => this.loading = false);
-      });
-    }
+    });
+    this.beforeEditChannel =  JSON.parse(JSON.stringify(this.channel));
+    this.nameSubject.next(this.channel.data.name!);
+    this.urlSubject.next(this.channel.data.url!);
   }
 
   sanitize() {
@@ -107,7 +109,7 @@ export class EditChannelModalComponent implements OnInit {
     this.loading = true;
     this.sanitize();
     let channel = { ...this.channel };
-    channel.data.favorite = true;
+    channel.data.favorite = false;
     if (
       !channel.headers?.http_origin &&
       !channel.headers?.referrer &&
@@ -137,8 +139,10 @@ export class EditChannelModalComponent implements OnInit {
 
   async channelExistsFn(url: string, name: string) {
     this.channelExists = false;
+    if (this.editing && this.beforeEditChannel?.data.name === this.channel.data.name && this.beforeEditChannel?.data.url === this.channel.data.url) {
+      return;
+    }
     this.channelExists = await invoke('channel_exists', { name: name, url: url, sourceId: this.channel.data.source_id }) as boolean;
-    console.log(this.channelExists);
   }
 
   async add_channel(channel: CustomChannel) {

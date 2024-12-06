@@ -121,8 +121,8 @@
             </div>
         </div>
     </div>
-    <p *ngIf="channelExists" class="text-danger error mt-2">
-        Channel already exists
+    <p *ngIf="channelExists" class="text-danger error mb-2 bs-col-padding">
+        Channel already exists (name, url)
     </p>
     <div class="modal-footer">
         <button [disabled]="!form.valid || loading || channelExists" class="btn btn-primary d-inline-flex align-items-center"

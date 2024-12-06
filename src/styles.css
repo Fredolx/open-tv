@@ -44,5 +44,9 @@ p {
     margin-top: 0;
 }
 
+.bs-col-padding {
+    padding-left: 1rem !important;
+}
+
 html, body { height: fit-content; user-select: none; }
 body { margin: 0; font-family: "Roboto", sans-serif }
