@@ -142,6 +142,8 @@ fn apply_migrations() -> Result<()> {
                 FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
             );
             CREATE UNIQUE INDEX IF NOT EXISTS index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
+            ALTER TABLE sources ADD COLUMN use_tvg_id integer;
+            UPDATE sources SET use_tvg_id = 1 WHERE source_type in (0,1);
         "#),
     ]);
     migrations.to_latest(&mut sql)?;
@@ -168,8 +170,8 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
         return Ok(id);
     }
     tx.execute(
-    "INSERT INTO sources (name, source_type, url, username, password) VALUES (?1, ?2, ?3, ?4, ?5)",
-    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password],
+    "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id],
     )?;
     Ok(tx.last_insert_rowid())
 }
@@ -585,6 +587,7 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
         source_type: row.get("source_type")?,
         url_origin: None,
         enabled: row.get("enabled")?,
+        use_tvg_id: row.get("use_tvg_id")?
     })
 }
 
@@ -642,6 +645,7 @@ pub fn get_custom_source(name: String) -> Source {
         source_type: source_type::CUSTOM,
         url: None,
         url_origin: None,
+        use_tvg_id: None
     }
 }
 

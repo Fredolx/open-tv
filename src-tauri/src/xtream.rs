@@ -290,6 +290,7 @@ mod test_xtream {
             url_origin: None,
             source_type: source_type::XTREAM,
             enabled: true,
+            use_tvg_id: None
         })
         .await
         .unwrap();

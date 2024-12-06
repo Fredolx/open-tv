@@ -32,6 +32,7 @@ pub struct Source {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub password: Option<String>,
     pub source_type: u8,
+    pub use_tvg_id: Option<bool>,
     pub enabled: bool,
 }
 

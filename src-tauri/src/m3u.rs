@@ -1,5 +1,9 @@
 use std::{
-    collections::HashMap, fs::File, io::{BufRead, BufReader, Lines, Write}, iter::{Enumerate, Skip}, sync::LazyLock
+    collections::HashMap,
+    fs::File,
+    io::{BufRead, BufReader, Lines, Write},
+    iter::{Enumerate, Skip},
+    sync::LazyLock,
 };
 
 use anyhow::{bail, Context, Result};
@@ -7,11 +11,14 @@ use regex::{Captures, Regex};
 use types::{Channel, Source};
 
 use crate::{
-    log, media_type, source_type, sql, types::{self, ChannelHttpHeaders}
+    log, media_type, source_type, sql,
+    types::{self, ChannelHttpHeaders},
 };
 
 static NAME_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"tvg-name="(?P<name>[^"]*)""#).unwrap());
+static NAME_REGEX_ALT: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#",(?P<name>[^\n\r\t]*)"#).unwrap());
 static ID_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"tvg-id="(?P<id>[^"]*)""#).unwrap());
 static LOGO_REGEX: LazyLock<Regex> =
@@ -60,13 +67,13 @@ pub fn read_m3u8(source: Source) -> Result<()> {
         };
         let mut headers: Option<ChannelHttpHeaders> = None;
         if l2.starts_with("#EXTVLCOPT") {
-            let (fail, _headers) = extract_headers(&mut l2, &mut lines)?; 
+            let (fail, _headers) = extract_headers(&mut l2, &mut lines)?;
             if fail {
                 continue;
             }
             headers = _headers;
         }
-        let mut channel = match get_channel_from_lines(l1, l2, source_id)
+        let mut channel = match get_channel_from_lines(l1, l2, source_id, source.use_tvg_id)
             .with_context(|| format!("Failed to process lines #{c1} #{c2}, skipping"))
         {
             Ok(val) => val,
@@ -125,14 +132,17 @@ fn extract_non_empty_capture(caps: Captures) -> Option<String> {
         .filter(|s| !s.trim().is_empty())
 }
 
-fn extract_headers(l2: &mut String, lines: &mut Skip<Enumerate<Lines<BufReader<File>>>>) -> Result<(bool, Option<ChannelHttpHeaders>)> {
+fn extract_headers(
+    l2: &mut String,
+    lines: &mut Skip<Enumerate<Lines<BufReader<File>>>>,
+) -> Result<(bool, Option<ChannelHttpHeaders>)> {
     let mut headers = ChannelHttpHeaders {
         id: None,
         channel_id: None,
         http_origin: None,
         referrer: None,
         user_agent: None,
-        ignore_ssl: None
+        ignore_ssl: None,
     };
     let mut at_least_one: bool = false;
     while l2.starts_with("#EXTVLCOPT") {
@@ -144,21 +154,22 @@ fn extract_headers(l2: &mut String, lines: &mut Skip<Enumerate<Lines<BufReader<F
         if let Ok(line) = result.1 {
             l2.clear();
             l2.push_str(&line);
-        }
-        else {
-            log::log(format!("{:?}", 
-                result.1.context(format!("Failed to get line at {}", result.0)).unwrap_err())
-            );
+        } else {
+            log::log(format!(
+                "{:?}",
+                result
+                    .1
+                    .context(format!("Failed to get line at {}", result.0))
+                    .unwrap_err()
+            ));
             return Ok((true, None));
         }
     }
     if at_least_one {
         return Ok((false, Some(headers)));
-    }
-    else {
+    } else {
         return Ok((true, None));
     }
-    
 }
 
 fn set_http_headers(line: &str, headers: &mut ChannelHttpHeaders) -> bool {
@@ -184,7 +195,12 @@ fn set_http_headers(line: &str, headers: &mut ChannelHttpHeaders) -> bool {
     return false;
 }
 
-fn get_channel_from_lines(first: String, mut second: String, source_id: i64) -> Result<Channel> {
+fn get_channel_from_lines(
+    first: String,
+    mut second: String,
+    source_id: i64,
+    use_tvg_id: Option<bool>,
+) -> Result<Channel> {
     second = second.trim().to_string();
     if second.is_empty() {
         bail!("second line is empty");
@@ -193,9 +209,21 @@ fn get_channel_from_lines(first: String, mut second: String, source_id: i64) -> 
         .captures(&first)
         .and_then(extract_non_empty_capture)
         .or_else(|| {
-            ID_REGEX
-                .captures(&first)
-                .and_then(extract_non_empty_capture)
+            let id = || {
+                ID_REGEX
+                    .captures(&first)
+                    .and_then(extract_non_empty_capture)
+            };
+            let name_alt = || {
+                NAME_REGEX_ALT
+                    .captures(&first)
+                    .and_then(extract_non_empty_capture)
+            };
+            if let Some(true) = use_tvg_id {
+                return id().or(name_alt());
+            } else {
+                return name_alt().or(id());
+            }
         })
         .context("Couldn't find name from Name or ID")?;
     let group = GROUP_REGEX
@@ -242,13 +270,16 @@ mod test_m3u {
     #[test]
     fn test_get_channel_from_lines() {
         get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="Amazing Channel" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0).unwrap();
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0,Some(true)).unwrap();
         get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0).unwrap();
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0, Some(true)).unwrap();
         assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0).is_err());
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0, Some(true)).is_err());
         assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id=" " tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0).is_err());
+       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0, Some(true)).is_err());
+        assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="Name Of Channel" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(true)).unwrap().name == "Name Of Channel");
+        assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(true)).unwrap().name == "Id Of Channel");
+        assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(false)).unwrap().name == "Alt Name Of Channel");
     }
 
     #[test]
@@ -265,6 +296,7 @@ mod test_m3u {
             url_origin: None,
             source_type: crate::source_type::M3U,
             enabled: true,
+            use_tvg_id: Some(true),
         };
         read_m3u8(source).unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
@@ -284,6 +316,7 @@ mod test_m3u {
             url_origin: None,
             source_type: crate::source_type::M3U_LINK,
             enabled: true,
+            use_tvg_id: Some(true),
         };
         get_m3u8_from_link(source).await.unwrap();
         let time = now.elapsed().as_millis().to_string();

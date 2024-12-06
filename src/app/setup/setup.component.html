@@ -2,10 +2,10 @@
     <path
         d="M2,12A10,10 0 0,1 12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12M18,11H10L13.5,7.5L12.08,6.08L6.16,12L12.08,17.92L13.5,16.5L10,13H18V11Z" />
 </svg>
-<div class="container text-center mt-5">
+<div class="container mt-5">
     <ng-container *ngIf="!loading">
-        <h2 *ngIf="!memory.AddingAdditionalSource">Let's add your first source</h2>
-        <h2 *ngIf="memory.AddingAdditionalSource">Let's add another source</h2>
+        <h2 class="text-center" *ngIf="!memory.AddingAdditionalSource">Let's add your first source</h2>
+        <h2 class="text-center" *ngIf="memory.AddingAdditionalSource">Let's add another source</h2>
         <div class="btn-group mx-auto mb-4 mt-4" style="width: fit-content; display: block;">
             <button (click)="switchMode(sourceTypeEnum.M3U)" class="btn btn-secondary"
                 [ngbTooltip]="'Use this option if you only have an M3U file. If the file was obtained through an URL given to you by your IPTV provider, the M3U URL option is better'"
@@ -40,6 +40,15 @@
                     </div>
                 </div>
             </div>
+            <div *ngIf="source.source_type == sourceTypeEnum.M3U || source.source_type == sourceTypeEnum.M3ULink" class="row mt-2 justify-content-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="form-check form-switch">
+                        <input name="use-tvg-id" [(ngModel)]="source.use_tvg_id" id="use-tvg-id"
+                            class="form-check-input" type="checkbox">
+                        <label class="form-check-label" for="use-tvg-id">Use TVG-ID for names when TVG-NAME is unavailable</label>
+                    </div>
+                </div>
+            </div>
             <div *ngIf="source.source_type == sourceTypeEnum.Xtream">
                 <div class="row mt-2 justify-content-center">
                     <div class="col-lg-6 col-md-8">
@@ -54,7 +63,7 @@
                     </div>
                 </div>
             </div>
-            <div class="mt-3">
+            <div class="mt-3 text-center">
                 <button [disabled]="!form.valid" class="btn btn-primary d-inline-flex align-items-center">
                     <ng-container *ngIf="source.source_type == sourceTypeEnum.M3U">
                         <span>Select file</span>

@@ -8,4 +8,5 @@ export class Source {
     password?: string;
     source_type?: SourceType;
     enabled?: boolean;
+    use_tvg_id?: boolean;
 }

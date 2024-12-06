@@ -22,7 +22,8 @@ export class SetupComponent {
   sourceTypeEnum = SourceType;
   source: Source = {
     source_type: SourceType.M3U,
-    enabled: true
+    enabled: true,
+    use_tvg_id: true
   };
   ngOnInit(): void {
   }
@@ -143,6 +144,7 @@ export class SetupComponent {
 
   async getXtream() {
     this.loading = true;
+    this.source.use_tvg_id = undefined;
     this.source.url = this.source.url?.trim();
     this.source.username = this.source.username?.trim();
     this.source.password = this.source.password?.trim();
