@@ -1,7 +1,7 @@
 import { Directive, forwardRef } from '@angular/core';
 import { AbstractControl, AsyncValidator, NG_ASYNC_VALIDATORS, ValidationErrors } from '@angular/forms';
 import { invoke } from '@tauri-apps/api/core';
-import { debounceTime, from, map, Observable, of, switchMap, timer } from 'rxjs';
+import { from, map, Observable, of, switchMap, timer } from 'rxjs';
 
 @Directive({
   selector: '[source-name-exists]',
@@ -18,11 +18,12 @@ export class SourceNameExistsValidator implements AsyncValidator {
   constructor() {}
 
   validate(control: AbstractControl): Observable<ValidationErrors | null> {
-    if (!control.value) {
+    let value = control.value?.trim();
+    if (!value) {
       return of(null); // No validation needed if the field is empty
     }
     return timer(300).pipe(
-      switchMap(() => from(invoke("source_name_exists", {name: control.value}))),
+      switchMap(() => from(invoke("source_name_exists", {name: value}))),
       map(exists => exists === true ? {sourceNameExists: true} : null)
     ) 
   }

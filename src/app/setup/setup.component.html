@@ -1,4 +1,7 @@
-<svg *ngIf="memory.AddingAdditionalSource" (click)="goBack()" class="arrow" fill="currentColor" viewBox="0 0 24 24"><path d="M2,12A10,10 0 0,1 12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12M18,11H10L13.5,7.5L12.08,6.08L6.16,12L12.08,17.92L13.5,16.5L10,13H18V11Z" /></svg>
+<svg *ngIf="memory.AddingAdditionalSource" (click)="goBack()" class="arrow" fill="currentColor" viewBox="0 0 24 24">
+    <path
+        d="M2,12A10,10 0 0,1 12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12M18,11H10L13.5,7.5L12.08,6.08L6.16,12L12.08,17.92L13.5,16.5L10,13H18V11Z" />
+</svg>
 <div class="container text-center mt-5">
     <ng-container *ngIf="!loading">
         <h2 *ngIf="!memory.AddingAdditionalSource">Let's add your first source</h2>
@@ -12,12 +15,16 @@
                 triggers="hover" [ngClass]="{'active': source.source_type == sourceTypeEnum.M3ULink}">M3U URL</button>
             <button (click)="switchMode(sourceTypeEnum.Xtream)" class="btn btn-secondary"
                 [ngClass]="{'active': source.source_type == sourceTypeEnum.Xtream}">Xtream</button>
+            <button class="btn btn-secondary" (click)="switchMode(sourceTypeEnum.Custom)"
+                [ngClass]="{'active': source.source_type == sourceTypeEnum.Custom}">Custom</button>
+            <button class="btn btn-secondary" (click)="switchMode(sourceTypeEnum.CustomImport)"
+                [ngClass]="{'active': source.source_type == sourceTypeEnum.CustomImport}">Custom Import</button>
         </div>
-        <form #form="ngForm" (ngSubmit)="submit()">
+        <form name="setupForm" #form="ngForm" (ngSubmit)="submit()">
             <div class="row mt-2 justify-content-center">
                 <div class="col-lg-6 col-md-8">
-                    <input tabindex="0" autocomplete="off" #name="ngModel" source-name-exists name="name" empty class="form-control" [(ngModel)]="source.name"
-                        placeholder="Nickname for this source">
+                    <input tabindex="0" autocomplete="off" #name="ngModel" [emptyDisabled]="source.source_type == sourceTypeEnum.CustomImport" source-name-exists name="name" empty
+                        class="form-control" [(ngModel)]="source.name" placeholder="Nickname for this source">
                 </div>
             </div>
             <div class="row mt-1 ps-3">
@@ -25,25 +32,25 @@
                     This source name is already taken
                 </div>
             </div>
-
-            <div *ngIf="source.source_type != sourceTypeEnum.M3U">
+            <div *ngIf="source.source_type != sourceTypeEnum.M3U && source.source_type != sourceTypeEnum.Custom && source.source_type != sourceTypeEnum.CustomImport">
                 <div class="row justify-content-center mt-2">
                     <div class="col-lg-6 col-md-8">
-                        <input autocomplete="off" name="url" empty class="form-control" [(ngModel)]="source.url" placeholder="URL">
+                        <input autocomplete="off" name="url" empty class="form-control" [(ngModel)]="source.url"
+                            placeholder="URL">
                     </div>
                 </div>
             </div>
             <div *ngIf="source.source_type == sourceTypeEnum.Xtream">
                 <div class="row mt-2 justify-content-center">
                     <div class="col-lg-6 col-md-8">
-                        <input autocomplete="off" name="username" empty class="form-control" [(ngModel)]="source.username"
-                            placeholder="Username">
+                        <input autocomplete="off" name="username" empty class="form-control"
+                            [(ngModel)]="source.username" placeholder="Username">
                     </div>
                 </div>
                 <div class="row mt-2 justify-content-center">
                     <div class="col-lg-6 col-md-8">
-                        <input autocomplete="off" name="password" empty class="form-control" [(ngModel)]="source.password"
-                            placeholder="Password">
+                        <input autocomplete="off" name="password" empty class="form-control"
+                            [(ngModel)]="source.password" placeholder="Password">
                     </div>
                 </div>
             </div>
@@ -51,15 +58,41 @@
                 <button [disabled]="!form.valid" class="btn btn-primary d-inline-flex align-items-center">
                     <ng-container *ngIf="source.source_type == sourceTypeEnum.M3U">
                         <span>Select file</span>
-                        <svg class="anim-svg ms-1" viewBox="0 0 24 24" fill="currentColor"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" /></svg>
+                        <svg class="anim-svg ms-1" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                        </svg>
                     </ng-container>
                     <ng-container *ngIf="source.source_type == sourceTypeEnum.M3ULink">
                         <span>Fetch</span>
-                        <svg class="anim-svg ms-1" viewBox="0 0 24 24" fill="currentColor"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>
+                        <svg class="anim-svg ms-1" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+                        </svg>
                     </ng-container>
                     <ng-container *ngIf="source.source_type == sourceTypeEnum.Xtream">
                         <span>Login</span>
-                        <svg class="anim-svg ms-1" viewBox="0 0 24 24" fill="currentColor"><path d="M19,3H5C3.89,3 3,3.89 3,5V9H5V5H19V19H5V15H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M10.08,15.58L11.5,17L16.5,12L11.5,7L10.08,8.41L12.67,11H3V13H12.67L10.08,15.58Z" /></svg>
+                        <svg class="anim-svg ms-1" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M19,3H5C3.89,3 3,3.89 3,5V9H5V5H19V19H5V15H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M10.08,15.58L11.5,17L16.5,12L11.5,7L10.08,8.41L12.67,11H3V13H12.67L10.08,15.58Z" />
+                        </svg>
+                    </ng-container>
+                    <ng-container *ngIf="source.source_type == sourceTypeEnum.Custom">
+                        <span>
+                            Add custom source
+                        </span>
+                        <svg class="pen ms-1" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M20.7,7C20.4,7.4 20,7.7 20,8C20,8.3 20.3,8.6 20.6,9C21.1,9.5 21.6,9.9 21.5,10.4C21.5,10.9 21,11.4 20.5,11.9L16.4,16L15,14.7L19.2,10.5L18.2,9.5L16.8,10.9L13,7.1L17,3.3C17.4,2.9 18,2.9 18.4,3.3L20.7,5.6C21.1,6 21.1,6.7 20.7,7M3,17.2L12.6,7.6L16.3,11.4L6.8,21H3V17.2M7,2V5H10V7H7V10H5V7H2V5H5V2H7Z" />
+                        </svg>
+                    </ng-container>
+                    <ng-container *ngIf="source.source_type == sourceTypeEnum.CustomImport">
+                        <span>
+                            Import custom source
+                        </span>
+                        <svg fill="currentColor" class="pen ms-1" viewBox="0 0 24 24">
+                            <path
+                                d="M6,2C4.89,2 4,2.9 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13M10.05,11.22L12.88,14.05L15,11.93V19H7.93L10.05,16.88L7.22,14.05" />
+                        </svg>
                     </ng-container>
                 </button>
             </div>
@@ -67,3 +100,9 @@
     </ng-container>
     <app-loading *ngIf="loading" [center]="false"></app-loading>
 </div>
+<button (click)="nuke()" class="btn text-bg-danger nuke-btn" *ngIf="!memory.AddingAdditionalSource">
+    <svg class="nuke" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path fill="currentColor"
+            d="M14.04,12H10V11H5.5A3.5,3.5 0 0,1 2,7.5A3.5,3.5 0 0,1 5.5,4C6.53,4 7.45,4.44 8.09,5.15C8.5,3.35 10.08,2 12,2C13.92,2 15.5,3.35 15.91,5.15C16.55,4.44 17.47,4 18.5,4A3.5,3.5 0 0,1 22,7.5A3.5,3.5 0 0,1 18.5,11H14.04V12M10,16.9V15.76H5V13.76H19V15.76H14.04V16.92L20,19.08C20.58,19.29 21,19.84 21,20.5A1.5,1.5 0 0,1 19.5,22H4.5A1.5,1.5 0 0,1 3,20.5C3,19.84 3.42,19.29 4,19.08L10,16.9Z" />
+    </svg>
+</button>

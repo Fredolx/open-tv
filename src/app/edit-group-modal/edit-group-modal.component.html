@@ -1,0 +1,55 @@
+<div class="modal-header">
+    <h4 class="modal-title lbl">
+        <ng-container *ngIf="!editing">
+            Creating a custom category
+        </ng-container>
+        <ng-container *ngIf="editing">
+            Editing {{group.name}}
+        </ng-container>
+    </h4>
+    <button type="button" class="btn-close btn-close-white" aria-label="Close"
+        (click)="activeModal.dismiss('Cross click')"></button>
+</div>
+<form #form="ngForm" (ngSubmit)="save()">
+    <div class="modal-body">
+        <div class="row mt-3 align-items-center">
+            <div class="col-4">
+                <span>Name <span class="text-danger">*</span></span>
+            </div>
+            <div class="col">
+                <input #name="ngModel" group-name-exists [originalName]="originalName" [sourceId]="this.group.source_id" name="name" required class="form-control" [(ngModel)]="group.name"
+                    placeholder="My cool category" />
+            </div>
+        </div>
+        <div *ngIf="name.errors?.['groupNameExists']" class="row mt-1 ps-3">
+            <div class="col-4"></div>
+            <div class="col-lg-6 col-md-8 text-danger ps-0">
+                This group name is already taken
+            </div>
+        </div>
+        <div *ngIf="name.errors?.['required'] && name.dirty" class="row mt-1 ps-3">
+            <div class="col-4"></div>
+            <div class="col-lg-6 col-md-8 text-danger ps-0">
+                This field is required
+            </div>
+        </div>
+        <div class="row mt-3 align-items-center">
+            <div class="col-4">
+                <span>Image (link)</span>
+            </div>
+            <div class="col">
+                <input class="form-control" name="image" [(ngModel)]="group.image"
+                    placeholder="http://mycoolsite.com/image.png" />
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button [disabled]="!form.valid || loading" class="btn btn-primary d-inline-flex align-items-center" type="submit">
+            <span>Save</span>
+            <svg class="ms-1 save-floppy" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path
+                    d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z" />
+            </svg>
+        </button>
+    </div>
+</form>

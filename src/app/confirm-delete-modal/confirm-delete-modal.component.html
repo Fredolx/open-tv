@@ -1,0 +1,26 @@
+<div class="modal-header">
+    <h4 class="modal-title lbl">
+        Confirm deletion of all user data
+    </h4>
+    <button type="button" class="btn-close btn-close-white" aria-label="Close"
+        (click)="activeModal.dismiss('Cross click')"></button>
+</div>
+<div class="modal-body">
+    <p>This action will delete all user data including channels, categories and favorites for all sources.</p>
+    <p>It is recommended to use this option if you're encountering weird bugs that may be due to a version upgrade.</p>
+</div>
+<div class="modal-footer">
+    <button [disabled]="loading" (click)="delete()" class="btn btn-danger d-inline-flex align-items-center" type="submit">
+        <span>Confirm delete</span>
+        <svg class="nuke ms-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M14.04,12H10V11H5.5A3.5,3.5 0 0,1 2,7.5A3.5,3.5 0 0,1 5.5,4C6.53,4 7.45,4.44 8.09,5.15C8.5,3.35 10.08,2 12,2C13.92,2 15.5,3.35 15.91,5.15C16.55,4.44 17.47,4 18.5,4A3.5,3.5 0 0,1 22,7.5A3.5,3.5 0 0,1 18.5,11H14.04V12M10,16.9V15.76H5V13.76H19V15.76H14.04V16.92L20,19.08C20.58,19.29 21,19.84 21,20.5A1.5,1.5 0 0,1 19.5,22H4.5A1.5,1.5 0 0,1 3,20.5C3,19.84 3.42,19.29 4,19.08L10,16.9Z" />
+        </svg>
+    </button>
+    <button [disabled]="loading" (click)="activeModal.dismiss('cancel')" class="btn btn-secondary d-inline-flex align-items-center" type="submit">
+        <span>Cancel</span>
+        <svg class="nuke ms-1" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+        </svg>
+    </button>
+</div>

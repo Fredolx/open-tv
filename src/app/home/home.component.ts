@@ -79,6 +79,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     Promise.all([get_settings, get_sources]).then(data => {
       let settings = data[0] as Settings;
       let sources = data[1] as Source[];
+      sources.filter(x => x.source_type == SourceType.Custom)
+        .map(x => x.id!)
+        .forEach(x => this.memory.CustomSourceIds?.add(x));
       this.memory.Sources = sources.filter(x => x.enabled);
       if (sources.length == 0)
         this.reset();
@@ -119,10 +122,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.current_group_name = idName.name;
       await this.load();
     }));
-    this.subscriptions.push(this.memory.RefreshFavs.subscribe(_ => {
-      if (this.filters?.view_type == ViewMode.Favorites)
+    this.subscriptions.push(this.memory.Refresh.subscribe(favs => {
+      if (favs === false || this.filters?.view_type == ViewMode.Favorites)
         this.load();
     }));
+
   }
 
   clearSearch() {

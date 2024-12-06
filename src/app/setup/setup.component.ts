@@ -9,6 +9,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
 import { MemoryService } from '../memory.service';
 import { ErrorService } from '../error.service';
+import { ConfirmDeleteModalComponent } from '../confirm-delete-modal/confirm-delete-modal.component';
 @Component({
   selector: 'app-setup',
   templateUrl: './setup.component.html',
@@ -16,7 +17,7 @@ import { ErrorService } from '../error.service';
 })
 export class SetupComponent {
   constructor(private nav: Router,
-    private toastr: ToastrService, private modalService: NgbModal, public memory: MemoryService, private error: ErrorService) { }
+    private toastr: ToastrService, private modalService: NgbModal, public memory: MemoryService, private error: ErrorService, private modal: NgbModal) { }
   loading = false;
   sourceTypeEnum = SourceType;
   source: Source = {
@@ -66,6 +67,7 @@ export class SetupComponent {
   }
 
   async submit() {
+    this.source.name = this.source.name?.trim();
     switch (this.source.source_type) {
       case SourceType.M3U:
         await this.getM3U()
@@ -75,7 +77,54 @@ export class SetupComponent {
         break;
       case SourceType.Xtream:
         await this.getXtream();
+        break;
+      case SourceType.Custom:
+        await this.custom();
+        break;
+      case SourceType.CustomImport:
+        await this.customImport();
+        break;
     }
+  }
+
+  async customImport() {
+    const file = await open({
+      multiple: false,
+      directory: false,
+      canCreateDirectories: false,
+      title: "Select Open TV export file (.otvp)",
+      filters: [
+        {
+          name: "Extension filter",
+          extensions: ["otvp"]
+        }
+      ]
+    });
+    if (file == null) {
+      return;
+    }
+    let nameOverride = this.source.name?.trim();
+    if (nameOverride == "")
+      nameOverride = undefined;
+    try {
+      await invoke("import", { path: file, nameOverride: nameOverride });
+      this.success();
+    }
+    catch(e) {
+      this.error.handleError(e, "Invalid URL or credentials. Please try again");
+    }
+  }
+
+  async custom() {
+    this.loading = true;
+    try {
+      await invoke('add_custom_source', { name: this.source.name });
+      this.success();
+    }
+    catch (e) {
+      this.error.handleError(e, "Invalid URL or credentials. Please try again");
+    }
+    this.loading = false;
   }
 
   async getM3ULink() {
@@ -118,5 +167,10 @@ export class SetupComponent {
       this.error.handleError(e, "Invalid URL or credentials. Please try again");
     }
     this.loading = false;
+  }
+
+  async nuke() {
+    const modalRef = this.modal.open(ConfirmDeleteModalComponent, { backdrop: 'static', size: 'xl', });
+    modalRef.componentInstance.name = "ConfirmDeleteModal";
   }
 }

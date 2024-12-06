@@ -1,0 +1,14 @@
+button .import {
+    height: 1.5rem;
+    width: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+button:hover .import {
+    transform: scale(125%);
+}
+
+.notice {
+    font-size: 0.9rem;
+    color: lightgray;
+}

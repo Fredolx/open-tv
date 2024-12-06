@@ -25,4 +25,8 @@ export class ErrorService {
     modalRef.componentInstance.name = 'ErrorModal';
     modalRef.componentInstance.error = error;
   }
+
+  public success(message: string) {
+    this.toastr.success(message);
+  }
 }

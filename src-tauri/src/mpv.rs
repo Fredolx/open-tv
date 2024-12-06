@@ -1,4 +1,5 @@
-use crate::log;
+use crate::types::ChannelHttpHeaders;
+use crate::{log, sql};
 use crate::{media_type, settings::get_settings, types::Channel};
 use anyhow::{bail, Context, Result};
 use chrono::Local;
@@ -23,8 +24,13 @@ const ARG_TITLE: &str = "--title=";
 const ARG_MSG_LEVEL: &str = "--msg-level=all=error";
 const ARG_YTDLP_PATH: &str = "--script-opts=ytdl_hook-ytdl_path=";
 const ARG_VOLUME: &str = "--volume=";
+const ARG_HTTP_HEADERS: &str = "--http-header-fields=";
+const ARG_USER_AGENT: &str = "--user-agent=";
+const ARG_IGNORE_SSL: &str = "--ytdl-raw-options=no-check-certificates=True";
 const MPV_BIN_NAME: &str = "mpv";
 const YTDLP_BIN_NAME: &str = "yt-dlp";
+const HTTP_ORIGIN: &str = "origin:";
+const HTTP_REFERRER: &str = "referer:";
 const MACOS_POTENTIAL_PATHS: [&str; 3] = [
     "/opt/local/bin",    // MacPorts
     "/opt/homebrew/bin", // Homebrew on AARCH64 Mac
@@ -37,6 +43,7 @@ static YTDLP_PATH: LazyLock<String> = LazyLock::new(|| find_macos_bin(YTDLP_BIN_
 pub async fn play(channel: Channel, record: bool) -> Result<()> {
     println!("{} playing", channel.url.as_ref().unwrap());
     let args = get_play_args(channel, record)?;
+    println!("with args: {:?}", args);
     let mut cmd = Command::new(MPV_PATH.clone())
         .args(args)
         .stdout(Stdio::piped())
@@ -92,9 +99,7 @@ fn find_macos_bin(bin: String) -> String {
             path.push(&bin);
             return path;
         })
-        .find(|path| {        
-            path.exists()
-        })
+        .find(|path| path.exists())
         .map(|s| s.to_string_lossy().to_string())
         .unwrap_or_else(|| {
             log::log(format!("Could not find {} on MacOS host", bin));
@@ -105,6 +110,7 @@ fn find_macos_bin(bin: String) -> String {
 fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
     let mut args = Vec::new();
     let settings = get_settings()?;
+    let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id?")?)?;
     args.push(channel.url.context("no url")?);
     if channel.media_type != media_type::LIVESTREAM {
         args.push(ARG_SAVE_POSITION_ON_QUIT.to_string());
@@ -128,6 +134,7 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
     if let Some(volume) = settings.volume {
         args.push(format!("{ARG_VOLUME}{volume}"));
     }
+    set_headers(headers, &mut args);
     if let Some(mpv_params) = settings.mpv_params {
         #[cfg(not(target_os = "windows"))]
         let mut params = shell_words::split(&mpv_params)?;
@@ -138,10 +145,34 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
     Ok(args)
 }
 
+fn set_headers(headers: Option<ChannelHttpHeaders>, args: &mut Vec<String>) {
+    if headers.is_none() {
+        return;
+    }
+    let headers = headers.unwrap();
+    let mut headers_vec: Vec<String> = Vec::with_capacity(2);
+    if let Some(origin) = headers.http_origin {
+        headers_vec.push(format!("{HTTP_ORIGIN}{origin}"));
+    }
+    if let Some(referrer) = headers.referrer {
+        headers_vec.push(format!("{HTTP_REFERRER}{referrer}"));
+    }
+    if let Some(user_agent) = headers.user_agent {
+        args.push(format!("{ARG_USER_AGENT}{user_agent}"));
+    }
+    if let Some(ignore_ssl) = headers.ignore_ssl {
+        if ignore_ssl == true {
+            args.push(ARG_IGNORE_SSL.to_string());
+        }
+    }
+    let headers = headers_vec.join(",");
+    args.push(format!("{ARG_HTTP_HEADERS}{headers}"));
+}
+
 fn get_path(path_str: String) -> String {
     let path = Path::new(&path_str);
     let path = path.join(get_file_name());
-    return path.to_string_lossy().to_string(); // Check if it causes problems for some OS languages?
+    return path.to_string_lossy().to_string();
 }
 
 fn get_file_name() -> String {

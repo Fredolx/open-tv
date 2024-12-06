@@ -17,24 +17,28 @@ export class MemoryService {
   public Sources: Source[] = [];
   public currentContextMenu?: MatMenuTrigger;
   public Loading = false;
-  public RefreshFavs: Subject<boolean> = new Subject();
+  public Refresh: Subject<boolean> = new Subject();
   public RefreshSources: Subject<boolean> = new Subject();
   public AddingAdditionalSource = false;
   public SeriesRefreshed: Map<Number, boolean> = new Map();
   public HideChannels: Subject<boolean> = new Subject();
+  public CustomSourceIds: Set<number> = new Set();
 
   async tryIPC<T>(
     successMessage: string,
     errorMessage: string,
     action: () => Promise<T>
-  ): Promise<void> {
+  ): Promise<boolean> {
     this.Loading = true;
+    let error = false;
     try {
       await action();
       this.toastr.success(successMessage);
     } catch (e) {
       this.error.handleError(e, errorMessage);
+      error = true;
     }
     this.Loading = false;
+    return error;
   }
 }

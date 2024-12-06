@@ -1,8 +1,10 @@
 use std::{collections::HashMap, sync::LazyLock};
 
+use crate::log::log;
+use crate::types::{CustomChannel, CustomChannelExtraData, ExportedGroup, Group, IdName};
 use crate::{
-    media_type,
-    types::{Channel, Filters, Source},
+    media_type, source_type,
+    types::{Channel, ChannelHttpHeaders, Filters, Source},
     view_type,
 };
 use anyhow::{anyhow, Context, Result};
@@ -10,6 +12,7 @@ use directories::ProjectDirs;
 use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::{params, params_from_iter, OptionalExtension, Row, Transaction};
+use rusqlite_migration::{Migrations, M};
 
 const PAGE_SIZE: u8 = 36;
 static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
@@ -35,7 +38,6 @@ fn get_and_create_sqlite_db_path() -> String {
     return path.to_string_lossy().to_string();
 }
 
-//@TODO: Nullable types
 fn create_structure() -> Result<()> {
     let sql = get_conn()?;
     sql.execute_batch(
@@ -104,7 +106,7 @@ fn structure_exists() -> Result<bool> {
         .query_row(
             "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'channels' LIMIT 1",
             [],
-            |row| row.get::<_, i32>(0),
+            |row| row.get::<_, u8>(0),
         )
         .optional()?
         .is_some();
@@ -120,6 +122,29 @@ pub fn create_or_initialize_db() -> Result<()> {
     if !structure_exists()? {
         create_structure()?;
     }
+    apply_migrations()?;
+    Ok(())
+}
+
+fn apply_migrations() -> Result<()> {
+    let mut sql = get_conn()?;
+    let migrations = Migrations::new(vec![
+        M::up(r#"
+            DROP INDEX IF EXISTS channels_unique;
+            CREATE UNIQUE INDEX channels_unique ON channels(name, url, source_id);
+            CREATE TABLE IF NOT EXISTS "channel_http_headers" (
+                "id" INTEGER PRIMARY KEY,
+                "channel_id" integer,
+                "referrer" varchar(500),
+                "user_agent" varchar(500),
+                "http_origin" varchar(500),
+                "ignore_ssl" integer DEFAULT 0,
+                FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
+        "#),
+    ]);
+    migrations.to_latest(&mut sql)?;
     Ok(())
 }
 
@@ -131,11 +156,8 @@ pub fn drop_db() -> Result<()> {
     Ok(())
 }
 
-/// # Returns
-/// If a new source was created
-pub fn create_or_find_source_by_name(source: &mut Source) -> Result<bool> {
-    let sql = get_conn()?;
-    let id: Option<i64> = sql
+pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Result<i64> {
+    let id: Option<i64> = tx
         .query_row(
             "SELECT id FROM sources WHERE name = ?1",
             params![source.name],
@@ -143,22 +165,20 @@ pub fn create_or_find_source_by_name(source: &mut Source) -> Result<bool> {
         )
         .optional()?;
     if let Some(id) = id {
-        source.id = Some(id);
-        return Ok(false);
+        return Ok(id);
     }
-    sql.execute(
-        "INSERT INTO sources (name, source_type, url, username, password) VALUES (?1, ?2, ?3, ?4, ?5)",
-        params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password],
+    tx.execute(
+    "INSERT INTO sources (name, source_type, url, username, password) VALUES (?1, ?2, ?3, ?4, ?5)",
+    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password],
     )?;
-    source.id = Some(sql.last_insert_rowid());
-    Ok(true)
+    Ok(tx.last_insert_rowid())
 }
 
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
-        r#"
+        r#" 
 INSERT OR IGNORE INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite) 
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, false); 
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8); 
 "#,
         params![
             channel.name,
@@ -167,7 +187,24 @@ VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, false);
             channel.url,
             channel.source_id,
             channel.media_type as u8,
-            channel.series_id
+            channel.series_id,
+            channel.favorite
+        ],
+    )?;
+    Ok(())
+}
+
+pub fn insert_channel_headers(tx: &Transaction, headers: ChannelHttpHeaders) -> Result<()> {
+    tx.execute(
+        r#"
+INSERT OR IGNORE INTO channel_http_headers (channel_id, referrer, user_agent, http_origin) 
+VALUES (?, ?, ?, ?); 
+"#,
+        params![
+            headers.channel_id,
+            headers.referrer,
+            headers.user_agent,
+            headers.http_origin
         ],
     )?;
     Ok(())
@@ -216,6 +253,29 @@ pub fn set_channel_group_id(
             .map(|x| x.to_owned());
     }
     Ok(())
+}
+
+pub fn get_channel_headers_by_id(id: i64) -> Result<Option<ChannelHttpHeaders>> {
+    let sql = get_conn()?;
+    let headers = sql
+        .query_row(
+            "SELECT * FROM channel_http_headers WHERE channel_id = ?",
+            params![id],
+            row_to_channel_headers,
+        )
+        .optional()?;
+    Ok(headers)
+}
+
+fn row_to_channel_headers(row: &Row) -> Result<ChannelHttpHeaders, rusqlite::Error> {
+    Ok(ChannelHttpHeaders {
+        id: row.get("id")?,
+        channel_id: row.get("channel_id")?,
+        http_origin: row.get("http_origin")?,
+        referrer: row.get("referrer")?,
+        user_agent: row.get("user_agent")?,
+        ignore_ssl: row.get("ignore_ssl")?,
+    })
 }
 
 pub fn get_settings() -> Result<HashMap<String, String>> {
@@ -269,9 +329,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         AND media_type IN ({})
 		AND source_id IN ({})
         AND url IS NOT NULL"#,
-        generate_placeholders(
-            media_types.len()
-        ),
+        generate_placeholders(media_types.len()),
         generate_placeholders(filters.source_ids.len()),
     );
     let mut baked_params = 3;
@@ -286,9 +344,8 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         baked_params += 1;
     }
     sql_query += "\nLIMIT ?, ?";
-    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(
-        baked_params + media_types.len() + filters.source_ids.len(),
-    );
+    let mut params: Vec<&dyn rusqlite::ToSql> =
+        Vec::with_capacity(baked_params + media_types.len() + filters.source_ids.len());
     let query = to_sql_like(filters.query);
     params.push(&query);
     params.extend(to_to_sql(&media_types));
@@ -405,7 +462,7 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     sql.execute(
         r#"
         DELETE FROM channels
-        WHERE source_id = ?1
+        WHERE source_id = ?
         AND favorite = 0;
     "#,
         params![source_id.to_string()],
@@ -469,7 +526,7 @@ pub fn get_channel_count_by_source(id: i64) -> Result<u64> {
     Ok(count)
 }
 
-pub fn source_name_exists(name: String) -> Result<bool> {
+pub fn source_name_exists(name: &str) -> Result<bool> {
     let sql = get_conn()?;
     Ok(sql
         .query_row(
@@ -554,6 +611,349 @@ pub fn set_source_enabled(value: bool, source_id: i64) -> Result<()> {
         params![value, source_id],
     )?;
     Ok(())
+}
+
+pub fn add_custom_channel(tx: &Transaction, channel: CustomChannel) -> Result<()> {
+    insert_channel(tx, channel.data)?;
+    if let Some(mut headers) = channel.headers {
+        if channel_headers_empty(&headers) {
+            return Ok(());
+        }
+        headers.channel_id = Some(tx.last_insert_rowid());
+        insert_channel_headers(tx, headers)?;
+    }
+    Ok(())
+}
+
+fn channel_headers_empty(headers: &ChannelHttpHeaders) -> bool {
+    return headers.ignore_ssl.is_none()
+        && headers.http_origin.is_none()
+        && headers.referrer.is_none()
+        && headers.user_agent.is_none();
+}
+
+pub fn get_custom_source(name: String) -> Source {
+    Source {
+        id: None,
+        name: name.to_string(),
+        enabled: true,
+        username: None,
+        password: None,
+        source_type: source_type::CUSTOM,
+        url: None,
+        url_origin: None,
+    }
+}
+
+pub fn edit_custom_channel(channel: CustomChannel) -> Result<()> {
+    let mut sql = get_conn()?;
+    let tx = sql.transaction()?;
+    match edit_custom_channel_tx(channel, &tx) {
+        Ok(_) => {
+            tx.commit()?;
+            Ok(())
+        }
+        Err(e) => {
+            tx.rollback().unwrap_or_else(|e| log(format!("{:?}", e)));
+            return Err(e);
+        }
+    }
+}
+
+fn edit_custom_channel_tx(channel: CustomChannel, tx: &Transaction) -> Result<()> {
+    tx.execute(
+        r#"
+        UPDATE channels
+        SET name = ?, image = ?, url = ?, media_type = ?, group_id = ?
+        WHERE id = ?
+    "#,
+        params![
+            channel.data.name,
+            channel.data.image,
+            channel.data.url,
+            channel.data.media_type,
+            channel.data.group_id,
+            channel.data.id
+        ],
+    )?;
+    if let Some(mut headers) = channel.headers {
+        headers.channel_id = channel.data.id;
+        tx.execute(
+            r#"
+            INSERT INTO channel_http_headers (referrer, user_agent, http_origin, ignore_ssl, channel_id)
+            VALUES (?1, ?2, ?3, ?4, ?5)
+            ON CONFLICT(channel_id) DO UPDATE SET 
+                referrer = ?1, 
+                user_agent = ?2, 
+                http_origin = ?3, 
+                ignore_ssl = ?4
+        "#,
+            params![
+                headers.referrer,
+                headers.user_agent,
+                headers.http_origin,
+                headers.ignore_ssl,
+                headers.channel_id
+            ],
+        )?;
+    } else {
+        tx.execute(
+            "DELETE FROM channel_http_headers WHERE channel_id = ?",
+            params![channel.data.id],
+        )?;
+    }
+    Ok(())
+}
+
+pub fn delete_custom_channel(id: i64) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute("DELETE FROM channels WHERE id = ?", params![id])?;
+    Ok(())
+}
+
+pub fn group_exists(name: &str, source_id: i64) -> Result<bool> {
+    let sql = get_conn()?;
+    Ok(sql
+        .query_row(
+            r#"
+            SELECT 1 
+            FROM groups 
+            WHERE name = ? AND source_id = ?
+        "#,
+            params![name, source_id],
+            |row| row.get::<_, u8>(0),
+        )
+        .optional()?
+        .is_some())
+}
+
+pub fn channel_exists(name: &str, url: &str, source_id: i64) -> Result<bool> {
+    let sql = get_conn()?;
+    Ok(sql
+        .query_row(
+            r#"
+            SELECT 1 
+            FROM channels 
+            WHERE name = ? AND source_id = ? AND url = ?
+        "#,
+            params![name, source_id, url],
+            |row| row.get::<_, u8>(0),
+        )
+        .optional()?
+        .is_some())
+}
+
+pub fn add_custom_group(tx: &Transaction, group: Group) -> Result<i64> {
+    tx.execute(
+        r#"
+        INSERT INTO groups (name, image, source_id) 
+        VALUES (?, ?, ?)
+    "#,
+        params!(group.name, group.image, group.source_id),
+    )?;
+    Ok(tx.last_insert_rowid())
+}
+
+pub fn group_auto_complete(query: Option<String>, source_id: i64) -> Result<Vec<IdName>> {
+    let sql = get_conn()?;
+    let groups = sql
+        .prepare(
+            r#"
+        SELECT id, name 
+        FROM groups
+        WHERE name LIKE ?
+        AND source_id = ?
+    "#,
+        )?
+        .query_map(params![to_sql_like(query), source_id], row_to_id_name)?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(groups)
+}
+
+fn row_to_id_name(row: &Row) -> Result<IdName, rusqlite::Error> {
+    Ok(IdName {
+        id: row.get("id")?,
+        name: row.get("name")?,
+    })
+}
+
+pub fn edit_custom_group(group: Group) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
+        UPDATE groups 
+        SET name = ?, image = ?
+        WHERE id = ?
+    "#,
+        params![group.name, group.image, group.id],
+    )?;
+    Ok(())
+}
+
+fn get_group_by_id(id: i64) -> Result<Option<Group>> {
+    let sql = get_conn()?;
+    let group: Option<Group> = sql
+        .query_row(
+            "SELECT * FROM groups WHERE id = ?",
+            params![id],
+            row_to_custom_group,
+        )
+        .optional()?;
+    Ok(group)
+}
+
+fn row_to_custom_group(row: &Row) -> Result<Group, rusqlite::Error> {
+    Ok(Group {
+        id: row.get("id")?,
+        name: row.get("name")?,
+        image: row.get("image")?,
+        source_id: row.get("source_id")?,
+    })
+}
+
+pub fn get_custom_channel_extra_data(
+    id: i64,
+    group_id: Option<i64>,
+) -> Result<CustomChannelExtraData> {
+    Ok(CustomChannelExtraData {
+        headers: get_channel_headers_by_id(id)?,
+        group: match group_id {
+            None => None,
+            Some(group) => get_group_by_id(group)?,
+        },
+    })
+}
+
+pub fn delete_custom_group(id: i64, new_id: Option<i64>, do_channels_update: bool) -> Result<()> {
+    let sql = get_conn()?;
+    if do_channels_update {
+        sql.execute(
+            r#"
+        UPDATE channels
+        SET group_id = ?
+        WHERE group_id = ?
+    "#,
+            params![new_id, id],
+        )?;
+    }
+    sql.execute(
+        r#"
+        DELETE FROM groups 
+        WHERE id = ?
+    "#,
+        params![id],
+    )?;
+    Ok(())
+}
+
+pub fn group_not_empty(id: i64) -> Result<bool> {
+    let sql = get_conn()?;
+    Ok(sql
+        .query_row(
+            r#"
+                SELECT 1
+                FROM channels
+                WHERE group_id = ?
+            "#,
+            params![id],
+            |row| row.get::<_, u8>(0),
+        )
+        .optional()?
+        .is_some())
+}
+
+pub fn get_custom_channels(group_id: Option<i64>, source_id: i64) -> Result<Vec<CustomChannel>> {
+    let sql = get_conn()?;
+    let mut sql_query = r#"
+        SELECT c.name, c.image, c.url, c.media_type, ch.referrer, ch.user_agent, ch.http_origin, ch.ignore_ssl
+        FROM channels c
+        LEFT JOIN channel_http_headers ch on ch.channel_id = c.id
+        WHERE source_id = ?
+    "#.to_string();
+    let mut params: Vec<i64> = Vec::with_capacity(2);
+    params.push(source_id);
+    if let Some(id) = group_id {
+        sql_query.push_str("\nAND group_id = ?");
+        params.push(id);
+    } else {
+        sql_query.push_str("\nAND group_id IS NULL");
+    }
+    let result = sql
+        .prepare(&sql_query)?
+        .query_map(params_from_iter(params), row_to_custom_channel)?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(result)
+}
+
+fn row_to_custom_channel(row: &Row) -> Result<CustomChannel, rusqlite::Error> {
+    Ok(CustomChannel {
+        data: Channel {
+            name: row.get("name")?,
+            image: row.get("image")?,
+            url: row.get("url")?,
+            media_type: row.get("media_type")?,
+            favorite: false,
+            group_id: None,
+            group: None,
+            id: None,
+            series_id: None,
+            source_id: None,
+        },
+        headers: Some(ChannelHttpHeaders {
+            http_origin: row.get("http_origin")?,
+            ignore_ssl: row.get("ignore_ssl")?,
+            referrer: row.get("referrer")?,
+            user_agent: row.get("user_agent")?,
+            channel_id: None,
+            id: None,
+        }),
+    })
+}
+
+fn get_groups_by_source_id(id: i64) -> Result<Vec<Group>> {
+    let sql = get_conn()?;
+    let result = sql
+        .prepare(
+            r#"
+        SELECT * 
+        FROM groups 
+        WHERE source_id = ?
+    "#,
+        )?
+        .query_map(params![id], row_to_custom_group)?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(result)
+}
+
+pub fn get_custom_groups(source_id: i64) -> Result<Vec<ExportedGroup>> {
+    let groups = get_groups_by_source_id(source_id)?;
+    let mut export: Vec<ExportedGroup> = Vec::new();
+    for group in groups {
+        export.push(ExportedGroup {
+            group: Group {
+                name: group.name,
+                image: group.image,
+                source_id: None,
+                id: None,
+            },
+            channels: get_custom_channels(group.id, source_id)?,
+        });
+    }
+    Ok(export)
+}
+
+pub fn do_tx<F, T>(f: F) -> Result<T>
+where
+    F: FnOnce(&Transaction) -> Result<T>,
+{
+    let mut sql = get_conn()?;
+    let tx = sql.transaction()?;
+    let result = f(&tx)?;
+    tx.commit()?;
+    Ok(result)
 }
 
 #[cfg(test)]

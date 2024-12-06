@@ -1,0 +1,38 @@
+.text-small {
+    font-size: 0.85rem;
+    color: lightgray;
+}
+
+.error {
+    font-size: 0.9rem;
+    padding-left: 0;
+}
+
+button .save-floppy {
+    height: 1.5rem;
+    width: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+button:hover .save-floppy {
+    transform: scale(125%);
+}
+
+button .trash {
+    height: 1.5rem;
+    width: 1.5rem;
+    overflow: visible;
+}
+
+button .trash-lid {
+    transition: transform 0.3s ease;
+}
+
+button:hover .trash-lid {
+    transform: translateY(-15%);
+}
+
+.notice {
+    font-size: 0.9rem;
+    color: lightgray;
+}

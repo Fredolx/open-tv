@@ -1,8 +1,5 @@
 use std::{
-    collections::HashMap,
-    fs::File,
-    io::{BufRead, BufReader, Write},
-    sync::LazyLock,
+    collections::HashMap, fs::File, io::{BufRead, BufReader, Lines, Write}, iter::{Enumerate, Skip}, sync::LazyLock
 };
 
 use anyhow::{bail, Context, Result};
@@ -10,7 +7,7 @@ use regex::{Captures, Regex};
 use types::{Channel, Source};
 
 use crate::{
-    log, media_type, source_type, sql::{self, delete_source}, types
+    log, media_type, source_type, sql, types::{self, ChannelHttpHeaders}
 };
 
 static NAME_REGEX: LazyLock<Regex> =
@@ -22,7 +19,14 @@ static LOGO_REGEX: LazyLock<Regex> =
 static GROUP_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"group-title="(?P<group>[^"]*)""#).unwrap());
 
-pub fn read_m3u8(mut source: Source) -> Result<()> {
+static HTTP_ORIGIN_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"http-origin=(?P<origin>.+)"#).unwrap());
+static HTTP_REFERRER_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"http-referrer=(?P<referrer>.+)"#).unwrap());
+static HTTP_USER_AGENT_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"http-user-agent=(?P<user_agent>.+)"#).unwrap());
+
+pub fn read_m3u8(source: Source) -> Result<()> {
     let path = match source.source_type {
         source_type::M3U_LINK => get_tmp_path(),
         _ => source.url.clone().context("no file path found")?,
@@ -32,10 +36,10 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
     let mut lines = reader.lines().enumerate().skip(1);
     let mut problematic_lines: usize = 0;
     let mut lines_count: usize = 0;
-    let new_source = sql::create_or_find_source_by_name(&mut source)?;
     let mut groups: HashMap<String, i64> = HashMap::new();
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
+    let source_id = sql::create_or_find_source_by_name(&tx, &source)?;
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
         lines_count = c2;
         let l1 = match l1.with_context(|| format!("(l1) Error on line: {c1}, skipping")) {
@@ -54,18 +58,15 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
                 continue;
             }
         };
+        let mut headers: Option<ChannelHttpHeaders> = None;
         if l2.starts_with("#EXTVLCOPT") {
-            let res = lines.next().context("EOF")?;
-            lines_count = res.0;
-            l2 = match res.1.with_context(|| format!("Error on line: {lines_count}, previous line skipped due to #EXTVLCOPT, skipping")) {
-                Ok(line) => line,
-                Err(e) => {
-                    log::log(format!("{:?}", e));
-                    continue;
-                }
-            };
+            let (fail, _headers) = extract_headers(&mut l2, &mut lines)?; 
+            if fail {
+                continue;
+            }
+            headers = _headers;
         }
-        let mut channel = match get_channel_from_lines(l1, l2, source.id.unwrap())
+        let mut channel = match get_channel_from_lines(l1, l2, source_id)
             .with_context(|| format!("Failed to process lines #{c1} #{c2}, skipping"))
         {
             Ok(val) => val,
@@ -75,15 +76,17 @@ pub fn read_m3u8(mut source: Source) -> Result<()> {
                 continue;
             }
         };
-        sql::set_channel_group_id(&mut groups, &mut channel, &tx, source.id.as_ref().unwrap())
+        sql::set_channel_group_id(&mut groups, &mut channel, &tx, &source_id)
             .unwrap_or_else(|e| log::log(format!("{:?}", e)));
         sql::insert_channel(&tx, channel)?;
+        if let Some(mut headers) = headers {
+            headers.channel_id = Some(tx.last_insert_rowid());
+            sql::insert_channel_headers(&tx, headers)?;
+        }
     }
     if problematic_lines > lines_count / 2 {
-        tx.rollback().unwrap_or_else(|e| log::log(format!("{:?}", e)));
-        if new_source {
-            delete_source(source.id.context("no source id")?).unwrap_or_else(|e| log::log(format!("{:?}", e)));
-        }
+        tx.rollback()
+            .unwrap_or_else(|e| log::log(format!("{:?}", e)));
         return Err(anyhow::anyhow!(
             "Too many problematic lines, read considered failed"
         ));
@@ -122,6 +125,65 @@ fn extract_non_empty_capture(caps: Captures) -> Option<String> {
         .filter(|s| !s.trim().is_empty())
 }
 
+fn extract_headers(l2: &mut String, lines: &mut Skip<Enumerate<Lines<BufReader<File>>>>) -> Result<(bool, Option<ChannelHttpHeaders>)> {
+    let mut headers = ChannelHttpHeaders {
+        id: None,
+        channel_id: None,
+        http_origin: None,
+        referrer: None,
+        user_agent: None,
+        ignore_ssl: None
+    };
+    let mut at_least_one: bool = false;
+    while l2.starts_with("#EXTVLCOPT") {
+        let result = set_http_headers(&l2, &mut headers);
+        if result && !at_least_one {
+            at_least_one = true;
+        }
+        let result = lines.next().context("EOF?")?;
+        if let Ok(line) = result.1 {
+            l2.clear();
+            l2.push_str(&line);
+        }
+        else {
+            log::log(format!("{:?}", 
+                result.1.context(format!("Failed to get line at {}", result.0)).unwrap_err())
+            );
+            return Ok((true, None));
+        }
+    }
+    if at_least_one {
+        return Ok((false, Some(headers)));
+    }
+    else {
+        return Ok((true, None));
+    }
+    
+}
+
+fn set_http_headers(line: &str, headers: &mut ChannelHttpHeaders) -> bool {
+    if let Some(origin) = HTTP_ORIGIN_REGEX
+        .captures(&line)
+        .and_then(extract_non_empty_capture)
+    {
+        headers.http_origin = Some(origin);
+        return true;
+    } else if let Some(referrer) = HTTP_REFERRER_REGEX
+        .captures(&line)
+        .and_then(extract_non_empty_capture)
+    {
+        headers.referrer = Some(referrer);
+        return true;
+    } else if let Some(user_agent) = HTTP_USER_AGENT_REGEX
+        .captures(&line)
+        .and_then(extract_non_empty_capture)
+    {
+        headers.user_agent = Some(user_agent);
+        return true;
+    }
+    return false;
+}
+
 fn get_channel_from_lines(first: String, mut second: String, source_id: i64) -> Result<Channel> {
     second = second.trim().to_string();
     if second.is_empty() {
@@ -149,7 +211,7 @@ fn get_channel_from_lines(first: String, mut second: String, source_id: i64) -> 
         image: image.map(|x| x.trim().to_string()),
         url: Some(second.clone()),
         media_type: get_media_type(second),
-        source_id: source_id,
+        source_id: Some(source_id),
         series_id: None,
         group_id: None,
         favorite: false,
