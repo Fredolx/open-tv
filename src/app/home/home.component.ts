@@ -68,7 +68,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   channelsVisible = true;
   prevSearchValue?: String;
   loading = false;
-  readonly CUSTOM_CHANNELS_SOURCE_RESERVED_NAME = "My custom channels";
 
   constructor(private router: Router, public memory: MemoryService, public toast: ToastrService, private error: ErrorService) {
     this.getSources();
