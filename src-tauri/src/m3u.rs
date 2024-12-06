@@ -76,7 +76,7 @@ pub fn read_m3u8(source: Source) -> Result<()> {
                 continue;
             }
         };
-        sql::set_channel_group_id(&mut groups, &mut channel, &tx, source.id.as_ref().unwrap())
+        sql::set_channel_group_id(&mut groups, &mut channel, &tx, &source_id)
             .unwrap_or_else(|e| log::log(format!("{:?}", e)));
         sql::insert_channel(&tx, channel)?;
         if let Some(mut headers) = headers {
