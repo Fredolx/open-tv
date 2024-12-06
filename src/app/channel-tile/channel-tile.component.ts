@@ -65,6 +65,8 @@ export class ChannelTileComponent {
 
 
   onRightClick(event: MouseEvent) {
+    if (this.channel?.media_type == MediaType.group && !this.isCustom())
+      return;
     this.alreadyExistsInFav = this.channel!.favorite!;
     event.preventDefault();
     this.menuTopLeftPosition.x = event.clientX;
@@ -106,8 +108,8 @@ export class ChannelTileComponent {
     return this.channel?.media_type != MediaType.livestream;
   }
 
-  isCustomChannel(): boolean {
-    return this.memory.CustomChannelsIds!.has(this.channel?.source_id!);
+  isCustom(): boolean {
+    return this.memory.CustomSourceIds!.has(this.channel?.source_id!);
   }
 
   edit() {
