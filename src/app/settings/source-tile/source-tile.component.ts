@@ -2,12 +2,12 @@ import { Component, Input } from '@angular/core';
 import { Source } from '../../models/source';
 import { SourceType } from '../../models/sourceType';
 import { invoke } from '@tauri-apps/api/core';
-import { ToastrService } from 'ngx-toastr';
 import { MemoryService } from '../../memory.service';
 import { EditChannelModalComponent } from '../../edit-channel-modal/edit-channel-modal.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EditGroupModalComponent } from '../../edit-group-modal/edit-group-modal.component';
 import { ImportModalComponent } from '../../import-modal/import-modal.component';
+import { open } from '@tauri-apps/plugin-dialog';
 
 @Component({
   selector: 'app-source-tile',
@@ -21,6 +21,8 @@ export class SourceTileComponent {
   showPassword = false;
   loading = false;
   sourceTypeEnum = SourceType;
+  editing = false;
+  editableSource: Source = {};
 
   constructor(public memory: MemoryService, private modal: NgbModal) {
   }
@@ -69,5 +71,36 @@ export class SourceTileComponent {
       "Failed to export source",
       () => invoke("share_custom_source", { source: this.source })
     );
+  }
+
+  edit() {
+    this.editableSource = { ...this.source };
+    this.editing = true;
+  }
+
+  async save() {
+    await this.memory.tryIPC("Successfully saved changes", "Failed to save changes", 
+      async () => {
+        await invoke("update_source", { source: this.editableSource });
+        this.source = this.editableSource;
+        this.editing = false;
+        this.editableSource = {};
+    });
+  }
+
+  async browse() {
+    const file = await open({
+      multiple: false,
+      directory: false,
+      title: "Select a new m3u file for source"
+    });
+    if (file) {
+      this.editableSource.url = file;
+    }
+  }
+
+  cancel() {
+    this.editableSource = {};
+    this.editing = false;
   }
 }
