@@ -128,8 +128,8 @@ pub fn create_or_initialize_db() -> Result<()> {
 
 fn apply_migrations() -> Result<()> {
     let mut sql = get_conn()?;
-    let migrations = Migrations::new(vec![
-        M::up(r#"
+    let migrations = Migrations::new(vec![M::up(
+        r#"
             DROP INDEX IF EXISTS channels_unique;
             CREATE UNIQUE INDEX channels_unique ON channels(name, url, source_id);
             CREATE TABLE IF NOT EXISTS "channel_http_headers" (
@@ -144,8 +144,8 @@ fn apply_migrations() -> Result<()> {
             CREATE UNIQUE INDEX IF NOT EXISTS index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
             ALTER TABLE sources ADD COLUMN use_tvg_id integer;
             UPDATE sources SET use_tvg_id = 1 WHERE source_type in (0,1);
-        "#),
-    ]);
+        "#,
+    )]);
     migrations.to_latest(&mut sql)?;
     Ok(())
 }
@@ -587,7 +587,7 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
         source_type: row.get("source_type")?,
         url_origin: None,
         enabled: row.get("enabled")?,
-        use_tvg_id: row.get("use_tvg_id")?
+        use_tvg_id: row.get("use_tvg_id")?,
     })
 }
 
@@ -645,7 +645,7 @@ pub fn get_custom_source(name: String) -> Source {
         source_type: source_type::CUSTOM,
         url: None,
         url_origin: None,
-        use_tvg_id: None
+        use_tvg_id: None,
     }
 }
 
@@ -958,6 +958,24 @@ where
     let result = f(&tx)?;
     tx.commit()?;
     Ok(result)
+}
+
+pub fn update_source(source: Source) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
+        UPDATE sources 
+        SET username = ?, password = ?, url = ?, use_tvg_id = ?
+        WHERE id = ?"#,
+        params![
+            source.username,
+            source.password,
+            source.url,
+            source.use_tvg_id,
+            source.id
+        ],
+    )?;
+    Ok(())
 }
 
 #[cfg(test)]

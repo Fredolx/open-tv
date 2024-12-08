@@ -7,9 +7,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { Source } from '../models/source';
 import { MemoryService } from '../memory.service';
 import { ViewMode } from '../models/viewMode';
-import { EditChannelModalComponent } from '../edit-channel-modal/edit-channel-modal.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ImportModalComponent } from '../import-modal/import-modal.component';
 import { ConfirmDeleteModalComponent } from '../confirm-delete-modal/confirm-delete-modal.component';
 
 @Component({

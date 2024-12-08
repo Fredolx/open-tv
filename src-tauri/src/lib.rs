@@ -57,7 +57,8 @@ pub fn run() {
             share_custom_group,
             share_custom_source,
             import,
-            channel_exists
+            channel_exists,
+            update_source
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -258,4 +259,9 @@ fn import(
 #[tauri::command(async)]
 fn channel_exists(name: String, url: String, source_id: i64) -> Result<bool, String> {
     sql::channel_exists(&name, &url, source_id).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn update_source(source: Source) -> Result<(), String> {
+    sql::update_source(source).map_err(map_err_frontend)
 }
