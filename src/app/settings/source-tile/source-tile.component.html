@@ -18,7 +18,7 @@
             {{editableSource.url}}
         </div>
         <div class="col" *ngIf="editing && source?.source_type == sourceTypeEnum.M3U">
-            <button (click)="browse()" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+            <button (click)="browse()" [disabled]="memory.Loading" class="btn btn-primary btn-sm d-inline-flex align-items-center">
                 <span>Browse</span>
                 <svg fill="currentColor" class="ms-1 pen" viewBox="0 0 24 24">
                     <path
