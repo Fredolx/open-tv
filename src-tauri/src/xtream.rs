@@ -41,6 +41,8 @@ struct XtreamEpisode {
     id: String,
     title: String,
     container_extension: String,
+    episode_num: u32,
+    season: u32,
     info: Option<XtreamEpisodeInfo>,
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -235,15 +237,21 @@ pub async fn get_episodes(series_id: i64) -> Result<()> {
     url.query_pairs_mut()
         .append_pair("series_id", &series_id.to_string());
     let episodes = (get_xtream_http_data::<XtreamSeries>(url, GET_SERIES_INFO).await?).episodes;
-    let episodes: Vec<XtreamEpisode> = episodes.into_values().flat_map(|episode| episode).collect();
-    let mut sql = sql::get_conn()?;
-    let tx = sql.transaction()?;
-    for episode in episodes {
-        let episode = episode_to_channel(episode, &source, series_id)?;
-        log::log(format!("{:?}", episode));
-        sql::insert_channel(&tx, episode)?;
-    }
-    tx.commit()?;
+    let mut episodes: Vec<XtreamEpisode> =
+        episodes.into_values().flat_map(|episode| episode).collect();
+    episodes.sort_by(|a, b| {
+        a.season
+            .cmp(&b.season)
+            .then_with(|| a.episode_num.cmp(&b.episode_num))
+    });
+    sql::do_tx(|tx| {
+        for episode in episodes {
+            let episode = episode_to_channel(episode, &source, series_id)?;
+            log::log(format!("{:?}", episode));
+            sql::insert_channel(&tx, episode)?;
+        }
+        Ok(())
+    })?;
     Ok(())
 }
 
@@ -290,7 +298,7 @@ mod test_xtream {
             url_origin: None,
             source_type: source_type::XTREAM,
             enabled: true,
-            use_tvg_id: None
+            use_tvg_id: None,
         })
         .await
         .unwrap();
