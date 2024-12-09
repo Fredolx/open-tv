@@ -247,7 +247,6 @@ pub async fn get_episodes(series_id: i64) -> Result<()> {
     sql::do_tx(|tx| {
         for episode in episodes {
             let episode = episode_to_channel(episode, &source, series_id)?;
-            log::log(format!("{:?}", episode));
             sql::insert_channel(&tx, episode)?;
         }
         Ok(())
