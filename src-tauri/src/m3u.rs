@@ -33,7 +33,7 @@ static HTTP_REFERRER_REGEX: LazyLock<Regex> =
 static HTTP_USER_AGENT_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"http-user-agent=(?P<user_agent>.+)"#).unwrap());
 
-pub fn read_m3u8(source: Source) -> Result<()> {
+pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     let path = match source.source_type {
         source_type::M3U_LINK => get_tmp_path(),
         _ => source.url.clone().context("no file path found")?,
@@ -46,7 +46,12 @@ pub fn read_m3u8(source: Source) -> Result<()> {
     let mut groups: HashMap<String, i64> = HashMap::new();
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
-    let source_id = sql::create_or_find_source_by_name(&tx, &source)?;
+    if wipe {
+        sql::wipe(&tx, source.id.context("no source id")?)?;
+    }
+    else {
+        source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
+    }
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
         lines_count = c2;
         let l1 = match l1.with_context(|| format!("(l1) Error on line: {c1}, skipping")) {
@@ -73,7 +78,7 @@ pub fn read_m3u8(source: Source) -> Result<()> {
             }
             headers = _headers;
         }
-        let mut channel = match get_channel_from_lines(l1, l2, source_id, source.use_tvg_id)
+        let mut channel = match get_channel_from_lines(l1, l2, source.id.context("no source id")?, source.use_tvg_id)
             .with_context(|| format!("Failed to process lines #{c1} #{c2}, skipping"))
         {
             Ok(val) => val,
@@ -83,7 +88,7 @@ pub fn read_m3u8(source: Source) -> Result<()> {
                 continue;
             }
         };
-        sql::set_channel_group_id(&mut groups, &mut channel, &tx, &source_id)
+        sql::set_channel_group_id(&mut groups, &mut channel, &tx, &source.id.context("no source id")?)
             .unwrap_or_else(|e| log::log(format!("{:?}", e)));
         sql::insert_channel(&tx, channel)?;
         if let Some(mut headers) = headers {
@@ -102,7 +107,7 @@ pub fn read_m3u8(source: Source) -> Result<()> {
     Ok(())
 }
 
-pub async fn get_m3u8_from_link(source: Source) -> Result<()> {
+pub async fn get_m3u8_from_link(source: Source, wipe: bool) -> Result<()> {
     let client = reqwest::Client::new();
     let url = source.url.clone().context("Invalid source")?;
     let mut response = client.get(&url).send().await?;
@@ -111,7 +116,7 @@ pub async fn get_m3u8_from_link(source: Source) -> Result<()> {
     while let Some(chunk) = response.chunk().await? {
         file.write(&chunk)?;
     }
-    read_m3u8(source)
+    read_m3u8(source, wipe)
 }
 
 fn get_tmp_path() -> String {
@@ -298,7 +303,7 @@ mod test_m3u {
             enabled: true,
             use_tvg_id: Some(true),
         };
-        read_m3u8(source).unwrap();
+        read_m3u8(source, false).unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
     }
 
@@ -318,7 +323,7 @@ mod test_m3u {
             enabled: true,
             use_tvg_id: Some(true),
         };
-        get_m3u8_from_link(source).await.unwrap();
+        get_m3u8_from_link(source, false).await.unwrap();
         let time = now.elapsed().as_millis().to_string();
         println!("{time}");
         std::fs::write("bench2.txt", time).unwrap();

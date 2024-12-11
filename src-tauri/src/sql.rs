@@ -459,9 +459,8 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
     Ok(channel)
 }
 
-pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
-    let sql = get_conn()?;
-    sql.execute(
+pub fn delete_channels_by_source(tx: &Transaction, source_id: i64) -> Result<()> {
+    tx.execute(
         r#"
         DELETE FROM channels
         WHERE source_id = ?
@@ -472,9 +471,8 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     Ok(())
 }
 
-pub fn delete_groups_by_source(source_id: i64) -> Result<()> {
-    let sql = get_conn()?;
-    sql.execute(
+pub fn delete_groups_by_source(tx: &Transaction, source_id: i64) -> Result<()> {
+    tx.execute(
         r#"
         DELETE FROM groups
         WHERE source_id = ?
@@ -975,6 +973,12 @@ pub fn update_source(source: Source) -> Result<()> {
             source.id
         ],
     )?;
+    Ok(())
+}
+
+pub fn wipe(tx: &Transaction, id: i64) -> Result<()> {
+    delete_channels_by_source(tx, id)?;
+    delete_groups_by_source(tx, id)?;
     Ok(())
 }
 
