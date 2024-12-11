@@ -42,7 +42,8 @@ pub struct Settings {
     pub mpv_params: Option<String>,
     pub use_stream_caching: Option<bool>,
     pub default_view: Option<u8>,
-    pub volume: Option<u8>
+    pub volume: Option<u8>,
+    pub refresh_on_start: Option<bool>
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
