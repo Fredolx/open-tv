@@ -72,7 +72,7 @@ fn build_xtream_url(source: &mut Source) -> Result<Url> {
     Ok(url)
 }
 
-pub async fn get_xtream(mut source: Source) -> Result<()> {
+pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
     let url = build_xtream_url(&mut source)?;
     let (live, live_cats, vods, vods_cats, series, series_cats) = join!(
         get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_LIVE_STREAMS),
@@ -84,7 +84,12 @@ pub async fn get_xtream(mut source: Source) -> Result<()> {
     );
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
-    source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
+    if wipe {
+        sql::wipe(&tx, source.id.context("Source should have id")?)?;
+    }
+    else {
+        source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
+    }
     let mut fail_count = 0;
     live.and_then(|live| process_xtream(&tx, live, live_cats?, &source, media_type::LIVESTREAM))
         .unwrap_or_else(|e| {
@@ -291,7 +296,7 @@ mod test_xtream {
             source_type: source_type::XTREAM,
             enabled: true,
             use_tvg_id: None
-        })
+        }, false)
         .await
         .unwrap();
     }
