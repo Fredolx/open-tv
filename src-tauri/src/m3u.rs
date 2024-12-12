@@ -62,6 +62,9 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
                 continue;
             }
         };
+        if l1.trim().is_empty() {
+            continue;
+        } 
         let mut l2 = match l2.with_context(|| format!("(l2) Error on line: {c2}, skipping")) {
             Ok(line) => line,
             Err(e) => {
