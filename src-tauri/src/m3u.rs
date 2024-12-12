@@ -54,7 +54,7 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     }
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
         lines_count = c2;
-        let l1 = match l1.with_context(|| format!("(l1) Error on line: {c1}, skipping")) {
+        let mut l1 = match l1.with_context(|| format!("(l1) Error on line: {c1}, skipping")) {
             Ok(line) => line,
             Err(e) => {
                 log::log(format!("{:?}", e));
@@ -62,9 +62,6 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
                 continue;
             }
         };
-        if l1.trim().is_empty() {
-            continue;
-        } 
         let mut l2 = match l2.with_context(|| format!("(l2) Error on line: {c2}, skipping")) {
             Ok(line) => line,
             Err(e) => {
@@ -73,6 +70,13 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
                 continue;
             }
         };
+        if l1.trim().is_empty() {
+            l1 = l2.clone();
+            if let Some(next) = lines.next() {
+                let line_number = next.0;
+                l2 = next.1.with_context(|| format!("Tried to skip empty line (bad m3u mitigation), error on line {line_number}"))?;
+            }
+        } 
         let mut headers: Option<ChannelHttpHeaders> = None;
         if l2.starts_with("#EXTVLCOPT") {
             let (fail, _headers) = extract_headers(&mut l2, &mut lines)?;
