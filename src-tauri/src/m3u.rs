@@ -40,12 +40,13 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     };
     let file = File::open(path).context("Failed to open m3u8 file")?;
     let reader = BufReader::new(file);
-    let mut lines = reader.lines().enumerate().skip(1);
+    let mut lines = reader.lines().enumerate();
     let mut problematic_lines: usize = 0;
     let mut lines_count: usize = 0;
     let mut groups: HashMap<String, i64> = HashMap::new();
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
+    let mut found_first_valid_channel: bool = false;
     if wipe {
         sql::wipe(&tx, source.id.context("no source id")?)?;
     }
@@ -70,13 +71,16 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
                 continue;
             }
         };
-        if l1.trim().is_empty() {
+        while l1.trim().is_empty() || !(found_first_valid_channel || l1.to_lowercase().starts_with("#extinf")) {
             l1 = l2.clone();
             if let Some(next) = lines.next() {
                 let line_number = next.0;
-                l2 = next.1.with_context(|| format!("Tried to skip empty line (bad m3u mitigation), error on line {line_number}"))?;
+                l2 = next.1.with_context(|| format!("Tried to skip empty/gibberish line (bad m3u mitigation), error on line {line_number}"))?;
             }
-        } 
+        }
+        if !found_first_valid_channel {
+            found_first_valid_channel = true;
+        }
         let mut headers: Option<ChannelHttpHeaders> = None;
         if l2.starts_with("#EXTVLCOPT") {
             let (fail, _headers) = extract_headers(&mut l2, &mut lines)?;
@@ -146,7 +150,7 @@ fn extract_non_empty_capture(caps: Captures) -> Option<String> {
 
 fn extract_headers(
     l2: &mut String,
-    lines: &mut Skip<Enumerate<Lines<BufReader<File>>>>,
+    lines: &mut Enumerate<Lines<BufReader<File>>>,
 ) -> Result<(bool, Option<ChannelHttpHeaders>)> {
     let mut headers = ChannelHttpHeaders {
         id: None,
