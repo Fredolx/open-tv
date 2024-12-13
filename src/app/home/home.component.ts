@@ -124,12 +124,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(this.memory.SetSeriesNode.subscribe(async idName => {
       this.clearSearch();
       this.filters!.series_id = idName.id;
+      this.filters!.page = 1;
       this.current_series_name = idName.name;
       await this.load();
     }));
     this.subscriptions.push(this.memory.SetGroupNode.subscribe(async idName => {
       this.clearSearch();
       this.filters!.group_id = idName.id;
+      this.filters!.page = 1;
       this.current_group_name = idName.name;
       await this.load();
     }));
