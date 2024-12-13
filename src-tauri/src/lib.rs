@@ -70,12 +70,12 @@ fn map_err_frontend(e: Error) -> String {
 
 #[tauri::command(async)]
 fn get_m3u8(source: Source) -> Result<(), String> {
-    m3u::read_m3u8(source).map_err(map_err_frontend)
+    m3u::read_m3u8(source, false).map_err(map_err_frontend)
 }
 
 #[tauri::command]
 async fn get_m3u8_from_link(source: Source) -> Result<(), String> {
-    m3u::get_m3u8_from_link(source)
+    m3u::get_m3u8_from_link(source, false)
         .await
         .map_err(map_err_frontend)
 }
@@ -102,7 +102,7 @@ fn search(filters: Filters) -> Result<Vec<Channel>, String> {
 
 #[tauri::command]
 async fn get_xtream(source: Source) -> Result<(), String> {
-    xtream::get_xtream(source).await.map_err(map_err_frontend)
+    xtream::get_xtream(source, false).await.map_err(map_err_frontend)
 }
 
 #[tauri::command]

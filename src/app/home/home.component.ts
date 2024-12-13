@@ -93,6 +93,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           page: 1
         }
         this.chkSerie = this.anyXtream();
+        if (settings.refresh_on_start === true && !sessionStorage.getItem("refreshedOnStart")) {
+          sessionStorage.setItem("refreshedOnStart", "true");
+          this.refreshOnStart().then(_ => _);
+        }
         this.load().then(_ => _);
       }
     })
@@ -100,6 +104,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         this.error.handleError(e);
         this.reset();
       })
+  }
+
+  async refreshOnStart() {
+    this.toast.info("Refreshing all sources... (refresh on start enabled)");
+    await this.memory.tryIPC("Successfully refreshed all sources (refresh on start enabled)", "Failed to refresh all sources (refresh on start enabled)", async () => {
+      await invoke("refresh_all");
+    });
   }
 
   reset() {
