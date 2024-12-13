@@ -2,7 +2,7 @@ use std::{
     collections::HashMap,
     fs::File,
     io::{BufRead, BufReader, Lines, Write},
-    iter::Enumerate
+    iter::Enumerate,
     sync::LazyLock,
 };
 
