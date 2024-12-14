@@ -43,7 +43,8 @@ struct XtreamEpisode {
     container_extension: String,
     episode_num: u32,
     season: u32,
-    info: Option<XtreamEpisodeInfo>,
+    #[serde(default)]
+    info: serde_json::Value,
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamEpisodeInfo {
@@ -88,8 +89,7 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
     let tx = sql.transaction()?;
     if wipe {
         sql::wipe(&tx, source.id.context("Source should have id")?)?;
-    }
-    else {
+    } else {
         source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
     }
     let mut fail_count = 0;
@@ -263,7 +263,9 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: i64) -
     Ok(Channel {
         id: None,
         group: None,
-        image: episode.info.map(|info| info.movie_image).unwrap_or(None),
+        image: serde_json::from_value::<XtreamEpisodeInfo>(episode.info)
+            .map(|e| e.movie_image)
+            .unwrap_or_default(),
         media_type: media_type::MOVIE,
         name: episode.title.trim().to_string(),
         source_id: source.id,
@@ -287,24 +289,57 @@ mod test_xtream {
     use crate::source_type;
     use crate::sql::{self, drop_db};
     use crate::types::Source;
-    use crate::xtream::get_xtream;
+    use crate::xtream::{episode_to_channel, get_xtream};
+
+    use super::{XtreamEpisode, XtreamSeries};
 
     #[tokio::test]
     async fn test_get_xtream() {
         drop_db().unwrap_or_default();
         sql::create_or_initialize_db().unwrap();
-        get_xtream(Source {
-            name: "my-xtream".to_string(),
-            id: None,
-            username: Some(env::var("OPEN_TV_TEST_XTREAM_USERNAME").unwrap()),
-            password: Some(env::var("OPEN_TV_TEST_XTREAM_PASSWORD").unwrap()),
-            url: Some(env::var("OPEN_TV_TEST_XTREAM_LINK").unwrap()),
-            url_origin: None,
-            source_type: source_type::XTREAM,
-            enabled: true,
-            use_tvg_id: None
-        }, false)
+        get_xtream(
+            Source {
+                name: "my-xtream".to_string(),
+                id: None,
+                username: Some(env::var("OPEN_TV_TEST_XTREAM_USERNAME").unwrap()),
+                password: Some(env::var("OPEN_TV_TEST_XTREAM_PASSWORD").unwrap()),
+                url: Some(env::var("OPEN_TV_TEST_XTREAM_LINK").unwrap()),
+                url_origin: None,
+                source_type: source_type::XTREAM,
+                enabled: true,
+                use_tvg_id: None,
+            },
+            false,
+        )
         .await
         .unwrap();
+    }
+
+    #[test]
+    fn deserialize_bad_json() {
+        let source = Source {
+            name: "my-xtream".to_string(),
+            id: None,
+            username: Some("test".to_string()),
+            password: Some("test".to_string()),
+            url: Some("http://test.com".to_string()),
+            url_origin: Some("test.com".to_string()),
+            source_type: source_type::XTREAM,
+            enabled: true,
+            use_tvg_id: None,
+        };
+        let data = std::fs::read_to_string("/Users/fred/Desktop/bad.json").unwrap();
+        let obj = serde_json::from_str::<XtreamSeries>(&data).unwrap();
+        let episodes: Vec<XtreamEpisode> = obj
+            .episodes
+            .into_values()
+            .flat_map(|episode| episode)
+            .collect();
+        let e = episodes.iter().find(|e| e.id == "29247").unwrap();
+        let e = episode_to_channel(e.clone(), &source, 1).unwrap();
+        let e2 = episodes.iter().find(|e| e.id == "29041").unwrap();
+        let e2 = episode_to_channel(e2.clone(), &source, 1).unwrap();
+        println!("{:?}", e);
+        println!("{:?}", e2);
     }
 }
