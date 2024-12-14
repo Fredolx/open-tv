@@ -125,6 +125,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.clearSearch();
       this.filters!.series_id = idName.id;
       this.filters!.page = 1;
+      this.reachedMax = false;
       this.current_series_name = idName.name;
       await this.load();
     }));
@@ -132,6 +133,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.clearSearch();
       this.filters!.group_id = idName.id;
       this.filters!.page = 1;
+      this.reachedMax = false;
       this.current_group_name = idName.name;
       await this.load();
     }));
@@ -335,6 +337,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.filters!.media_types.push(mediaType);
     else
       this.filters!.media_types.splice(index, 1);
+    this.filters!.page = 1;
+    this.reachedMax = false;
     this.load();
   }
 
