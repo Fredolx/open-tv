@@ -82,6 +82,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       sources.filter(x => x.source_type == SourceType.Custom)
         .map(x => x.id!)
         .forEach(x => this.memory.CustomSourceIds?.add(x));
+      sources.filter(x => x.source_type == SourceType.Xtream)
+        .map(x => x.id!)
+        .forEach(x => this.memory.XtreamSourceIds.add(x));
       this.memory.Sources = sources.filter(x => x.enabled);
       if (sources.length == 0)
         this.reset();
@@ -121,12 +124,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(this.memory.HideChannels.subscribe(val => {
       this.channelsVisible = val;
     }));
-    this.subscriptions.push(this.memory.SetSeriesNode.subscribe(async idName => {
+    this.subscriptions.push(this.memory.SetSeriesNode.subscribe(async channel => {
       this.clearSearch();
-      this.filters!.series_id = idName.id;
+      this.filters!.series_id = parseInt(channel.url!); 
+      this.filters!.source_ids = [channel.source_id!];
       this.filters!.page = 1;
       this.reachedMax = false;
-      this.current_series_name = idName.name;
+      this.current_series_name = channel.name;
       await this.load();
     }));
     this.subscriptions.push(this.memory.SetGroupNode.subscribe(async idName => {
@@ -387,8 +391,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   async goBack() {
-    if (this.filters?.series_id)
+    if (this.filters?.series_id) {
       this.filters!.series_id = undefined;
+      this.filters.source_ids = this.memory.Sources.map(x => x.id!);
+    }
     else {
       this.filters!.group_id = undefined;
     }

@@ -128,24 +128,32 @@ pub fn create_or_initialize_db() -> Result<()> {
 
 fn apply_migrations() -> Result<()> {
     let mut sql = get_conn()?;
-    let migrations = Migrations::new(vec![M::up(
-        r#"
-            DROP INDEX IF EXISTS channels_unique;
-            CREATE UNIQUE INDEX channels_unique ON channels(name, url, source_id);
-            CREATE TABLE IF NOT EXISTS "channel_http_headers" (
-                "id" INTEGER PRIMARY KEY,
-                "channel_id" integer,
-                "referrer" varchar(500),
-                "user_agent" varchar(500),
-                "http_origin" varchar(500),
-                "ignore_ssl" integer DEFAULT 0,
-                FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
-            );
-            CREATE UNIQUE INDEX IF NOT EXISTS index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
-            ALTER TABLE sources ADD COLUMN use_tvg_id integer;
-            UPDATE sources SET use_tvg_id = 1 WHERE source_type in (0,1);
-        "#,
-    )]);
+    let migrations = Migrations::new(vec![
+        M::up(
+            r#"
+                    DROP INDEX IF EXISTS channels_unique;
+                    CREATE UNIQUE INDEX channels_unique ON channels(name, url, source_id);
+                    CREATE TABLE IF NOT EXISTS "channel_http_headers" (
+                        "id" INTEGER PRIMARY KEY,
+                        "channel_id" integer,
+                        "referrer" varchar(500),
+                        "user_agent" varchar(500),
+                        "http_origin" varchar(500),
+                        "ignore_ssl" integer DEFAULT 0,
+                        FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
+                    );
+                    CREATE UNIQUE INDEX IF NOT EXISTS index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
+                    ALTER TABLE sources ADD COLUMN use_tvg_id integer;
+                    UPDATE sources SET use_tvg_id = 1 WHERE source_type in (0,1);
+                "#,
+        ),
+        M::up(
+            r#"
+                    ALTER TABLE channels ADD COLUMN stream_id integer;
+                    CREATE INDEX IF NOT EXISTS index_channels_stream_id on channels(stream_id);
+                "#,
+        ),
+    ]);
     migrations.to_latest(&mut sql)?;
     Ok(())
 }
@@ -179,8 +187,8 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#" 
-INSERT OR IGNORE INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite) 
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8); 
+INSERT OR IGNORE INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id) 
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9); 
 "#,
         params![
             channel.name,
@@ -190,7 +198,8 @@ VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8);
             channel.source_id,
             channel.media_type as u8,
             channel.series_id,
-            channel.favorite
+            channel.favorite,
+            channel.stream_id
         ],
     )?;
     Ok(())
@@ -378,17 +387,17 @@ fn generate_placeholders(size: usize) -> String {
         .join(",")
 }
 
-pub fn series_has_episodes(series_id: i64) -> Result<bool> {
+pub fn series_has_episodes(series_id: u64, source_id: i64) -> Result<bool> {
     let sql = get_conn()?;
     let series_exists = sql
         .query_row(
             r#"
       SELECT 1 
       FROM channels
-      WHERE series_id = ?
+      WHERE series_id = ? AND source_id = ?
       LIMIT 1
     "#,
-            params![series_id],
+            params![series_id, source_id],
             |row| row.get::<_, u8>(0),
         )
         .optional()?
@@ -439,6 +448,7 @@ fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         group_id: None,
         favorite: false,
         source_id: row.get("source_id")?,
+        stream_id: None,
     };
     Ok(channel)
 }
@@ -455,6 +465,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         favorite: row.get("favorite")?,
         series_id: None,
         group: None,
+        stream_id: row.get("stream_id")?,
     };
     Ok(channel)
 }
@@ -589,14 +600,12 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
     })
 }
 
-pub fn get_source_from_series_id(series_id: i64) -> Result<Source> {
+pub fn get_source_from_id(source_id: i64) -> Result<Source> {
     let sql = get_conn()?;
     Ok(sql.query_row(
         r#"
-    SELECT * FROM sources where id = (
-        SELECT source_id FROM channels WHERE url = ?
-    )"#,
-        [series_id],
+    SELECT * FROM sources where id = ?"#,
+        [source_id],
         row_to_source,
     )?)
 }
@@ -902,6 +911,7 @@ fn row_to_custom_channel(row: &Row) -> Result<CustomChannel, rusqlite::Error> {
             id: None,
             series_id: None,
             source_id: None,
+            stream_id: None,
         },
         headers: Some(ChannelHttpHeaders {
             http_origin: row.get("http_origin")?,
