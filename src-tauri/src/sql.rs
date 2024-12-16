@@ -151,8 +151,6 @@ fn apply_migrations() -> Result<()> {
             r#"
                 ALTER TABLE channels ADD COLUMN stream_id integer;
                 CREATE INDEX IF NOT EXISTS index_channels_stream_id on channels(stream_id);
-                DROP INDEX IF EXISTS channels_unique;
-                CREATE UNIQUE INDEX channels_unique ON channels(name, source_id);
             "#,
         ),
     ]);
