@@ -131,27 +131,29 @@ fn apply_migrations() -> Result<()> {
     let migrations = Migrations::new(vec![
         M::up(
             r#"
-                    DROP INDEX IF EXISTS channels_unique;
-                    CREATE UNIQUE INDEX channels_unique ON channels(name, url, source_id);
-                    CREATE TABLE IF NOT EXISTS "channel_http_headers" (
-                        "id" INTEGER PRIMARY KEY,
-                        "channel_id" integer,
-                        "referrer" varchar(500),
-                        "user_agent" varchar(500),
-                        "http_origin" varchar(500),
-                        "ignore_ssl" integer DEFAULT 0,
-                        FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
-                    );
-                    CREATE UNIQUE INDEX IF NOT EXISTS index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
-                    ALTER TABLE sources ADD COLUMN use_tvg_id integer;
-                    UPDATE sources SET use_tvg_id = 1 WHERE source_type in (0,1);
-                "#,
+                DROP INDEX IF EXISTS channels_unique;
+                CREATE UNIQUE INDEX channels_unique ON channels(name, url, source_id);
+                CREATE TABLE IF NOT EXISTS "channel_http_headers" (
+                    "id" INTEGER PRIMARY KEY,
+                    "channel_id" integer,
+                    "referrer" varchar(500),
+                    "user_agent" varchar(500),
+                    "http_origin" varchar(500),
+                    "ignore_ssl" integer DEFAULT 0,
+                    FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
+                ALTER TABLE sources ADD COLUMN use_tvg_id integer;
+                UPDATE sources SET use_tvg_id = 1 WHERE source_type in (0,1);
+            "#,
         ),
         M::up(
             r#"
-                    ALTER TABLE channels ADD COLUMN stream_id integer;
-                    CREATE INDEX IF NOT EXISTS index_channels_stream_id on channels(stream_id);
-                "#,
+                ALTER TABLE channels ADD COLUMN stream_id integer;
+                CREATE INDEX IF NOT EXISTS index_channels_stream_id on channels(stream_id);
+                DROP INDEX IF EXISTS channels_unique;
+                CREATE UNIQUE INDEX channels_unique ON channels(name, source_id);
+            "#,
         ),
     ]);
     migrations.to_latest(&mut sql)?;
@@ -187,8 +189,14 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#" 
-INSERT OR IGNORE INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id) 
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9); 
+INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id) 
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+ON CONFLICT (name, source_id)
+DO UPDATE SET 
+    stream_id = excluded.stream_id,
+    image = excluded.image,
+    group_id = excluded.group_id,
+    series_id = excluded.series_id;
 "#,
         params![
             channel.name,
