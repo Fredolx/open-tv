@@ -189,7 +189,7 @@ pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
         r#" 
 INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id) 
 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
-ON CONFLICT (name, source_id)
+ON CONFLICT (name, url, source_id)
 DO UPDATE SET 
     stream_id = excluded.stream_id,
     image = excluded.image,

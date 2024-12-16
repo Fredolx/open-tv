@@ -9,4 +9,5 @@
     <div *ngFor="let item of epg; let i = index" [ngClass]="{'mt-3': i != 0}">
         <app-epg-modal-item class="mt-3" [epg]="item"></app-epg-modal-item>
     </div>
+    <p *ngIf="epg.length == 0">No EPG entries for this channel</p>
 </div>
