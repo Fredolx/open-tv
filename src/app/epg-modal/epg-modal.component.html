@@ -3,11 +3,10 @@
         {{name}}
     </h4>
     <button type="button" class="btn-close btn-close-white" aria-label="Close"
-        (click)="activeModal.dismiss('Cross click')"></button>
+        (click)="activeModal.close('Cross click')"></button>
 </div>
 <div class="modal-body">
-    <div *ngFor="let item of epg; let i = index" [ngClass]="{'mt-3': i != 0}">
+    <div tabindex="0" *ngFor="let item of epg; let i = index" [ngClass]="{'mt-3': i != 0}">
         <app-epg-modal-item class="mt-3" [epg]="item"></app-epg-modal-item>
     </div>
-    <p *ngIf="epg.length == 0">No EPG entries for this channel</p>
 </div>

@@ -6,6 +6,7 @@ import { IdName } from './models/idName';
 import { ToastrService } from 'ngx-toastr';
 import { ErrorService } from './error.service';
 import { Channel } from './models/channel';
+import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +26,7 @@ export class MemoryService {
   public HideChannels: Subject<boolean> = new Subject();
   public CustomSourceIds: Set<number> = new Set();
   public XtreamSourceIds: Set<number> = new Set();
-
+  public ModalRef?: NgbModalRef;
   async tryIPC<T>(
     successMessage: string,
     errorMessage: string,

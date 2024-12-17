@@ -126,7 +126,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }));
     this.subscriptions.push(this.memory.SetSeriesNode.subscribe(async channel => {
       this.clearSearch();
-      this.filters!.series_id = parseInt(channel.url!); 
+      this.filters!.series_id = parseInt(channel.url!);
       this.filters!.source_ids = [channel.source_id!];
       this.filters!.page = 1;
       this.reachedMax = false;
@@ -280,27 +280,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         command: async _ => await this.nav("ArrowLeft")
       },
       {
-        key: "shift + tab",
-        label: "Navigation",
-        description: "Go left",
-        allowIn: [AllowIn.Input],
-        preventDefault: true,
-        command: async _ => await this.nav("ShiftTab")
-      },
-      {
         key: "right",
         label: "Navigation",
         description: "Go right",
         allowIn: [AllowIn.Input],
         command: async _ => await this.nav("ArrowRight")
-      },
-      {
-        key: "tab",
-        label: "Navigation",
-        description: "Go right",
-        allowIn: [AllowIn.Input],
-        preventDefault: true,
-        command: async _ => await this.nav("Tab")
       },
       {
         key: "up",
@@ -318,20 +302,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         preventDefault: true,
         command: async _ => await this.nav("ArrowDown")
       },
-      {
-        key: "esc",
-        label: "Navigation",
-        description: "Go back",
-        preventDefault: true,
-        allowIn: [AllowIn.Input],
-        command: _ => console.log("working")
-      },
-      {
-        key: "backspace",
-        label: "Navigation",
-        description: "Go back",
-        command: _ => this.goBackHotkey()
-      }
     );
   }
 
@@ -354,6 +324,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (viewMode == this.filters?.view_type)
       return;
     this.filters!.page = 1;
+    this.focus = 0;
     this.filters!.series_id = undefined;
     this.filters!.group_id = undefined;
     this.reachedMax = false;
@@ -379,6 +350,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   goBackHotkey() {
+    if (this.memory.ModalRef) {
+      this.memory.ModalRef.close("close");
+      return;
+    }
     if (this.filters?.group_id || this.filters?.series_id) {
       if (this.filters.group_id && this.focusArea == FocusArea.Filters) {
         this.focusArea = FocusArea.Tiles;
@@ -409,7 +384,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   async nav(key: string) {
     let lowSize = this.currentWindowSize < 768
-    if (this.memory.currentContextMenu?.menuOpen) {
+    if (this.memory.currentContextMenu?.menuOpen || this.memory.ModalRef) {
       return;
     }
     let tmpFocus = 0;
@@ -445,7 +420,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       if (tmpFocus >= this.channels.length && this.focusArea == FocusArea.Tiles)
         tmpFocus = (this.channels.length == 0 ? 1 : this.channels.length) - 1;
       this.focus = tmpFocus;
-      document.getElementById(`${FocusAreaPrefix[this.focusArea]}${this.focus}`)?.focus();
+      setTimeout(() => {
+        document.getElementById(`${FocusAreaPrefix[this.focusArea]}${this.focus}`)?.focus();        
+      }, 0);
     }
   }
 
@@ -476,8 +453,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   //Temporary solution because the ng-keyboard-shortcuts library doesn't seem to support ESC
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    if (event.key == "Escape" || event.key == "BrowserBack")
+    if (event.key == "Escape" || event.key == "BrowserBack" || (event.key == "Backspace" && !this.searchFocused())) {
       this.goBackHotkey();
+      event.preventDefault();
+    }
+    if (event.key == "Tab" && !this.memory.ModalRef) {
+      event.preventDefault();
+      this.nav(event.shiftKey ? "ShiftTab" : "Tab");
+    }
     if (event.key == "Enter" && this.focusArea == FocusArea.Filters)
       (document.activeElement as any).click();
   }

@@ -12,6 +12,7 @@ import { EditGroupModalComponent } from '../edit-group-modal/edit-group-modal.co
 import { DeleteGroupModalComponent } from '../delete-group-modal/delete-group-modal.component';
 import { SourceType } from '../models/sourceType';
 import { EpgModalComponent } from '../epg-modal/epg-modal.component';
+import { EPG } from '../models/epg';
 
 @Component({
   selector: 'app-channel-tile',
@@ -121,10 +122,15 @@ export class ChannelTileComponent {
 
   async showEPGModal() {
     try {
-      let data = await invoke("get_epg", { channel: this.channel });
-      const modalRef = this.modal.open(EpgModalComponent, { backdrop: 'static', size: 'xl', });
-      modalRef.componentInstance.epg = data;
-      modalRef.componentInstance.name = this.channel?.name;
+      let data: EPG[] = await invoke("get_epg", { channel: this.channel });
+      if (data.length == 0) {
+        this.toastr.info("No EPG data for this channel");
+        return;
+      }
+      this.memory.ModalRef = this.modal.open(EpgModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+      this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+      this.memory.ModalRef.componentInstance.epg = data;
+      this.memory.ModalRef.componentInstance.name = this.channel?.name;
     }
     catch(e) {
       this.error.handleError(e);
@@ -140,18 +146,20 @@ export class ChannelTileComponent {
   }
 
   edit_group() {
-    const modalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "EditCustomGroupModal";
-    modalRef.componentInstance.editing = true;
-    modalRef.componentInstance.group = { id: this.channel!.id, name: this.channel!.name, image: this.channel!.image, source_id: this.channel!.source_id };
-    modalRef.componentInstance.originalName = this.channel!.name;
+    this.memory.ModalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+    this.memory.ModalRef.componentInstance.name = "EditCustomGroupModal";
+    this.memory.ModalRef.componentInstance.editing = true;
+    this.memory.ModalRef.componentInstance.group = { id: this.channel!.id, name: this.channel!.name, image: this.channel!.image, source_id: this.channel!.source_id };
+    this.memory.ModalRef.componentInstance.originalName = this.channel!.name;
   }
 
   edit_channel() {
-    const modalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "EditCustomChannelModal";
-    modalRef.componentInstance.editing = true;
-    modalRef.componentInstance.channel.data = { ...this.channel };
+    this.memory.ModalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+    this.memory.ModalRef.componentInstance.name = "EditCustomChannelModal";
+    this.memory.ModalRef.componentInstance.editing = true;
+    this.memory.ModalRef.componentInstance.channel.data = { ...this.channel };
   }
 
   share() {
@@ -199,9 +207,10 @@ export class ChannelTileComponent {
   }
 
   openDeleteGroupModal() {
-    const modalRef = this.modal.open(DeleteGroupModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "DeleteGroupModal";
-    modalRef.componentInstance.group = { ...this.channel };
+    this.memory.ModalRef = this.modal.open(DeleteGroupModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+    this.memory.ModalRef.componentInstance.name = "DeleteGroupModal";
+    this.memory.ModalRef.componentInstance.group = { ...this.channel };
   }
 
   async deleteChannel() {
