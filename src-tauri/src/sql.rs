@@ -214,14 +214,15 @@ DO UPDATE SET
 pub fn insert_channel_headers(tx: &Transaction, headers: ChannelHttpHeaders) -> Result<()> {
     tx.execute(
         r#"
-INSERT OR IGNORE INTO channel_http_headers (channel_id, referrer, user_agent, http_origin) 
-VALUES (?, ?, ?, ?); 
+INSERT OR IGNORE INTO channel_http_headers (channel_id, referrer, user_agent, http_origin, ignore_ssl) 
+VALUES (?, ?, ?, ?, ?); 
 "#,
         params![
             headers.channel_id,
             headers.referrer,
             headers.user_agent,
-            headers.http_origin
+            headers.http_origin,
+            headers.ignore_ssl
         ],
     )?;
     Ok(())
