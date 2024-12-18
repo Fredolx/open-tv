@@ -1,6 +1,6 @@
 use anyhow::Error;
 use types::{
-    Channel, CustomChannel, CustomChannelExtraData, Filters, Group, IdName, Settings, Source,
+    Channel, CustomChannel, CustomChannelExtraData, Filters, Group, IdName, Settings, Source, EPG,
 };
 
 pub mod log;
@@ -58,7 +58,8 @@ pub fn run() {
             share_custom_source,
             import,
             channel_exists,
-            update_source
+            update_source,
+            get_epg
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -118,8 +119,8 @@ async fn refresh_all() -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn get_episodes(series_id: i64) -> Result<(), String> {
-    xtream::get_episodes(series_id)
+async fn get_episodes(channel: Channel) -> Result<(), String> {
+    xtream::get_episodes(channel)
         .await
         .map_err(map_err_frontend)
 }
@@ -265,3 +266,9 @@ fn channel_exists(name: String, url: String, source_id: i64) -> Result<bool, Str
 fn update_source(source: Source) -> Result<(), String> {
     sql::update_source(source).map_err(map_err_frontend)
 }
+
+#[tauri::command]
+async fn get_epg(channel: Channel) ->  Result<Vec<EPG>, String> {
+    xtream::get_short_epg(channel).await.map_err(map_err_frontend)
+}
+

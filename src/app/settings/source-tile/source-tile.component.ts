@@ -48,21 +48,24 @@ export class SourceTileComponent {
   }
 
   async addCustomChannel() {
-    const modalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "EditCustomChannelModal";
-    modalRef.componentInstance.channel.data.source_id = this.source?.id;
+    this.memory.ModalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+    this.memory.ModalRef.componentInstance.name = "EditCustomChannelModal";
+    this.memory.ModalRef.componentInstance.channel.data.source_id = this.source?.id;
   }
 
   async addCustomGroup() {
-    const modalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "EditCustomGroupModal";
-    modalRef.componentInstance.group.source_id = this.source?.id;
+    this.memory.ModalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+    this.memory.ModalRef.componentInstance.name = "EditCustomGroupModal";
+    this.memory.ModalRef.componentInstance.group.source_id = this.source?.id;
   }
 
   async import() {
-    const modalRef = this.modal.open(ImportModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "ImportModalComponent";
-    modalRef.componentInstance.source_id = this.source?.id;
+    this.memory.ModalRef = this.modal.open(ImportModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+    this.memory.ModalRef.componentInstance.name = "ImportModalComponent";
+    this.memory.ModalRef.componentInstance.source_id = this.source?.id;
   }
 
   async share() {
