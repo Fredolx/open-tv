@@ -259,6 +259,7 @@ fn get_channel_from_lines(
         series_id: None,
         group_id: None,
         favorite: false,
+        stream_id: None
     };
     Ok(channel)
 }

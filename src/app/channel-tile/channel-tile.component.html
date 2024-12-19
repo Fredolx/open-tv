@@ -18,6 +18,7 @@
             <ng-container *ngIf="!alreadyExistsInFav">Favorite</ng-container>
         </button>
         <button [hidden]="isMovie()" mat-menu-item (click)="record()">Record</button>
+        <button [hidden]="!showEPG()"  mat-menu-item (click)="showEPGModal()">EPG</button>
         <button [hidden]="!isCustom()" mat-menu-item (click)="edit()">Edit</button>
         <button [hidden]="!isCustom()" mat-menu-item (click)="share()">Share</button>
         <button [hidden]="!isCustom()" mat-menu-item (click)="delete()">Delete</button>

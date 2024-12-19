@@ -25,6 +25,8 @@ import { GroupNameExistsValidator } from './edit-group-modal/validators/group-na
 import { DeleteGroupModalComponent } from './delete-group-modal/delete-group-modal.component';
 import { ImportModalComponent } from './import-modal/import-modal.component';
 import { ConfirmDeleteModalComponent } from './confirm-delete-modal/confirm-delete-modal.component';
+import { EpgModalComponent } from './epg-modal/epg-modal.component';
+import { EpgModalItemComponent } from './epg-modal/epg-modal-item/epg-modal-item.component';
 
 @NgModule({
   declarations: [
@@ -45,6 +47,8 @@ import { ConfirmDeleteModalComponent } from './confirm-delete-modal/confirm-dele
     DeleteGroupModalComponent,
     ImportModalComponent,
     ConfirmDeleteModalComponent,
+    EpgModalComponent,
+    EpgModalItemComponent,
   ],
   imports: [
     BrowserModule,

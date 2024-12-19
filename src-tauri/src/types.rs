@@ -12,10 +12,11 @@ pub struct Channel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source_id: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub series_id: Option<i64>,
+    pub series_id: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub group_id: Option<i64>,
     pub favorite: bool,
+    pub stream_id: Option<u64>
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -109,4 +110,12 @@ pub struct ExportedSource {
     pub source: Source,
     pub groups: Vec<ExportedGroup>,
     pub channels: Vec<CustomChannel>
+}
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct EPG {
+    pub title: String,
+    pub description: String,
+    pub start_time: String,
+    pub end_time: String
 }

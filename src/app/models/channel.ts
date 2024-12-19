@@ -9,4 +9,5 @@ export class Channel {
     media_type?: MediaType;
     source_id?: number;
     favorite?: boolean
+    stream_id?: number;
 }

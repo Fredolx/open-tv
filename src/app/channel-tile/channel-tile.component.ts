@@ -10,6 +10,9 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EditChannelModalComponent } from '../edit-channel-modal/edit-channel-modal.component';
 import { EditGroupModalComponent } from '../edit-group-modal/edit-group-modal.component';
 import { DeleteGroupModalComponent } from '../delete-group-modal/delete-group-modal.component';
+import { SourceType } from '../models/sourceType';
+import { EpgModalComponent } from '../epg-modal/epg-modal.component';
+import { EPG } from '../models/epg';
 
 @Component({
   selector: 'app-channel-tile',
@@ -39,18 +42,17 @@ export class ChannelTileComponent {
       return;
     }
     if (this.channel?.media_type == MediaType.serie) {
-      let id = Number.parseInt(this.channel.url!);
-      if (!this.memory.SeriesRefreshed.has(id)) {
+      if (!this.memory.SeriesRefreshed.has(this.channel.id!)) {
         this.memory.HideChannels.next(false);
         try {
-          await invoke('get_episodes', { seriesId: id });
-          this.memory.SeriesRefreshed.set(id, true);
+          await invoke('get_episodes', { channel: this.channel });
+          this.memory.SeriesRefreshed.set(this.channel.id!, true);
         }
         catch (e) {
           this.error.handleError(e, "Failed to fetch series");
         }
       }
-      this.memory.SetSeriesNode.next({ id: id, name: this.channel.name! });
+      this.memory.SetSeriesNode.next(this.channel);
       return;
     }
     this.starting = true;
@@ -112,6 +114,29 @@ export class ChannelTileComponent {
     return this.memory.CustomSourceIds!.has(this.channel?.source_id!);
   }
 
+  showEPG(): boolean {
+    return this.channel?.media_type == MediaType.livestream &&
+      !this.isCustom() &&
+      this.memory.XtreamSourceIds.has(this.channel.source_id!);
+  }
+
+  async showEPGModal() {
+    try {
+      let data: EPG[] = await invoke("get_epg", { channel: this.channel });
+      if (data.length == 0) {
+        this.toastr.info("No EPG data for this channel");
+        return;
+      }
+      this.memory.ModalRef = this.modal.open(EpgModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+      this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+      this.memory.ModalRef.componentInstance.epg = data;
+      this.memory.ModalRef.componentInstance.name = this.channel?.name;
+    }
+    catch(e) {
+      this.error.handleError(e);
+    }
+  }
+
   edit() {
     if (this.channel?.media_type == MediaType.group)
       this.edit_group();
@@ -121,18 +146,20 @@ export class ChannelTileComponent {
   }
 
   edit_group() {
-    const modalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "EditCustomGroupModal";
-    modalRef.componentInstance.editing = true;
-    modalRef.componentInstance.group = { id: this.channel!.id, name: this.channel!.name, image: this.channel!.image, source_id: this.channel!.source_id };
-    modalRef.componentInstance.originalName = this.channel!.name;
+    this.memory.ModalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+    this.memory.ModalRef.componentInstance.name = "EditCustomGroupModal";
+    this.memory.ModalRef.componentInstance.editing = true;
+    this.memory.ModalRef.componentInstance.group = { id: this.channel!.id, name: this.channel!.name, image: this.channel!.image, source_id: this.channel!.source_id };
+    this.memory.ModalRef.componentInstance.originalName = this.channel!.name;
   }
 
   edit_channel() {
-    const modalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "EditCustomChannelModal";
-    modalRef.componentInstance.editing = true;
-    modalRef.componentInstance.channel.data = { ...this.channel };
+    this.memory.ModalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+    this.memory.ModalRef.componentInstance.name = "EditCustomChannelModal";
+    this.memory.ModalRef.componentInstance.editing = true;
+    this.memory.ModalRef.componentInstance.channel.data = { ...this.channel };
   }
 
   share() {
@@ -180,9 +207,10 @@ export class ChannelTileComponent {
   }
 
   openDeleteGroupModal() {
-    const modalRef = this.modal.open(DeleteGroupModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "DeleteGroupModal";
-    modalRef.componentInstance.group = { ...this.channel };
+    this.memory.ModalRef = this.modal.open(DeleteGroupModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+    this.memory.ModalRef.componentInstance.name = "DeleteGroupModal";
+    this.memory.ModalRef.componentInstance.group = { ...this.channel };
   }
 
   async deleteChannel() {

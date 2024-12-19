@@ -1,0 +1,14 @@
+.epg-item {
+    border-radius: 0.25rem;
+    background-color: #343a40;
+    width: 100%;
+    padding: 1rem;
+    position: relative;
+}
+
+.thin-line {
+    height: 1px;       
+    background-color: white;
+    width: 100%;       
+    margin: 0;    
+}
