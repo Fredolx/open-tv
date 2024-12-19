@@ -340,7 +340,11 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         true => vec![1],
         false => filters.media_types.clone().unwrap(),
     };
-    let keywords: Vec<String> = filters.query.map(|f| f.split(" ").map(|f| format!("%{f}%").to_string()).collect()).unwrap_or(Vec::new());
+    let query = filters.query.unwrap_or("".to_string());
+    let keywords: Vec<String> = query
+        .split(" ")
+        .map(|f| format!("%{f}%").to_string())
+        .collect();
     let mut sql_query = format!(
         r#"
         SELECT * FROM CHANNELS
@@ -364,8 +368,9 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         baked_params += 1;
     }
     sql_query += "\nLIMIT ?, ?";
-    let mut params: Vec<&dyn rusqlite::ToSql> =
-        Vec::with_capacity(baked_params + media_types.len() + filters.source_ids.len() + keywords.len());
+    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(
+        baked_params + media_types.len() + filters.source_ids.len() + keywords.len(),
+    );
     params.extend(to_to_sql(&keywords));
     params.extend(to_to_sql(&media_types));
     params.extend(to_to_sql(&filters.source_ids));
@@ -376,7 +381,6 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     }
     params.push(&offset);
     params.push(&PAGE_SIZE);
-    println!("{}", sql_query);
     let channels: Vec<Channel> = sql
         .prepare(&sql_query)?
         .query_map(params_from_iter(params), row_to_channel)?
@@ -390,9 +394,6 @@ fn to_to_sql<T: rusqlite::ToSql>(values: &[T]) -> Vec<&dyn rusqlite::ToSql> {
 }
 
 fn get_keywords_sql(size: usize) -> String {
-    if size == 0 {
-        return "name like %".to_string();
-    }
     std::iter::repeat("name LIKE ?")
         .take(size)
         .collect::<Vec<_>>()
