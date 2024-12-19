@@ -324,17 +324,19 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         true => vec![1],
         false => filters.media_types.clone().unwrap(),
     };
+    let keywords: Vec<String> = filters.query.map(|f| f.split(" ").map(|f| format!("%{f}%").to_string()).collect()).unwrap_or(Vec::new());
     let mut sql_query = format!(
         r#"
         SELECT * FROM CHANNELS
-        WHERE name LIKE ?
+        WHERE ({}) 
         AND media_type IN ({})
 		AND source_id IN ({})
         AND url IS NOT NULL"#,
+        get_keywords_sql(keywords.len()),
         generate_placeholders(media_types.len()),
         generate_placeholders(filters.source_ids.len()),
     );
-    let mut baked_params = 3;
+    let mut baked_params = 2;
     if filters.view_type == view_type::FAVORITES && filters.series_id.is_none() {
         sql_query += "\nAND favorite = 1";
     }
@@ -347,9 +349,8 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     }
     sql_query += "\nLIMIT ?, ?";
     let mut params: Vec<&dyn rusqlite::ToSql> =
-        Vec::with_capacity(baked_params + media_types.len() + filters.source_ids.len());
-    let query = to_sql_like(filters.query);
-    params.push(&query);
+        Vec::with_capacity(baked_params + media_types.len() + filters.source_ids.len() + keywords.len());
+    params.extend(to_to_sql(&keywords));
     params.extend(to_to_sql(&media_types));
     params.extend(to_to_sql(&filters.source_ids));
     if let Some(ref series_id) = filters.series_id {
@@ -359,6 +360,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     }
     params.push(&offset);
     params.push(&PAGE_SIZE);
+    println!("{}", sql_query);
     let channels: Vec<Channel> = sql
         .prepare(&sql_query)?
         .query_map(params_from_iter(params), row_to_channel)?
@@ -369,6 +371,16 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
 
 fn to_to_sql<T: rusqlite::ToSql>(values: &[T]) -> Vec<&dyn rusqlite::ToSql> {
     values.iter().map(|x| x as &dyn rusqlite::ToSql).collect()
+}
+
+fn get_keywords_sql(size: usize) -> String {
+    if size == 0 {
+        return "name like %".to_string();
+    }
+    std::iter::repeat("name LIKE ?")
+        .take(size)
+        .collect::<Vec<_>>()
+        .join(" AND ")
 }
 
 fn generate_placeholders(size: usize) -> String {
