@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild } from '@angular/core';
+import { Component, Input, OnDestroy, ViewChild } from '@angular/core';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { Channel } from '../models/channel';
 import { MemoryService } from '../memory.service';
@@ -13,13 +13,25 @@ import { DeleteGroupModalComponent } from '../delete-group-modal/delete-group-mo
 import { SourceType } from '../models/sourceType';
 import { EpgModalComponent } from '../epg-modal/epg-modal.component';
 import { EPG } from '../models/epg';
+import { listen, UnlistenFn } from '@tauri-apps/api/event';
+import { animate, state, style, transition, trigger } from '@angular/animations';
 
 @Component({
   selector: 'app-channel-tile',
   templateUrl: './channel-tile.component.html',
-  styleUrl: './channel-tile.component.css'
+  styleUrl: './channel-tile.component.css',
+  animations: [
+    trigger('backgroundFill', [
+      state('0', style({ background: 'linear-gradient(to right, green 0%, white 0%)' })),
+      state(
+        '100',
+        style({ background: 'linear-gradient(to right, green 100%, white 0%)' })
+      ),
+      transition('* => *', animate('1s ease')),
+    ]),
+  ],
 })
-export class ChannelTileComponent {
+export class ChannelTileComponent implements OnDestroy {
   constructor(public memory: MemoryService, private toastr: ToastrService, private error: ErrorService, private modal: NgbModal) { }
   @Input() channel?: Channel;
   @Input() id!: Number;
@@ -30,7 +42,8 @@ export class ChannelTileComponent {
   // less reactive but prevents the user from seeing the change in action
   alreadyExistsInFav = false;
   mediaTypeEnum = MediaType;
-
+  progress = 0;
+  toUnlisten?: UnlistenFn;
   ngOnInit(): void {
   }
 
@@ -127,12 +140,12 @@ export class ChannelTileComponent {
         this.toastr.info("No EPG data for this channel");
         return;
       }
-      this.memory.ModalRef = this.modal.open(EpgModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+      this.memory.ModalRef = this.modal.open(EpgModalComponent, { backdrop: 'static', size: 'xl', keyboard: false });
       this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
       this.memory.ModalRef.componentInstance.epg = data;
       this.memory.ModalRef.componentInstance.name = this.channel?.name;
     }
-    catch(e) {
+    catch (e) {
       this.error.handleError(e);
     }
   }
@@ -146,7 +159,7 @@ export class ChannelTileComponent {
   }
 
   edit_group() {
-    this.memory.ModalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', keyboard: false });
     this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
     this.memory.ModalRef.componentInstance.name = "EditCustomGroupModal";
     this.memory.ModalRef.componentInstance.editing = true;
@@ -155,7 +168,7 @@ export class ChannelTileComponent {
   }
 
   edit_channel() {
-    this.memory.ModalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', keyboard: false });
     this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
     this.memory.ModalRef.componentInstance.name = "EditCustomChannelModal";
     this.memory.ModalRef.componentInstance.editing = true;
@@ -207,7 +220,7 @@ export class ChannelTileComponent {
   }
 
   openDeleteGroupModal() {
-    this.memory.ModalRef = this.modal.open(DeleteGroupModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef = this.modal.open(DeleteGroupModalComponent, { backdrop: 'static', size: 'xl', keyboard: false });
     this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
     this.memory.ModalRef.componentInstance.name = "DeleteGroupModal";
     this.memory.ModalRef.componentInstance.group = { ...this.channel };
@@ -217,5 +230,24 @@ export class ChannelTileComponent {
     await this.memory.tryIPC("Successfully deleted channel", "Failed to delete channel",
       () => invoke('delete_custom_channel', { id: this.channel?.id }))
     this.memory.Refresh.next(false);
+  }
+
+  async download() {
+    if (this.memory.Loading)
+      return;
+    if (this.toUnlisten)
+      this.toUnlisten();
+    this.toUnlisten = await listen<number>("progress", (event) => {
+      this.progress = event.payload;
+    });
+    await this.memory.tryIPC("Successfully download movie", "Failed to download movie",
+      async () => await invoke("download", { channel: this.channel }));
+    if (this.toUnlisten)
+      this.toUnlisten();
+  }
+
+  ngOnDestroy() {
+    if (this.toUnlisten)
+      this.toUnlisten();
   }
 }

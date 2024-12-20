@@ -28,10 +28,17 @@ export class SetupComponent {
 
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    if ((event.key == "Escape" || event.key == "Backspace") && this.memory.AddingAdditionalSource) {
+    if ((event.key == "Escape" || event.key == "Backspace") && this.memory.AddingAdditionalSource && !this.isInputFocused()) {
       this.goBack();
       event.preventDefault();
     }
+  }
+
+  isInputFocused(): boolean {
+    const activeElement = document.activeElement;
+    return activeElement instanceof HTMLInputElement || 
+           activeElement instanceof HTMLTextAreaElement || 
+           activeElement instanceof HTMLSelectElement;
   }
 
   ngOnInit(): void {
