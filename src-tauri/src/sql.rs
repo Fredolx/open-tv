@@ -432,19 +432,24 @@ fn to_sql_like(query: Option<String>) -> String {
 pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
     let sql = get_conn()?;
     let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
-    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(3 + filters.source_ids.len());
+    let query = filters.query.unwrap_or("".to_string());
+    let keywords: Vec<String> = query
+        .split(" ")
+        .map(|f| format!("%{f}%").to_string())
+        .collect();
+    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(2 + filters.source_ids.len());
     let sql_query = format!(
         r#"
         SELECT *
         FROM groups
-        WHERE name like ?
+        WHERE ({})
         AND source_id in ({})
         LIMIT ?, ?
     "#,
+        get_keywords_sql(keywords.len()),
         generate_placeholders(filters.source_ids.len())
     );
-    let query = to_sql_like(filters.query);
-    params.push(&query);
+    params.extend(to_to_sql(&keywords));
     params.extend(to_to_sql(&filters.source_ids));
     params.push(&offset);
     params.push(&PAGE_SIZE);
