@@ -193,7 +193,6 @@ ON CONFLICT (name, url, source_id)
 DO UPDATE SET 
     stream_id = excluded.stream_id,
     image = excluded.image,
-    group_id = excluded.group_id,
     series_id = excluded.series_id;
 "#,
         params![
@@ -228,7 +227,7 @@ VALUES (?, ?, ?, ?, ?);
     Ok(())
 }
 
-fn insert_group(
+fn get_or_insert_group(
     tx: &Transaction,
     group: &str,
     image: &Option<String>,
@@ -242,7 +241,7 @@ fn insert_group(
         params![group, &image, source_id],
     )?;
     if rows_changed == 0 {
-        return Err(anyhow!("Failed to insert group: {}", group));
+       return Ok(tx.query_row("SELECT id FROM groups WHERE name = ? and source_id = ?", params![group, source_id], |row|row.get::<_, i64>("id"))?)
     }
     Ok(tx.last_insert_rowid())
 }
@@ -257,7 +256,7 @@ pub fn set_channel_group_id(
         return Ok(());
     }
     if !groups.contains_key(channel.group.as_ref().unwrap()) {
-        let id = insert_group(
+        let id = get_or_insert_group(
             tx,
             channel.group.as_ref().unwrap(),
             &channel.image,
