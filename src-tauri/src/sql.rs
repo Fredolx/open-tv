@@ -241,7 +241,11 @@ fn get_or_insert_group(
         params![group, &image, source_id],
     )?;
     if rows_changed == 0 {
-       return Ok(tx.query_row("SELECT id FROM groups WHERE name = ? and source_id = ?", params![group, source_id], |row|row.get::<_, i64>("id"))?)
+        return Ok(tx.query_row(
+            "SELECT id FROM groups WHERE name = ? and source_id = ?",
+            params![group, source_id],
+            |row| row.get::<_, i64>("id"),
+        )?);
     }
     Ok(tx.last_insert_rowid())
 }

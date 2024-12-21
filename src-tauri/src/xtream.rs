@@ -4,6 +4,7 @@ use crate::sql;
 use crate::types::Channel;
 use crate::types::Source;
 use crate::types::EPG;
+use crate::utils::get_local_time;
 use anyhow::anyhow;
 use anyhow::{Context, Result};
 use base64::prelude::BASE64_STANDARD;
@@ -64,7 +65,7 @@ struct XtreamCategory {
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamEPG {
-    epg_listings: Vec<XtreamEPGItem>
+    epg_listings: Vec<XtreamEPGItem>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -252,10 +253,12 @@ fn get_media_type_string(stream_type: u8) -> Result<String> {
 
 pub async fn get_episodes(channel: Channel) -> Result<()> {
     let series_id = channel.url.context("no url")?.parse()?;
-    if sql::series_has_episodes(series_id, channel.source_id.context("no source id")?).unwrap_or_else(|e| {
-        log::log(format!("{:?}", e));
-        return false;
-    }) {
+    if sql::series_has_episodes(series_id, channel.source_id.context("no source id")?)
+        .unwrap_or_else(|e| {
+            log::log(format!("{:?}", e));
+            return false;
+        })
+    {
         return Ok(());
     }
     let mut source = sql::get_source_from_id(channel.source_id.context("no source id")?)?;
@@ -306,25 +309,28 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: u64) -
 pub async fn get_short_epg(channel: Channel) -> Result<Vec<EPG>> {
     let mut source = sql::get_source_from_id(channel.source_id.context("no source id")?)?;
     let mut url = build_xtream_url(&mut source)?;
-    url.query_pairs_mut().append_pair("stream_id", &channel.stream_id.context("no stream id")?.to_string());
+    url.query_pairs_mut().append_pair(
+        "stream_id",
+        &channel.stream_id.context("no stream id")?.to_string(),
+    );
     let epg: XtreamEPG = get_xtream_http_data(url, GET_SHORT_EPG).await?;
-    epg.epg_listings.iter().map(xtream_epg_to_epg).collect::<Result<Vec<EPG>>>()
+    epg.epg_listings
+        .iter()
+        .map(xtream_epg_to_epg)
+        .collect::<Result<Vec<EPG>>>()
 }
 
 fn xtream_epg_to_epg(epg: &XtreamEPGItem) -> Result<EPG> {
     Ok(EPG {
         title: String::from_utf8(BASE64_STANDARD.decode(&epg.title)?)?,
         description: String::from_utf8(BASE64_STANDARD.decode(&epg.description)?)?,
-        start_time: get_local_time(&epg.start_timestamp)?,
+        start_time: get_local_time(&epg.start_timestamp)?
+            .format("%Hh%M")
+            .to_string(),
         end_time: get_local_time(&epg.stop_timestamp)?
+            .format("%Hh%M")
+            .to_string(),
     })
-}
-
-fn get_local_time(timestamp: &str) -> Result<String> {
-    let timestamp: i64 = timestamp.parse()?;  
-    let datetime = DateTime::<Utc>::from_timestamp(timestamp, 0).context("no time")?;
-    let datetime: DateTime<Local> = DateTime::<Local>::from(datetime);
-    Ok(datetime.format("%Hh%M").to_string())
 }
 
 #[cfg(test)]

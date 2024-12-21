@@ -7,6 +7,7 @@ pub mod log;
 pub mod m3u;
 pub mod media_type;
 pub mod mpv;
+pub mod notify;
 pub mod settings;
 pub mod share;
 pub mod source_type;
@@ -19,6 +20,7 @@ pub mod xtream;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
@@ -103,7 +105,9 @@ fn search(filters: Filters) -> Result<Vec<Channel>, String> {
 
 #[tauri::command]
 async fn get_xtream(source: Source) -> Result<(), String> {
-    xtream::get_xtream(source, false).await.map_err(map_err_frontend)
+    xtream::get_xtream(source, false)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command]
@@ -268,7 +272,8 @@ fn update_source(source: Source) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn get_epg(channel: Channel) ->  Result<Vec<EPG>, String> {
-    xtream::get_short_epg(channel).await.map_err(map_err_frontend)
+async fn get_epg(channel: Channel) -> Result<Vec<EPG>, String> {
+    xtream::get_short_epg(channel)
+        .await
+        .map_err(map_err_frontend)
 }
-

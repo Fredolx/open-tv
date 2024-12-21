@@ -49,8 +49,7 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     let mut found_first_valid_channel: bool = false;
     if wipe {
         sql::wipe(&tx, source.id.context("no source id")?)?;
-    }
-    else {
+    } else {
         source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
     }
     while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
@@ -71,7 +70,9 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
                 continue;
             }
         };
-        while l1.trim().is_empty() || !(found_first_valid_channel || l1.to_lowercase().starts_with("#extinf")) {
+        while l1.trim().is_empty()
+            || !(found_first_valid_channel || l1.to_lowercase().starts_with("#extinf"))
+        {
             l1 = l2.clone();
             if let Some(next) = lines.next() {
                 let line_number = next.0;
@@ -89,8 +90,13 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
             }
             headers = _headers;
         }
-        let mut channel = match get_channel_from_lines(l1, l2, source.id.context("no source id")?, source.use_tvg_id)
-            .with_context(|| format!("Failed to process lines #{c1} #{c2}, skipping"))
+        let mut channel = match get_channel_from_lines(
+            l1,
+            l2,
+            source.id.context("no source id")?,
+            source.use_tvg_id,
+        )
+        .with_context(|| format!("Failed to process lines #{c1} #{c2}, skipping"))
         {
             Ok(val) => val,
             Err(e) => {
@@ -99,8 +105,13 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
                 continue;
             }
         };
-        sql::set_channel_group_id(&mut groups, &mut channel, &tx, &source.id.context("no source id")?)
-            .unwrap_or_else(|e| log::log(format!("{:?}", e)));
+        sql::set_channel_group_id(
+            &mut groups,
+            &mut channel,
+            &tx,
+            &source.id.context("no source id")?,
+        )
+        .unwrap_or_else(|e| log::log(format!("{:?}", e)));
         sql::insert_channel(&tx, channel)?;
         if let Some(mut headers) = headers {
             headers.channel_id = Some(tx.last_insert_rowid());
@@ -259,7 +270,7 @@ fn get_channel_from_lines(
         series_id: None,
         group_id: None,
         favorite: false,
-        stream_id: None
+        stream_id: None,
     };
     Ok(channel)
 }
