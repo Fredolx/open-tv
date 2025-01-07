@@ -1,28 +1,55 @@
-<div backgroundFill id="tile-{{id}}" placement="top" tabindex="0" (keyup.enter)="click()" [ngClass]="{'playing': starting}"
-    [ngbTooltip]="channel?.name" triggers="hover" (click)="click()" class="channel d-inline-flex p-2 align-items-center" (contextmenu)="onRightClick($event)">
-    <div style="height: 100%; min-width: 50px;">
-        <img (error)="showImage = false" class="channel-image" *ngIf="channel?.image && showImage" src="{{channel?.image}}">
-    </div>
-    <div class="channel-title">{{channel?.name}}</div>
-    {{progress}}
+<div
+  id="tile-{{ id }}"
+  placement="top"
+  tabindex="0"
+  (keyup.enter)="click()"
+  [ngClass]="{ playing: starting }"
+  [ngbTooltip]="channel?.name"
+  triggers="hover"
+  (click)="click()"
+  class="channel d-inline-flex p-2 align-items-center"
+  (contextmenu)="onRightClick($event)"
+>
+  <div style="height: 100%; min-width: 50px">
+    <img
+      (error)="showImage = false"
+      class="channel-image"
+      *ngIf="channel?.image && showImage"
+      src="{{ channel?.image }}"
+    />
+  </div>
+  <div class="channel-title">{{ channel?.name }}</div>
 </div>
 
-<div style="visibility: hidden; position: fixed;"
-[style.left.px]="menuTopLeftPosition.x"
-[style.top.px]="menuTopLeftPosition.y"
-[matMenuTriggerFor]="rightMenu"></div>
+<div
+  style="visibility: hidden; position: fixed"
+  [style.left.px]="menuTopLeftPosition.x"
+  [style.top.px]="menuTopLeftPosition.y"
+  [matMenuTriggerFor]="rightMenu"
+></div>
 
 <mat-menu #rightMenu="matMenu">
-	<ng-template matMenuContent let-item="item">
-		<button [hidden]="channel?.media_type == mediaTypeEnum.group" mat-menu-item (click)="favorite()">
-            <ng-container *ngIf="alreadyExistsInFav">Unfavorite</ng-container>
-            <ng-container *ngIf="!alreadyExistsInFav">Favorite</ng-container>
-        </button>
-        <button [hidden]="isMovie()" mat-menu-item (click)="record()">Record</button>
-        <button [disabled]="this.memory.Loading" [hidden]="!isMovie()" mat-menu-item (click)="download()">Download</button>
-        <button [hidden]="!showEPG()"  mat-menu-item (click)="showEPGModal()">EPG</button>
-        <button [hidden]="!isCustom()" mat-menu-item (click)="edit()">Edit</button>
-        <button [hidden]="!isCustom()" mat-menu-item (click)="share()">Share</button>
-        <button [hidden]="!isCustom()" mat-menu-item (click)="delete()">Delete</button>
-	</ng-template>
+  <ng-template matMenuContent let-item="item">
+    <button
+      [hidden]="channel?.media_type == mediaTypeEnum.group"
+      mat-menu-item
+      (click)="favorite()"
+    >
+      <ng-container *ngIf="alreadyExistsInFav">Unfavorite</ng-container>
+      <ng-container *ngIf="!alreadyExistsInFav">Favorite</ng-container>
+    </button>
+    <button [hidden]="isMovie()" mat-menu-item (click)="record()">Record</button>
+    <button
+      [disabled]="this.memory.Loading"
+      [hidden]="!isMovie()"
+      mat-menu-item
+      (click)="download()"
+    >
+      Download
+    </button>
+    <button [hidden]="!showEPG()" mat-menu-item (click)="showEPGModal()">EPG</button>
+    <button [hidden]="!isCustom()" mat-menu-item (click)="edit()">Edit</button>
+    <button [hidden]="!isCustom()" mat-menu-item (click)="share()">Share</button>
+    <button [hidden]="!isCustom()" mat-menu-item (click)="delete()">Delete</button>
+  </ng-template>
 </mat-menu>
