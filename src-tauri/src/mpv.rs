@@ -1,9 +1,9 @@
+use crate::settings::get_default_record_path;
 use crate::types::ChannelHttpHeaders;
 use crate::{log, sql};
 use crate::{media_type, settings::get_settings, types::Channel};
 use anyhow::{bail, Context, Result};
 use chrono::Local;
-use directories::UserDirs;
 use std::sync::LazyLock;
 use std::{
     env::{consts::OS, current_exe},
@@ -183,12 +183,4 @@ fn get_file_name() -> String {
     let current_time = Local::now();
     let formatted_time = current_time.format("%Y-%m-%d-%H-%M-%S").to_string();
     format!("{formatted_time}.mp4")
-}
-
-fn get_default_record_path() -> Result<String> {
-    let user_dirs = UserDirs::new().context("Failed to get user dirs")?;
-    let mut path = user_dirs.video_dir().context("No videos dir")?.to_owned();
-    path.push("open-tv");
-    std::fs::create_dir_all(&path)?;
-    Ok(path.to_string_lossy().to_string())
 }
