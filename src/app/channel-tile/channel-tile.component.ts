@@ -20,24 +20,6 @@ import { animate, state, style, transition, trigger } from "@angular/animations"
   selector: "app-channel-tile",
   templateUrl: "./channel-tile.component.html",
   styleUrl: "./channel-tile.component.css",
-  animations: [
-    trigger("progressFill", [
-      state(
-        "start",
-        style({
-          background: "linear-gradient(to left, #343a40 100%, green 0%)",
-        }),
-      ),
-      state(
-        "end",
-        style({
-          background: "linear-gradient(to left, #343a40 {{progressInverse}}%, green {{progress}}%",
-        }),
-        { params: { progress: 100, progressInverse: 100 } },
-      ),
-      transition("start <=> end", animate("1s ease-out")),
-    ]),
-  ],
 })
 export class ChannelTileComponent implements OnDestroy {
   constructor(
