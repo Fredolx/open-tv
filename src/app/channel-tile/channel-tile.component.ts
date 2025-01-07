@@ -145,6 +145,10 @@ export class ChannelTileComponent implements OnDestroy {
     return this.channel?.media_type == MediaType.movie;
   }
 
+  isLivestream() {
+    return this.channel?.media_type == MediaType.livestream;
+  }
+
   isCustom(): boolean {
     return this.memory.CustomSourceIds!.has(this.channel?.source_id!);
   }

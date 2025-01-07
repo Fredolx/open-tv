@@ -38,7 +38,7 @@
       <ng-container *ngIf="alreadyExistsInFav">Unfavorite</ng-container>
       <ng-container *ngIf="!alreadyExistsInFav">Favorite</ng-container>
     </button>
-    <button [hidden]="isMovie()" mat-menu-item (click)="record()">Record</button>
+    <button [hidden]="!isLivestream()" mat-menu-item (click)="record()">Record</button>
     <button
       [disabled]="this.memory.Loading"
       [hidden]="!isMovie()"
