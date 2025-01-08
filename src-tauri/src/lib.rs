@@ -1,4 +1,5 @@
 use anyhow::Error;
+use tauri::AppHandle;
 use types::{
     Channel, CustomChannel, CustomChannelExtraData, Filters, Group, IdName, Settings, Source, EPG,
 };
@@ -61,7 +62,8 @@ pub fn run() {
             import,
             channel_exists,
             update_source,
-            get_epg
+            get_epg,
+            download
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -277,3 +279,10 @@ async fn get_epg(channel: Channel) -> Result<Vec<EPG>, String> {
         .await
         .map_err(map_err_frontend)
 }
+
+#[tauri::command]
+async fn download(app: AppHandle, channel: Channel) -> Result<(), String> {
+    utils::download(app, channel).await.map_err(map_err_frontend)
+}
+
+
