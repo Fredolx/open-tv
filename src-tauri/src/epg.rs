@@ -1,14 +1,21 @@
-use std::sync::{
-    atomic::{AtomicBool, Ordering::Relaxed},
-    Arc,
+use std::{
+    sync::{
+        atomic::{AtomicBool, Ordering::Relaxed},
+        Arc, Mutex,
+    },
+    thread,
 };
 
 use anyhow::{Context, Result};
 use chrono::Local;
-use tauri::AppHandle;
+use tauri::{AppHandle, State};
 use tauri_plugin_notification::NotificationExt;
 
-use crate::{log, types::EPGNotify, utils};
+use crate::{
+    log,
+    types::{AppState, EPGNotify},
+    utils,
+};
 
 pub fn poll(mut to_watch: Vec<EPGNotify>, stop: Arc<AtomicBool>, app: AppHandle) -> Result<()> {
     while stop.load(Relaxed) && !to_watch.is_empty() {
@@ -46,4 +53,23 @@ fn is_timestamp_over(timestamp: &str) -> Result<bool> {
     let time = utils::get_local_time(timestamp)?;
     let current_time = Local::now();
     Ok(current_time >= time)
+}
+
+pub fn add_epg(state: State<'_, Mutex<AppState>>, app: AppHandle, epg: EPGNotify) -> Result<()> {
+    let mut state = state.lock().unwrap();
+    if state.thread_handle.is_some() {
+        state.notify_stop.store(true, Relaxed);
+        let _ = state
+            .thread_handle
+            .take()
+            .context("no thread in option")?
+            .join();
+    }
+    let stop = state.notify_stop.clone();
+    state.epg_watch_list.push(epg);
+    let list = state.epg_watch_list.clone();
+    state
+        .thread_handle
+        .replace(thread::spawn(|| poll(list, stop, app)));
+    Ok(())
 }

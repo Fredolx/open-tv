@@ -1,3 +1,8 @@
+use std::{
+    sync::{atomic::AtomicBool, Arc},
+    thread::JoinHandle,
+};
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -125,4 +130,11 @@ pub struct EPGNotify {
     pub title: String,
     pub start_timestamp: String,
     pub channel_name: String,
+}
+
+#[derive(Debug, Default)]
+pub struct AppState {
+    pub epg_watch_list: Vec<EPGNotify>,
+    pub notify_stop: Arc<AtomicBool>,
+    pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
 }
