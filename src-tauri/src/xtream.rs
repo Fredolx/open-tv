@@ -67,6 +67,7 @@ struct XtreamEPG {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamEPGItem {
+    id: String,
     title: String,
     description: String,
     start_timestamp: String,
@@ -319,6 +320,7 @@ pub async fn get_short_epg(channel: Channel) -> Result<Vec<EPG>> {
 
 fn xtream_epg_to_epg(epg: &XtreamEPGItem) -> Result<EPG> {
     Ok(EPG {
+        epg_id: epg.id.clone(),
         title: String::from_utf8(BASE64_STANDARD.decode(&epg.title)?)?,
         description: String::from_utf8(BASE64_STANDARD.decode(&epg.description)?)?,
         start_time: get_local_time(&epg.start_timestamp)?
@@ -327,6 +329,7 @@ fn xtream_epg_to_epg(epg: &XtreamEPGItem) -> Result<EPG> {
         end_time: get_local_time(&epg.stop_timestamp)?
             .format("%Hh%M")
             .to_string(),
+        start_timestamp: epg.start_timestamp.parse()?,
     })
 }
 

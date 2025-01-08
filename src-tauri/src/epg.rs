@@ -12,7 +12,7 @@ use tauri::{AppHandle, State};
 use tauri_plugin_notification::NotificationExt;
 
 use crate::{
-    log,
+    log, sql,
     types::{AppState, EPGNotify},
     utils,
 };
@@ -66,8 +66,32 @@ pub fn add_epg(state: State<'_, Mutex<AppState>>, app: AppHandle, epg: EPGNotify
             .join();
     }
     let stop = state.notify_stop.clone();
-    state.epg_watch_list.push(epg);
-    let list = state.epg_watch_list.clone();
+    sql::clean_epgs()?;
+    sql::add_epg(epg)?;
+    let list = sql::get_epgs()?;
+    state
+        .thread_handle
+        .replace(thread::spawn(|| poll(list, stop, app)));
+    Ok(())
+}
+
+pub fn remove_epg(state: State<'_, Mutex<AppState>>, app: AppHandle, epg_id: String) -> Result<()> {
+    let mut state = state.lock().unwrap();
+    if state.thread_handle.is_some() {
+        state.notify_stop.store(true, Relaxed);
+        let _ = state
+            .thread_handle
+            .take()
+            .context("no thread in option")?
+            .join();
+    }
+    let stop = state.notify_stop.clone();
+    sql::clean_epgs()?;
+    sql::remove_epg(epg_id)?;
+    let list = sql::get_epgs()?;
+    if list.len() == 0 {
+        return Ok(());
+    }
     state
         .thread_handle
         .replace(thread::spawn(|| poll(list, stop, app)));

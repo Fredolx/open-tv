@@ -76,7 +76,9 @@ pub fn run() {
             update_source,
             get_epg,
             download,
-            add_epg
+            add_epg,
+            remove_epg,
+            get_epg_ids
         ])
         .setup(|app| {
             app.manage(AppState {
@@ -349,4 +351,18 @@ fn add_epg(
     epg: EPGNotify,
 ) -> Result<(), String> {
     epg::add_epg(state, app, epg).map_err(map_err_frontend)
+}
+
+#[tauri::command]
+fn remove_epg(
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+    epg_id: String,
+) -> Result<(), String> {
+    epg::remove_epg(state, app, epg_id).map_err(map_err_frontend)
+}
+
+#[tauri::command]
+fn get_epg_ids() -> Result<Vec<String>, String> {
+    sql::get_epg_ids().map_err(map_err_frontend)
 }

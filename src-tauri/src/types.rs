@@ -119,14 +119,17 @@ pub struct ExportedSource {
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct EPG {
+    pub epg_id: String,
     pub title: String,
     pub description: String,
     pub start_time: String,
+    pub start_timestamp: u64,
     pub end_time: String,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct EPGNotify {
+    pub epg_id: String,
     pub title: String,
     pub start_timestamp: String,
     pub channel_name: String,
@@ -134,7 +137,6 @@ pub struct EPGNotify {
 
 #[derive(Debug, Default)]
 pub struct AppState {
-    pub epg_watch_list: Vec<EPGNotify>,
     pub notify_stop: Arc<AtomicBool>,
     pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
 }
