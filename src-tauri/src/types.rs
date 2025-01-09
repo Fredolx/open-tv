@@ -123,7 +123,7 @@ pub struct EPG {
     pub title: String,
     pub description: String,
     pub start_time: String,
-    pub start_timestamp: u64,
+    pub start_timestamp: i64,
     pub end_time: String,
 }
 
@@ -131,7 +131,7 @@ pub struct EPG {
 pub struct EPGNotify {
     pub epg_id: String,
     pub title: String,
-    pub start_timestamp: String,
+    pub start_timestamp: i64,
     pub channel_name: String,
 }
 

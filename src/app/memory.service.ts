@@ -7,6 +7,7 @@ import { ToastrService } from "ngx-toastr";
 import { ErrorService } from "./error.service";
 import { Channel } from "./models/channel";
 import { NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
+import { invoke } from "@tauri-apps/api/core";
 
 @Injectable({
   providedIn: "root",
@@ -29,6 +30,8 @@ export class MemoryService {
   public CustomSourceIds: Set<number> = new Set();
   public XtreamSourceIds: Set<number> = new Set();
   public ModalRef?: NgbModalRef;
+  public Watched_epgs: Set<string> = new Set();
+
   async tryIPC<T>(
     successMessage: string,
     errorMessage: string,
@@ -45,5 +48,11 @@ export class MemoryService {
     }
     this.Loading = false;
     return error;
+  }
+
+  async get_epg_ids() {
+    let data = await invoke("get_epg_ids");
+    let set = new Set(data as Array<string>);
+    this.Watched_epgs = set;
   }
 }

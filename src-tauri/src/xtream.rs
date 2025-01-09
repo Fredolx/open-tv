@@ -323,10 +323,10 @@ fn xtream_epg_to_epg(epg: &XtreamEPGItem) -> Result<EPG> {
         epg_id: epg.id.clone(),
         title: String::from_utf8(BASE64_STANDARD.decode(&epg.title)?)?,
         description: String::from_utf8(BASE64_STANDARD.decode(&epg.description)?)?,
-        start_time: get_local_time(&epg.start_timestamp)?
+        start_time: get_local_time(epg.start_timestamp.parse()?)?
             .format("%Hh%M")
             .to_string(),
-        end_time: get_local_time(&epg.stop_timestamp)?
+        end_time: get_local_time(epg.stop_timestamp.parse()?)?
             .format("%Hh%M")
             .to_string(),
         start_timestamp: epg.start_timestamp.parse()?,
@@ -397,6 +397,6 @@ mod test_xtream {
 
     #[test]
     fn test_get_local_time() {
-        println!("{}", get_local_time("1734217200").unwrap());
+        println!("{}", get_local_time(1734217200).unwrap());
     }
 }

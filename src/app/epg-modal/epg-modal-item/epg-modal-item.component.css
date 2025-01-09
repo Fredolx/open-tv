@@ -15,11 +15,10 @@
 
 .bell {
   position: absolute;
-  height: 3rem;
-  width: 3rem;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
+  height: 2rem;
+  width: 2rem;
+  right: 0.5rem;
+  top: 1rem;
   cursor: pointer;
   transition: transform 0.3s ease;
   color: white;

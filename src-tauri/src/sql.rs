@@ -1039,7 +1039,7 @@ pub fn clean_epgs() -> Result<()> {
     sql.execute_batch(
         r#"
           DELETE FROM epg
-          WHERE start_date < strftime('%s', 'now')
+          WHERE start_timestamp < strftime('%s', 'now')
         "#,
     )?;
     Ok(())

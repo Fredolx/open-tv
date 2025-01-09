@@ -81,9 +81,9 @@ pub fn run() {
             get_epg_ids
         ])
         .setup(|app| {
-            app.manage(AppState {
+            app.manage(Mutex::new(AppState {
                 ..Default::default()
-            });
+            }));
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&quit_i])?;
             TrayIconBuilder::new()
@@ -344,7 +344,7 @@ async fn download(app: AppHandle, channel: Channel) -> Result<(), String> {
         .map_err(map_err_frontend)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn add_epg(
     state: State<'_, Mutex<AppState>>,
     app: AppHandle,
@@ -353,7 +353,7 @@ fn add_epg(
     epg::add_epg(state, app, epg).map_err(map_err_frontend)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn remove_epg(
     state: State<'_, Mutex<AppState>>,
     app: AppHandle,
@@ -362,7 +362,7 @@ fn remove_epg(
     epg::remove_epg(state, app, epg_id).map_err(map_err_frontend)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn get_epg_ids() -> Result<Vec<String>, String> {
     sql::get_epg_ids().map_err(map_err_frontend)
 }

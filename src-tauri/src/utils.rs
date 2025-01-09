@@ -34,8 +34,7 @@ pub async fn refresh_all() -> Result<()> {
     Ok(())
 }
 
-pub fn get_local_time(timestamp: &str) -> Result<DateTime<Local>> {
-    let timestamp: i64 = timestamp.parse()?;
+pub fn get_local_time(timestamp: i64) -> Result<DateTime<Local>> {
     let datetime = DateTime::<Utc>::from_timestamp(timestamp, 0).context("no time")?;
     Ok(DateTime::<Local>::from(datetime))
 }

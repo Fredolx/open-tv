@@ -20,7 +20,7 @@ use crate::{
 pub fn poll(mut to_watch: Vec<EPGNotify>, stop: Arc<AtomicBool>, app: AppHandle) -> Result<()> {
     while stop.load(Relaxed) && !to_watch.is_empty() {
         to_watch.retain(|epg| {
-            let is_timestamp_over = match is_timestamp_over(&epg.start_timestamp) {
+            let is_timestamp_over = match is_timestamp_over(epg.start_timestamp) {
                 Ok(v) => v,
                 Err(e) => {
                     log::log(format!("{:?}", e));
@@ -49,7 +49,7 @@ fn notify(epg: &EPGNotify, app: &AppHandle) -> Result<()> {
     Ok(())
 }
 
-fn is_timestamp_over(timestamp: &str) -> Result<bool> {
+fn is_timestamp_over(timestamp: i64) -> Result<bool> {
     let time = utils::get_local_time(timestamp)?;
     let current_time = Local::now();
     Ok(current_time >= time)
