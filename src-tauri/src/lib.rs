@@ -78,7 +78,8 @@ pub fn run() {
             download,
             add_epg,
             remove_epg,
-            get_epg_ids
+            get_epg_ids,
+            on_start_check_epg
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -123,7 +124,7 @@ pub fn run() {
             _ => {}
         })
         .run(tauri::generate_context!())
-        .expect("error while running tauri application")
+        .expect("error while running tauri application");
 }
 
 fn map_err_frontend(e: Error) -> String {
@@ -365,4 +366,9 @@ fn remove_epg(
 #[tauri::command(async)]
 fn get_epg_ids() -> Result<Vec<String>, String> {
     sql::get_epg_ids().map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn on_start_check_epg(state: State<'_, Mutex<AppState>>, app: AppHandle) -> Result<(), String> {
+    epg::on_start_check_epg(state, app).map_err(map_err_frontend)
 }

@@ -18,7 +18,7 @@ use crate::{
 };
 
 pub fn poll(mut to_watch: Vec<EPGNotify>, stop: Arc<AtomicBool>, app: AppHandle) -> Result<()> {
-    while stop.load(Relaxed) && !to_watch.is_empty() {
+    while !stop.load(Relaxed) && !to_watch.is_empty() {
         to_watch.retain(|epg| {
             let is_timestamp_over = match is_timestamp_over(epg.start_timestamp) {
                 Ok(v) => v,
@@ -65,6 +65,7 @@ pub fn add_epg(state: State<'_, Mutex<AppState>>, app: AppHandle, epg: EPGNotify
             .context("no thread in option")?
             .join();
     }
+    state.notify_stop.store(false, Relaxed);
     let stop = state.notify_stop.clone();
     sql::clean_epgs()?;
     sql::add_epg(epg)?;
@@ -85,9 +86,25 @@ pub fn remove_epg(state: State<'_, Mutex<AppState>>, app: AppHandle, epg_id: Str
             .context("no thread in option")?
             .join();
     }
+    state.notify_stop.store(false, Relaxed);
     let stop = state.notify_stop.clone();
     sql::clean_epgs()?;
     sql::remove_epg(epg_id)?;
+    let list = sql::get_epgs()?;
+    if list.len() == 0 {
+        return Ok(());
+    }
+    state
+        .thread_handle
+        .replace(thread::spawn(|| poll(list, stop, app)));
+    Ok(())
+}
+
+pub fn on_start_check_epg(state: State<'_, Mutex<AppState>>, app: AppHandle) -> Result<()> {
+    let mut state = state.lock().unwrap();
+    state.notify_stop.store(false, Relaxed);
+    let stop = state.notify_stop.clone();
+    sql::clean_epgs()?;
     let list = sql::get_epgs()?;
     if list.len() == 0 {
         return Ok(());
