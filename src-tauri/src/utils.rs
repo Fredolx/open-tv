@@ -1,5 +1,3 @@
-use std::{io::Write, path::Path, sync::LazyLock};
-
 use crate::{
     m3u,
     settings::{get_default_record_path, get_settings},
@@ -8,8 +6,10 @@ use crate::{
     xtream,
 };
 use anyhow::{anyhow, bail, Context, Result};
+use chrono::{DateTime, Local, Utc};
 use regex::Regex;
 use reqwest::Client;
+use std::{io::Write, path::Path, sync::LazyLock};
 use tauri::{AppHandle, Emitter};
 
 static ILLEGAL_CHARS_REGEX: LazyLock<Regex> =
@@ -32,6 +32,11 @@ pub async fn refresh_all() -> Result<()> {
         refresh_source(source).await?;
     }
     Ok(())
+}
+
+pub fn get_local_time(timestamp: i64) -> Result<DateTime<Local>> {
+    let datetime = DateTime::<Utc>::from_timestamp(timestamp, 0).context("no time")?;
+    Ok(DateTime::<Local>::from(datetime))
 }
 
 pub async fn download(app: AppHandle, channel: Channel) -> Result<()> {

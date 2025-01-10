@@ -17,6 +17,7 @@
     "core:tray:default",
     "dialog:default",
     "clipboard-manager:allow-write-text",
-    "shell:default"
+    "shell:default",
+    "notification:default"
   ]
 }

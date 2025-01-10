@@ -1,3 +1,8 @@
+use std::{
+    sync::{atomic::AtomicBool, Arc},
+    thread::JoinHandle,
+};
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -16,7 +21,7 @@ pub struct Channel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub group_id: Option<i64>,
     pub favorite: bool,
-    pub stream_id: Option<u64>
+    pub stream_id: Option<u64>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -44,7 +49,7 @@ pub struct Settings {
     pub use_stream_caching: Option<bool>,
     pub default_view: Option<u8>,
     pub volume: Option<u8>,
-    pub refresh_on_start: Option<bool>
+    pub refresh_on_start: Option<bool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -67,14 +72,14 @@ pub struct ChannelHttpHeaders {
     pub referrer: Option<String>,
     pub user_agent: Option<String>,
     pub http_origin: Option<String>,
-    pub ignore_ssl: Option<bool>
+    pub ignore_ssl: Option<bool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct CustomChannel {
     pub data: Channel,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub headers: Option<ChannelHttpHeaders>
+    pub headers: Option<ChannelHttpHeaders>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -84,38 +89,54 @@ pub struct Group {
     pub name: String,
     pub image: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub source_id: Option<i64>
+    pub source_id: Option<i64>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct IdName {
     pub id: i64,
-    pub name: String
+    pub name: String,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct CustomChannelExtraData {
     pub headers: Option<ChannelHttpHeaders>,
-    pub group: Option<Group>
+    pub group: Option<Group>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct ExportedGroup {
     pub group: Group,
-    pub channels: Vec<CustomChannel>
+    pub channels: Vec<CustomChannel>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct ExportedSource {
     pub source: Source,
     pub groups: Vec<ExportedGroup>,
-    pub channels: Vec<CustomChannel>
+    pub channels: Vec<CustomChannel>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct EPG {
+    pub epg_id: String,
     pub title: String,
     pub description: String,
     pub start_time: String,
-    pub end_time: String
+    pub start_timestamp: i64,
+    pub end_time: String,
+}
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct EPGNotify {
+    pub epg_id: String,
+    pub title: String,
+    pub start_timestamp: i64,
+    pub channel_name: String,
+}
+
+#[derive(Debug, Default)]
+pub struct AppState {
+    pub notify_stop: Arc<AtomicBool>,
+    pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
 }

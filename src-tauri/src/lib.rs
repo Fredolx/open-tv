@@ -1,9 +1,17 @@
+use std::sync::Mutex;
+
 use anyhow::Error;
-use tauri::AppHandle;
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    AppHandle, Manager, State,
+};
 use types::{
-    Channel, CustomChannel, CustomChannelExtraData, Filters, Group, IdName, Settings, Source, EPG,
+    AppState, Channel, CustomChannel, CustomChannelExtraData, EPGNotify, Filters, Group, IdName,
+    Settings, Source, EPG,
 };
 
+pub mod epg;
 pub mod log;
 pub mod m3u;
 pub mod media_type;
@@ -20,6 +28,12 @@ pub mod xtream;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _, _| {
+            let window = app.get_webview_window("main").expect("no main window");
+            let _ = window.show();
+            let _ = window.set_focus();
+        }))
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
@@ -61,8 +75,52 @@ pub fn run() {
             channel_exists,
             update_source,
             get_epg,
-            download
+            download,
+            add_epg,
+            remove_epg,
+            get_epg_ids,
+            on_start_check_epg
         ])
+        .setup(|app| {
+            app.manage(Mutex::new(AppState {
+                ..Default::default()
+            }));
+            let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&quit_i])?;
+            TrayIconBuilder::new()
+                .menu(&menu)
+                .menu_on_left_click(false)
+                .on_menu_event(|app, event| match event.id.as_ref() {
+                    "quit" => {
+                        app.exit(0);
+                    }
+                    _ => {}
+                })
+                .on_tray_icon_event(|tray, event| match event {
+                    TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } => {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                    _ => {}
+                })
+                .icon(app.default_window_icon().unwrap().clone())
+                .build(app)?;
+            Ok(())
+        })
+        .on_window_event(|window, event| match event {
+            tauri::WindowEvent::CloseRequested { api, .. } => {
+                window.hide().unwrap();
+                api.prevent_close();
+            }
+            _ => {}
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -105,7 +163,9 @@ fn search(filters: Filters) -> Result<Vec<Channel>, String> {
 
 #[tauri::command]
 async fn get_xtream(source: Source) -> Result<(), String> {
-    xtream::get_xtream(source, false).await.map_err(map_err_frontend)
+    xtream::get_xtream(source, false)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command]
@@ -270,13 +330,43 @@ fn update_source(source: Source) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn get_epg(channel: Channel) ->  Result<Vec<EPG>, String> {
-    xtream::get_short_epg(channel).await.map_err(map_err_frontend)
+async fn get_epg(channel: Channel) -> Result<Vec<EPG>, String> {
+    xtream::get_short_epg(channel)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command]
 async fn download(app: AppHandle, channel: Channel) -> Result<(), String> {
-    utils::download(app, channel).await.map_err(map_err_frontend)
+    utils::download(app, channel)
+        .await
+        .map_err(map_err_frontend)
 }
 
+#[tauri::command(async)]
+fn add_epg(
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+    epg: EPGNotify,
+) -> Result<(), String> {
+    epg::add_epg(state, app, epg).map_err(map_err_frontend)
+}
 
+#[tauri::command(async)]
+fn remove_epg(
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+    epg_id: String,
+) -> Result<(), String> {
+    epg::remove_epg(state, app, epg_id).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn get_epg_ids() -> Result<Vec<String>, String> {
+    sql::get_epg_ids().map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn on_start_check_epg(state: State<'_, Mutex<AppState>>, app: AppHandle) -> Result<(), String> {
+    epg::on_start_check_epg(state, app).map_err(map_err_frontend)
+}

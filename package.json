@@ -26,6 +26,7 @@
     "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/plugin-clipboard-manager": "^2.0.1",
     "@tauri-apps/plugin-dialog": "^2.0.1",
+    "@tauri-apps/plugin-notification": "^2.2.0",
     "@tauri-apps/plugin-shell": "^2.0.1",
     "ng-keyboard-shortcuts": "^13.0.8",
     "ngx-toastr": "^19.0.0",
