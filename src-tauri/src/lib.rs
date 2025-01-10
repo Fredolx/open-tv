@@ -121,8 +121,16 @@ pub fn run() {
             }
             _ => {}
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|app, event| match event {
+            tauri::RunEvent::Reopen { .. } => {
+                let window = app.get_webview_window("main").expect("no main window");
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+            _ => {}
+        });
 }
 
 fn map_err_frontend(e: Error) -> String {
