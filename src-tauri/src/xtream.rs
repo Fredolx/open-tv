@@ -309,7 +309,10 @@ pub async fn get_short_epg(channel: Channel) -> Result<Vec<EPG>> {
     let mut url = build_xtream_url(&mut source)?;
     url.query_pairs_mut().append_pair(
         "stream_id",
-        &channel.stream_id.context("no stream id")?.to_string(),
+        &channel
+            .stream_id
+            .context("No stream id, please refresh your sources (Settings -> Refresh All) if you recently updated Open TV")?
+            .to_string(),
     );
     let epg: XtreamEPG = get_xtream_http_data(url, GET_SHORT_EPG).await?;
     epg.epg_listings

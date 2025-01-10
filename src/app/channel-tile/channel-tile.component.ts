@@ -159,7 +159,10 @@ export class ChannelTileComponent implements OnDestroy {
       this.memory.ModalRef.componentInstance.epg = data;
       this.memory.ModalRef.componentInstance.name = this.channel?.name;
     } catch (e) {
-      this.error.handleError(e);
+      this.error.handleError(
+        e,
+        "Missing stream id. Please refresh your sources (Settings -> Refresh All) to enable the EPG feature",
+      );
     }
   }
 
