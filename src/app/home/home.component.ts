@@ -102,7 +102,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           .filter((x) => x.source_type == SourceType.Xtream)
           .map((x) => x.id!)
           .forEach((x) => this.memory.XtreamSourceIds.add(x));
-        if (this.memory.XtreamSourceIds.size > 0) {
+        if (this.memory.XtreamSourceIds.size > 0 && !sessionStorage.getItem("epgCheckedOnStart")) {
+          sessionStorage.setItem("epgCheckedOnStart", "true");
           invoke("on_start_check_epg");
         }
         this.memory.Sources = sources.filter((x) => x.enabled);

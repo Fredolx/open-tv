@@ -101,14 +101,14 @@ pub fn remove_epg(state: State<'_, Mutex<AppState>>, app: AppHandle, epg_id: Str
 }
 
 pub fn on_start_check_epg(state: State<'_, Mutex<AppState>>, app: AppHandle) -> Result<()> {
-    let mut state = state.lock().unwrap();
-    state.notify_stop.store(false, Relaxed);
-    let stop = state.notify_stop.clone();
     sql::clean_epgs()?;
     let list = sql::get_epgs()?;
     if list.len() == 0 {
         return Ok(());
     }
+    let mut state = state.lock().unwrap();
+    state.notify_stop.store(false, Relaxed);
+    let stop = state.notify_stop.clone();
     state
         .thread_handle
         .replace(thread::spawn(|| poll(list, stop, app)));

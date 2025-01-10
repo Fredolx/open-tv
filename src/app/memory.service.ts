@@ -31,7 +31,6 @@ export class MemoryService {
   public XtreamSourceIds: Set<number> = new Set();
   public ModalRef?: NgbModalRef;
   public Watched_epgs: Set<string> = new Set();
-
   async tryIPC<T>(
     successMessage: string,
     errorMessage: string,
