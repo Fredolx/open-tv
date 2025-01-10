@@ -3,7 +3,8 @@ use std::{
         atomic::{AtomicBool, Ordering::Relaxed},
         Arc, Mutex,
     },
-    thread,
+    thread::{self, sleep},
+    time::Duration,
 };
 
 use anyhow::{Context, Result};
@@ -36,6 +37,7 @@ pub fn poll(mut to_watch: Vec<EPGNotify>, stop: Arc<AtomicBool>, app: AppHandle)
             }
             return true;
         });
+        sleep(Duration::from_secs(30));
     }
     Ok(())
 }
