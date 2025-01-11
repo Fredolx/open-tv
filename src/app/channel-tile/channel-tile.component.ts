@@ -1,4 +1,12 @@
-import { Component, ElementRef, Input, OnDestroy, Renderer2, ViewChild } from "@angular/core";
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Input,
+  OnDestroy,
+  Renderer2,
+  ViewChild,
+} from "@angular/core";
 import { MatMenuTrigger } from "@angular/material/menu";
 import { Channel } from "../models/channel";
 import { MemoryService } from "../memory.service";
@@ -14,14 +22,13 @@ import { SourceType } from "../models/sourceType";
 import { EpgModalComponent } from "../epg-modal/epg-modal.component";
 import { EPG } from "../models/epg";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
-import { animate, state, style, transition, trigger } from "@angular/animations";
 
 @Component({
   selector: "app-channel-tile",
   templateUrl: "./channel-tile.component.html",
   styleUrl: "./channel-tile.component.css",
 })
-export class ChannelTileComponent implements OnDestroy {
+export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   constructor(
     public memory: MemoryService,
     private toastr: ToastrService,
@@ -41,8 +48,27 @@ export class ChannelTileComponent implements OnDestroy {
   mediaTypeEnum = MediaType;
   progress = 0;
   toUnlisten?: UnlistenFn;
+  downloading = false;
 
-  ngOnInit(): void {}
+  ngAfterViewInit(): void {
+    if (this.memory.downloadExists(this.channel!.id!)) {
+      let download = this.memory.getDownload(this.channel!.id!);
+      this.progress = download?.[0]!;
+      if (this.progress != 0) this.setDownloadGradient();
+      listen<number>("progress", (event) => {
+        this.progress = event.payload;
+        this.setDownloadGradient();
+      }).then((unlisten) => {
+        this.downloading = true;
+        this.toUnlisten = unlisten;
+        download?.[1].subscribe((_) => {
+          this.downloading = false;
+          if (this.toUnlisten) this.toUnlisten();
+          this.clearDownloadGradient();
+        });
+      });
+    }
+  }
 
   setDownloadGradient() {
     let element = this.el.nativeElement.querySelector(`#tile-${this.id}`);
@@ -268,23 +294,28 @@ export class ChannelTileComponent implements OnDestroy {
   async download() {
     if (this.memory.Loading) return;
     if (this.toUnlisten) this.toUnlisten();
+    this.downloading = true;
     this.toUnlisten = await listen<number>("progress", (event) => {
       this.progress = event.payload;
       this.setDownloadGradient();
     });
-    await this.memory.tryIPC(
-      "Successfully download movie",
-      "Failed to download movie",
-      async () => {
-        await invoke("download", { channel: this.channel });
-      },
-    );
+    this.memory.addDownloadingChannel(this.channel!.id!);
+    try {
+      await invoke("download", { channel: this.channel });
+      this.error.success("Successfully downloaded movie");
+    } catch (e) {
+      this.error.handleError(e);
+    }
+    this.memory.notifyDownloadFinished(this.channel!.id!);
+    this.memory.removeDownloadingChannel(this.channel!.id!);
     if (this.toUnlisten) this.toUnlisten();
     this.progress = 0;
     this.clearDownloadGradient();
+    this.downloading = false;
   }
 
   ngOnDestroy() {
+    if (this.progress != 0) this.memory.setLastDownloadProgress(this.channel!.id!, this.progress);
     if (this.toUnlisten) this.toUnlisten();
   }
 }

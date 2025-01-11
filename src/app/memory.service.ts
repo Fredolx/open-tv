@@ -31,6 +31,7 @@ export class MemoryService {
   public XtreamSourceIds: Set<number> = new Set();
   public ModalRef?: NgbModalRef;
   public Watched_epgs: Set<string> = new Set();
+  downloadingChannels: Map<number, [number, Subject<boolean>]> = new Map();
   async tryIPC<T>(
     successMessage: string,
     errorMessage: string,
@@ -53,5 +54,29 @@ export class MemoryService {
     let data = await invoke("get_epg_ids");
     let set = new Set(data as Array<string>);
     this.Watched_epgs = set;
+  }
+
+  addDownloadingChannel(id: number) {
+    this.downloadingChannels.set(id, [0, new Subject()]);
+  }
+
+  notifyDownloadFinished(id: number) {
+    this.downloadingChannels.get(id)?.[1].next(true);
+  }
+
+  removeDownloadingChannel(id: number) {
+    this.downloadingChannels.delete(id);
+  }
+
+  downloadExists(id: number) {
+    return this.downloadingChannels.has(id);
+  }
+
+  getDownload(id: number) {
+    return this.downloadingChannels.get(id);
+  }
+
+  setLastDownloadProgress(id: number, progress: number) {
+    this.downloadingChannels.get(id)![0] = progress;
   }
 }
