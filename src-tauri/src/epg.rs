@@ -37,7 +37,7 @@ pub fn poll(mut to_watch: Vec<EPGNotify>, stop: Arc<AtomicBool>, app: AppHandle)
             }
             return true;
         });
-        sleep(Duration::from_secs(30));
+        sleep(Duration::from_secs(1));
     }
     Ok(())
 }

@@ -31,7 +31,8 @@ export class MemoryService {
   public XtreamSourceIds: Set<number> = new Set();
   public ModalRef?: NgbModalRef;
   public Watched_epgs: Set<string> = new Set();
-  downloadingChannels: Map<number, [number, Subject<boolean>]> = new Map();
+  private downloadingChannels: Map<number, [number, Subject<boolean>]> = new Map();
+  public LoadingNotification: boolean = false;
   async tryIPC<T>(
     successMessage: string,
     errorMessage: string,

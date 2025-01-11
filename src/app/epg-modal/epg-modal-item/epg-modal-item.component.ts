@@ -12,22 +12,21 @@ import { ErrorService } from "../../error.service";
 })
 export class EpgModalItemComponent {
   constructor(
-    private memory: MemoryService,
+    public memory: MemoryService,
     private error: ErrorService,
   ) {}
   @Input()
   epg?: EPG;
   @Input()
   name?: string;
-  loading: boolean = false;
 
   notificationOn(): boolean {
     return this.memory.Watched_epgs.has(this.epg!.epg_id);
   }
 
   async toggleNotification() {
-    if (this.loading) return;
-    this.loading = true;
+    if (this.memory.LoadingNotification) return;
+    this.memory.LoadingNotification = true;
     if (!this.notificationOn()) {
       try {
         await invoke("add_epg", { epg: this.epg_to_epgNotify(this.epg!) });
@@ -44,7 +43,7 @@ export class EpgModalItemComponent {
       }
     }
     await this.memory.get_epg_ids();
-    this.loading = false;
+    this.memory.LoadingNotification = false;
   }
 
   epg_to_epgNotify(epg: EPG): EPGNotify {
