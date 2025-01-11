@@ -354,10 +354,13 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         false => filters.media_types.clone().unwrap(),
     };
     let query = filters.query.unwrap_or("".to_string());
-    let keywords: Vec<String> = query
-        .split(" ")
-        .map(|f| format!("%{f}%").to_string())
-        .collect();
+    let keywords: Vec<String> = match filters.use_keywords {
+        true => query
+            .split(" ")
+            .map(|f| format!("%{f}%").to_string())
+            .collect(),
+        false => vec![format!("%{query}%")],
+    };
     let mut sql_query = format!(
         r#"
         SELECT * FROM CHANNELS
@@ -1131,6 +1134,7 @@ mod test_sql {
             view_type: view_type::ALL,
             group_id: None,
             series_id: None,
+            use_keywords: false,
         })
         .unwrap();
         println!("{:?}\n\n", results);
@@ -1156,6 +1160,7 @@ mod test_sql {
             view_type: view_type::CATEGORIES,
             group_id: None,
             series_id: None,
+            use_keywords: false,
         })
         .unwrap();
         println!("{:?}\n\n", results);

@@ -61,6 +61,7 @@ pub struct Filters {
     pub page: u8,
     pub series_id: Option<i64>,
     pub group_id: Option<i64>,
+    pub use_keywords: bool,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

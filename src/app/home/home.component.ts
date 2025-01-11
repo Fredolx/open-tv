@@ -114,6 +114,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             view_type: settings.default_view ?? ViewMode.All,
             media_types: [MediaType.livestream, MediaType.movie, MediaType.serie],
             page: 1,
+            use_keywords: false,
           };
           this.chkSerie = this.anyXtream();
           if (settings.refresh_on_start === true && !sessionStorage.getItem("refreshedOnStart")) {
@@ -506,5 +507,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.forEach((x) => x.unsubscribe());
+  }
+
+  async toggleKeywords() {
+    this.filters!.use_keywords = !this.filters!.use_keywords;
+    await this.load();
   }
 }
