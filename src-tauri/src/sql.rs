@@ -449,10 +449,13 @@ pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
     let sql = get_conn()?;
     let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
     let query = filters.query.unwrap_or("".to_string());
-    let keywords: Vec<String> = query
-        .split(" ")
-        .map(|f| format!("%{f}%").to_string())
-        .collect();
+    let keywords: Vec<String> = match filters.use_keywords {
+        true => query
+            .split(" ")
+            .map(|f| format!("%{f}%").to_string())
+            .collect(),
+        false => vec![format!("%{query}%")],
+    };
     let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(2 + filters.source_ids.len());
     let sql_query = format!(
         r#"
