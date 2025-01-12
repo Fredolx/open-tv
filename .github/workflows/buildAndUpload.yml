@@ -111,7 +111,7 @@ jobs:
         run: |
           deb=$(find . -type f -name '*.deb' | head -n 1)
           dpkg-deb -R "$deb" tmp
-          cp "/deb/Open TV.desktop" "tmp/usr/share/applications"
+          cp "${{ github.workspace }}/deb/Open TV.desktop" "tmp/usr/share/applications"
           rm -f "$deb"
           dpkg-deb -b tmp "$deb"
 
