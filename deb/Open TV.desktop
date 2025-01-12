@@ -1,0 +1,8 @@
+[Desktop Entry]
+Categories=
+Comment=Fast And Powerful IPTV App
+Exec=env WEBKIT_DISABLE_DMABUF_RENDERER=1 open_tv
+Icon=open_tv
+Name=Open TV
+Terminal=false
+Type=Application
