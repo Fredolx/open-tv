@@ -7,10 +7,10 @@
 }
 
 .thin-line {
-    height: 1px;        /* Adjust the height to change the thickness */
+    height: 1px;       
     background-color: white;
-    width: 100%;        /* Optional: Set the width as per your layout */
-    margin: 0;          /* Optional: Control margin if needed */
+    width: 100%;       
+    margin: 0;    
 }
 
 .field {

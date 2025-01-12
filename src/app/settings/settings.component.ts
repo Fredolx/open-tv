@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { debounceTime, distinctUntilChanged, fromEvent, map, Subscription } from 'rxjs';
 import { Settings } from '../models/settings';
 import { invoke } from '@tauri-apps/api/core';
@@ -7,9 +7,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { Source } from '../models/source';
 import { MemoryService } from '../memory.service';
 import { ViewMode } from '../models/viewMode';
-import { EditChannelModalComponent } from '../edit-channel-modal/edit-channel-modal.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ImportModalComponent } from '../import-modal/import-modal.component';
 import { ConfirmDeleteModalComponent } from '../confirm-delete-modal/confirm-delete-modal.component';
 
 @Component({
@@ -29,6 +27,26 @@ export class SettingsComponent {
   @ViewChild('mpvParams') mpvParams!: ElementRef;
 
   constructor(private router: Router, public memory: MemoryService, private nav: Router, private modal: NgbModal) { }
+
+  isInputFocused(): boolean {
+    const activeElement = document.activeElement;
+    return activeElement instanceof HTMLInputElement || 
+           activeElement instanceof HTMLTextAreaElement || 
+           activeElement instanceof HTMLSelectElement;
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key == "Escape" || event.key == "BrowserBack" || (event.key == "Backspace" && !this.isInputFocused())) {
+      if (this.memory.ModalRef) {
+        this.memory.ModalRef.close("close");
+      }
+      else {
+        this.goBack();
+      }
+      event.preventDefault();
+    }
+  }
 
   ngOnInit(): void {
     this.getSettings();
@@ -90,7 +108,7 @@ export class SettingsComponent {
   async updateSettings() {
     if (this.settings.mpv_params)
       this.settings.mpv_params = this.settings.mpv_params?.trim();
-    await invoke("update_settings", {settings: this.settings});
+    await invoke("update_settings", { settings: this.settings });
   }
 
   async selectFolder() {
@@ -106,8 +124,9 @@ export class SettingsComponent {
   }
 
   async nuke() {
-    const modalRef = this.modal.open(ConfirmDeleteModalComponent, { backdrop: 'static', size: 'xl', });
-    modalRef.componentInstance.name = "ConfirmDeleteModal";
+    this.memory.ModalRef = this.modal.open(ConfirmDeleteModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
+    this.memory.ModalRef.componentInstance.name = "ConfirmDeleteModal";
   }
 
   ngOnDestroy(): void {

@@ -1,7 +1,9 @@
 use std::{collections::HashMap, sync::LazyLock};
 
 use crate::log::log;
-use crate::types::{CustomChannel, CustomChannelExtraData, ExportedGroup, Group, IdName};
+use crate::types::{
+    CustomChannel, CustomChannelExtraData, EPGNotify, ExportedGroup, Group, IdName,
+};
 use crate::{
     media_type, source_type,
     types::{Channel, ChannelHttpHeaders, Filters, Source},
@@ -129,22 +131,38 @@ pub fn create_or_initialize_db() -> Result<()> {
 fn apply_migrations() -> Result<()> {
     let mut sql = get_conn()?;
     let migrations = Migrations::new(vec![
-        M::up(r#"
-            DROP INDEX IF EXISTS channels_unique;
-            CREATE UNIQUE INDEX channels_unique ON channels(name, url, source_id);
-            CREATE TABLE IF NOT EXISTS "channel_http_headers" (
-                "id" INTEGER PRIMARY KEY,
-                "channel_id" integer,
-                "referrer" varchar(500),
-                "user_agent" varchar(500),
-                "http_origin" varchar(500),
-                "ignore_ssl" integer DEFAULT 0,
-                FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
-            );
-            CREATE UNIQUE INDEX IF NOT EXISTS index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
-            ALTER TABLE sources ADD COLUMN use_tvg_id integer;
-            UPDATE sources SET use_tvg_id = 1 WHERE source_type in (0,1);
-        "#),
+        M::up(
+            r#"
+                DROP INDEX IF EXISTS channels_unique;
+                CREATE UNIQUE INDEX channels_unique ON channels(name, url, source_id);
+                CREATE TABLE IF NOT EXISTS "channel_http_headers" (
+                    "id" INTEGER PRIMARY KEY,
+                    "channel_id" integer,
+                    "referrer" varchar(500),
+                    "user_agent" varchar(500),
+                    "http_origin" varchar(500),
+                    "ignore_ssl" integer DEFAULT 0,
+                    FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS index_channel_http_headers_channel_id ON channel_http_headers(channel_id);
+                ALTER TABLE sources ADD COLUMN use_tvg_id integer;
+                UPDATE sources SET use_tvg_id = 1 WHERE source_type in (0,1);
+            "#,
+        ),
+        M::up(
+            r#"
+                ALTER TABLE channels ADD COLUMN stream_id integer;
+                CREATE INDEX IF NOT EXISTS index_channels_stream_id on channels(stream_id);
+                CREATE TABLE IF NOT EXISTS "epg" (
+                  "id" INTEGER PRIMARY KEY,
+                  "epg_id" varchar(25),
+                  "channel_name" varchar(100),
+                  "title" varchar(100),
+                  "start_timestamp" INTEGER
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS index_epg_epg_id on epg(epg_id);
+            "#,
+        ),
     ]);
     migrations.to_latest(&mut sql)?;
     Ok(())
@@ -178,9 +196,14 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
 
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
-        r#" 
-INSERT OR IGNORE INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite) 
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8); 
+        r#"
+INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+ON CONFLICT (name, url, source_id)
+DO UPDATE SET
+    stream_id = excluded.stream_id,
+    image = excluded.image,
+    series_id = excluded.series_id;
 "#,
         params![
             channel.name,
@@ -190,7 +213,8 @@ VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8);
             channel.source_id,
             channel.media_type as u8,
             channel.series_id,
-            channel.favorite
+            channel.favorite,
+            channel.stream_id
         ],
     )?;
     Ok(())
@@ -199,20 +223,21 @@ VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8);
 pub fn insert_channel_headers(tx: &Transaction, headers: ChannelHttpHeaders) -> Result<()> {
     tx.execute(
         r#"
-INSERT OR IGNORE INTO channel_http_headers (channel_id, referrer, user_agent, http_origin) 
-VALUES (?, ?, ?, ?); 
+INSERT OR IGNORE INTO channel_http_headers (channel_id, referrer, user_agent, http_origin, ignore_ssl)
+VALUES (?, ?, ?, ?, ?);
 "#,
         params![
             headers.channel_id,
             headers.referrer,
             headers.user_agent,
-            headers.http_origin
+            headers.http_origin,
+            headers.ignore_ssl
         ],
     )?;
     Ok(())
 }
 
-fn insert_group(
+fn get_or_insert_group(
     tx: &Transaction,
     group: &str,
     image: &Option<String>,
@@ -220,13 +245,17 @@ fn insert_group(
 ) -> Result<i64> {
     let rows_changed = tx.execute(
         r#"
-        INSERT OR IGNORE INTO groups (name, image, source_id) 
-        VALUES (?1, ?2, ?3); 
+        INSERT OR IGNORE INTO groups (name, image, source_id)
+        VALUES (?1, ?2, ?3);
         "#,
         params![group, &image, source_id],
     )?;
     if rows_changed == 0 {
-        return Err(anyhow!("Failed to insert group: {}", group));
+        return Ok(tx.query_row(
+            "SELECT id FROM groups WHERE name = ? and source_id = ?",
+            params![group, source_id],
+            |row| row.get::<_, i64>("id"),
+        )?);
     }
     Ok(tx.last_insert_rowid())
 }
@@ -241,7 +270,7 @@ pub fn set_channel_group_id(
         return Ok(());
     }
     if !groups.contains_key(channel.group.as_ref().unwrap()) {
-        let id = insert_group(
+        let id = get_or_insert_group(
             tx,
             channel.group.as_ref().unwrap(),
             &channel.image,
@@ -324,17 +353,26 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         true => vec![1],
         false => filters.media_types.clone().unwrap(),
     };
+    let query = filters.query.unwrap_or("".to_string());
+    let keywords: Vec<String> = match filters.use_keywords {
+        true => query
+            .split(" ")
+            .map(|f| format!("%{f}%").to_string())
+            .collect(),
+        false => vec![format!("%{query}%")],
+    };
     let mut sql_query = format!(
         r#"
         SELECT * FROM CHANNELS
-        WHERE name LIKE ?
+        WHERE ({})
         AND media_type IN ({})
 		AND source_id IN ({})
         AND url IS NOT NULL"#,
+        get_keywords_sql(keywords.len()),
         generate_placeholders(media_types.len()),
         generate_placeholders(filters.source_ids.len()),
     );
-    let mut baked_params = 3;
+    let mut baked_params = 2;
     if filters.view_type == view_type::FAVORITES && filters.series_id.is_none() {
         sql_query += "\nAND favorite = 1";
     }
@@ -346,10 +384,10 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         baked_params += 1;
     }
     sql_query += "\nLIMIT ?, ?";
-    let mut params: Vec<&dyn rusqlite::ToSql> =
-        Vec::with_capacity(baked_params + media_types.len() + filters.source_ids.len());
-    let query = to_sql_like(filters.query);
-    params.push(&query);
+    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(
+        baked_params + media_types.len() + filters.source_ids.len() + keywords.len(),
+    );
+    params.extend(to_to_sql(&keywords));
     params.extend(to_to_sql(&media_types));
     params.extend(to_to_sql(&filters.source_ids));
     if let Some(ref series_id) = filters.series_id {
@@ -371,6 +409,13 @@ fn to_to_sql<T: rusqlite::ToSql>(values: &[T]) -> Vec<&dyn rusqlite::ToSql> {
     values.iter().map(|x| x as &dyn rusqlite::ToSql).collect()
 }
 
+fn get_keywords_sql(size: usize) -> String {
+    std::iter::repeat("name LIKE ?")
+        .take(size)
+        .collect::<Vec<_>>()
+        .join(" AND ")
+}
+
 fn generate_placeholders(size: usize) -> String {
     std::iter::repeat("?")
         .take(size)
@@ -378,17 +423,17 @@ fn generate_placeholders(size: usize) -> String {
         .join(",")
 }
 
-pub fn series_has_episodes(series_id: i64) -> Result<bool> {
+pub fn series_has_episodes(series_id: u64, source_id: i64) -> Result<bool> {
     let sql = get_conn()?;
     let series_exists = sql
         .query_row(
             r#"
-      SELECT 1 
+      SELECT 1
       FROM channels
-      WHERE series_id = ?
+      WHERE series_id = ? AND source_id = ?
       LIMIT 1
     "#,
-            params![series_id],
+            params![series_id, source_id],
             |row| row.get::<_, u8>(0),
         )
         .optional()?
@@ -403,19 +448,27 @@ fn to_sql_like(query: Option<String>) -> String {
 pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
     let sql = get_conn()?;
     let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
-    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(3 + filters.source_ids.len());
+    let query = filters.query.unwrap_or("".to_string());
+    let keywords: Vec<String> = match filters.use_keywords {
+        true => query
+            .split(" ")
+            .map(|f| format!("%{f}%").to_string())
+            .collect(),
+        false => vec![format!("%{query}%")],
+    };
+    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(2 + filters.source_ids.len());
     let sql_query = format!(
         r#"
         SELECT *
         FROM groups
-        WHERE name like ?
+        WHERE ({})
         AND source_id in ({})
         LIMIT ?, ?
     "#,
+        get_keywords_sql(keywords.len()),
         generate_placeholders(filters.source_ids.len())
     );
-    let query = to_sql_like(filters.query);
-    params.push(&query);
+    params.extend(to_to_sql(&keywords));
     params.extend(to_to_sql(&filters.source_ids));
     params.push(&offset);
     params.push(&PAGE_SIZE);
@@ -439,6 +492,7 @@ fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         group_id: None,
         favorite: false,
         source_id: row.get("source_id")?,
+        stream_id: None,
     };
     Ok(channel)
 }
@@ -455,13 +509,13 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         favorite: row.get("favorite")?,
         series_id: None,
         group: None,
+        stream_id: row.get("stream_id")?,
     };
     Ok(channel)
 }
 
-pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
-    let sql = get_conn()?;
-    sql.execute(
+pub fn delete_channels_by_source(tx: &Transaction, source_id: i64) -> Result<()> {
+    tx.execute(
         r#"
         DELETE FROM channels
         WHERE source_id = ?
@@ -472,14 +526,13 @@ pub fn delete_channels_by_source(source_id: i64) -> Result<()> {
     Ok(())
 }
 
-pub fn delete_groups_by_source(source_id: i64) -> Result<()> {
-    let sql = get_conn()?;
-    sql.execute(
+pub fn delete_groups_by_source(tx: &Transaction, source_id: i64) -> Result<()> {
+    tx.execute(
         r#"
         DELETE FROM groups
         WHERE source_id = ?
         AND ID not in (
-            SELECT group_id 
+            SELECT group_id
             FROM channels
             WHERE favorite = 1
         )
@@ -533,8 +586,8 @@ pub fn source_name_exists(name: &str) -> Result<bool> {
     Ok(sql
         .query_row(
             r#"
-    SELECT 1 
-    FROM sources 
+    SELECT 1
+    FROM sources
     WHERE name = ?1
     "#,
             [name],
@@ -587,18 +640,16 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
         source_type: row.get("source_type")?,
         url_origin: None,
         enabled: row.get("enabled")?,
-        use_tvg_id: row.get("use_tvg_id")?
+        use_tvg_id: row.get("use_tvg_id")?,
     })
 }
 
-pub fn get_source_from_series_id(series_id: i64) -> Result<Source> {
+pub fn get_source_from_id(source_id: i64) -> Result<Source> {
     let sql = get_conn()?;
     Ok(sql.query_row(
         r#"
-    SELECT * FROM sources where id = (
-        SELECT source_id FROM channels WHERE url = ?
-    )"#,
-        [series_id],
+    SELECT * FROM sources where id = ?"#,
+        [source_id],
         row_to_source,
     )?)
 }
@@ -645,7 +696,7 @@ pub fn get_custom_source(name: String) -> Source {
         source_type: source_type::CUSTOM,
         url: None,
         url_origin: None,
-        use_tvg_id: None
+        use_tvg_id: None,
     }
 }
 
@@ -686,10 +737,10 @@ fn edit_custom_channel_tx(channel: CustomChannel, tx: &Transaction) -> Result<()
             r#"
             INSERT INTO channel_http_headers (referrer, user_agent, http_origin, ignore_ssl, channel_id)
             VALUES (?1, ?2, ?3, ?4, ?5)
-            ON CONFLICT(channel_id) DO UPDATE SET 
-                referrer = ?1, 
-                user_agent = ?2, 
-                http_origin = ?3, 
+            ON CONFLICT(channel_id) DO UPDATE SET
+                referrer = ?1,
+                user_agent = ?2,
+                http_origin = ?3,
                 ignore_ssl = ?4
         "#,
             params![
@@ -720,8 +771,8 @@ pub fn group_exists(name: &str, source_id: i64) -> Result<bool> {
     Ok(sql
         .query_row(
             r#"
-            SELECT 1 
-            FROM groups 
+            SELECT 1
+            FROM groups
             WHERE name = ? AND source_id = ?
         "#,
             params![name, source_id],
@@ -736,8 +787,8 @@ pub fn channel_exists(name: &str, url: &str, source_id: i64) -> Result<bool> {
     Ok(sql
         .query_row(
             r#"
-            SELECT 1 
-            FROM channels 
+            SELECT 1
+            FROM channels
             WHERE name = ? AND source_id = ? AND url = ?
         "#,
             params![name, source_id, url],
@@ -750,7 +801,7 @@ pub fn channel_exists(name: &str, url: &str, source_id: i64) -> Result<bool> {
 pub fn add_custom_group(tx: &Transaction, group: Group) -> Result<i64> {
     tx.execute(
         r#"
-        INSERT INTO groups (name, image, source_id) 
+        INSERT INTO groups (name, image, source_id)
         VALUES (?, ?, ?)
     "#,
         params!(group.name, group.image, group.source_id),
@@ -763,7 +814,7 @@ pub fn group_auto_complete(query: Option<String>, source_id: i64) -> Result<Vec<
     let groups = sql
         .prepare(
             r#"
-        SELECT id, name 
+        SELECT id, name
         FROM groups
         WHERE name LIKE ?
         AND source_id = ?
@@ -786,7 +837,7 @@ pub fn edit_custom_group(group: Group) -> Result<()> {
     let sql = get_conn()?;
     sql.execute(
         r#"
-        UPDATE groups 
+        UPDATE groups
         SET name = ?, image = ?
         WHERE id = ?
     "#,
@@ -843,7 +894,7 @@ pub fn delete_custom_group(id: i64, new_id: Option<i64>, do_channels_update: boo
     }
     sql.execute(
         r#"
-        DELETE FROM groups 
+        DELETE FROM groups
         WHERE id = ?
     "#,
         params![id],
@@ -904,6 +955,7 @@ fn row_to_custom_channel(row: &Row) -> Result<CustomChannel, rusqlite::Error> {
             id: None,
             series_id: None,
             source_id: None,
+            stream_id: None,
         },
         headers: Some(ChannelHttpHeaders {
             http_origin: row.get("http_origin")?,
@@ -921,8 +973,8 @@ fn get_groups_by_source_id(id: i64) -> Result<Vec<Group>> {
     let result = sql
         .prepare(
             r#"
-        SELECT * 
-        FROM groups 
+        SELECT *
+        FROM groups
         WHERE source_id = ?
     "#,
         )?
@@ -958,6 +1010,85 @@ where
     let result = f(&tx)?;
     tx.commit()?;
     Ok(result)
+}
+
+pub fn update_source(source: Source) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
+        UPDATE sources
+        SET username = ?, password = ?, url = ?, use_tvg_id = ?
+        WHERE id = ?"#,
+        params![
+            source.username,
+            source.password,
+            source.url,
+            source.use_tvg_id,
+            source.id
+        ],
+    )?;
+    Ok(())
+}
+
+pub fn wipe(tx: &Transaction, id: i64) -> Result<()> {
+    delete_channels_by_source(tx, id)?;
+    delete_groups_by_source(tx, id)?;
+    Ok(())
+}
+
+pub fn clean_epgs() -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute_batch(
+        r#"
+          DELETE FROM epg
+          WHERE start_timestamp < strftime('%s', 'now')
+        "#,
+    )?;
+    Ok(())
+}
+
+pub fn add_epg(epg: EPGNotify) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        "INSERT INTO epg (epg_id, channel_name, title, start_timestamp) VALUES (?,?,?,?)",
+        params![epg.epg_id, epg.channel_name, epg.title, epg.start_timestamp],
+    )?;
+    Ok(())
+}
+
+pub fn remove_epg(epg_id: String) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute("DELETE FROM epg WHERE epg_id = ?", params![epg_id])?;
+    Ok(())
+}
+
+pub fn get_epgs() -> Result<Vec<EPGNotify>> {
+    let sql = get_conn()?;
+    let epgs = sql
+        .prepare("SELECT * FROM epg")?
+        .query_map(params![], row_to_epg)?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(epgs)
+}
+
+pub fn get_epg_ids() -> Result<Vec<String>> {
+    let sql = get_conn()?;
+    let epgs = sql
+        .prepare("SELECT epg_id FROM epg")?
+        .query_map(params![], |row| row.get::<_, String>(0))?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(epgs)
+}
+
+fn row_to_epg(row: &Row) -> Result<EPGNotify, rusqlite::Error> {
+    Ok(EPGNotify {
+        epg_id: row.get("epg_id")?,
+        channel_name: row.get("channel_name")?,
+        start_timestamp: row.get("start_timestamp")?,
+        title: row.get("title")?,
+    })
 }
 
 #[cfg(test)]
@@ -1006,6 +1137,7 @@ mod test_sql {
             view_type: view_type::ALL,
             group_id: None,
             series_id: None,
+            use_keywords: false,
         })
         .unwrap();
         println!("{:?}\n\n", results);
@@ -1031,6 +1163,7 @@ mod test_sql {
             view_type: view_type::CATEGORIES,
             group_id: None,
             series_id: None,
+            use_keywords: false,
         })
         .unwrap();
         println!("{:?}\n\n", results);

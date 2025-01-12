@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ToastrService } from 'ngx-toastr';
@@ -25,6 +25,22 @@ export class SetupComponent {
     enabled: true,
     use_tvg_id: true
   };
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if ((event.key == "Escape" || event.key == "Backspace") && this.memory.AddingAdditionalSource && !this.isInputFocused()) {
+      this.goBack();
+      event.preventDefault();
+    }
+  }
+
+  isInputFocused(): boolean {
+    const activeElement = document.activeElement;
+    return activeElement instanceof HTMLInputElement || 
+           activeElement instanceof HTMLTextAreaElement || 
+           activeElement instanceof HTMLSelectElement;
+  }
+
   ngOnInit(): void {
   }
 
@@ -111,7 +127,7 @@ export class SetupComponent {
       await invoke("import", { path: file, nameOverride: nameOverride });
       this.success();
     }
-    catch(e) {
+    catch (e) {
       this.error.handleError(e, "Invalid URL or credentials. Please try again");
     }
   }

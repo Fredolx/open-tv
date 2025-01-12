@@ -1,36 +1,35 @@
-use std::{fs, sync::LazyLock};
 use chrono::Local;
 use directories::ProjectDirs;
+use std::{fs, sync::LazyLock};
 
 static USE_LOGGER: LazyLock<bool> = LazyLock::new(|| init_logger());
 
 pub fn log(message: String) {
     if *USE_LOGGER {
         log::error!("{message}");
-    }
-    else {
+    } else {
         eprintln!("{message}");
     }
 }
 
 fn init_logger() -> bool {
-    let file = match fs::File::create(get_and_create_log_path()){
+    let file = match fs::File::create(get_and_create_log_path()) {
         Ok(val) => val,
         Err(e) => {
             eprint!("Failed to create file for logger, {:?}", e);
             return false;
-        } 
+        }
     };
     match simplelog::WriteLogger::init(
         simplelog::LevelFilter::Error,
         simplelog::Config::default(),
-        file
+        file,
     ) {
         Ok(_) => true,
         Err(e) => {
             eprint!("Failed to init logger, {:?}", e);
             return false;
-        } 
+        }
     }
 }
 

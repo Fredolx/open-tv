@@ -1,0 +1,16 @@
+<div class="modal-header">
+  <h4 class="modal-title lbl">
+    {{ name }}
+  </h4>
+  <button
+    type="button"
+    class="btn-close btn-close-white"
+    aria-label="Close"
+    (click)="activeModal.close('Cross click')"
+  ></button>
+</div>
+<div class="modal-body">
+  <div tabindex="0" *ngFor="let item of epg; let i = index" [ngClass]="{ 'mt-3': i != 0 }">
+    <app-epg-modal-item class="mt-3" [epg]="item" [name]="name"></app-epg-modal-item>
+  </div>
+</div>

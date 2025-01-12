@@ -1,14 +1,14 @@
-use anyhow::bail;
-use anyhow::Context;
-use anyhow::Result;
-use directories::UserDirs;
-use serde::Serialize;
 use crate::types::CustomChannel;
 use crate::types::ExportedGroup;
 use crate::types::ExportedSource;
 use crate::types::Group;
 use crate::types::Source;
 use crate::{sql, types::Channel};
+use anyhow::bail;
+use anyhow::Context;
+use anyhow::Result;
+use directories::UserDirs;
+use serde::Serialize;
 
 const CHANNEL_SHARE_EXTENSION: &str = ".otv";
 const GROUP_SHARE_EXTENSION: &str = ".otvg";
@@ -16,8 +16,10 @@ const PLAYLIST_SHARE_EXTENSION: &str = ".otvp";
 
 pub fn share_custom_channel(channel: Channel) -> Result<()> {
     let channel = get_custom_channel(channel)?;
-    let path = get_download_path(channel.data.id.context("No id on channel?")?, 
-        CHANNEL_SHARE_EXTENSION)?;
+    let path = get_download_path(
+        channel.data.id.context("No id on channel?")?,
+        CHANNEL_SHARE_EXTENSION,
+    )?;
     serialize_to_file(channel, path)
 }
 
@@ -48,14 +50,11 @@ pub fn share_custom_group(group: Channel) -> Result<()> {
             id: group.id,
             image: group.image,
             name: group.name,
-            source_id: None
+            source_id: None,
         },
-        channels: sql::get_custom_channels(group.id, group.source_id.context("no source id?")?)?
+        channels: sql::get_custom_channels(group.id, group.source_id.context("no source id?")?)?,
     };
-    let path = get_download_path(
-        group.id.context("No group id?")?, 
-        GROUP_SHARE_EXTENSION
-    )?;
+    let path = get_download_path(group.id.context("No group id?")?, GROUP_SHARE_EXTENSION)?;
     serialize_to_file(to_export, path)?;
     Ok(())
 }
@@ -66,23 +65,24 @@ pub fn share_custom_source(mut source: Source) -> Result<()> {
     let to_export = ExportedSource {
         source: source,
         groups: sql::get_custom_groups(id)?,
-        channels: sql::get_custom_channels(None, id)?
+        channels: sql::get_custom_channels(None, id)?,
     };
-    let path = get_download_path(
-        id, 
-        PLAYLIST_SHARE_EXTENSION
-    )?;
+    let path = get_download_path(id, PLAYLIST_SHARE_EXTENSION)?;
     serialize_to_file(to_export, path)?;
     Ok(())
 }
 
 pub fn import(path: String, source_id: Option<i64>, name_override: Option<String>) -> Result<()> {
     let data = std::fs::read_to_string(&path)?;
-    match path.split(".").last().context("Invalid path, no extension")? {
+    match path
+        .split(".")
+        .last()
+        .context("Invalid path, no extension")?
+    {
         "otv" => import_channel(data, source_id.context("No source id")?, name_override),
         "otvg" => import_group(data, source_id.context("No source id")?, name_override),
         "otvp" => import_playlist(data, name_override),
-        _ => Err(anyhow::anyhow!("Invalid path"))
+        _ => Err(anyhow::anyhow!("Invalid path")),
     }
 }
 
@@ -91,7 +91,11 @@ fn import_channel(data: String, source_id: i64, name_override: Option<String>) -
     if let Some(name) = name_override {
         data.data.name = name;
     }
-    if sql::channel_exists(&data.data.name, data.data.url.as_ref().context("No channel url")?, source_id)? {
+    if sql::channel_exists(
+        &data.data.name,
+        data.data.url.as_ref().context("No channel url")?,
+        source_id,
+    )? {
         bail!("Duplicate exists");
     }
     data.data.source_id = Some(source_id);

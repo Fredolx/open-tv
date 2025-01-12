@@ -1,6 +1,6 @@
 <div class="modal-header">
     <h4 class="modal-title lbl">Error</h4>
-    <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
+    <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="activeModal.close('Cross click')"></button>
 </div>
 <div class="modal-body">
     <p class="lbl">
@@ -22,5 +22,5 @@
 </div>
 <div class="modal-footer">
     <button class="btn btn-secondary" (click)="copy()">Copy</button>
-    <button class="btn btn-danger ms-1" (click)="activeModal.dismiss('close')">Close</button>
+    <button class="btn btn-danger ms-1" (click)="activeModal.close('close')">Close</button>
 </div>

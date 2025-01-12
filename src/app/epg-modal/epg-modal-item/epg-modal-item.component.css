@@ -1,0 +1,30 @@
+.epg-item {
+  border-radius: 0.25rem;
+  background-color: #343a40;
+  width: 100%;
+  padding: 1rem;
+  position: relative;
+}
+
+.thin-line {
+  height: 1px;
+  background-color: white;
+  width: 100%;
+  margin: 0;
+}
+
+.bell {
+  position: absolute;
+  height: 2rem;
+  width: 2rem;
+  right: 0.5rem;
+  top: 1rem;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  color: white;
+}
+
+.loading {
+  opacity: 20%;
+  cursor: default;
+}

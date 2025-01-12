@@ -1,0 +1,7 @@
+.epg-item {
+    border-radius: 0.25rem;
+    background-color: #343a40;
+    width: 100%;
+    padding: 1rem;
+    position: relative;
+}
