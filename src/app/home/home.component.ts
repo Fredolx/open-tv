@@ -511,6 +511,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   async toggleKeywords() {
     this.filters!.use_keywords = !this.filters!.use_keywords;
+    this.filters!.page = 1;
+    this.reachedMax = false;
     await this.load();
   }
 }
