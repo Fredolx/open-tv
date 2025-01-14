@@ -77,6 +77,8 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
             if let Some(next) = lines.next() {
                 let line_number = next.0;
                 l2 = next.1.with_context(|| format!("Tried to skip empty/gibberish line (bad m3u mitigation), error on line {line_number}"))?;
+            } else {
+                break;
             }
         }
         if !found_first_valid_channel {
