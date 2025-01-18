@@ -5,7 +5,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize, Default)]
 pub struct Channel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i64>,
@@ -64,7 +64,7 @@ pub struct Filters {
     pub use_keywords: bool,
 }
 
-#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize, Default)]
 pub struct ChannelHttpHeaders {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i64>,
