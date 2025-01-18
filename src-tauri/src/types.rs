@@ -5,7 +5,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, PartialEq, Debug, Deserialize, Serialize, Default)]
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Channel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<i64>,

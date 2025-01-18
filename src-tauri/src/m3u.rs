@@ -64,7 +64,11 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
             }
         };
         let l1_upper = l1.to_uppercase();
-        if l1_upper.starts_with("#EXTINF") || lines.peek().is_none() {
+        let reached_eof = lines.peek().is_none();
+        if l1_upper.starts_with("#EXTINF") || reached_eof {
+            if reached_eof && last_non_empty_line.is_none() && !l1.trim().is_empty() {
+                last_non_empty_line = Some(l1.clone());
+            }
             if let Some(channel) = channel_line {
                 if !channel_headers_set {
                     channel_headers = None;
@@ -98,7 +102,6 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
             last_non_empty_line = Some(l1);
         }
     }
-
     tx.commit()?;
     Ok(())
 }
