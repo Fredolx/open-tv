@@ -35,6 +35,17 @@ static HTTP_REFERRER_REGEX: LazyLock<Regex> =
 static HTTP_USER_AGENT_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"http-user-agent=(?P<user_agent>.+)"#).unwrap());
 
+struct M3UProcessing {
+    channel_line: Option<String>,
+    channel_headers: Option<ChannelHttpHeaders>,
+    channel_headers_set: bool,
+    last_non_empty_line: Option<String>,
+    groups: HashMap<String, i64>,
+    source_id: i64,
+    use_tvg_id: Option<bool>,
+    line_count: usize,
+}
+
 pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     let path = match source.source_type {
         source_type::M3U_LINK => get_tmp_path(),
@@ -42,8 +53,7 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     };
     let file = File::open(path).context("Failed to open m3u8 file")?;
     let reader = BufReader::new(file);
-    let mut lines = reader.lines().enumerate().peekable();
-    let mut groups: HashMap<String, i64> = HashMap::new();
+    let mut lines = reader.lines().enumerate();
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
     if wipe {
@@ -51,11 +61,18 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     } else {
         source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
     }
-    let mut channel_line: Option<String> = None;
-    let mut channel_headers: Option<ChannelHttpHeaders> = None;
-    let mut channel_headers_set: bool = false;
-    let mut last_non_empty_line: Option<String> = None;
+    let mut processing = M3UProcessing {
+        channel_headers: None,
+        channel_headers_set: false,
+        channel_line: None,
+        groups: HashMap::new(),
+        last_non_empty_line: None,
+        source_id: source.id.context("no source id")?,
+        use_tvg_id: source.use_tvg_id,
+        line_count: 0,
+    };
     while let Some((c1, l1)) = lines.next() {
+        processing.line_count = c1;
         let l1 = match l1.with_context(|| format!("Failed to process line {c1}")) {
             Ok(r) => r,
             Err(e) => {
@@ -64,46 +81,55 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
             }
         };
         let l1_upper = l1.to_uppercase();
-        let reached_eof = lines.peek().is_none();
-        if l1_upper.starts_with("#EXTINF") || reached_eof {
-            if reached_eof && last_non_empty_line.is_none() && !l1.trim().is_empty() {
-                last_non_empty_line = Some(l1.clone());
-            }
-            if let Some(channel) = channel_line {
-                if !channel_headers_set {
-                    channel_headers = None;
-                }
-                commit_channel(
-                    channel,
-                    last_non_empty_line.take(),
-                    &mut groups,
-                    channel_headers.take(),
-                    source.id.context("missing source id")?,
-                    source.use_tvg_id,
-                    &tx,
-                )
-                .with_context(|| format!("Failed to process channel ending at line {c1}"))
-                .unwrap_or_else(|e| {
-                    log::log(format!("{:?}", e));
-                });
-            }
-            channel_line = Some(l1);
-            channel_headers_set = false;
+        if l1_upper.starts_with("#EXTINF") {
+            try_commit_channel(&mut processing, &tx);
+            processing.channel_line = Some(l1);
+            processing.channel_headers_set = false;
         } else if l1_upper.starts_with("#EXTVLCOPT") {
-            if channel_headers.is_none() {
-                channel_headers = Some(ChannelHttpHeaders {
+            if processing.channel_headers.is_none() {
+                processing.channel_headers = Some(ChannelHttpHeaders {
                     ..Default::default()
                 });
             }
-            if set_http_headers(&l1, channel_headers.as_mut().context("no headers")?) {
-                channel_headers_set = true;
+            if set_http_headers(
+                &l1,
+                processing.channel_headers.as_mut().context("no headers")?,
+            ) {
+                processing.channel_headers_set = true;
             }
         } else if !l1.trim().is_empty() {
-            last_non_empty_line = Some(l1);
+            processing.last_non_empty_line = Some(l1);
         }
     }
+    try_commit_channel(&mut processing, &tx);
     tx.commit()?;
     Ok(())
+}
+
+fn try_commit_channel(processing: &mut M3UProcessing, tx: &Transaction) {
+    if let Some(channel) = processing.channel_line.take() {
+        if !processing.channel_headers_set {
+            processing.channel_headers = None;
+        }
+        commit_channel(
+            channel,
+            processing.last_non_empty_line.take(),
+            &mut processing.groups,
+            processing.channel_headers.take(),
+            processing.source_id,
+            processing.use_tvg_id,
+            &tx,
+        )
+        .with_context(|| {
+            format!(
+                "Failed to process channel ending at line {}",
+                processing.line_count
+            )
+        })
+        .unwrap_or_else(|e| {
+            log::log(format!("{:?}", e));
+        });
+    }
 }
 
 fn commit_channel(
