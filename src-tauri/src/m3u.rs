@@ -1,17 +1,19 @@
+use std::io::Write;
+use std::sync::LazyLock;
 use std::{
     collections::HashMap,
     fs::File,
-    io::{BufRead, BufReader, Lines, Write},
-    iter::Enumerate,
-    sync::LazyLock,
+    io::{BufRead, BufReader},
 };
 
 use anyhow::{bail, Context, Result};
 use regex::{Captures, Regex};
+use rusqlite::Transaction;
 use types::{Channel, Source};
 
 use crate::{
-    log, media_type, source_type, sql,
+    log, media_type, source_type,
+    sql::{self, set_channel_group_id},
     types::{self, ChannelHttpHeaders},
 };
 
@@ -33,6 +35,17 @@ static HTTP_REFERRER_REGEX: LazyLock<Regex> =
 static HTTP_USER_AGENT_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"http-user-agent=(?P<user_agent>.+)"#).unwrap());
 
+struct M3UProcessing {
+    channel_line: Option<String>,
+    channel_headers: Option<ChannelHttpHeaders>,
+    channel_headers_set: bool,
+    last_non_empty_line: Option<String>,
+    groups: HashMap<String, i64>,
+    source_id: i64,
+    use_tvg_id: Option<bool>,
+    line_count: usize,
+}
+
 pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     let path = match source.source_type {
         source_type::M3U_LINK => get_tmp_path(),
@@ -41,93 +54,110 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     let file = File::open(path).context("Failed to open m3u8 file")?;
     let reader = BufReader::new(file);
     let mut lines = reader.lines().enumerate();
-    let mut problematic_lines: usize = 0;
-    let mut lines_count: usize = 0;
-    let mut groups: HashMap<String, i64> = HashMap::new();
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
-    let mut found_first_valid_channel: bool = false;
     if wipe {
         sql::wipe(&tx, source.id.context("no source id")?)?;
     } else {
         source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
     }
-    while let (Some((c1, l1)), Some((c2, l2))) = (lines.next(), lines.next()) {
-        lines_count = c2;
-        let mut l1 = match l1.with_context(|| format!("(l1) Error on line: {c1}, skipping")) {
-            Ok(line) => line,
+    let mut processing = M3UProcessing {
+        channel_headers: None,
+        channel_headers_set: false,
+        channel_line: None,
+        groups: HashMap::new(),
+        last_non_empty_line: None,
+        source_id: source.id.context("no source id")?,
+        use_tvg_id: source.use_tvg_id,
+        line_count: 0,
+    };
+    while let Some((c1, l1)) = lines.next() {
+        processing.line_count = c1;
+        let l1 = match l1.with_context(|| format!("Failed to process line {c1}")) {
+            Ok(r) => r,
             Err(e) => {
                 log::log(format!("{:?}", e));
-                problematic_lines += 1;
                 continue;
             }
         };
-        let mut l2 = match l2.with_context(|| format!("(l2) Error on line: {c2}, skipping")) {
-            Ok(line) => line,
-            Err(e) => {
-                log::log(format!("{:?}", e));
-                problematic_lines += 1;
-                continue;
+        let l1_upper = l1.to_uppercase();
+        if l1_upper.starts_with("#EXTINF") {
+            try_commit_channel(&mut processing, &tx);
+            processing.channel_line = Some(l1);
+            processing.channel_headers_set = false;
+        } else if l1_upper.starts_with("#EXTVLCOPT") {
+            if processing.channel_headers.is_none() {
+                processing.channel_headers = Some(ChannelHttpHeaders {
+                    ..Default::default()
+                });
             }
-        };
-        while l1.trim().is_empty()
-            || !(found_first_valid_channel || l1.to_lowercase().starts_with("#extinf"))
-        {
-            l1 = l2.clone();
-            if let Some(next) = lines.next() {
-                let line_number = next.0;
-                l2 = next.1.with_context(|| format!("Tried to skip empty/gibberish line (bad m3u mitigation), error on line {line_number}"))?;
-            } else {
-                break;
+            if set_http_headers(
+                &l1,
+                processing.channel_headers.as_mut().context("no headers")?,
+            ) {
+                processing.channel_headers_set = true;
             }
-        }
-        if !found_first_valid_channel {
-            found_first_valid_channel = true;
-        }
-        let mut headers: Option<ChannelHttpHeaders> = None;
-        if l2.starts_with("#EXTVLCOPT") {
-            let (fail, _headers) = extract_headers(&mut l2, &mut lines)?;
-            if fail {
-                continue;
-            }
-            headers = _headers;
-        }
-        let mut channel = match get_channel_from_lines(
-            l1,
-            l2,
-            source.id.context("no source id")?,
-            source.use_tvg_id,
-        )
-        .with_context(|| format!("Failed to process lines #{c1} #{c2}, skipping"))
-        {
-            Ok(val) => val,
-            Err(e) => {
-                log::log(format!("{:?}", e));
-                problematic_lines += 2;
-                continue;
-            }
-        };
-        sql::set_channel_group_id(
-            &mut groups,
-            &mut channel,
-            &tx,
-            &source.id.context("no source id")?,
-        )
-        .unwrap_or_else(|e| log::log(format!("{:?}", e)));
-        sql::insert_channel(&tx, channel)?;
-        if let Some(mut headers) = headers {
-            headers.channel_id = Some(tx.last_insert_rowid());
-            sql::insert_channel_headers(&tx, headers)?;
+        } else if !l1.trim().is_empty() {
+            processing.last_non_empty_line = Some(l1);
         }
     }
-    if problematic_lines > lines_count / 2 {
-        tx.rollback()
-            .unwrap_or_else(|e| log::log(format!("{:?}", e)));
-        return Err(anyhow::anyhow!(
-            "Too many problematic lines, read considered failed"
-        ));
-    }
+    try_commit_channel(&mut processing, &tx);
     tx.commit()?;
+    Ok(())
+}
+
+fn try_commit_channel(processing: &mut M3UProcessing, tx: &Transaction) {
+    if let Some(channel) = processing.channel_line.take() {
+        if !processing.channel_headers_set {
+            processing.channel_headers = None;
+        }
+        commit_channel(
+            channel,
+            processing.last_non_empty_line.take(),
+            &mut processing.groups,
+            processing.channel_headers.take(),
+            processing.source_id,
+            processing.use_tvg_id,
+            &tx,
+        )
+        .with_context(|| {
+            format!(
+                "Failed to process channel ending at line {}",
+                processing.line_count
+            )
+        })
+        .unwrap_or_else(|e| {
+            log::log(format!("{:?}", e));
+        });
+    }
+}
+
+fn commit_channel(
+    channel_line: String,
+    last_line: Option<String>,
+    groups: &mut HashMap<String, i64>,
+    headers: Option<ChannelHttpHeaders>,
+    source_id: i64,
+    use_tvg_id: Option<bool>,
+    tx: &Transaction,
+) -> Result<()> {
+    let mut channel = get_channel_from_lines(
+        channel_line,
+        last_line.context("missing last line")?,
+        source_id,
+        use_tvg_id,
+    )?;
+    set_channel_group_id(groups, &mut channel, tx, &source_id).unwrap_or_else(|e| {
+        log::log(format!(
+            "Failed to set group id for channel: {}, Error: {:?}",
+            channel.name, e
+        ))
+    });
+    sql::insert_channel(tx, channel)?;
+    if let Some(mut headers) = headers {
+        headers.channel_id = Some(tx.last_insert_rowid());
+        sql::insert_channel_headers(tx, headers)?;
+    }
     Ok(())
 }
 
@@ -159,46 +189,6 @@ fn extract_non_empty_capture(caps: Captures) -> Option<String> {
     caps.get(1)
         .map(|m| m.as_str().to_string())
         .filter(|s| !s.trim().is_empty())
-}
-
-fn extract_headers(
-    l2: &mut String,
-    lines: &mut Enumerate<Lines<BufReader<File>>>,
-) -> Result<(bool, Option<ChannelHttpHeaders>)> {
-    let mut headers = ChannelHttpHeaders {
-        id: None,
-        channel_id: None,
-        http_origin: None,
-        referrer: None,
-        user_agent: None,
-        ignore_ssl: None,
-    };
-    let mut at_least_one: bool = false;
-    while l2.starts_with("#EXTVLCOPT") {
-        let result = set_http_headers(&l2, &mut headers);
-        if result && !at_least_one {
-            at_least_one = true;
-        }
-        let result = lines.next().context("EOF?")?;
-        if let Ok(line) = result.1 {
-            l2.clear();
-            l2.push_str(&line);
-        } else {
-            log::log(format!(
-                "{:?}",
-                result
-                    .1
-                    .context(format!("Failed to get line at {}", result.0))
-                    .unwrap_err()
-            ));
-            return Ok((true, None));
-        }
-    }
-    if at_least_one {
-        return Ok((false, Some(headers)));
-    } else {
-        return Ok((true, None));
-    }
 }
 
 fn set_http_headers(line: &str, headers: &mut ChannelHttpHeaders) -> bool {
