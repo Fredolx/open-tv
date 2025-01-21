@@ -22,6 +22,7 @@ import { SourceType } from "../models/sourceType";
 import { EpgModalComponent } from "../epg-modal/epg-modal.component";
 import { EPG } from "../models/epg";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
+import { RestreamModalComponent } from "../restream-modal/restream-modal.component";
 
 @Component({
   selector: "app-channel-tile",
@@ -282,6 +283,16 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     this.memory.ModalRef.result.then((_) => (this.memory.ModalRef = undefined));
     this.memory.ModalRef.componentInstance.name = "DeleteGroupModal";
     this.memory.ModalRef.componentInstance.group = { ...this.channel };
+  }
+
+  openRestreamModal() {
+    this.memory.ModalRef = this.modal.open(RestreamModalComponent, {
+      backdrop: "static",
+      size: "xl",
+      keyboard: false,
+    });
+    this.memory.ModalRef.componentInstance.channel = this.channel;
+    this.memory.ModalRef.result.then((_) => (this.memory.ModalRef = undefined));
   }
 
   async deleteChannel() {

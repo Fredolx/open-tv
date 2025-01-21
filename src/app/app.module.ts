@@ -27,6 +27,7 @@ import { ImportModalComponent } from './import-modal/import-modal.component';
 import { ConfirmDeleteModalComponent } from './confirm-delete-modal/confirm-delete-modal.component';
 import { EpgModalComponent } from './epg-modal/epg-modal.component';
 import { EpgModalItemComponent } from './epg-modal/epg-modal-item/epg-modal-item.component';
+import { RestreamModalComponent } from './restream-modal/restream-modal.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +50,7 @@ import { EpgModalItemComponent } from './epg-modal/epg-modal-item/epg-modal-item
     ConfirmDeleteModalComponent,
     EpgModalComponent,
     EpgModalItemComponent,
+    RestreamModalComponent,
   ],
   imports: [
     BrowserModule,

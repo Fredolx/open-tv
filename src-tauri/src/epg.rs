@@ -1,7 +1,7 @@
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering::Relaxed},
-        Arc, Mutex,
+        Arc,
     },
     thread::{self, sleep},
     time::Duration,
@@ -11,6 +11,7 @@ use anyhow::{Context, Result};
 use chrono::Local;
 use tauri::{AppHandle, State};
 use tauri_plugin_notification::NotificationExt;
+use tokio::sync::Mutex;
 
 use crate::{
     log, sql,
@@ -57,8 +58,12 @@ fn is_timestamp_over(timestamp: i64) -> Result<bool> {
     Ok(current_time >= time)
 }
 
-pub fn add_epg(state: State<'_, Mutex<AppState>>, app: AppHandle, epg: EPGNotify) -> Result<()> {
-    let mut state = state.lock().unwrap();
+pub async fn add_epg(
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+    epg: EPGNotify,
+) -> Result<()> {
+    let mut state = state.lock().await;
     if state.thread_handle.is_some() {
         state.notify_stop.store(true, Relaxed);
         let _ = state
@@ -78,8 +83,12 @@ pub fn add_epg(state: State<'_, Mutex<AppState>>, app: AppHandle, epg: EPGNotify
     Ok(())
 }
 
-pub fn remove_epg(state: State<'_, Mutex<AppState>>, app: AppHandle, epg_id: String) -> Result<()> {
-    let mut state = state.lock().unwrap();
+pub async fn remove_epg(
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+    epg_id: String,
+) -> Result<()> {
+    let mut state = state.lock().await;
     if state.thread_handle.is_some() {
         state.notify_stop.store(true, Relaxed);
         let _ = state
@@ -102,13 +111,13 @@ pub fn remove_epg(state: State<'_, Mutex<AppState>>, app: AppHandle, epg_id: Str
     Ok(())
 }
 
-pub fn on_start_check_epg(state: State<'_, Mutex<AppState>>, app: AppHandle) -> Result<()> {
+pub async fn on_start_check_epg(state: State<'_, Mutex<AppState>>, app: AppHandle) -> Result<()> {
     sql::clean_epgs()?;
     let list = sql::get_epgs()?;
     if list.len() == 0 {
         return Ok(());
     }
-    let mut state = state.lock().unwrap();
+    let mut state = state.lock().await;
     state.notify_stop.store(false, Relaxed);
     let stop = state.notify_stop.clone();
     state
