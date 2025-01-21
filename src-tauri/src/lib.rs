@@ -82,7 +82,8 @@ pub fn run() {
             get_epg_ids,
             on_start_check_epg,
             start_restream,
-            stop_restream
+            stop_restream,
+            watch_self
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -413,4 +414,9 @@ async fn stop_restream(state: State<'_, Mutex<AppState>>) -> Result<(), String> 
     crate::restream::stop_restream(state)
         .await
         .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn watch_self() -> Result<(), String> {
+    restream::watch_self().await.map_err(map_err_frontend)
 }

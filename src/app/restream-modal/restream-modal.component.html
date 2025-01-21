@@ -1,10 +1,139 @@
 <div class="modal-header">
-  <h4 class="modal-title lbl">Re-streaming...</h4>
+  <h4 class="modal-title lbl">Re-streaming: {{ channel?.name }}</h4>
 </div>
 <div class="modal-body">
-  <p class="notice">Your re-stream server is active</p>
+  <div *ngIf="!started">
+    <p>
+      If your IPTV service does not allow more than one connection, the re-streaming feature allows
+      you to share any livestream with friends and family over LAN/WAN
+    </p>
+    <br />
+    <p>
+      Press start to launch the re-streaming service. Instructions to share your re-streamed
+      livestream will appear below along with its status
+    </p>
+  </div>
+  <div *ngIf="started" class="selectable box mt-3">
+    <p>Running...</p>
+    <br />
+    <div class="row">
+      <div class="col-5 col-lg-3 col-xl-2">LAN service address:</div>
+      <div class="col">{{ address }}</div>
+    </div>
+    <div class="row">
+      <div class="col-5 col-lg-3 col-xl-2">WAN service address:</div>
+      <div class="col">{{ wanAddress }}</div>
+    </div>
+  </div>
+  <div *ngIf="started">
+    <br />
+    <p>
+      Press the share button (Share LAN or Share WAN) below to generate an .otv file for this
+      service. You will be able to share this file with your friends so they can import it in Open
+      TV and watch your re-streamed livestream
+    </p>
+    <br />
+    <p>
+      Your re-streaming service is always availaible from your LAN. On the other hand, WAN access
+      will work if you open the appropriate port on your router (3000 by default)
+    </p>
+    <br />
+    <p>To import an .otv file in Open TV:</p>
+    <ol>
+      <li>Create a new custom source (either from setup or settings)</li>
+      <li>Go in settings</li>
+      <li>Click on "import channel/group" button within the custom source</li>
+      <li>Select the .otv file</li>
+    </ol>
+  </div>
 </div>
 <div class="modal-footer">
-  <button [disabled]="loading" (click)="start()" class="btn btn-primary">Start</button>
-  <button [disabled]="loading" (click)="stop()" class="btn btn-danger">Stop</button>
+  <button *ngIf="!started" [disabled]="loading" (click)="start()" class="btn btn-primary">
+    <span>Start</span>
+    <svg
+      class="icon ms-1"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M10,16.5V7.5L16,12M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"
+      />
+    </svg>
+  </button>
+  <button
+    class="btn btn-success d-inline-flex align-items-center"
+    (click)="watch()"
+    [disabled]="loading"
+    *ngIf="started"
+  >
+    <span>Watch</span>
+    <svg
+      class="icon ms-1"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M11,6H13V13H11V6M9,20A1,1 0 0,1 8,21H5A1,1 0 0,1 4,20V15L6,6H10V13A1,1 0 0,1 9,14V20M10,5H7V3H10V5M15,20V14A1,1 0 0,1 14,13V6H18L20,15V20A1,1 0 0,1 19,21H16A1,1 0 0,1 15,20M14,5V3H17V5H14Z"
+      />
+    </svg>
+  </button>
+  <button
+    ngbTooltip="Sharing over LAN means sharing for your local network. The .otv file generated will
+    point to your local IP"
+    class="btn btn-primary d-inline-flex align-items-center"
+    (click)="share()"
+    *ngIf="started"
+  >
+    <span>Share LAN</span>
+    <svg
+      class="icon ms-1"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M10,2C8.89,2 8,2.89 8,4V7C8,8.11 8.89,9 10,9H11V11H2V13H6V15H5C3.89,15 3,15.89 3,17V20C3,21.11 3.89,22 5,22H9C10.11,22 11,21.11 11,20V17C11,15.89 10.11,15 9,15H8V13H16V15H15C13.89,15 13,15.89 13,17V20C13,21.11 13.89,22 15,22H19C20.11,22 21,21.11 21,20V17C21,15.89 20.11,15 19,15H18V13H22V11H13V9H14C15.11,9 16,8.11 16,7V4C16,2.89 15.11,2 14,2H10M10,4H14V7H10V4M5,17H9V20H5V17M15,17H19V20H15V17Z"
+      />
+    </svg>
+  </button>
+  <button
+    ngbTooltip="Sharing over WAN means sharing for the internet. The .otv file generated will point
+    to your public IP"
+    class="btn btn-primary d-inline-flex align-items-center"
+    (click)="share()"
+    *ngIf="started"
+  >
+    <span>Share WAN</span>
+    <svg
+      class="icon ms-1"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M12,2A8,8 0 0,0 4,10C4,14.03 7,17.42 11,17.93V19H10A1,1 0 0,0 9,20H2V22H9A1,1 0 0,0 10,23H14A1,1 0 0,0 15,22H22V20H15A1,1 0 0,0 14,19H13V17.93C17,17.43 20,14.03 20,10A8,8 0 0,0 12,2M12,4C12,4 12.74,5.28 13.26,7H10.74C11.26,5.28 12,4 12,4M9.77,4.43C9.5,4.93 9.09,5.84 8.74,7H6.81C7.5,5.84 8.5,4.93 9.77,4.43M14.23,4.44C15.5,4.94 16.5,5.84 17.19,7H15.26C14.91,5.84 14.5,4.93 14.23,4.44M6.09,9H8.32C8.28,9.33 8.25,9.66 8.25,10C8.25,10.34 8.28,10.67 8.32,11H6.09C6.03,10.67 6,10.34 6,10C6,9.66 6.03,9.33 6.09,9M10.32,9H13.68C13.72,9.33 13.75,9.66 13.75,10C13.75,10.34 13.72,10.67 13.68,11H10.32C10.28,10.67 10.25,10.34 10.25,10C10.25,9.66 10.28,9.33 10.32,9M15.68,9H17.91C17.97,9.33 18,9.66 18,10C18,10.34 17.97,10.67 17.91,11H15.68C15.72,10.67 15.75,10.34 15.75,10C15.75,9.66 15.72,9.33 15.68,9M6.81,13H8.74C9.09,14.16 9.5,15.07 9.77,15.56C8.5,15.06 7.5,14.16 6.81,13M10.74,13H13.26C12.74,14.72 12,16 12,16C12,16 11.26,14.72 10.74,13M15.26,13H17.19C16.5,14.16 15.5,15.07 14.23,15.57C14.5,15.07 14.91,14.16 15.26,13Z"
+      />
+    </svg>
+  </button>
+  <button
+    class="btn btn-danger d-inline-flex align-items-center"
+    *ngIf="started"
+    [disabled]="loading"
+    (click)="stop()"
+  >
+    <span>Stop</span>
+    <svg
+      class="icon ms-1"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M9,9H15V15H9"
+      />
+    </svg>
+  </button>
+  <button class="btn btn-secondary d-inline-flex align-items-center" *ngIf="!started">Close</button>
 </div>

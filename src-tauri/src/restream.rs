@@ -15,7 +15,7 @@ use tokio::{
 
 use crate::{
     log::log,
-    sql,
+    mpv, sql,
     types::{AppState, Channel},
 };
 
@@ -126,4 +126,21 @@ async fn delete_old_segments(dir: &Path) -> Result<()> {
     fs::remove_dir_all(dir).await?;
     fs::create_dir_all(dir).await?;
     Ok(())
+}
+
+pub async fn watch_self() -> Result<()> {
+    let channel = Channel {
+        url: Some("http://127.0.0.1:3000/stream.m3u8".to_string()),
+        name: "Local livestream".to_string(),
+        favorite: false,
+        group: None,
+        group_id: None,
+        id: Some(-1),
+        image: None,
+        media_type: crate::media_type::LIVESTREAM,
+        series_id: None,
+        source_id: None,
+        stream_id: None,
+    };
+    mpv::play(channel, false).await
 }
