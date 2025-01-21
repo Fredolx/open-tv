@@ -144,3 +144,19 @@ pub async fn watch_self() -> Result<()> {
     };
     mpv::play(channel, false).await
 }
+
+fn share_restream(ip: String, channel: Channel) -> Result<()> {
+    crate::share::share_custom_channel(Channel {
+        id: Some(-1),
+        name: format!("RST | {}", channel.name).to_string(),
+        url: Some(format!("http://{ip}/stream.m3u8").to_string()),
+        group: None,
+        image: channel.image,
+        media_type: crate::media_type::LIVESTREAM,
+        source_id: None,
+        series_id: None,
+        group_id: None,
+        favorite: false,
+        stream_id: None,
+    })
+}
