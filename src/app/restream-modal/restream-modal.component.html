@@ -5,6 +5,6 @@
   <p class="notice">Your re-stream server is active</p>
 </div>
 <div class="modal-footer">
-  <button (click)="start()" class="btn btn-primary">Start</button>
-  <button (click)="stop()" class="btn btn-danger">Stop</button>
+  <button [disabled]="loading" (click)="start()" class="btn btn-primary">Start</button>
+  <button [disabled]="loading" (click)="stop()" class="btn btn-danger">Stop</button>
 </div>

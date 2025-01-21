@@ -1,13 +1,16 @@
 use std::{
-    path::PathBuf,
-    process::{Child, Command},
+    path::{Path, PathBuf},
+    process::{Child, Command, Stdio},
 };
 
 use anyhow::{Context, Result};
 use tauri::State;
-use tokio::sync::{
-    oneshot::{self, Sender},
-    Mutex,
+use tokio::{
+    fs,
+    sync::{
+        oneshot::{self, Sender},
+        Mutex,
+    },
 };
 
 use crate::{
@@ -16,9 +19,9 @@ use crate::{
     types::{AppState, Channel},
 };
 
-fn start_ffmpeg_listening(channel: Channel) -> Result<Child> {
+fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Child> {
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id")?)?;
-    let mut playlist_dir = get_playlist_dir()?;
+    let playlist_dir = get_playlist_dir(restream_dir);
     let mut command = Command::new("ffmpeg");
     command
         .arg("-i")
@@ -55,13 +58,16 @@ fn start_ffmpeg_listening(channel: Channel) -> Result<Child> {
         .arg("-hls_flags")
         .arg("delete_segments")
         .arg(playlist_dir)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
         .spawn()?;
     Ok(child)
 }
 
-async fn start_web_server() -> Result<(Sender<bool>, tokio::task::JoinHandle<()>)> {
-    let files_dir = get_restream_folder()?;
-    let file_server = warp::fs::dir(files_dir);
+async fn start_web_server(
+    restream_dir: PathBuf,
+) -> Result<(Sender<bool>, tokio::task::JoinHandle<()>)> {
+    let file_server = warp::fs::dir(restream_dir);
     let (tx, rx) = oneshot::channel::<bool>();
     let (_, server) =
         warp::serve(file_server).bind_with_graceful_shutdown(([0, 0, 0, 0], 3000), async {
@@ -73,8 +79,10 @@ async fn start_web_server() -> Result<(Sender<bool>, tokio::task::JoinHandle<()>
 
 pub async fn start_restream(state: State<'_, Mutex<AppState>>, channel: Channel) -> Result<()> {
     let mut state = state.lock().await;
-    state.ffmpeg_child = Some(start_ffmpeg_listening(channel)?);
-    (state.web_server_tx, state.web_server_handle) = start_web_server()
+    let restream_dir = get_restream_folder()?;
+    delete_old_segments(&restream_dir).await?;
+    state.ffmpeg_child = Some(start_ffmpeg_listening(channel, restream_dir.clone())?);
+    (state.web_server_tx, state.web_server_handle) = start_web_server(restream_dir)
         .await
         .map(|(tx, handle)| (Some(tx), Some(handle)))?;
     Ok(())
@@ -97,10 +105,9 @@ pub async fn stop_restream(state: State<'_, Mutex<AppState>>) -> Result<()> {
     Ok(())
 }
 
-fn get_playlist_dir() -> Result<String> {
-    let mut restream_folder = get_restream_folder()?;
-    restream_folder.push("stream.m3u8");
-    Ok(restream_folder.to_string_lossy().to_string())
+fn get_playlist_dir(mut folder: PathBuf) -> String {
+    folder.push("stream.m3u8");
+    folder.to_string_lossy().to_string()
 }
 
 fn get_restream_folder() -> Result<PathBuf> {
@@ -113,4 +120,10 @@ fn get_restream_folder() -> Result<PathBuf> {
         std::fs::create_dir_all(&path).unwrap();
     }
     Ok(path)
+}
+
+async fn delete_old_segments(dir: &Path) -> Result<()> {
+    fs::remove_dir_all(dir).await?;
+    fs::create_dir_all(dir).await?;
+    Ok(())
 }
