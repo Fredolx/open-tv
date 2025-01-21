@@ -7,7 +7,7 @@ use tauri::{
 use tokio::sync::Mutex;
 use types::{
     AppState, Channel, CustomChannel, CustomChannelExtraData, EPGNotify, Filters, Group, IdName,
-    Settings, Source, EPG,
+    NetworkInfo, Settings, Source, EPG,
 };
 
 pub mod epg;
@@ -83,7 +83,8 @@ pub fn run() {
             on_start_check_epg,
             start_restream,
             stop_restream,
-            watch_self
+            watch_self,
+            get_network_info
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -417,6 +418,11 @@ async fn stop_restream(state: State<'_, Mutex<AppState>>) -> Result<(), String> 
 }
 
 #[tauri::command]
-async fn watch_self() -> Result<(), String> {
-    restream::watch_self().await.map_err(map_err_frontend)
+async fn watch_self(port: u16) -> Result<(), String> {
+    restream::watch_self(port).await.map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn get_network_info() -> Result<NetworkInfo, String> {
+    restream::get_network_info().await.map_err(map_err_frontend)
 }

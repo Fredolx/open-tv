@@ -11,6 +11,7 @@ pub const RECORDING_PATH: &str = "recordingPath";
 pub const DEFAULT_VIEW: &str = "defaultView";
 pub const VOLUME: &str = "volume";
 pub const REFRESH_ON_START: &str = "refreshOnStart";
+pub const RESTREAM_PORT: &str = "restreamPort";
 
 pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
@@ -21,6 +22,7 @@ pub fn get_settings() -> Result<Settings> {
         default_view: map.get(DEFAULT_VIEW).and_then(|s| s.parse().ok()),
         volume: map.get(VOLUME).and_then(|s| s.parse().ok()),
         refresh_on_start: map.get(REFRESH_ON_START).and_then(|s| s.parse().ok()),
+        restream_port: map.get(RESTREAM_PORT).and_then(|s| s.parse().ok()),
     };
     Ok(settings)
 }
@@ -47,6 +49,9 @@ pub fn update_settings(settings: Settings) -> Result<()> {
     }
     if let Some(refresh_on_start) = settings.refresh_on_start {
         map.insert(REFRESH_ON_START.to_string(), refresh_on_start.to_string());
+    }
+    if let Some(port) = settings.restream_port {
+        map.insert(RESTREAM_PORT.to_string(), port.to_string());
     }
     sql::update_settings(map)?;
     Ok(())

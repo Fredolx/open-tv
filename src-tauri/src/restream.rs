@@ -4,6 +4,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
+use if_addrs::IfAddr;
 use tauri::State;
 use tokio::{
     fs,
@@ -15,9 +16,13 @@ use tokio::{
 
 use crate::{
     log::log,
-    mpv, sql,
-    types::{AppState, Channel},
+    mpv,
+    settings::get_settings,
+    sql,
+    types::{AppState, Channel, NetworkInfo},
 };
+
+const WAN_IP_API: &str = "https://api.ipify.org";
 
 fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Child> {
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id")?)?;
@@ -128,9 +133,9 @@ async fn delete_old_segments(dir: &Path) -> Result<()> {
     Ok(())
 }
 
-pub async fn watch_self() -> Result<()> {
+pub async fn watch_self(port: u16) -> Result<()> {
     let channel = Channel {
-        url: Some("http://127.0.0.1:3000/stream.m3u8".to_string()),
+        url: Some(format!("http://127.0.0.1:{port}/stream.m3u8").to_string()),
         name: "Local livestream".to_string(),
         favorite: false,
         group: None,
@@ -145,11 +150,11 @@ pub async fn watch_self() -> Result<()> {
     mpv::play(channel, false).await
 }
 
-fn share_restream(ip: String, channel: Channel) -> Result<()> {
+fn share_restream(address: String, channel: Channel) -> Result<()> {
     crate::share::share_custom_channel(Channel {
         id: Some(-1),
         name: format!("RST | {}", channel.name).to_string(),
-        url: Some(format!("http://{ip}/stream.m3u8").to_string()),
+        url: Some(address),
         group: None,
         image: channel.image,
         media_type: crate::media_type::LIVESTREAM,
@@ -159,4 +164,28 @@ fn share_restream(ip: String, channel: Channel) -> Result<()> {
         favorite: false,
         stream_id: None,
     })
+}
+
+pub async fn get_network_info() -> Result<NetworkInfo> {
+    let port = get_settings()?.restream_port.unwrap_or(3000);
+    Ok(NetworkInfo {
+        port,
+        local_ips: get_ips(port)?,
+        wan_ip: get_wan_ip(port).await?,
+    })
+}
+
+fn get_ips(port: u16) -> Result<Vec<String>> {
+    Ok(if_addrs::get_if_addrs()?
+        .iter()
+        .filter(|i| i.ip().is_ipv4() && !i.ip().is_loopback())
+        .map(|i| format!("http://{}:{port}/stream.m3u8", i.ip().to_string()))
+        .collect())
+}
+
+async fn get_wan_ip(port: u16) -> Result<String> {
+    Ok(format!(
+        "http://{}:{port}/stream.m3u8",
+        reqwest::get(WAN_IP_API).await?.text().await?
+    ))
 }

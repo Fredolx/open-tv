@@ -50,6 +50,7 @@ pub struct Settings {
     pub default_view: Option<u8>,
     pub volume: Option<u8>,
     pub refresh_on_start: Option<bool>,
+    pub restream_port: Option<u16>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -143,4 +144,11 @@ pub struct AppState {
     pub ffmpeg_child: Option<std::process::Child>,
     pub web_server_tx: Option<tokio::sync::oneshot::Sender<bool>>,
     pub web_server_handle: Option<tokio::task::JoinHandle<()>>,
+}
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct NetworkInfo {
+    pub port: u16,
+    pub local_ips: Vec<String>,
+    pub wan_ip: String,
 }

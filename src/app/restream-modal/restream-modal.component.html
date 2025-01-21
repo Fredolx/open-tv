@@ -14,16 +14,15 @@
     </p>
   </div>
   <div *ngIf="started" class="selectable box mt-3">
-    <p>Running...</p>
+    <p>Running and accessible from the following ips...</p>
     <br />
-    <div class="row">
-      <div class="col-5 col-lg-3 col-xl-2">LAN service address:</div>
-      <div class="col">{{ address }}</div>
-    </div>
-    <div class="row">
-      <div class="col-5 col-lg-3 col-xl-2">WAN service address:</div>
-      <div class="col">{{ wanAddress }}</div>
-    </div>
+    <p>Local ips:</p>
+    <p *ngFor="let local of networkInfo?.local_ips">
+      {{ local }}
+    </p>
+    <br />
+    <p>WAN address:</p>
+    <p>{{ networkInfo?.wan_ip }}</p>
   </div>
   <div *ngIf="started">
     <br />
@@ -64,7 +63,7 @@
   <button
     class="btn btn-success d-inline-flex align-items-center"
     (click)="watch()"
-    [disabled]="loading"
+    [disabled]="loading || watching"
     *ngIf="started"
   >
     <span>Watch</span>
