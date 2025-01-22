@@ -19,6 +19,7 @@ export class RestreamModalComponent implements OnInit, OnDestroy {
   networkInfo?: NetworkInfo;
   selectedIP?: string;
   toUnlisten: UnlistenFn[] = [];
+
   constructor(
     private error: ErrorService,
     public activeModal: NgbActiveModal,
@@ -42,10 +43,10 @@ export class RestreamModalComponent implements OnInit, OnDestroy {
     this.loading = true;
     try {
       await invoke("start_restream", { channel: this.channel });
-      this.started = false;
     } catch (e) {
       this.error.handleError(e);
     }
+    this.started = false;
     this.loading = false;
   }
 
@@ -56,7 +57,6 @@ export class RestreamModalComponent implements OnInit, OnDestroy {
     } catch (e) {
       this.error.handleError(e);
     }
-    this.loading = false;
   }
 
   async watch() {

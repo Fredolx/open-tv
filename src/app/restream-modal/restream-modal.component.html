@@ -80,6 +80,7 @@
   <button
     class="btn btn-primary d-inline-flex align-items-center"
     (click)="share()"
+    [disabled]="loading"
     *ngIf="started"
   >
     <span>Share</span>
