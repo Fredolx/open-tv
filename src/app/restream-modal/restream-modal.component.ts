@@ -3,6 +3,7 @@ import { Channel } from "../models/channel";
 import { invoke } from "@tauri-apps/api/core";
 import { ErrorService } from "../error.service";
 import { NetworkInfo } from "../models/networkInfo";
+import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
   selector: "app-restream-modal",
@@ -17,11 +18,17 @@ export class RestreamModalComponent implements OnInit {
   address = "http://192.168.2.10/stream.m3u8";
   wanAddress = "http://10.145.22.12/stream.m3u8";
   networkInfo?: NetworkInfo;
-  constructor(private error: ErrorService) {}
+  selectedIP?: string;
+
+  constructor(
+    private error: ErrorService,
+    public activeModal: NgbActiveModal,
+  ) {}
 
   ngOnInit(): void {
     invoke("get_network_info").then((network) => {
       this.networkInfo = network as NetworkInfo;
+      this.selectedIP = this.networkInfo.local_ips[0];
     });
   }
 
@@ -59,5 +66,14 @@ export class RestreamModalComponent implements OnInit {
     this.watching = false;
   }
 
-  share() {}
+  async share() {
+    try {
+      await invoke("share_restream", { address: this.selectedIP, channel: this.channel });
+      this.error.success(
+        `Successfully exported re-stream to Downloads/rst-${this.channel?.id}.otv`,
+      );
+    } catch (e) {
+      this.error.handleError(e);
+    }
+  }
 }

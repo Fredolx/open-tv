@@ -84,7 +84,8 @@ pub fn run() {
             start_restream,
             stop_restream,
             watch_self,
-            get_network_info
+            get_network_info,
+            share_restream
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -282,7 +283,7 @@ fn add_custom_source(name: String) -> Result<(), String> {
 
 #[tauri::command(async)]
 fn share_custom_channel(channel: Channel) -> Result<(), String> {
-    share::share_custom_channel(channel).map_err(map_err_frontend)
+    share::share_custom_channel(channel, None).map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
@@ -425,4 +426,9 @@ async fn watch_self(port: u16) -> Result<(), String> {
 #[tauri::command]
 async fn get_network_info() -> Result<NetworkInfo, String> {
     restream::get_network_info().await.map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn share_restream(address: String, channel: Channel) -> Result<(), String> {
+    restream::share_restream(address, channel).map_err(map_err_frontend)
 }

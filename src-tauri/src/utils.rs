@@ -81,7 +81,7 @@ fn get_filename(channel_name: String, url: String) -> Result<String> {
     Ok(filename)
 }
 
-fn sanitize(str: String) -> String {
+pub fn sanitize(str: String) -> String {
     ILLEGAL_CHARS_REGEX.replace_all(&str, "").to_string()
 }
 

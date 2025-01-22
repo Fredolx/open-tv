@@ -4,7 +4,6 @@ use std::{
 };
 
 use anyhow::{Context, Result};
-use if_addrs::IfAddr;
 use tauri::State;
 use tokio::{
     fs,
@@ -150,20 +149,23 @@ pub async fn watch_self(port: u16) -> Result<()> {
     mpv::play(channel, false).await
 }
 
-fn share_restream(address: String, channel: Channel) -> Result<()> {
-    crate::share::share_custom_channel(Channel {
-        id: Some(-1),
-        name: format!("RST | {}", channel.name).to_string(),
-        url: Some(address),
-        group: None,
-        image: channel.image,
-        media_type: crate::media_type::LIVESTREAM,
-        source_id: None,
-        series_id: None,
-        group_id: None,
-        favorite: false,
-        stream_id: None,
-    })
+pub fn share_restream(address: String, channel: Channel) -> Result<()> {
+    crate::share::share_custom_channel(
+        Channel {
+            id: Some(-1),
+            name: format!("RST | {}", channel.name).to_string(),
+            url: Some(address),
+            group: None,
+            image: channel.image,
+            media_type: crate::media_type::LIVESTREAM,
+            source_id: None,
+            series_id: None,
+            group_id: None,
+            favorite: false,
+            stream_id: None,
+        },
+        Some(format!("RST - {}", channel.id.context("no id")?)),
+    )
 }
 
 pub async fn get_network_info() -> Result<NetworkInfo> {
