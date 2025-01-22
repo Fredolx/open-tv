@@ -1,10 +1,11 @@
 use std::{
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
+    time::Duration,
 };
 
 use anyhow::{Context, Result};
-use tauri::State;
+use tauri::{AppHandle, Emitter, State};
 use tokio::{
     fs,
     sync::{
@@ -14,7 +15,6 @@ use tokio::{
 };
 
 use crate::{
-    log::log,
     mpv,
     settings::get_settings,
     sql,
@@ -83,31 +83,39 @@ async fn start_web_server(
     return Ok((tx, handle));
 }
 
-pub async fn start_restream(state: State<'_, Mutex<AppState>>, channel: Channel) -> Result<()> {
-    let mut state = state.lock().await;
+pub async fn start_restream(
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+    channel: Channel,
+) -> Result<()> {
+    let stop = state.lock().await.restream_stop_signal.clone();
+    stop.store(false, std::sync::atomic::Ordering::Relaxed);
     let restream_dir = get_restream_folder()?;
     delete_old_segments(&restream_dir).await?;
-    state.ffmpeg_child = Some(start_ffmpeg_listening(channel, restream_dir.clone())?);
-    (state.web_server_tx, state.web_server_handle) = start_web_server(restream_dir)
-        .await
-        .map(|(tx, handle)| (Some(tx), Some(handle)))?;
+    let mut ffmpeg_child = start_ffmpeg_listening(channel, restream_dir.clone())?;
+    let (web_server_tx, web_server_handle) = start_web_server(restream_dir).await?;
+    let _ = app.emit("restream_started", true);
+    while !stop.load(std::sync::atomic::Ordering::Relaxed)
+        && ffmpeg_child
+            .try_wait()
+            .map(|option| option.is_none())
+            .unwrap_or(true)
+        && !web_server_handle.is_finished()
+    {
+        tokio::time::sleep(Duration::from_millis(500)).await
+    }
+    let _ = ffmpeg_child.kill();
+    let _ = web_server_tx.send(true);
+    let _ = ffmpeg_child.wait();
+    let _ = web_server_handle.await;
     Ok(())
 }
 
 pub async fn stop_restream(state: State<'_, Mutex<AppState>>) -> Result<()> {
-    let mut state = state.lock().await;
-    let mut ffmpeg_child = state.ffmpeg_child.take().context("no ffmpeg child")?;
-    let web_server_tx = state.web_server_tx.take().context("no web server tx")?;
-    let web_server_handle = state
-        .web_server_handle
-        .take()
-        .context("no web server handle")?;
-    let _ = ffmpeg_child.kill();
-    let _ = web_server_tx.send(true);
-    let _ = ffmpeg_child.wait();
-    let _ = web_server_handle
-        .await
-        .unwrap_or_else(|e| log(format!("{:?}", e)));
+    let state = state.lock().await;
+    state
+        .restream_stop_signal
+        .store(true, std::sync::atomic::Ordering::Relaxed);
     Ok(())
 }
 

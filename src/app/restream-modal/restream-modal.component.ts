@@ -1,28 +1,28 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, NgZone, OnDestroy, OnInit } from "@angular/core";
 import { Channel } from "../models/channel";
 import { invoke } from "@tauri-apps/api/core";
 import { ErrorService } from "../error.service";
 import { NetworkInfo } from "../models/networkInfo";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
+import { UnlistenFn, listen } from "@tauri-apps/api/event";
 
 @Component({
   selector: "app-restream-modal",
   templateUrl: "./restream-modal.component.html",
   styleUrl: "./restream-modal.component.css",
 })
-export class RestreamModalComponent implements OnInit {
+export class RestreamModalComponent implements OnInit, OnDestroy {
   channel?: Channel;
   loading = false;
   watching = false;
   started = false;
-  address = "http://192.168.2.10/stream.m3u8";
-  wanAddress = "http://10.145.22.12/stream.m3u8";
   networkInfo?: NetworkInfo;
   selectedIP?: string;
-
+  toUnlisten: UnlistenFn[] = [];
   constructor(
     private error: ErrorService,
     public activeModal: NgbActiveModal,
+    private ngZone: NgZone,
   ) {}
 
   ngOnInit(): void {
@@ -30,14 +30,19 @@ export class RestreamModalComponent implements OnInit {
       this.networkInfo = network as NetworkInfo;
       this.selectedIP = this.networkInfo.local_ips[0];
     });
+    listen<boolean>("restream_started", () => {
+      this.ngZone.run(() => {
+        this.started = true;
+        this.loading = false;
+      });
+    }).then((unlisten) => this.toUnlisten.push(unlisten));
   }
 
   async start() {
     this.loading = true;
     try {
       await invoke("start_restream", { channel: this.channel });
-      this.error.success("Successfully started service");
-      this.started = true;
+      this.started = false;
     } catch (e) {
       this.error.handleError(e);
     }
@@ -48,8 +53,6 @@ export class RestreamModalComponent implements OnInit {
     this.loading = true;
     try {
       await invoke("stop_restream");
-      this.error.success("Successfully stopped service");
-      this.started = false;
     } catch (e) {
       this.error.handleError(e);
     }
@@ -75,5 +78,9 @@ export class RestreamModalComponent implements OnInit {
     } catch (e) {
       this.error.handleError(e);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.toUnlisten.forEach((x) => x());
   }
 }

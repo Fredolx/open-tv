@@ -141,9 +141,7 @@ pub struct EPGNotify {
 pub struct AppState {
     pub notify_stop: Arc<AtomicBool>,
     pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
-    pub ffmpeg_child: Option<std::process::Child>,
-    pub web_server_tx: Option<tokio::sync::oneshot::Sender<bool>>,
-    pub web_server_handle: Option<tokio::task::JoinHandle<()>>,
+    pub restream_stop_signal: Arc<AtomicBool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

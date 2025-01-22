@@ -405,8 +405,12 @@ async fn on_start_check_epg(
 }
 
 #[tauri::command]
-async fn start_restream(state: State<'_, Mutex<AppState>>, channel: Channel) -> Result<(), String> {
-    crate::restream::start_restream(state, channel)
+async fn start_restream(
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+    channel: Channel,
+) -> Result<(), String> {
+    crate::restream::start_restream(state, app, channel)
         .await
         .map_err(map_err_frontend)
 }
