@@ -63,6 +63,16 @@ fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Chi
         .arg("6")
         .arg("-hls_flags")
         .arg("delete_segments")
+        .arg("-reconnect")
+        .arg("1")
+        .arg("-reconnect_at_eof")
+        .arg("1")
+        .arg("-reconnect_streamed")
+        .arg("1")
+        .arg("-reconnect_on_network_error")
+        .arg("1")
+        .arg("-reconnect_max_retries")
+        .arg("3")
         .arg(playlist_dir)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -72,11 +82,12 @@ fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Chi
 
 async fn start_web_server(
     restream_dir: PathBuf,
+    port: u16,
 ) -> Result<(Sender<bool>, tokio::task::JoinHandle<()>)> {
     let file_server = warp::fs::dir(restream_dir);
     let (tx, rx) = oneshot::channel::<bool>();
     let (_, server) =
-        warp::serve(file_server).bind_with_graceful_shutdown(([0, 0, 0, 0], 3000), async {
+        warp::serve(file_server).bind_with_graceful_shutdown(([0, 0, 0, 0], port), async {
             rx.await.ok();
         });
     let handle = tokio::spawn(server);
@@ -84,6 +95,7 @@ async fn start_web_server(
 }
 
 pub async fn start_restream(
+    port: u16,
     state: State<'_, Mutex<AppState>>,
     app: AppHandle,
     channel: Channel,
@@ -93,7 +105,7 @@ pub async fn start_restream(
     let restream_dir = get_restream_folder()?;
     delete_old_segments(&restream_dir).await?;
     let mut ffmpeg_child = start_ffmpeg_listening(channel, restream_dir.clone())?;
-    let (web_server_tx, web_server_handle) = start_web_server(restream_dir).await?;
+    let (web_server_tx, web_server_handle) = start_web_server(restream_dir, port).await?;
     let _ = app.emit("restream_started", true);
     while !stop.load(std::sync::atomic::Ordering::Relaxed)
         && ffmpeg_child

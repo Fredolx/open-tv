@@ -42,7 +42,7 @@ export class RestreamModalComponent implements OnInit, OnDestroy {
   async start() {
     this.loading = true;
     try {
-      await invoke("start_restream", { channel: this.channel });
+      await invoke("start_restream", { channel: this.channel, port: this.networkInfo!.port });
     } catch (e) {
       this.error.handleError(e);
     }
