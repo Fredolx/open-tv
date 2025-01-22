@@ -19,14 +19,16 @@ use crate::{
     settings::get_settings,
     sql,
     types::{AppState, Channel, NetworkInfo},
+    utils::get_bin,
 };
 
 const WAN_IP_API: &str = "https://api.ipify.org";
+const FFMPEG_BIN_NAME: &str = "ffmpeg";
 
 fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Child> {
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id")?)?;
     let playlist_dir = get_playlist_dir(restream_dir);
-    let mut command = Command::new("ffmpeg");
+    let mut command = Command::new(get_bin(FFMPEG_BIN_NAME));
     command
         .arg("-i")
         .arg(channel.url.context("no channel url")?);

@@ -1,20 +1,16 @@
 use crate::settings::get_default_record_path;
+use crate::sql;
 use crate::types::ChannelHttpHeaders;
-use crate::{log, sql};
+use crate::utils::{find_macos_bin, get_bin};
 use crate::{media_type, settings::get_settings, types::Channel};
 use anyhow::{bail, Context, Result};
 use chrono::Local;
 use std::sync::LazyLock;
-use std::{
-    env::{consts::OS, current_exe},
-    path::Path,
-    process::Stdio,
-};
+use std::{env::consts::OS, path::Path, process::Stdio};
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     process::Command,
 };
-use which::which;
 
 const ARG_SAVE_POSITION_ON_QUIT: &str = "--save-position-on-quit";
 const ARG_CACHE: &str = "--cache=";
@@ -33,14 +29,8 @@ const MPV_BIN_NAME: &str = "mpv";
 const YTDLP_BIN_NAME: &str = "yt-dlp";
 const HTTP_ORIGIN: &str = "origin:";
 const HTTP_REFERRER: &str = "referer:";
-const MACOS_POTENTIAL_PATHS: [&str; 3] = [
-    "/opt/local/bin",    // MacPorts
-    "/opt/homebrew/bin", // Homebrew on AARCH64 Mac
-    "/usr/local/bin",    // Homebrew on AMD64 Mac
-];
-
-static MPV_PATH: LazyLock<String> = LazyLock::new(|| get_mpv_path());
-static YTDLP_PATH: LazyLock<String> = LazyLock::new(|| find_macos_bin(YTDLP_BIN_NAME.to_string()));
+static MPV_PATH: LazyLock<String> = LazyLock::new(|| get_bin(MPV_BIN_NAME));
+static YTDLP_PATH: LazyLock<String> = LazyLock::new(|| find_macos_bin(YTDLP_BIN_NAME));
 
 pub async fn play(channel: Channel, record: bool) -> Result<()> {
     println!("{} playing", channel.url.as_ref().unwrap());
@@ -74,39 +64,6 @@ pub async fn play(channel: Channel, record: bool) -> Result<()> {
         }
     }
     Ok(())
-}
-
-fn get_mpv_path() -> String {
-    if OS == "linux" || which("mpv").is_ok() {
-        return MPV_BIN_NAME.to_string();
-    } else if OS == "macos" {
-        return find_macos_bin(MPV_BIN_NAME.to_string());
-    }
-    return get_mpv_path_win();
-}
-
-fn get_mpv_path_win() -> String {
-    let mut path = current_exe().unwrap();
-    path.pop();
-    path.push("deps");
-    path.push("mpv.exe");
-    return path.to_string_lossy().to_string();
-}
-
-fn find_macos_bin(bin: String) -> String {
-    return MACOS_POTENTIAL_PATHS
-        .iter()
-        .map(|path| {
-            let mut path = Path::new(path).to_path_buf();
-            path.push(&bin);
-            return path;
-        })
-        .find(|path| path.exists())
-        .map(|s| s.to_string_lossy().to_string())
-        .unwrap_or_else(|| {
-            log::log(format!("Could not find {} on MacOS host", bin));
-            return bin;
-        });
 }
 
 fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
