@@ -292,6 +292,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       keyboard: false,
     });
     this.memory.ModalRef.componentInstance.channel = this.channel;
+    this.memory.ModalRef.componentInstance.name = "RestreamModalComponent";
     this.memory.ModalRef.result.then((_) => (this.memory.ModalRef = undefined));
   }
 
