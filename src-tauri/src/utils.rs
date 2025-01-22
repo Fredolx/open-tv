@@ -1,4 +1,5 @@
 use crate::{
+    log::log,
     m3u,
     settings::{get_default_record_path, get_settings},
     source_type, sql,
@@ -9,8 +10,20 @@ use anyhow::{anyhow, bail, Context, Result};
 use chrono::{DateTime, Local, Utc};
 use regex::Regex;
 use reqwest::Client;
-use std::{io::Write, path::Path, sync::LazyLock};
+use std::{
+    env::{consts::OS, current_exe},
+    io::Write,
+    path::Path,
+    sync::LazyLock,
+};
 use tauri::{AppHandle, Emitter};
+use which::which;
+
+const MACOS_POTENTIAL_PATHS: [&str; 3] = [
+    "/opt/local/bin",    // MacPorts
+    "/opt/homebrew/bin", // Homebrew on AARCH64 Mac
+    "/usr/local/bin",    // Homebrew on AMD64 Mac
+];
 
 static ILLEGAL_CHARS_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"[<>:"/\\|?*\x00-\x1F]"#).unwrap());
@@ -81,7 +94,7 @@ fn get_filename(channel_name: String, url: String) -> Result<String> {
     Ok(filename)
 }
 
-fn sanitize(str: String) -> String {
+pub fn sanitize(str: String) -> String {
     ILLEGAL_CHARS_REGEX.replace_all(&str, "").to_string()
 }
 
@@ -94,6 +107,39 @@ fn get_download_path(file_name: String) -> Result<String> {
     let mut path = Path::new(&path).to_path_buf();
     path.push(file_name);
     Ok(path.to_string_lossy().to_string())
+}
+
+pub fn get_bin(bin: &str) -> String {
+    if OS == "linux" || which(bin).is_ok() {
+        return bin.to_string();
+    } else if OS == "macos" {
+        return find_macos_bin(bin);
+    }
+    return get_bin_from_deps(bin);
+}
+
+fn get_bin_from_deps(bin: &str) -> String {
+    let mut path = current_exe().unwrap();
+    path.pop();
+    path.push("deps");
+    path.push(bin);
+    return path.to_string_lossy().to_string();
+}
+
+pub fn find_macos_bin(bin: &str) -> String {
+    return MACOS_POTENTIAL_PATHS
+        .iter()
+        .map(|path| {
+            let mut path = Path::new(path).to_path_buf();
+            path.push(bin);
+            return path;
+        })
+        .find(|path| path.exists())
+        .map(|s| s.to_string_lossy().to_string())
+        .unwrap_or_else(|| {
+            log(format!("Could not find {} on MacOS host", bin));
+            return bin.to_string();
+        });
 }
 
 #[cfg(test)]

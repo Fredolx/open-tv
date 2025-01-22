@@ -382,7 +382,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   goBackHotkey() {
     if (this.memory.ModalRef) {
-      this.memory.ModalRef.close("close");
+      if (
+        this.memory.ModalRef.componentInstance.name != "RestreamModalComponent" ||
+        !this.memory.ModalRef.componentInstance.started
+      )
+        this.memory.ModalRef.close("close");
       return;
     }
     if (this.filters?.group_id || this.filters?.series_id) {

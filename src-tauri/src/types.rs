@@ -50,6 +50,7 @@ pub struct Settings {
     pub default_view: Option<u8>,
     pub volume: Option<u8>,
     pub refresh_on_start: Option<bool>,
+    pub restream_port: Option<u16>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -140,4 +141,12 @@ pub struct EPGNotify {
 pub struct AppState {
     pub notify_stop: Arc<AtomicBool>,
     pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
+    pub restream_stop_signal: Arc<AtomicBool>,
+}
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct NetworkInfo {
+    pub port: u16,
+    pub local_ips: Vec<String>,
+    pub wan_ip: String,
 }

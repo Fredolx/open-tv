@@ -1,14 +1,13 @@
-use std::sync::Mutex;
-
 use anyhow::Error;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Manager, State,
 };
+use tokio::sync::Mutex;
 use types::{
     AppState, Channel, CustomChannel, CustomChannelExtraData, EPGNotify, Filters, Group, IdName,
-    Settings, Source, EPG,
+    NetworkInfo, Settings, Source, EPG,
 };
 
 pub mod epg;
@@ -16,6 +15,7 @@ pub mod log;
 pub mod m3u;
 pub mod media_type;
 pub mod mpv;
+pub mod restream;
 pub mod settings;
 pub mod share;
 pub mod source_type;
@@ -80,7 +80,12 @@ pub fn run() {
             add_epg,
             remove_epg,
             get_epg_ids,
-            on_start_check_epg
+            on_start_check_epg,
+            start_restream,
+            stop_restream,
+            watch_self,
+            get_network_info,
+            share_restream
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -95,14 +100,14 @@ pub fn run() {
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "quit" => {
                         app.exit(0);
-                    },
+                    }
                     "show" => {
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.unminimize();
                             let _ = window.show();
                             let _ = window.set_focus();
                         }
-                    },
+                    }
                     _ => {}
                 })
                 .on_tray_icon_event(|tray, event| match event {
@@ -278,7 +283,7 @@ fn add_custom_source(name: String) -> Result<(), String> {
 
 #[tauri::command(async)]
 fn share_custom_channel(channel: Channel) -> Result<(), String> {
-    share::share_custom_channel(channel).map_err(map_err_frontend)
+    share::share_custom_channel(channel, None).map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
@@ -362,22 +367,26 @@ async fn download(app: AppHandle, channel: Channel) -> Result<(), String> {
         .map_err(map_err_frontend)
 }
 
-#[tauri::command(async)]
-fn add_epg(
+#[tauri::command]
+async fn add_epg(
     state: State<'_, Mutex<AppState>>,
     app: AppHandle,
     epg: EPGNotify,
 ) -> Result<(), String> {
-    epg::add_epg(state, app, epg).map_err(map_err_frontend)
+    epg::add_epg(state, app, epg)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
-fn remove_epg(
+async fn remove_epg(
     state: State<'_, Mutex<AppState>>,
     app: AppHandle,
     epg_id: String,
 ) -> Result<(), String> {
-    epg::remove_epg(state, app, epg_id).map_err(map_err_frontend)
+    epg::remove_epg(state, app, epg_id)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
@@ -385,7 +394,46 @@ fn get_epg_ids() -> Result<Vec<String>, String> {
     sql::get_epg_ids().map_err(map_err_frontend)
 }
 
+#[tauri::command]
+async fn on_start_check_epg(
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+) -> Result<(), String> {
+    epg::on_start_check_epg(state, app)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn start_restream(
+    port: u16,
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+    channel: Channel,
+) -> Result<(), String> {
+    crate::restream::start_restream(port, state, app, channel)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn stop_restream(state: State<'_, Mutex<AppState>>) -> Result<(), String> {
+    crate::restream::stop_restream(state)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn watch_self(port: u16) -> Result<(), String> {
+    restream::watch_self(port).await.map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn get_network_info() -> Result<NetworkInfo, String> {
+    restream::get_network_info().await.map_err(map_err_frontend)
+}
+
 #[tauri::command(async)]
-fn on_start_check_epg(state: State<'_, Mutex<AppState>>, app: AppHandle) -> Result<(), String> {
-    epg::on_start_check_epg(state, app).map_err(map_err_frontend)
+fn share_restream(address: String, channel: Channel) -> Result<(), String> {
+    restream::share_restream(address, channel).map_err(map_err_frontend)
 }

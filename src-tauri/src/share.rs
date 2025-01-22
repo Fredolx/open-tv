@@ -3,6 +3,7 @@ use crate::types::ExportedGroup;
 use crate::types::ExportedSource;
 use crate::types::Group;
 use crate::types::Source;
+use crate::utils::sanitize;
 use crate::{sql, types::Channel};
 use anyhow::bail;
 use anyhow::Context;
@@ -14,20 +15,21 @@ const CHANNEL_SHARE_EXTENSION: &str = ".otv";
 const GROUP_SHARE_EXTENSION: &str = ".otvg";
 const PLAYLIST_SHARE_EXTENSION: &str = ".otvp";
 
-pub fn share_custom_channel(channel: Channel) -> Result<()> {
+pub fn share_custom_channel(channel: Channel, filename: Option<String>) -> Result<()> {
     let channel = get_custom_channel(channel)?;
     let path = get_download_path(
-        channel.data.id.context("No id on channel?")?,
+        filename.unwrap_or(channel.data.id.context("No id on channel?")?.to_string()),
         CHANNEL_SHARE_EXTENSION,
     )?;
     serialize_to_file(channel, path)
 }
 
-fn get_download_path(id: i64, extension: &str) -> Result<String> {
+fn get_download_path(filename: String, extension: &str) -> Result<String> {
     let path = UserDirs::new().context("No user dirs?")?;
     let path = path.download_dir().context("No downloads folder")?;
     let mut path = path.to_path_buf();
-    path.push(format!("{id}{extension}"));
+    let filename = sanitize(filename);
+    path.push(format!("{filename}{extension}"));
     Ok(path.to_string_lossy().to_string())
 }
 
@@ -54,7 +56,10 @@ pub fn share_custom_group(group: Channel) -> Result<()> {
         },
         channels: sql::get_custom_channels(group.id, group.source_id.context("no source id?")?)?,
     };
-    let path = get_download_path(group.id.context("No group id?")?, GROUP_SHARE_EXTENSION)?;
+    let path = get_download_path(
+        group.id.context("No group id?")?.to_string(),
+        GROUP_SHARE_EXTENSION,
+    )?;
     serialize_to_file(to_export, path)?;
     Ok(())
 }
@@ -67,7 +72,7 @@ pub fn share_custom_source(mut source: Source) -> Result<()> {
         groups: sql::get_custom_groups(id)?,
         channels: sql::get_custom_channels(None, id)?,
     };
-    let path = get_download_path(id, PLAYLIST_SHARE_EXTENSION)?;
+    let path = get_download_path(id.to_string(), PLAYLIST_SHARE_EXTENSION)?;
     serialize_to_file(to_export, path)?;
     Ok(())
 }

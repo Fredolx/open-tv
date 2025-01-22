@@ -1,0 +1,20 @@
+.notice {
+  font-size: 0.9rem;
+  color: lightgray;
+}
+
+.box {
+  background-color: black; /* Dark background similar to a code editor */
+  padding: 10px; /* Add padding for readability */
+  border-radius: 4px; /* Rounded corners (optional) */
+}
+
+button .icon {
+  height: 1.5rem;
+  width: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+button:hover .icon {
+  transform: scale(125%);
+}
