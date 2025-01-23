@@ -126,8 +126,10 @@ fn set_headers(headers: Option<ChannelHttpHeaders>, args: &mut Vec<String>) {
             args.push(ARG_IGNORE_SSL.to_string());
         }
     }
-    let headers = headers_vec.join(",");
-    args.push(format!("{ARG_HTTP_HEADERS}{headers}"));
+    if headers_vec.len() > 0 {
+        let headers = headers_vec.join(",");
+        args.push(format!("{ARG_HTTP_HEADERS}{headers}"));
+    }
 }
 
 fn get_path(path_str: String) -> String {

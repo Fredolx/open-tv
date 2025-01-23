@@ -1,4 +1,5 @@
 use std::{
+    os::windows::process::CommandExt,
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
     time::Duration,
@@ -24,14 +25,12 @@ use crate::{
 
 const WAN_IP_API: &str = "https://api.ipify.org";
 const FFMPEG_BIN_NAME: &str = "ffmpeg";
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Child> {
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id")?)?;
     let playlist_dir = get_playlist_dir(restream_dir);
     let mut command = Command::new(get_bin(FFMPEG_BIN_NAME));
-    command
-        .arg("-i")
-        .arg(channel.url.context("no channel url")?);
     if let Some(headers) = headers {
         if let Some(referrer) = headers.referrer {
             command.arg("-headers");
@@ -52,7 +51,11 @@ fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Chi
             }
         }
     }
+    #[cfg(target_os = "windows")]
+    command.creation_flags(CREATE_NO_WINDOW);
     let child = command
+        .arg("-i")
+        .arg(channel.url.context("no channel url")?)
         .arg("-c")
         .arg("copy")
         .arg("-f")
@@ -76,7 +79,6 @@ fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Chi
         .arg(playlist_dir)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
-        .stdin(Stdio::null())
         .spawn()?;
     Ok(child)
 }
