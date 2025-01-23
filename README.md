@@ -27,6 +27,7 @@ I've been developing and maintaining this project alone and for entirely for fre
 - Add channels to favorites 🌟
 - Make your own custom channels
 - Share your custom channels with friends
+- Re-stream channels to friends or other devices (phone, tv)
 
 ## Prerequisites
 If you are on Windows or use the flatpak on Linux; SKIP THIS PART. 
