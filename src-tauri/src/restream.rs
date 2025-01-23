@@ -1,9 +1,11 @@
 use std::{
-    os::windows::process::CommandExt,
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
     time::Duration,
 };
+
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
 
 use anyhow::{Context, Result};
 use tauri::{AppHandle, Emitter, State};
@@ -25,6 +27,7 @@ use crate::{
 
 const WAN_IP_API: &str = "https://api.ipify.org";
 const FFMPEG_BIN_NAME: &str = "ffmpeg";
+#[cfg(target_os = "windows")]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Child> {
@@ -74,8 +77,6 @@ fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Chi
         .arg("1")
         .arg("-reconnect_on_network_error")
         .arg("1")
-        .arg("-reconnect_max_retries")
-        .arg("3")
         .arg(playlist_dir)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
