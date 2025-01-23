@@ -76,6 +76,7 @@ fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Chi
         .arg(playlist_dir)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
+        .stdin(Stdio::null())
         .spawn()?;
     Ok(child)
 }
