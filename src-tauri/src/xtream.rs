@@ -57,7 +57,7 @@ struct XtreamEpisodeInfo {
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamCategory {
-    category_id: String,
+    category_id: serde_json::Value,
     category_name: String,
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -161,7 +161,14 @@ fn process_xtream(
 ) -> Result<()> {
     let cats: HashMap<String, String> = cats
         .into_iter()
-        .map(|f| (f.category_id, f.category_name))
+        .filter_map(|f| {
+            let category_id = f
+                .category_id
+                .as_str()
+                .map(|cid| cid.to_string())
+                .or_else(|| f.category_id.as_u64().map(|cid| cid.to_string()));
+            category_id.map(|cid| (cid, f.category_name))
+        })
         .collect();
     let mut groups: HashMap<String, i64> = HashMap::new();
     for live in streams {
