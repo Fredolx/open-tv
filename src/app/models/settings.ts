@@ -6,4 +6,5 @@ export class Settings {
   volume?: number;
   refresh_on_start?: boolean;
   restream_port?: number;
+  increase_font_size?: boolean;
 }

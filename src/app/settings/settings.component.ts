@@ -22,6 +22,7 @@ export class SettingsComponent {
     default_view: ViewMode.All,
     volume: 100,
     restream_port: 3000,
+    increase_font_size: false,
   };
   viewModeEnum = ViewMode;
   sources: Source[] = [];
