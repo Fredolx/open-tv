@@ -8,6 +8,10 @@ body {
     color: white;
 }
 
+.big {
+    font-size: 2rem !important
+}
+
 .help-modal__container {
     .help-modal {
         background-color: #202124 !important;

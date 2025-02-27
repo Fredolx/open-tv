@@ -121,8 +121,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             sessionStorage.setItem("refreshedOnStart", "true");
             this.refreshOnStart().then((_) => _);
           }
+          this.memory.setIncreasedFontSize(settings.increase_font_size as boolean);
           this.load().then((_) => _);
         }
+
       })
       .catch((e) => {
         this.error.handleError(e);

@@ -80,4 +80,12 @@ export class MemoryService {
   setLastDownloadProgress(id: number, progress: number) {
     this.downloadingChannels.get(id)![0] = progress;
   }
+
+  setIncreasedFontSize(increase: boolean) {
+    if (increase) {
+   document.documentElement.classList.add("big"); 
+  } else {
+    document.documentElement.classList.remove("big");
+  }
+}
 }
