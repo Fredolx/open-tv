@@ -77,6 +77,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   channelsVisible = true;
   prevSearchValue?: String;
   loading = false;
+  oldPixelRatio = window.devicePixelRatio;
 
   constructor(
     private router: Router,
@@ -122,6 +123,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             this.refreshOnStart().then((_) => _);
           }
           this.load().then((_) => _);
+         this.memory.setZoom(settings.zoom ??  1.0);
         }
       })
       .catch((e) => {
@@ -214,6 +216,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     const clientHeight = window.innerHeight || document.documentElement.clientHeight;
     if (scrollTop + clientHeight >= scrollHeight - 1) {
       await this.loadMore();
+    }
+  }
+
+  @HostListener("window:resize", ["$event"])
+  async onResize(event: any) {
+    if (this.oldPixelRatio != window.devicePixelRatio) {
+    await this.memory.setZoom(window.devicePixelRatio)
+    this.oldPixelRatio = window.devicePixelRatio;
     }
   }
 
