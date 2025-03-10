@@ -1,6 +1,6 @@
 {
   "name": "open-tv",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "scripts": {
     "ng": "ng",
     "tauri": "tauri",

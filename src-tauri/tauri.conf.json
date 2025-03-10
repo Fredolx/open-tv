@@ -1,6 +1,6 @@
 {
   "productName": "Open TV",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "identifier": "dev.fredol.open-tv",
   "build": {
     "frontendDist": "../dist/open-tv/browser",
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "Open TV (v1.4.1)",
+        "title": "Open TV (v1.5.0)",
         "width": 800,
         "height": 600,
         "resizable": true,
@@ -35,33 +35,17 @@
     "windows": {
       "wix": {
         "language": "en-US",
-        "fragmentPaths": [
-          "./windows/fragments/deps.wxs"
-        ],
-        "componentGroupRefs": [
-          "DependencyComponents"
-        ],
-        "componentRefs": [
-          "MpvComponent",
-          "FfmpegComponent",
-          "YtDlpComponent"
-        ]
+        "fragmentPaths": ["./windows/fragments/deps.wxs"],
+        "componentGroupRefs": ["DependencyComponents"],
+        "componentRefs": ["MpvComponent", "FfmpegComponent", "YtDlpComponent"]
       }
     },
     "linux": {
       "deb": {
-        "depends": [
-          "mpv",
-          "ffmpeg",
-          "yt-dlp"
-        ]
+        "depends": ["mpv", "ffmpeg", "yt-dlp"]
       },
       "rpm": {
-        "depends": [
-          "mpv",
-          "ffmpeg",
-          "yt-dlp"
-        ]
+        "depends": ["mpv", "ffmpeg", "yt-dlp"]
       }
     }
   },
