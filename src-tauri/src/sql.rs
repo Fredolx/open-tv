@@ -173,7 +173,7 @@ fn apply_migrations() -> Result<()> {
               WHERE ROWID NOT IN (
                   SELECT MIN(ROWID)
                   FROM channels
-                  GROUP BY name
+                  GROUP BY name, source_id
               );
               CREATE UNIQUE INDEX channels_unique ON channels(name, source_id);
             "#,
