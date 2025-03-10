@@ -6,7 +6,7 @@
     "tauri": "tauri",
     "start": "ng serve",
     "build": "tauri build",
-    "buildMac": "tauri build -- --target universal-apple-darwin",
+    "buildMac": "tauri build --target universal-apple-darwin",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
