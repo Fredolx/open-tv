@@ -1136,11 +1136,11 @@ pub fn restore_preserve(
     for channel in preserve {
         tx.execute(
             r#"
-            UPDATE channels
-                    SET favorite = ?, last_watched = ?
-                    WHERE name = ?
-                    AND source_id = ?
-        "#,
+              UPDATE channels
+              SET favorite = ?, last_watched = ?
+              WHERE name = ?
+              AND source_id = ?
+            "#,
             params![
                 channel.favorite,
                 channel.last_watched,
@@ -1168,7 +1168,7 @@ pub fn add_last_watched(id: i64) -> Result<()> {
           SET last_watched = NULL
           WHERE last_watched IS NOT NULL
 		  AND id NOT IN (
-				SELECT id 
+				SELECT id
 				FROM channels
 				WHERE last_watched IS NOT NULL
 				ORDER BY last_watched DESC

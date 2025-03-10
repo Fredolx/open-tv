@@ -86,7 +86,9 @@ pub fn run() {
             watch_self,
             get_network_info,
             share_restream,
-            add_last_watched
+            add_last_watched,
+            backup_favs,
+            restore_favs
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -442,4 +444,14 @@ fn share_restream(address: String, channel: Channel) -> Result<(), String> {
 #[tauri::command(async)]
 fn add_last_watched(id: i64) -> Result<(), String> {
     sql::add_last_watched(id).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn backup_favs(id: i64, path: String) -> Result<(), String> {
+    utils::backup_favs(id, path).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn restore_favs(id: i64, path: String) -> Result<(), String> {
+    utils::restore_favs(id, path).map_err(map_err_frontend)
 }

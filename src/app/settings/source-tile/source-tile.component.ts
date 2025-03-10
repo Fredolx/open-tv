@@ -7,7 +7,7 @@ import { EditChannelModalComponent } from '../../edit-channel-modal/edit-channel
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EditGroupModalComponent } from '../../edit-group-modal/edit-group-modal.component';
 import { ImportModalComponent } from '../../import-modal/import-modal.component';
-import { open } from '@tauri-apps/plugin-dialog';
+import { open, save } from '@tauri-apps/plugin-dialog';
 
 @Component({
   selector: 'app-source-tile',
@@ -48,21 +48,21 @@ export class SourceTileComponent {
   }
 
   async addCustomChannel() {
-    this.memory.ModalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef = this.modal.open(EditChannelModalComponent, { backdrop: 'static', size: 'xl', keyboard: false });
     this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
     this.memory.ModalRef.componentInstance.name = "EditCustomChannelModal";
     this.memory.ModalRef.componentInstance.channel.data.source_id = this.source?.id;
   }
 
   async addCustomGroup() {
-    this.memory.ModalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef = this.modal.open(EditGroupModalComponent, { backdrop: 'static', size: 'xl', keyboard: false });
     this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
     this.memory.ModalRef.componentInstance.name = "EditCustomGroupModal";
     this.memory.ModalRef.componentInstance.group.source_id = this.source?.id;
   }
 
   async import() {
-    this.memory.ModalRef = this.modal.open(ImportModalComponent, { backdrop: 'static', size: 'xl', keyboard: false});
+    this.memory.ModalRef = this.modal.open(ImportModalComponent, { backdrop: 'static', size: 'xl', keyboard: false });
     this.memory.ModalRef.result.then(_ => this.memory.ModalRef = undefined);
     this.memory.ModalRef.componentInstance.name = "ImportModalComponent";
     this.memory.ModalRef.componentInstance.source_id = this.source?.id;
@@ -82,13 +82,13 @@ export class SourceTileComponent {
   }
 
   async save() {
-    await this.memory.tryIPC("Successfully saved changes", "Failed to save changes", 
+    await this.memory.tryIPC("Successfully saved changes", "Failed to save changes",
       async () => {
         await invoke("update_source", { source: this.editableSource });
         this.source = this.editableSource;
         this.editing = false;
         this.editableSource = {};
-    });
+      });
   }
 
   async browse() {
@@ -105,5 +105,31 @@ export class SourceTileComponent {
   cancel() {
     this.editableSource = {};
     this.editing = false;
+  }
+
+  async backupFavs() {
+    const file = await save({
+      canCreateDirectories: true,
+      title: "Select where to save favorites",
+    });
+    if (file) {
+      await this.memory.tryIPC("Successfully saved favorites backup", "Failed to save favorites backup", async () => {
+        await invoke("backup_favs", { id: this.source?.id, path: file });
+      });
+    }
+  }
+
+  async restoreFavs() {
+    const file = await open({
+      canCreateDirectories: false,
+      title: "Select a favorites backup",
+      directory: false,
+      multiple: false,
+    });
+    if (file) {
+      await this.memory.tryIPC("Successfully saved favorites backup", "Failed to save favorites backup", async () => {
+        await invoke("restore_favs", { id: this.source?.id, path: file });
+      });
+    }
   }
 }

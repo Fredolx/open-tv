@@ -155,5 +155,5 @@ pub struct NetworkInfo {
 pub struct ChannelPreserve {
     pub name: String,
     pub favorite: bool,
-    pub last_watched: u64,
+    pub last_watched: Option<u64>,
 }

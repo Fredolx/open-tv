@@ -6,7 +6,8 @@
             {{get_source_type_name()}}
         </div>
     </div>
-    <div *ngIf="source?.source_type != sourceTypeEnum.Custom" class="row mt-2" [ngClass]="{'align-items-center': editing && source?.source_type == sourceTypeEnum.M3U, 'align-items-baseline': !editing}">
+    <div *ngIf="source?.source_type != sourceTypeEnum.Custom" class="row mt-2"
+        [ngClass]="{'align-items-center': editing && source?.source_type == sourceTypeEnum.M3U, 'align-items-baseline': !editing}">
         <div class="col-2">Url:</div>
         <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
             {{source?.url}}
@@ -18,7 +19,8 @@
             {{editableSource.url}}
         </div>
         <div class="col" *ngIf="editing && source?.source_type == sourceTypeEnum.M3U">
-            <button (click)="browse()" [disabled]="memory.Loading" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+            <button (click)="browse()" [disabled]="memory.Loading"
+                class="btn btn-primary btn-sm d-inline-flex align-items-center">
                 <span>Browse</span>
                 <svg fill="currentColor" class="ms-1 pen" viewBox="0 0 24 24">
                     <path
@@ -67,12 +69,14 @@
             <input class="form-control form-control-sm" name="password" [(ngModel)]="editableSource.password">
         </div>
     </div>
-    <div class="row mt-2" *ngIf="editing && (source?.source_type == sourceTypeEnum.M3U || source?.source_type == sourceTypeEnum.M3ULink)">
+    <div class="row mt-2"
+        *ngIf="editing && (source?.source_type == sourceTypeEnum.M3U || source?.source_type == sourceTypeEnum.M3ULink)">
         <div class="col">
             <div class="form-check form-switch">
                 <input name="use-tvg-id" [(ngModel)]="editableSource.use_tvg_id" id="use-tvg-id"
                     class="form-check-input" type="checkbox">
-                <label class="form-check-label" for="use-tvg-id">Use TVG-ID for names when TVG-NAME is unavailable</label>
+                <label class="form-check-label" for="use-tvg-id">Use TVG-ID for names when TVG-NAME is
+                    unavailable</label>
             </div>
         </div>
     </div>
@@ -97,7 +101,8 @@
             *ngIf="source?.source_type != sourceTypeEnum.Custom && editing">
             <span>Cancel</span>
             <svg fill="currentColor" class="ms-1 pen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M12 2C17.5 2 22 6.5 22 12S17.5 22 12 22 2 17.5 2 12 6.5 2 12 2M12 4C10.1 4 8.4 4.6 7.1 5.7L18.3 16.9C19.3 15.5 20 13.8 20 12C20 7.6 16.4 4 12 4M16.9 18.3L5.7 7.1C4.6 8.4 4 10.1 4 12C4 16.4 7.6 20 12 20C13.9 20 15.6 19.4 16.9 18.3Z" />
+                <path
+                    d="M12 2C17.5 2 22 6.5 22 12S17.5 22 12 22 2 17.5 2 12 6.5 2 12 2M12 4C10.1 4 8.4 4.6 7.1 5.7L18.3 16.9C19.3 15.5 20 13.8 20 12C20 7.6 16.4 4 12 4M16.9 18.3L5.7 7.1C4.6 8.4 4 10.1 4 12C4 16.4 7.6 20 12 20C13.9 20 15.6 19.4 16.9 18.3Z" />
             </svg>
         </button>
         <button [disabled]="memory.Loading" *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing"
@@ -106,6 +111,22 @@
             <svg class="refresh ms-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path fill="currentColor"
                     d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" />
+            </svg>
+        </button>
+        <button [disabled]="memory.Loading" *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing"
+            (click)="backupFavs()" class="btn btn-primary d-inline-flex align-items-center">
+            <span>Backup favs</span>
+            <svg class="pen ms-1" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                    d="M17,7V3H7V7H17M14,17A3,3 0 0,0 17,14A3,3 0 0,0 14,11A3,3 0 0,0 11,14A3,3 0 0,0 14,17M19,1L23,5V17A2,2 0 0,1 21,19H7C5.89,19 5,18.1 5,17V3A2,2 0 0,1 7,1H19M1,7H3V21H17V23H3A2,2 0 0,1 1,21V7Z" />
+            </svg>
+        </button>
+        <button [disabled]="memory.Loading" *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing"
+            (click)="restoreFavs()" class="btn btn-primary d-inline-flex align-items-center">
+            <span>Restore favs</span>
+            <svg class="pen ms-1" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                    d="M12,3A9,9 0 0,0 3,12H0L4,16L8,12H5A7,7 0 0,1 12,5A7,7 0 0,1 19,12A7,7 0 0,1 12,19C10.5,19 9.09,18.5 7.94,17.7L6.5,19.14C8.04,20.3 9.94,21 12,21A9,9 0 0,0 21,12A9,9 0 0,0 12,3M14,12A2,2 0 0,0 12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12Z" />
             </svg>
         </button>
         <button [disabled]="memory.Loading" *ngIf="source?.source_type == sourceTypeEnum.Custom"
@@ -151,11 +172,13 @@
         </button>
 
     </div>
-    <svg (click)="toggleEnabled()" class="check" *ngIf="source?.enabled && !editing" fill="currentColor" viewBox="0 0 24 24">
+    <svg (click)="toggleEnabled()" class="check" *ngIf="source?.enabled && !editing" fill="currentColor"
+        viewBox="0 0 24 24">
         <path
             d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" />
     </svg>
-    <svg (click)="toggleEnabled()" *ngIf="!source?.enabled && !editing" class="check" fill="currentColor" viewBox="0 0 24 24">
+    <svg (click)="toggleEnabled()" *ngIf="!source?.enabled && !editing" class="check" fill="currentColor"
+        viewBox="0 0 24 24">
         <path
             d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z" />
     </svg>

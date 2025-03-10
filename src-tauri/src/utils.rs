@@ -10,6 +10,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use chrono::{DateTime, Local, Utc};
 use regex::Regex;
 use reqwest::Client;
+use serde::Serialize;
 use std::{
     env::{consts::OS, current_exe},
     io::Write,
@@ -140,6 +141,31 @@ pub fn find_macos_bin(bin: &str) -> String {
             log(format!("Could not find {} on MacOS host", bin));
             return bin.to_string();
         });
+}
+
+pub fn serialize_to_file<T: Serialize>(obj: T, path: String) -> Result<()> {
+    let data = serde_json::to_string(&obj)?;
+    std::fs::write(path, data)?;
+    Ok(())
+}
+
+pub fn backup_favs(source_id: i64, path: String) -> Result<()> {
+    sql::do_tx(|tx| {
+        let preserve = sql::get_channel_preserve(tx, source_id)?;
+        serialize_to_file(preserve, path)?;
+        Ok(())
+    })?;
+    Ok(())
+}
+
+pub fn restore_favs(source_id: i64, path: String) -> Result<()> {
+    let data = std::fs::read_to_string(path)?;
+    let preserve = serde_json::from_str(&data)?;
+    sql::do_tx(|tx| {
+        sql::restore_preserve(tx, source_id, preserve)?;
+        Ok(())
+    })?;
+    Ok(())
 }
 
 #[cfg(test)]

@@ -4,12 +4,12 @@ use crate::types::ExportedSource;
 use crate::types::Group;
 use crate::types::Source;
 use crate::utils::sanitize;
+use crate::utils::serialize_to_file;
 use crate::{sql, types::Channel};
 use anyhow::bail;
 use anyhow::Context;
 use anyhow::Result;
 use directories::UserDirs;
-use serde::Serialize;
 
 const CHANNEL_SHARE_EXTENSION: &str = ".otv";
 const GROUP_SHARE_EXTENSION: &str = ".otvg";
@@ -38,12 +38,6 @@ fn get_custom_channel(channel: Channel) -> Result<CustomChannel> {
         headers: sql::get_channel_headers_by_id(channel.id.context("No id on channel?")?)?,
         data: channel,
     })
-}
-
-fn serialize_to_file<T: Serialize>(obj: T, path: String) -> Result<()> {
-    let data = serde_json::to_string(&obj)?;
-    std::fs::write(path, data)?;
-    Ok(())
 }
 
 pub fn share_custom_group(group: Channel) -> Result<()> {
