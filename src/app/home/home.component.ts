@@ -212,7 +212,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     const scrollHeight = document.documentElement.scrollHeight;
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const clientHeight = window.innerHeight || document.documentElement.clientHeight;
-    if (scrollTop + clientHeight >= scrollHeight - 1) {
+    if (scrollTop + clientHeight >= scrollHeight * 0.75) {
       await this.loadMore();
     }
   }
@@ -476,7 +476,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   applyFocusArea(down: boolean) {
-    this.focus = down ? 0 : this.focusArea == FocusArea.Filters ? (this.shortFiltersMode() ? 1 : 2) : 3
+    this.focus = down
+      ? 0
+      : this.focusArea == FocusArea.Filters
+        ? this.shortFiltersMode()
+          ? 1
+          : 2
+        : 3;
     let id = FocusAreaPrefix[this.focusArea] + this.focus;
     document.getElementById(id)?.focus();
   }
