@@ -37,7 +37,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     private modal: NgbModal,
     private el: ElementRef,
     private renderer: Renderer2,
-  ) {}
+  ) { }
   @Input() channel?: Channel;
   @Input() id!: Number;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
@@ -111,6 +111,10 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     } catch (e) {
       this.error.handleError(e);
     }
+    invoke("add_last_watched", { id: this.channel?.id }).catch((e) => {
+      console.error(e);
+      this.error.handleError(e);
+    });
     this.starting = false;
   }
 

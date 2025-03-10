@@ -150,3 +150,10 @@ pub struct NetworkInfo {
     pub local_ips: Vec<String>,
     pub wan_ip: String,
 }
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct ChannelPreserve {
+    pub name: String,
+    pub favorite: bool,
+    pub last_watched: u64,
+}

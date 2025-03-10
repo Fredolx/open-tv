@@ -63,6 +63,14 @@
         Categories
       </button>
       <button
+        id="viewMode-3"
+        (click)="switchMode(viewModeEnum.History)"
+        class="btn btn-primary"
+        [ngClass]="{ active: filters?.view_type == viewModeEnum.History }"
+      >
+        History
+      </button>
+      <button
         id="viewMode-2"
         (click)="switchMode(viewModeEnum.Favorites)"
         class="btn btn-primary"

@@ -85,7 +85,8 @@ pub fn run() {
             stop_restream,
             watch_self,
             get_network_info,
-            share_restream
+            share_restream,
+            add_last_watched
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -436,4 +437,9 @@ async fn get_network_info() -> Result<NetworkInfo, String> {
 #[tauri::command(async)]
 fn share_restream(address: String, channel: Channel) -> Result<(), String> {
     restream::share_restream(address, channel).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn add_last_watched(id: i64) -> Result<(), String> {
+    sql::add_last_watched(id).map_err(map_err_frontend)
 }

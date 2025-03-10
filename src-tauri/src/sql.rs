@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::LazyLock};
 
 use crate::log::log;
 use crate::types::{
-    CustomChannel, CustomChannelExtraData, EPGNotify, ExportedGroup, Group, IdName,
+    ChannelPreserve, CustomChannel, CustomChannelExtraData, EPGNotify, ExportedGroup, Group, IdName,
 };
 use crate::{
     media_type, source_type,
@@ -163,6 +163,21 @@ fn apply_migrations() -> Result<()> {
                 CREATE UNIQUE INDEX IF NOT EXISTS index_epg_epg_id on epg(epg_id);
             "#,
         ),
+        M::up(
+            r#"
+              ALTER TABLE channels ADD COLUMN last_watched integer;
+              CREATE INDEX index_channels_last_watched on channels(last_watched);
+
+              DROP INDEX IF EXISTS channels_unique;
+              DELETE FROM channels
+              WHERE ROWID NOT IN (
+                  SELECT MIN(ROWID)
+                  FROM channels
+                  GROUP BY name
+              );
+              CREATE UNIQUE INDEX channels_unique ON channels(name, source_id);
+            "#,
+        ),
     ]);
     migrations.to_latest(&mut sql)?;
     Ok(())
@@ -198,9 +213,11 @@ pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
 INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id)
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
-ON CONFLICT (name, url, source_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT (name, source_id)
 DO UPDATE SET
+    url = excluded.url,
+    media_type = excluded.media_type,
     stream_id = excluded.stream_id,
     image = excluded.image,
     series_id = excluded.series_id;
@@ -376,6 +393,10 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     if filters.view_type == view_type::FAVORITES && filters.series_id.is_none() {
         sql_query += "\nAND favorite = 1";
     }
+    if filters.view_type == view_type::HISTORY {
+        sql_query += "\nAND last_watched IS NOT NULL";
+        sql_query += "\nORDER BY last_watched DESC";
+    }
     if filters.series_id.is_some() {
         sql_query += &format!("\nAND series_id = ?");
         baked_params += 1;
@@ -519,7 +540,6 @@ pub fn delete_channels_by_source(tx: &Transaction, source_id: i64) -> Result<()>
         r#"
         DELETE FROM channels
         WHERE source_id = ?
-        AND favorite = 0;
     "#,
         params![source_id.to_string()],
     )?;
@@ -531,11 +551,6 @@ pub fn delete_groups_by_source(tx: &Transaction, source_id: i64) -> Result<()> {
         r#"
         DELETE FROM groups
         WHERE source_id = ?
-        AND ID not in (
-            SELECT group_id
-            FROM channels
-            WHERE favorite = 1
-        )
     "#,
         params!(source_id),
     )?;
@@ -1089,6 +1104,80 @@ fn row_to_epg(row: &Row) -> Result<EPGNotify, rusqlite::Error> {
         start_timestamp: row.get("start_timestamp")?,
         title: row.get("title")?,
     })
+}
+
+pub fn get_channel_preserve(tx: &Transaction, source_id: i64) -> Result<Vec<ChannelPreserve>> {
+    Ok(tx
+        .prepare(
+            r#"
+              SELECT name, favorite, last_watched
+              FROM channels
+              WHERE (favorite = 1 OR last_watched IS NOT NULL) AND source_id = ?
+            "#,
+        )?
+        .query_map(params![source_id], row_to_channel_preserve)?
+        .filter_map(Result::ok)
+        .collect())
+}
+
+fn row_to_channel_preserve(row: &Row) -> Result<ChannelPreserve, rusqlite::Error> {
+    Ok(ChannelPreserve {
+        name: row.get("name")?,
+        favorite: row.get("favorite")?,
+        last_watched: row.get("last_watched")?,
+    })
+}
+
+pub fn restore_preserve(
+    tx: &Transaction,
+    source_id: i64,
+    preserve: Vec<ChannelPreserve>,
+) -> Result<()> {
+    for channel in preserve {
+        tx.execute(
+            r#"
+            UPDATE channels
+                    SET favorite = ?, last_watched = ?
+                    WHERE name = ?
+                    AND source_id = ?
+        "#,
+            params![
+                channel.favorite,
+                channel.last_watched,
+                channel.name,
+                source_id
+            ],
+        )?;
+    }
+    Ok(())
+}
+
+pub fn add_last_watched(id: i64) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
+          UPDATE channels
+          SET last_watched = strftime('%s', 'now')
+          WHERE id = ?
+        "#,
+        params![id],
+    )?;
+    sql.execute(
+        r#"
+		  UPDATE channels
+          SET last_watched = NULL
+          WHERE last_watched IS NOT NULL
+		  AND id NOT IN (
+				SELECT id 
+				FROM channels
+				WHERE last_watched IS NOT NULL
+				ORDER BY last_watched DESC
+				LIMIT 36
+		  )
+        "#,
+        params![],
+    )?;
+    Ok(())
 }
 
 #[cfg(test)]
