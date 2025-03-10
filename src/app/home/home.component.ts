@@ -443,7 +443,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     tmpFocus += this.focus;
     if (tmpFocus < 0) {
       this.changeFocusArea(false);
-    } else if (tmpFocus > goOverSize && this.focusArea != FocusArea.Tiles) {
+    } else if (tmpFocus > goOverSize && this.focusArea == FocusArea.Filters) {
+      this.changeFocusArea(true);
+    } else if (tmpFocus > 3 && this.focusArea == FocusArea.ViewMode) {
       this.changeFocusArea(true);
     } else if (this.focusArea == FocusArea.Tiles && tmpFocus >= this.filters!.page * 36)
       await this.loadMore();
@@ -474,7 +476,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   applyFocusArea(down: boolean) {
-    this.focus = down ? 0 : this.shortFiltersMode() ? 1 : 2;
+    this.focus = down ? 0 : this.focusArea == FocusArea.Filters ? (this.shortFiltersMode() ? 1 : 2) : 3
     let id = FocusAreaPrefix[this.focusArea] + this.focus;
     document.getElementById(id)?.focus();
   }
