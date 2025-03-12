@@ -47,8 +47,8 @@ struct XtreamEpisode {
     id: String,
     title: String,
     container_extension: String,
-    episode_num: u32,
-    season: u32,
+    episode_num: serde_json::Value,
+    season: serde_json::Value,
     #[serde(default)]
     info: serde_json::Value,
 }
@@ -281,9 +281,11 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
     let mut episodes: Vec<XtreamEpisode> =
         episodes.into_values().flat_map(|episode| episode).collect();
     episodes.sort_by(|a, b| {
-        a.season
-            .cmp(&b.season)
-            .then_with(|| a.episode_num.cmp(&b.episode_num))
+        get_serde_json_number(&a.season)
+            .cmp(&get_serde_json_number(&b.season))
+            .then_with(|| {
+                get_serde_json_number(&a.episode_num).cmp(&get_serde_json_number(&b.episode_num))
+            })
     });
     sql::do_tx(|tx| {
         for episode in episodes {
@@ -293,6 +295,14 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
         Ok(())
     })?;
     Ok(())
+}
+
+fn get_serde_json_number(value: &serde_json::Value) -> u64 {
+    value
+        .as_str()
+        .and_then(|val| val.parse::<u64>().ok())
+        .or_else(|| value.as_u64())
+        .unwrap_or(0)
 }
 
 fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: u64) -> Result<Channel> {
