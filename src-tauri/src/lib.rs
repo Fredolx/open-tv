@@ -122,11 +122,12 @@ pub fn run() {
         .run(|_app, event| match event {
             #[cfg(target_os = "macos")]
             tauri::RunEvent::Reopen { .. } => {
-                if *ENABLE_TRAY_ICON {
-                    let window = _app.get_webview_window("main").expect("no main window");
-                    let _ = window.show();
-                    let _ = window.set_focus();
+                if !*ENABLE_TRAY_ICON {
+                    return;
                 }
+                let window = _app.get_webview_window("main").expect("no main window");
+                let _ = window.show();
+                let _ = window.set_focus();
             }
             _ => {}
         });
