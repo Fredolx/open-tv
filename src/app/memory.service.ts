@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { HostListener, Injectable } from "@angular/core";
 import { Source } from "./models/source";
 import { Subject } from "rxjs";
 import { MatMenuTrigger } from "@angular/material/menu";
@@ -8,6 +8,7 @@ import { ErrorService } from "./error.service";
 import { Channel } from "./models/channel";
 import { NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
 import { invoke } from "@tauri-apps/api/core";
+import { Settings } from "./models/settings";
 
 @Injectable({
   providedIn: "root",
@@ -79,5 +80,20 @@ export class MemoryService {
 
   setLastDownloadProgress(id: number, progress: number) {
     this.downloadingChannels.get(id)![0] = progress;
+  }
+
+  async setZoom(zoom?: number) {
+    if (zoom  && zoom < 1 || zoom == null) return;
+  let settings = await invoke("get_settings") as Settings;
+  settings.zoom = zoom;
+  await invoke("update_settings", {settings:settings});
+  // @ts-ignore
+  document.body.style.zoom = settings.zoom
+  this.toastr.info("Zoom set to " + settings.zoom.toFixed(2));
+  }
+
+  async getZoom() {
+    let settings = await invoke("get_settings") as Settings;
+    return settings.zoom;
   }
 }
