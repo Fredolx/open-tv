@@ -16,7 +16,7 @@ export class MemoryService {
   constructor(
     private toastr: ToastrService,
     private error: ErrorService,
-  ) {}
+  ) { }
   public SetGroupNode: Subject<IdName> = new Subject();
   public SetSeriesNode: Subject<Channel> = new Subject();
   public Sources: Source[] = [];
@@ -33,6 +33,7 @@ export class MemoryService {
   public Watched_epgs: Set<string> = new Set();
   private downloadingChannels: Map<number, [number, Subject<boolean>]> = new Map();
   public LoadingNotification: boolean = false;
+  public trayEnabled?: boolean;
   async tryIPC<T>(
     successMessage: string,
     errorMessage: string,

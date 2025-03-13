@@ -94,6 +94,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       .then((data) => {
         let settings = data[0] as Settings;
         let sources = data[1] as Source[];
+        this.memory.trayEnabled = settings.enable_tray_icon ?? true;
         sources
           .filter((x) => x.source_type == SourceType.Custom)
           .map((x) => x.id!)

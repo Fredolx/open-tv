@@ -1,4 +1,6 @@
-use anyhow::Error;
+use std::sync::LazyLock;
+
+use anyhow::{Context, Error};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -24,6 +26,12 @@ pub mod types;
 pub mod utils;
 pub mod view_type;
 pub mod xtream;
+
+static ENABLE_TRAY_ICON: LazyLock<bool> = LazyLock::new(|| {
+    settings::get_settings()
+        .and_then(|s| s.enable_tray_icon.context("no value"))
+        .unwrap_or(true)
+});
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -94,46 +102,16 @@ pub fn run() {
             app.manage(Mutex::new(AppState {
                 ..Default::default()
             }));
-            let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let show_i = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
-            TrayIconBuilder::new()
-                .menu(&menu)
-                .show_menu_on_left_click(false)
-                .on_menu_event(|app, event| match event.id.as_ref() {
-                    "quit" => {
-                        app.exit(0);
-                    }
-                    "show" => {
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.unminimize();
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
-                    }
-                    _ => {}
-                })
-                .on_tray_icon_event(|tray, event| match event {
-                    TrayIconEvent::Click {
-                        button: MouseButton::Left,
-                        button_state: MouseButtonState::Up,
-                        ..
-                    } => {
-                        let app = tray.app_handle();
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.unminimize();
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
-                    }
-                    _ => {}
-                })
-                .icon(app.default_window_icon().unwrap().clone())
-                .build(app)?;
+            if *ENABLE_TRAY_ICON {
+                let _ = build_tray_icon(app);
+            }
             Ok(())
         })
         .on_window_event(|window, event| match event {
             tauri::WindowEvent::CloseRequested { api, .. } => {
+                if !*ENABLE_TRAY_ICON {
+                    return;
+                }
                 window.hide().unwrap();
                 api.prevent_close();
             }
@@ -144,12 +122,54 @@ pub fn run() {
         .run(|_app, event| match event {
             #[cfg(target_os = "macos")]
             tauri::RunEvent::Reopen { .. } => {
-                let window = _app.get_webview_window("main").expect("no main window");
-                let _ = window.show();
-                let _ = window.set_focus();
+                if *ENABLE_TRAY_ICON {
+                    let window = _app.get_webview_window("main").expect("no main window");
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
             }
             _ => {}
         });
+}
+
+fn build_tray_icon(app: &mut tauri::App) -> anyhow::Result<()> {
+    let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+    let show_i = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
+    let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
+    TrayIconBuilder::new()
+        .menu(&menu)
+        .show_menu_on_left_click(false)
+        .on_menu_event(|app, event| match event.id.as_ref() {
+            "quit" => {
+                app.exit(0);
+            }
+            "show" => {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.unminimize();
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+            }
+            _ => {}
+        })
+        .on_tray_icon_event(|tray, event| match event {
+            TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } => {
+                let app = tray.app_handle();
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.unminimize();
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+            }
+            _ => {}
+        })
+        .icon(app.default_window_icon().unwrap().clone())
+        .build(app)?;
+    Ok(())
 }
 
 fn map_err_frontend(e: Error) -> String {

@@ -51,6 +51,7 @@ pub struct Settings {
     pub volume: Option<u8>,
     pub refresh_on_start: Option<bool>,
     pub restream_port: Option<u16>,
+    pub enable_tray_icon: Option<bool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
