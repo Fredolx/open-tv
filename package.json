@@ -1,6 +1,6 @@
 {
   "name": "open-tv",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "scripts": {
     "ng": "ng",
     "tauri": "tauri",
@@ -20,7 +20,7 @@
     "@angular/forms": "^17.3.0",
     "@angular/material": "^17.3.10",
     "@angular/platform-browser": "^17.3.0",
-    "@angular/platform-browser-dynamic": "^17.3.0",
+    "@angular/platform-browser1-dynamic": "^17.3.0",
     "@angular/router": "^17.3.0",
     "@ng-bootstrap/ng-bootstrap": "^16.0.0",
     "@popperjs/core": "^2.11.8",
