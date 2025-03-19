@@ -30,11 +30,11 @@ const LIVE_STREAM_EXTENSION: &str = "ts";
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamStream {
-    stream_id: Option<u64>,
+    stream_id: serde_json::Value,
     name: Option<String>,
-    category_id: Option<String>,
+    category_id: serde_json::Value,
     stream_icon: Option<String>,
-    series_id: Option<u64>,
+    series_id: serde_json::Value,
     cover: Option<String>,
     container_extension: Option<String>,
 }
@@ -169,17 +169,13 @@ fn process_xtream(
     let cats: HashMap<String, String> = cats
         .into_iter()
         .filter_map(|f| {
-            let category_id = f
-                .category_id
-                .as_str()
-                .map(|cid| cid.to_string())
-                .or_else(|| f.category_id.as_u64().map(|cid| cid.to_string()));
+            let category_id = get_serde_json_string(&f.category_id);
             category_id.map(|cid| (cid, f.category_name))
         })
         .collect();
     let mut groups: HashMap<String, i64> = HashMap::new();
     for live in streams {
-        let category_name = get_cat_name(&cats, live.category_id.clone());
+        let category_name = get_cat_name(&cats, get_serde_json_string(&live.category_id));
         convert_xtream_live_to_channel(live, &source, stream_type.clone(), category_name)
             .and_then(|mut channel| {
                 sql::set_channel_group_id(
@@ -210,6 +206,7 @@ fn convert_xtream_live_to_channel(
     stream_type: u8,
     category_name: Option<String>,
 ) -> Result<Channel> {
+    let stream_id = get_serde_json_number(&stream.stream_id).context("missing stream id")?;
     Ok(Channel {
         id: None,
         group: category_name.map(|x| x.trim().to_string()),
@@ -221,16 +218,16 @@ fn convert_xtream_live_to_channel(
         name: stream.name.context("No name")?.trim().to_string(),
         source_id: source.id,
         url: if stream_type == media_type::SERIE {
-            Some(stream.series_id.context("no series id")?.to_string())
+            get_serde_json_string(&stream.series_id)
         } else {
             Some(get_url(
-                stream.stream_id.context("no stream id")?.to_string(),
+                stream_id.to_string(),
                 source,
                 stream_type,
                 stream.container_extension,
             )?)
         },
-        stream_id: stream.stream_id,
+        stream_id: Some(stream_id),
         favorite: false,
         group_id: None,
         series_id: None,
@@ -297,12 +294,19 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
     Ok(())
 }
 
-fn get_serde_json_number(value: &serde_json::Value) -> u64 {
+fn get_serde_json_string(value: &serde_json::Value) -> Option<String> {
     value
         .as_str()
-        .and_then(|val| val.parse::<u64>().ok())
+        .map(|cid| cid.to_string())
+        .or_else(|| value.as_u64().map(|cid| cid.to_string()))
+        .map(|cid| cid.trim().to_string())
+}
+
+fn get_serde_json_number(value: &serde_json::Value) -> Option<u64> {
+    value
+        .as_str()
+        .and_then(|val| val.trim().parse::<u64>().ok())
         .or_else(|| value.as_u64())
-        .unwrap_or(0)
 }
 
 fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: u64) -> Result<Channel> {
