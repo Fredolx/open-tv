@@ -30,10 +30,13 @@ const LIVE_STREAM_EXTENSION: &str = "ts";
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamStream {
+    #[serde(default)]
     stream_id: serde_json::Value,
     name: Option<String>,
+    #[serde(default)]
     category_id: serde_json::Value,
     stream_icon: Option<String>,
+    #[serde(default)]
     series_id: serde_json::Value,
     cover: Option<String>,
     container_extension: Option<String>,
@@ -47,7 +50,9 @@ struct XtreamEpisode {
     id: String,
     title: String,
     container_extension: String,
+    #[serde(default)]
     episode_num: serde_json::Value,
+    #[serde(default)]
     season: serde_json::Value,
     #[serde(default)]
     info: serde_json::Value,
@@ -58,6 +63,7 @@ struct XtreamEpisodeInfo {
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamCategory {
+    #[serde(default)]
     category_id: serde_json::Value,
     category_name: String,
 }
