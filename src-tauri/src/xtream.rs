@@ -212,7 +212,7 @@ fn convert_xtream_live_to_channel(
     stream_type: u8,
     category_name: Option<String>,
 ) -> Result<Channel> {
-    let stream_id = get_serde_json_number(&stream.stream_id).context("missing stream id")?;
+    let stream_id = get_serde_json_number(&stream.stream_id);
     Ok(Channel {
         id: None,
         group: category_name.map(|x| x.trim().to_string()),
@@ -227,13 +227,13 @@ fn convert_xtream_live_to_channel(
             get_serde_json_string(&stream.series_id)
         } else {
             Some(get_url(
-                stream_id.to_string(),
+                stream_id.context("missing stream id")?.to_string(),
                 source,
                 stream_type,
                 stream.container_extension,
             )?)
         },
-        stream_id: Some(stream_id),
+        stream_id,
         favorite: false,
         group_id: None,
         series_id: None,
