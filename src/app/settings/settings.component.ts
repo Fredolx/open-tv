@@ -22,7 +22,8 @@ export class SettingsComponent {
     default_view: ViewMode.All,
     volume: 100,
     restream_port: 3000,
-    enable_tray_icon: true
+    enable_tray_icon: true,
+    zoom: 100,
   };
   viewModeEnum = ViewMode;
   sources: Source[] = [];
@@ -33,7 +34,7 @@ export class SettingsComponent {
     public memory: MemoryService,
     private nav: Router,
     private modal: NgbModal,
-  ) { }
+  ) {}
 
   isInputFocused(): boolean {
     const activeElement = document.activeElement;
@@ -73,6 +74,7 @@ export class SettingsComponent {
       if (this.settings.volume == undefined) this.settings.volume = 100;
       if (this.settings.restream_port == undefined) this.settings.restream_port = 3000;
       if (this.settings.enable_tray_icon == undefined) this.settings.enable_tray_icon = true;
+      if (this.settings.zoom == undefined) this.settings.zoom = 100;
     });
   }
 

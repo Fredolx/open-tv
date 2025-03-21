@@ -7,4 +7,5 @@ export class Settings {
   refresh_on_start?: boolean;
   restream_port?: number;
   enable_tray_icon?: boolean;
+  zoom?: number;
 }

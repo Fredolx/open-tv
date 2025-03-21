@@ -22,6 +22,7 @@ import { SourceType } from "../models/sourceType";
 import { animate, state, style, transition, trigger } from "@angular/animations";
 import { ErrorService } from "../error.service";
 import { Settings } from "../models/settings";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
 
 @Component({
   selector: "app-home",
@@ -94,6 +95,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       .then((data) => {
         let settings = data[0] as Settings;
         let sources = data[1] as Source[];
+        if (settings.zoom) getCurrentWebview().setZoom(Math.trunc(settings.zoom! * 100) / 10000);
         this.memory.trayEnabled = settings.enable_tray_icon ?? true;
         sources
           .filter((x) => x.source_type == SourceType.Custom)
