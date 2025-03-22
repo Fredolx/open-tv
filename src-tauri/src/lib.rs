@@ -20,6 +20,7 @@ pub mod mpv;
 pub mod restream;
 pub mod settings;
 pub mod share;
+pub mod sort_type;
 pub mod source_type;
 pub mod sql;
 pub mod types;

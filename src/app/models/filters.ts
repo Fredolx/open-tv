@@ -1,4 +1,5 @@
 import { MediaType } from "./mediaType";
+import { SortType } from "./sortType";
 import { ViewMode } from "./viewMode";
 
 export class Filters {
@@ -10,4 +11,5 @@ export class Filters {
   public group_id?: number;
   public series_id?: number;
   public use_keywords!: boolean;
+  public sort?: SortType;
 }

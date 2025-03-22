@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Source } from "./models/source";
-import { Subject } from "rxjs";
+import { BehaviorSubject, Subject } from "rxjs";
 import { MatMenuTrigger } from "@angular/material/menu";
 import { IdName } from "./models/idName";
 import { ToastrService } from "ngx-toastr";
@@ -8,6 +8,7 @@ import { ErrorService } from "./error.service";
 import { Channel } from "./models/channel";
 import { NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
 import { invoke } from "@tauri-apps/api/core";
+import { SortType } from "./models/sortType";
 
 @Injectable({
   providedIn: "root",
@@ -16,9 +17,10 @@ export class MemoryService {
   constructor(
     private toastr: ToastrService,
     private error: ErrorService,
-  ) { }
+  ) {}
   public SetGroupNode: Subject<IdName> = new Subject();
   public SetSeriesNode: Subject<Channel> = new Subject();
+  public Sort: BehaviorSubject<number> = new BehaviorSubject(SortType.provider);
   public Sources: Source[] = [];
   public currentContextMenu?: MatMenuTrigger;
   public Loading = false;

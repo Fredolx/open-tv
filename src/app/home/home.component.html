@@ -3,72 +3,136 @@
 <div class="mb-5">
   <svg fill="currentColor" class="settings" (click)="openSettings()" viewBox="0 0 24 24">
     <path
-      d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+      d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
+    />
   </svg>
   <div class="container reserve-settings-space">
     <div class="row mb-3">
       <div class="mx-auto col-xl-6 col-lg-6 col-md-8 col-12">
         <div class="search-box">
-          <input autocomplete="off" type="text" id="search" #search style="width: 100%" class="form-control"
-            placeholder="Type to search..." />
-          <svg (click)="toggleKeywords()" *ngIf="!filters?.use_keywords" class="keyword-search-icon"
-            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <input
+            autocomplete="off"
+            type="text"
+            id="search"
+            #search
+            style="width: 100%"
+            class="form-control"
+            placeholder="Type to search..."
+          />
+          <svg
+            (click)="toggleKeywords()"
+            *ngIf="!filters?.use_keywords"
+            class="keyword-search-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+          >
             <path
-              d="M22 13C22 13.53 21.79 14.04 21.41 14.41L21 14.83C20.91 11.97 18.84 9.62 16.11 9.11L11 4H4V11L9.11 16.11C9.62 18.84 11.97 20.91 14.83 21L14.41 21.41C14.04 21.79 13.53 22 13 22C12.47 22 11.97 21.79 11.59 21.42L2.59 12.42C2.21 12.04 2 11.53 2 11V4C2 2.9 2.9 2 4 2H11C11.53 2 12.04 2.21 12.41 2.58L21.41 11.58C21.79 11.96 22 12.47 22 13M5 6.5C5 7.33 5.67 8 6.5 8S8 7.33 8 6.5 7.33 5 6.5 5 5 5.67 5 6.5M15.11 10.61C12.61 10.61 10.61 12.61 10.61 15.11S12.61 19.61 15.11 19.61C16 19.61 16.8 19.36 17.5 18.93L20.61 22L22 20.61L18.92 17.5C19.36 16.82 19.61 16 19.61 15.11C19.61 12.61 17.61 10.61 15.11 10.61M15.11 12.61C16.5 12.61 17.61 13.73 17.61 15.11S16.5 17.61 15.11 17.61 12.61 16.5 12.61 15.11 13.73 12.61 15.11 12.61" />
+              d="M22 13C22 13.53 21.79 14.04 21.41 14.41L21 14.83C20.91 11.97 18.84 9.62 16.11 9.11L11 4H4V11L9.11 16.11C9.62 18.84 11.97 20.91 14.83 21L14.41 21.41C14.04 21.79 13.53 22 13 22C12.47 22 11.97 21.79 11.59 21.42L2.59 12.42C2.21 12.04 2 11.53 2 11V4C2 2.9 2.9 2 4 2H11C11.53 2 12.04 2.21 12.41 2.58L21.41 11.58C21.79 11.96 22 12.47 22 13M5 6.5C5 7.33 5.67 8 6.5 8S8 7.33 8 6.5 7.33 5 6.5 5 5 5.67 5 6.5M15.11 10.61C12.61 10.61 10.61 12.61 10.61 15.11S12.61 19.61 15.11 19.61C16 19.61 16.8 19.36 17.5 18.93L20.61 22L22 20.61L18.92 17.5C19.36 16.82 19.61 16 19.61 15.11C19.61 12.61 17.61 10.61 15.11 10.61M15.11 12.61C16.5 12.61 17.61 13.73 17.61 15.11S16.5 17.61 15.11 17.61 12.61 16.5 12.61 15.11 13.73 12.61 15.11 12.61"
+            />
           </svg>
-          <svg (click)="toggleKeywords()" *ngIf="filters?.use_keywords" class="keyword-search-icon"
-            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <svg
+            (click)="toggleKeywords()"
+            *ngIf="filters?.use_keywords"
+            class="keyword-search-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+          >
             <path
-              d="M21.41 11.58L12.41 2.58C12.05 2.22 11.55 2 11 2H4C2.89 2 2 2.89 2 4V11C2 11.55 2.22 12.05 2.59 12.41L11.58 21.41C11.95 21.77 12.45 22 13 22S14.05 21.77 14.41 21.41L14.83 21C11.6 20.9 9 18.26 9 15C9 11.69 11.69 9 15 9C18.26 9 20.9 11.6 21 14.83L21.41 14.41C21.78 14.05 22 13.55 22 13C22 12.44 21.77 11.94 21.41 11.58M5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7M15.11 10.61C17.61 10.61 19.61 12.61 19.61 15.11C19.61 16 19.36 16.82 18.92 17.5L22 20.61L20.61 22L17.5 18.93C16.8 19.36 16 19.61 15.11 19.61C12.61 19.61 10.61 17.61 10.61 15.11S12.61 10.61 15.11 10.61M15.11 12.61C13.73 12.61 12.61 13.73 12.61 15.11S13.73 17.61 15.11 17.61 17.61 16.5 17.61 15.11 16.5 12.61 15.11 12.61" />
+              d="M21.41 11.58L12.41 2.58C12.05 2.22 11.55 2 11 2H4C2.89 2 2 2.89 2 4V11C2 11.55 2.22 12.05 2.59 12.41L11.58 21.41C11.95 21.77 12.45 22 13 22S14.05 21.77 14.41 21.41L14.83 21C11.6 20.9 9 18.26 9 15C9 11.69 11.69 9 15 9C18.26 9 20.9 11.6 21 14.83L21.41 14.41C21.78 14.05 22 13.55 22 13C22 12.44 21.77 11.94 21.41 11.58M5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7M15.11 10.61C17.61 10.61 19.61 12.61 19.61 15.11C19.61 16 19.36 16.82 18.92 17.5L22 20.61L20.61 22L17.5 18.93C16.8 19.36 16 19.61 15.11 19.61C12.61 19.61 10.61 17.61 10.61 15.11S12.61 10.61 15.11 10.61M15.11 12.61C13.73 12.61 12.61 13.73 12.61 15.11S13.73 17.61 15.11 17.61 17.61 16.5 17.61 15.11 16.5 12.61 15.11 12.61"
+            />
           </svg>
         </div>
       </div>
     </div>
 
-    <div class="btn-group mx-auto mb-3" style="width: fit-content; display: block">
-      <button id="viewMode-0" (click)="switchMode(viewModeEnum.All)" class="btn btn-primary"
-        [ngClass]="{ active: filters?.view_type == viewModeEnum.All }">
-        All
-      </button>
-      <button id="viewMode-1" (click)="switchMode(viewModeEnum.Categories)" class="btn btn-primary"
-        [ngClass]="{ active: filters?.view_type == viewModeEnum.Categories }">
-        Categories
-      </button>
-      <button id="viewMode-2" (click)="switchMode(viewModeEnum.History)" class="btn btn-primary"
-        [ngClass]="{ active: filters?.view_type == viewModeEnum.History }">
-        History
-      </button>
-      <button id="viewMode-3" (click)="switchMode(viewModeEnum.Favorites)" class="btn btn-primary"
-        [ngClass]="{ active: filters?.view_type == viewModeEnum.Favorites }">
-        Favorites
-      </button>
+    <div class="mx-auto align-items-center d-flex mb-3" style="width: fit-content">
+      <div class="btn-group">
+        <button
+          id="viewMode-0"
+          (click)="switchMode(viewModeEnum.All)"
+          class="btn btn-primary"
+          [ngClass]="{ active: filters?.view_type == viewModeEnum.All }"
+        >
+          All
+        </button>
+        <button
+          id="viewMode-1"
+          (click)="switchMode(viewModeEnum.Categories)"
+          class="btn btn-primary"
+          [ngClass]="{ active: filters?.view_type == viewModeEnum.Categories }"
+        >
+          Categories
+        </button>
+        <button
+          id="viewMode-2"
+          (click)="switchMode(viewModeEnum.History)"
+          class="btn btn-primary"
+          [ngClass]="{ active: filters?.view_type == viewModeEnum.History }"
+        >
+          History
+        </button>
+        <button
+          id="viewMode-3"
+          (click)="switchMode(viewModeEnum.Favorites)"
+          class="btn btn-primary"
+          [ngClass]="{ active: filters?.view_type == viewModeEnum.Favorites }"
+        >
+          Favorites
+        </button>
+      </div>
+      <app-sort-button></app-sort-button>
     </div>
+
     <div class="mx-auto filterBox" style="margin-bottom: 1rem" *ngIf="filtersVisible()" @fadeInOut>
       <div class="form-check form-check-inline form-switch">
-        <input [(ngModel)]="chkLiveStream" (ngModelChange)="updateMediaTypes(mediaTypeEnum.livestream)"
-          class="form-check-input" id="filter-0" type="checkbox" />
+        <input
+          [(ngModel)]="chkLiveStream"
+          (ngModelChange)="updateMediaTypes(mediaTypeEnum.livestream)"
+          class="form-check-input"
+          id="filter-0"
+          type="checkbox"
+        />
         <label class="form-check-label" for="filter-0"> Livestreams </label>
       </div>
       <div class="form-check form-check-inline form-switch">
-        <input [(ngModel)]="chkMovie" (ngModelChange)="updateMediaTypes(mediaTypeEnum.movie)" class="form-check-input"
-          id="filter-1" type="checkbox" />
+        <input
+          [(ngModel)]="chkMovie"
+          (ngModelChange)="updateMediaTypes(mediaTypeEnum.movie)"
+          class="form-check-input"
+          id="filter-1"
+          type="checkbox"
+        />
         <label *ngIf="anyXtream()" class="form-check-label" for="filter-1"> Movies/Vods </label>
         <label *ngIf="!anyXtream()"> Movies/Vods/Series </label>
       </div>
       <div *ngIf="anyXtream()" class="form-check form-check-inline form-switch">
-        <input [(ngModel)]="chkSerie" (ngModelChange)="updateMediaTypes(mediaTypeEnum.serie)" class="form-check-input"
-          id="filter-2" type="checkbox" />
+        <input
+          [(ngModel)]="chkSerie"
+          (ngModelChange)="updateMediaTypes(mediaTypeEnum.serie)"
+          class="form-check-input"
+          id="filter-2"
+          type="checkbox"
+        />
         <label class="form-check-label" for="filter-2"> Series </label>
       </div>
     </div>
 
-    <div class="mb-3 d-flex align-items-center" *ngIf="
+    <div
+      class="mb-3 d-flex align-items-center"
+      *ngIf="
         (filters?.view_type == viewModeEnum.Categories && filters?.group_id) || filters?.series_id
-      ">
-      <svg (click)="goBack()" fill="currentColor" class="go-back-arrow clickable" xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24">
+      "
+    >
+      <svg
+        (click)="goBack()"
+        fill="currentColor"
+        class="go-back-arrow clickable"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
         <path
-          d="M2,12A10,10 0 0,1 12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12M18,11H10L13.5,7.5L12.08,6.08L6.16,12L12.08,17.92L13.5,16.5L10,13H18V11Z" />
+          d="M2,12A10,10 0 0,1 12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12M18,11H10L13.5,7.5L12.08,6.08L6.16,12L12.08,17.92L13.5,16.5L10,13H18V11Z"
+        />
       </svg>
       <h4 *ngIf="filters?.group_id && !filters?.series_id" class="ms-2 mb-0">
         Viewing: {{ this.current_group_name }}
@@ -76,13 +140,22 @@
       <h4 *ngIf="filters?.series_id" class="ms-2 mb-0">Viewing: {{ this.current_series_name }}</h4>
     </div>
     <div class="row gy-3" [@fade]="channelsVisible ? 'visible' : 'hidden'">
-      <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
-        class="col-lg-4 col-md-4" [id]="i" [channel]="channel"></app-channel-tile>
+      <app-channel-tile
+        [attr.id]="i == 0 ? 'first' : null"
+        *ngFor="let channel of channels; let i = index"
+        class="col-lg-4 col-md-4"
+        [id]="i"
+        [channel]="channel"
+      ></app-channel-tile>
     </div>
   </div>
 
-  <button [@fade]="channelsVisible ? 'visible' : 'hidden'" *ngIf="reachedMax === false" (click)="loadMore()"
-    class="btn btn-outline-primary mx-auto d-block mt-3">
+  <button
+    [@fade]="channelsVisible ? 'visible' : 'hidden'"
+    *ngIf="reachedMax === false"
+    (click)="loadMore()"
+    class="btn btn-outline-primary mx-auto d-block mt-3"
+  >
     Load More
   </button>
 </div>

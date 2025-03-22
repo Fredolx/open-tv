@@ -28,6 +28,8 @@ import { ConfirmDeleteModalComponent } from './confirm-delete-modal/confirm-dele
 import { EpgModalComponent } from './epg-modal/epg-modal.component';
 import { EpgModalItemComponent } from './epg-modal/epg-modal-item/epg-modal-item.component';
 import { RestreamModalComponent } from './restream-modal/restream-modal.component';
+import { SortButtonComponent } from './home/sort-button/sort-button.component';
+import { SortItemComponent } from './home/sort-button/sort-item/sort-item.component';
 
 @NgModule({
   declarations: [
@@ -51,6 +53,8 @@ import { RestreamModalComponent } from './restream-modal/restream-modal.componen
     EpgModalComponent,
     EpgModalItemComponent,
     RestreamModalComponent,
+    SortButtonComponent,
+    SortItemComponent,
   ],
   imports: [
     BrowserModule,

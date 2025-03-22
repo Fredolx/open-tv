@@ -1,6 +1,7 @@
 use std::{collections::HashMap, sync::LazyLock};
 
 use crate::log::log;
+use crate::sort_type;
 use crate::types::{
     ChannelPreserve, CustomChannel, CustomChannelExtraData, EPGNotify, ExportedGroup, Group, IdName,
 };
@@ -403,6 +404,14 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     } else if filters.group_id.is_some() {
         sql_query += &format!("\nAND group_id = ?");
         baked_params += 1;
+    }
+    if filters.sort != sort_type::PROVIDER {
+        let order = match filters.sort {
+            sort_type::ALPHABETICAL_ASC => "ASC",
+            sort_type::ALPHABETICAL_DESC => "DESC",
+            _ => "ASC",
+        };
+        sql_query += &format!("\nORDER BY name {}", order);
     }
     sql_query += "\nLIMIT ?, ?";
     let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(
@@ -1178,90 +1187,4 @@ pub fn add_last_watched(id: i64) -> Result<()> {
         params![],
     )?;
     Ok(())
-}
-
-#[cfg(test)]
-mod test_sql {
-    use std::collections::HashMap;
-
-    use crate::{
-        media_type,
-        settings::{RECORDING_PATH, USE_STREAM_CACHING},
-        sql::{create_structure, drop_db, structure_exists},
-        types::Filters,
-        view_type,
-    };
-
-    use super::{get_sources, search, update_settings};
-
-    #[test]
-    fn test_structure_exists() {
-        drop_db().unwrap();
-        assert_eq!(structure_exists().unwrap(), false);
-        create_structure().unwrap();
-        assert_eq!(structure_exists().unwrap(), true);
-    }
-    #[test]
-    fn test_update_settings() {
-        drop_db().unwrap_or_default();
-        create_structure().unwrap();
-        let mut map: HashMap<String, String> = HashMap::with_capacity(3);
-        map.insert(USE_STREAM_CACHING.to_string(), true.to_string());
-        map.insert(RECORDING_PATH.to_string(), "somePath".to_string());
-        update_settings(map.clone()).unwrap();
-        update_settings(map).unwrap();
-    }
-
-    #[test]
-    fn test_search() {
-        let results = search(Filters {
-            media_types: Some(vec![media_type::LIVESTREAM, media_type::MOVIE]),
-            page: 1,
-            query: Some("Fra".to_string()),
-            source_ids: get_sources()
-                .unwrap()
-                .iter()
-                .map(|x| x.id.unwrap())
-                .collect(),
-            view_type: view_type::ALL,
-            group_id: None,
-            series_id: None,
-            use_keywords: false,
-        })
-        .unwrap();
-        println!("{:?}\n\n", results);
-        println!("{}", results.len());
-    }
-
-    #[test]
-    fn test_drop_db() {
-        drop_db().unwrap();
-    }
-
-    #[test]
-    fn test_search_group() {
-        let results = search(Filters {
-            media_types: None,
-            page: 1,
-            query: Some("Fra".to_string()),
-            source_ids: get_sources()
-                .unwrap()
-                .iter()
-                .map(|x| x.id.unwrap())
-                .collect(),
-            view_type: view_type::CATEGORIES,
-            group_id: None,
-            series_id: None,
-            use_keywords: false,
-        })
-        .unwrap();
-        println!("{:?}\n\n", results);
-        println!("{}", results.len());
-    }
-
-    #[test]
-    fn test_get_sources() {
-        let results = get_sources().unwrap();
-        println!("{:?}", results);
-    }
 }

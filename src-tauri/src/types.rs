@@ -65,6 +65,7 @@ pub struct Filters {
     pub series_id: Option<i64>,
     pub group_id: Option<i64>,
     pub use_keywords: bool,
+    pub sort: u8,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize, Default)]

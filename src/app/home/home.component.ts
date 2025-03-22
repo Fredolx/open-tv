@@ -23,6 +23,7 @@ import { animate, state, style, transition, trigger } from "@angular/animations"
 import { ErrorService } from "../error.service";
 import { Settings } from "../models/settings";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
+import { SortType } from "../models/sortType";
 
 @Component({
   selector: "app-home",
@@ -118,6 +119,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             media_types: [MediaType.livestream, MediaType.movie, MediaType.serie],
             page: 1,
             use_keywords: false,
+            sort: SortType.provider,
           };
           this.chkSerie = this.anyXtream();
           if (settings.refresh_on_start === true && !sessionStorage.getItem("refreshedOnStart")) {
@@ -178,6 +180,15 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(
       this.memory.Refresh.subscribe((favs) => {
         if (favs === false || this.filters?.view_type == ViewMode.Favorites) this.load();
+      }),
+    );
+    this.subscriptions.push(
+      this.memory.Sort.subscribe(async (sort) => {
+        if (!this.filters) return;
+        this.filters!.sort = sort;
+        this.filters.page = 1;
+        this.reachedMax = false;
+        await this.load();
       }),
     );
   }
