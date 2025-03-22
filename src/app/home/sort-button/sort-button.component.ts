@@ -11,7 +11,7 @@ import { SortType } from "../../models/sortType";
 export class SortButtonComponent {
   constructor(private memory: MemoryService) {}
   menuTopLeftPosition = { x: 0, y: 0 };
-  sortTypeEnum = SortType;
+  sortTypes = [SortType.alphabeticalAscending, SortType.alphabeticalDescending, SortType.provider];
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
 
   click(event: MouseEvent) {

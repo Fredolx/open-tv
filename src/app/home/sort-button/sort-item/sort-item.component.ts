@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core";
-import { SortType } from "../../../models/sortType";
+import { SortType, getSortTypeText } from "../../../models/sortType";
 import { MemoryService } from "../../../memory.service";
 
 @Component({
@@ -13,16 +13,8 @@ export class SortItemComponent {
   @Input()
   sortType?: SortType;
 
-  getSortTypeText(): String {
-    switch (this.sortType) {
-      case SortType.alphabeticalAscending:
-        return "Sort alphabetically asc";
-      case SortType.alphabeticalDescending:
-        return "Sort alphabetically desc";
-      case SortType.provider:
-        return "Sort provider";
-    }
-    return "";
+  getText(): String {
+    return getSortTypeText(this.sortType);
   }
 
   notifySortChange() {

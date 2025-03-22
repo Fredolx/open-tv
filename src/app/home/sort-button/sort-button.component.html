@@ -15,8 +15,8 @@
 ></div>
 <mat-menu #rightMenu="matMenu">
   <ng-template matMenuContent let-item="item">
-    <app-sort-item [sortType]="sortTypeEnum.alphabeticalAscending"></app-sort-item>
-    <app-sort-item [sortType]="sortTypeEnum.alphabeticalDescending"></app-sort-item>
-    <app-sort-item [sortType]="sortTypeEnum.provider"></app-sort-item>
+    <ng-container *ngFor="let sortType of sortTypes">
+      <app-sort-item [sortType]="sortType"></app-sort-item>
+    </ng-container>
   </ng-template>
 </mat-menu>
