@@ -9,6 +9,7 @@ import { MemoryService } from "../memory.service";
 import { ViewMode } from "../models/viewMode";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { ConfirmDeleteModalComponent } from "../confirm-delete-modal/confirm-delete-modal.component";
+import { SORT_TYPES, SortType, getSortTypeText } from "../models/sortType";
 
 @Component({
   selector: "app-settings",
@@ -24,9 +25,11 @@ export class SettingsComponent {
     restream_port: 3000,
     enable_tray_icon: true,
     zoom: 100,
+    default_sort: SortType.provider,
   };
   viewModeEnum = ViewMode;
   sources: Source[] = [];
+  sortTypes = SORT_TYPES;
   @ViewChild("mpvParams") mpvParams!: ElementRef;
 
   constructor(
@@ -35,6 +38,10 @@ export class SettingsComponent {
     private nav: Router,
     private modal: NgbModal,
   ) {}
+
+  _getSortTypeText(sortType: SortType) {
+    return getSortTypeText(sortType);
+  }
 
   isInputFocused(): boolean {
     const activeElement = document.activeElement;
@@ -75,6 +82,7 @@ export class SettingsComponent {
       if (this.settings.restream_port == undefined) this.settings.restream_port = 3000;
       if (this.settings.enable_tray_icon == undefined) this.settings.enable_tray_icon = true;
       if (this.settings.zoom == undefined) this.settings.zoom = 100;
+      if (this.settings.default_sort == undefined) this.settings.default_sort = SortType.provider;
     });
   }
 

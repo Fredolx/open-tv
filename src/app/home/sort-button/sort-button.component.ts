@@ -1,7 +1,7 @@
 import { Component, Input, ViewChild } from "@angular/core";
 import { MemoryService } from "../../memory.service";
 import { MatMenuTrigger } from "@angular/material/menu";
-import { SortType } from "../../models/sortType";
+import { SORT_TYPES, SortType } from "../../models/sortType";
 
 @Component({
   selector: "app-sort-button",
@@ -11,7 +11,7 @@ import { SortType } from "../../models/sortType";
 export class SortButtonComponent {
   constructor(private memory: MemoryService) {}
   menuTopLeftPosition = { x: 0, y: 0 };
-  sortTypes = [SortType.alphabeticalAscending, SortType.alphabeticalDescending, SortType.provider];
+  sortTypes = SORT_TYPES;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
 
   click(event: MouseEvent) {

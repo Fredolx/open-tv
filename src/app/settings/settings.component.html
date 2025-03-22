@@ -71,6 +71,23 @@
 
   <div class="row mt-3 align-items-center">
     <div class="col-4">
+      <span>Default sort</span>
+    </div>
+    <div class="col">
+      <select
+        (ngModelChange)="updateSettings()"
+        [(ngModel)]="settings.default_sort"
+        class="form-control"
+      >
+        <ng-container *ngFor="let sort of sortTypes">
+          <option [ngValue]="sort">{{ _getSortTypeText(sort) }}</option>
+        </ng-container>
+      </select>
+    </div>
+  </div>
+
+  <div class="row mt-3 align-items-center">
+    <div class="col-4">
       <span>Volume on start</span>
     </div>
     <div class="col d-inline-flex">

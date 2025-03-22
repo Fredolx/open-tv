@@ -4,14 +4,20 @@ export enum SortType {
   provider,
 }
 
+export const SORT_TYPES = [
+  SortType.alphabeticalAscending,
+  SortType.alphabeticalDescending,
+  SortType.provider,
+];
+
 export function getSortTypeText(sortType?: SortType): String {
   switch (sortType) {
     case SortType.alphabeticalAscending:
-      return "Sort alphabetically asc";
+      return "Alphabetically asc";
     case SortType.alphabeticalDescending:
-      return "Sort alphabetically desc";
+      return "Alphabetically desc";
     case SortType.provider:
-      return "Sort provider";
+      return "Provider";
   }
   return "";
 }

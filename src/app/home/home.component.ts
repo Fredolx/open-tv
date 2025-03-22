@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { Router } from "@angular/router";
 import { AllowIn, ShortcutInput } from "ng-keyboard-shortcuts";
-import { Subscription, debounceTime, distinctUntilChanged, fromEvent, map } from "rxjs";
+import { Subscription, debounceTime, distinctUntilChanged, fromEvent, map, skip } from "rxjs";
 import { MemoryService } from "../memory.service";
 import { Channel } from "../models/channel";
 import { ViewMode } from "../models/viewMode";
@@ -121,6 +121,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             use_keywords: false,
             sort: SortType.provider,
           };
+          if (settings.default_sort != undefined && settings.default_sort != SortType.provider) {
+            this.memory.Sort.next([settings.default_sort, false]);
+            this.filters.sort = settings.default_sort;
+          }
           this.chkSerie = this.anyXtream();
           if (settings.refresh_on_start === true && !sessionStorage.getItem("refreshedOnStart")) {
             sessionStorage.setItem("refreshedOnStart", "true");
@@ -183,8 +187,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       }),
     );
     this.subscriptions.push(
-      this.memory.Sort.subscribe(async (sort) => {
-        if (!this.filters) return;
+      this.memory.Sort.pipe(skip(1)).subscribe(async ([sort, load]) => {
+        if (!this.filters || !load) return;
         this.filters!.sort = sort;
         this.filters.page = 1;
         this.reachedMax = false;

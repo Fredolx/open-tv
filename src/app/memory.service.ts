@@ -20,7 +20,10 @@ export class MemoryService {
   ) {}
   public SetGroupNode: Subject<IdName> = new Subject();
   public SetSeriesNode: Subject<Channel> = new Subject();
-  public Sort: BehaviorSubject<number> = new BehaviorSubject(SortType.provider);
+  public Sort: BehaviorSubject<[number, boolean]> = new BehaviorSubject<[number, boolean]>([
+    SortType.provider,
+    false,
+  ]);
   public Sources: Source[] = [];
   public currentContextMenu?: MatMenuTrigger;
   public Loading = false;

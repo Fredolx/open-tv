@@ -18,6 +18,6 @@ export class SortItemComponent {
   }
 
   notifySortChange() {
-    this.memory.Sort.next(this.sortType!);
+    this.memory.Sort.next([this.sortType!, true]);
   }
 }

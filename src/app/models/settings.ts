@@ -8,4 +8,5 @@ export class Settings {
   restream_port?: number;
   enable_tray_icon?: boolean;
   zoom?: number;
+  default_sort?: number;
 }

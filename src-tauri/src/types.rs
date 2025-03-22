@@ -53,6 +53,7 @@ pub struct Settings {
     pub restream_port: Option<u16>,
     pub enable_tray_icon: Option<bool>,
     pub zoom: Option<u16>,
+    pub default_sort: Option<u8>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
