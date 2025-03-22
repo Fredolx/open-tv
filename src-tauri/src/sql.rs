@@ -405,7 +405,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         sql_query += &format!("\nAND group_id = ?");
         baked_params += 1;
     }
-    if filters.sort != sort_type::PROVIDER {
+    if filters.sort != sort_type::PROVIDER && filters.view_type != view_type::HISTORY {
         let order = match filters.sort {
             sort_type::ALPHABETICAL_ASC => "ASC",
             sort_type::ALPHABETICAL_DESC => "DESC",
@@ -487,17 +487,25 @@ pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
         false => vec![format!("%{query}%")],
     };
     let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(2 + filters.source_ids.len());
-    let sql_query = format!(
+    let mut sql_query = format!(
         r#"
         SELECT *
         FROM groups
         WHERE ({})
         AND source_id in ({})
-        LIMIT ?, ?
     "#,
         get_keywords_sql(keywords.len()),
         generate_placeholders(filters.source_ids.len())
     );
+    if filters.sort != sort_type::PROVIDER {
+        let order = match filters.sort {
+            sort_type::ALPHABETICAL_ASC => "ASC",
+            sort_type::ALPHABETICAL_DESC => "DESC",
+            _ => "ASC",
+        };
+        sql_query += &format!("\nORDER BY name {}", order);
+    }
+    sql_query += "\nLIMIT ?, ?";
     params.extend(to_to_sql(&keywords));
     params.extend(to_to_sql(&filters.source_ids));
     params.push(&offset);
