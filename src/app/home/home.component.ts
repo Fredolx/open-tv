@@ -419,7 +419,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   goBackHotkey() {
     if (this.memory.ModalRef) {
-      if ((this.memory.ModalRef.componentInstance.name = "WhatsNewModal")) {
+      if (this.memory.ModalRef.componentInstance.name == "WhatsNewModal") {
         this.memory.updateVersion();
       }
       if (
