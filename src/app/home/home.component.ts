@@ -24,6 +24,10 @@ import { ErrorService } from "../error.service";
 import { Settings } from "../models/settings";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { SortType } from "../models/sortType";
+import { getVersion } from "@tauri-apps/api/app";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import { WhatsNewModalComponent } from "../whats-new-modal/whats-new-modal.component";
+import { LAST_SEEN_VERSION } from "../models/localStorage";
 
 @Component({
   selector: "app-home",
@@ -85,6 +89,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     public memory: MemoryService,
     public toast: ToastrService,
     private error: ErrorService,
+    private modal: NgbModal,
   ) {
     this.getSources();
   }
@@ -98,21 +103,35 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         let sources = data[1] as Source[];
         if (settings.zoom) getCurrentWebview().setZoom(Math.trunc(settings.zoom! * 100) / 10000);
         this.memory.trayEnabled = settings.enable_tray_icon ?? true;
-        sources
-          .filter((x) => x.source_type == SourceType.Custom)
-          .map((x) => x.id!)
-          .forEach((x) => this.memory.CustomSourceIds?.add(x));
-        sources
-          .filter((x) => x.source_type == SourceType.Xtream)
-          .map((x) => x.id!)
-          .forEach((x) => this.memory.XtreamSourceIds.add(x));
-        if (this.memory.XtreamSourceIds.size > 0 && !sessionStorage.getItem("epgCheckedOnStart")) {
-          sessionStorage.setItem("epgCheckedOnStart", "true");
-          invoke("on_start_check_epg");
-        }
         this.memory.Sources = sources.filter((x) => x.enabled);
         if (sources.length == 0) this.reset();
         else {
+          getVersion().then((version) => {
+            if (localStorage.getItem(LAST_SEEN_VERSION) != version) {
+              this.memory.AppVersion = version;
+              this.memory.ModalRef = this.modal.open(WhatsNewModalComponent, {
+                backdrop: "static",
+                size: "xl",
+                keyboard: false,
+              });
+              this.memory.ModalRef.componentInstance.name = "WhatsNewModal";
+            }
+          });
+          sources
+            .filter((x) => x.source_type == SourceType.Custom)
+            .map((x) => x.id!)
+            .forEach((x) => this.memory.CustomSourceIds?.add(x));
+          sources
+            .filter((x) => x.source_type == SourceType.Xtream)
+            .map((x) => x.id!)
+            .forEach((x) => this.memory.XtreamSourceIds.add(x));
+          if (
+            this.memory.XtreamSourceIds.size > 0 &&
+            !sessionStorage.getItem("epgCheckedOnStart")
+          ) {
+            sessionStorage.setItem("epgCheckedOnStart", "true");
+            invoke("on_start_check_epg");
+          }
           this.filters = {
             source_ids: this.memory.Sources.map((x) => x.id!),
             view_type: settings.default_view ?? ViewMode.All,
@@ -400,6 +419,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   goBackHotkey() {
     if (this.memory.ModalRef) {
+      if ((this.memory.ModalRef.componentInstance.name = "WhatsNewModal")) {
+        this.memory.updateVersion();
+      }
       if (
         this.memory.ModalRef.componentInstance.name != "RestreamModalComponent" ||
         !this.memory.ModalRef.componentInstance.started

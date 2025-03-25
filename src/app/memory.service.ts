@@ -9,6 +9,7 @@ import { Channel } from "./models/channel";
 import { NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
 import { invoke } from "@tauri-apps/api/core";
 import { SortType } from "./models/sortType";
+import { LAST_SEEN_VERSION } from "./models/localStorage";
 
 @Injectable({
   providedIn: "root",
@@ -38,6 +39,7 @@ export class MemoryService {
   public Watched_epgs: Set<string> = new Set();
   private downloadingChannels: Map<number, [number, Subject<boolean>]> = new Map();
   public LoadingNotification: boolean = false;
+  public AppVersion?: string;
   public trayEnabled?: boolean;
   async tryIPC<T>(
     successMessage: string,
@@ -85,5 +87,9 @@ export class MemoryService {
 
   setLastDownloadProgress(id: number, progress: number) {
     this.downloadingChannels.get(id)![0] = progress;
+  }
+
+  updateVersion() {
+    if (this.AppVersion) localStorage.setItem(LAST_SEEN_VERSION, this.AppVersion);
   }
 }
