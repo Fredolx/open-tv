@@ -14,11 +14,16 @@
 }
 
 .bell {
-  position: absolute;
   height: 2rem;
   width: 2rem;
-  right: 0.5rem;
-  top: 1rem;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  color: white;
+}
+
+.timeshift {
+  height: 2rem;
+  width: 2rem;
   cursor: pointer;
   transition: transform 0.3s ease;
   color: white;
@@ -27,4 +32,27 @@
 .loading {
   opacity: 20%;
   cursor: default;
+}
+
+.live {
+  height: 0.75rem;
+  width: 0.75rem;
+  border-radius: 50%;
+  background-color: red;
+  animation: pulsate 1.5s infinite ease-in-out;
+}
+
+@keyframes pulsate {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

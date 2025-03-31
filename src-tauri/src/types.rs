@@ -1,5 +1,5 @@
 use std::{
-    sync::{atomic::AtomicBool, Arc},
+    sync::{Arc, atomic::AtomicBool},
     thread::JoinHandle,
 };
 
@@ -131,6 +131,9 @@ pub struct EPG {
     pub start_time: String,
     pub start_timestamp: i64,
     pub end_time: String,
+    pub timeshift_url: Option<String>,
+    pub has_archive: bool,
+    pub now_playing: bool,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

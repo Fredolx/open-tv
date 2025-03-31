@@ -1,32 +1,59 @@
 <div class="epg-item">
-  <h3>{{ epg?.title }}</h3>
+  <div class="row justify-content-between align-items-center">
+    <div class="col-9 d-flex align-items-center gap-2">
+      <span style="font-size: 1.5em">{{ epg?.title }}</span>
+      <svg
+        ngbTooltip="Playing now"
+        *ngIf="epg?.now_playing"
+        class="live"
+        fill="red"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
+        <path d="M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8Z" />
+      </svg>
+    </div>
+    <div class="col align-items-center text-end">
+      <svg
+        fill="currentColor"
+        class="timeshift me-2"
+        *ngIf="epg?.has_archive"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M10,16.5V7.5L16,12M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"
+        />
+      </svg>
+      <svg
+        fill="currentColor"
+        class="bell"
+        *ngIf="!notificationOn()"
+        [ngClass]="{ loading: this.memory.LoadingNotification || !this.memory.trayEnabled }"
+        (click)="toggleNotification()"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z"
+        />
+      </svg>
+      <svg
+        fill="currentColor"
+        class="bell"
+        [ngClass]="{ loading: this.memory.LoadingNotification }"
+        *ngIf="notificationOn()"
+        (click)="toggleNotification()"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M21,19V20H3V19L5,17V11C5,7.9 7.03,5.17 10,4.29C10,4.19 10,4.1 10,4A2,2 0 0,1 12,2A2,2 0 0,1 14,4C14,4.1 14,4.19 14,4.29C16.97,5.17 19,7.9 19,11V17L21,19M14,21A2,2 0 0,1 12,23A2,2 0 0,1 10,21"
+        />
+      </svg>
+    </div>
+  </div>
   <p>{{ epg?.start_time }} - {{ epg?.end_time }}</p>
   <div class="thin-line mt-1"></div>
   <p class="mt-2">{{ epg?.description }}</p>
-  <svg
-    fill="currentColor"
-    class="bell"
-    *ngIf="!notificationOn()"
-    [ngClass]="{ loading: this.memory.LoadingNotification || !this.memory.trayEnabled }"
-    (click)="toggleNotification()"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-  >
-    <path
-      d="M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z"
-    />
-  </svg>
-  <svg
-    fill="currentColor"
-    class="bell"
-    [ngClass]="{ loading: this.memory.LoadingNotification }"
-    *ngIf="notificationOn()"
-    (click)="toggleNotification()"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-  >
-    <path
-      d="M21,19V20H3V19L5,17V11C5,7.9 7.03,5.17 10,4.29C10,4.19 10,4.1 10,4A2,2 0 0,1 12,2A2,2 0 0,1 14,4C14,4.1 14,4.19 14,4.29C16.97,5.17 19,7.9 19,11V17L21,19M14,21A2,2 0 0,1 12,23A2,2 0 0,1 10,21"
-    />
-  </svg>
 </div>

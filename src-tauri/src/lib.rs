@@ -2,14 +2,14 @@ use std::sync::LazyLock;
 
 use anyhow::{Context, Error};
 use tauri::{
+    AppHandle, Manager, State,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, State,
 };
 use tokio::sync::Mutex;
 use types::{
-    AppState, Channel, CustomChannel, CustomChannelExtraData, EPGNotify, Filters, Group, IdName,
-    NetworkInfo, Settings, Source, EPG,
+    AppState, Channel, CustomChannel, CustomChannelExtraData, EPG, EPGNotify, Filters, Group,
+    IdName, NetworkInfo, Settings, Source,
 };
 
 pub mod epg;
@@ -380,9 +380,7 @@ fn update_source(source: Source) -> Result<(), String> {
 
 #[tauri::command]
 async fn get_epg(channel: Channel) -> Result<Vec<EPG>, String> {
-    xtream::get_short_epg(channel)
-        .await
-        .map_err(map_err_frontend)
+    xtream::get_epg(channel).await.map_err(map_err_frontend)
 }
 
 #[tauri::command]
