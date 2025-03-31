@@ -25,7 +25,7 @@ export class EpgModalItemComponent {
   }
 
   async toggleNotification() {
-    if (this.memory.LoadingNotification || this.memory.trayEnabled) return;
+    if (this.memory.LoadingNotification || !this.memory.trayEnabled) return;
     this.memory.LoadingNotification = true;
     if (!this.notificationOn()) {
       try {
