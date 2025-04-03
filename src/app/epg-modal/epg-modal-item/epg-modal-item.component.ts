@@ -21,6 +21,7 @@ export class EpgModalItemComponent {
   epg?: EPG;
   @Input()
   name?: string;
+  playing: boolean = false;
 
   notificationOn(): boolean {
     return this.memory.Watched_epgs.has(this.epg!.epg_id);
@@ -57,7 +58,9 @@ export class EpgModalItemComponent {
     };
   }
 
-  timeshift() {
+  async timeshift() {
+    if (this.playing) return;
+    this.playing = true;
     let channel: Channel = {
       id: -1,
       url: this.epg?.timeshift_url,
@@ -66,12 +69,15 @@ export class EpgModalItemComponent {
       favorite: false,
     };
     try {
-      invoke("play", {
+      await invoke("play", {
         channel: channel,
         record: false,
       });
     } catch (e) {
+      console.error(e);
       this.error.handleError(e);
+    } finally {
+      this.playing = false;
     }
   }
 

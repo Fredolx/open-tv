@@ -17,6 +17,7 @@
       <svg
         fill="currentColor"
         class="timeshift"
+        [ngClass]="{ loading: playing }"
         (click)="timeshift()"
         *ngIf="epg?.has_archive"
         xmlns="http://www.w3.org/2000/svg"
