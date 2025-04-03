@@ -13,6 +13,7 @@ use base64::prelude::BASE64_STANDARD;
 use chrono::DateTime;
 use chrono::Local;
 use chrono::NaiveDateTime;
+use reqwest::Client;
 use rusqlite::Transaction;
 use serde::Deserialize;
 use serde::Serialize;
@@ -166,7 +167,7 @@ async fn get_xtream_http_data<T>(mut url: Url, action: &str) -> Result<T>
 where
     T: serde::de::DeserializeOwned,
 {
-    let client = reqwest::Client::new();
+    let client = Client::builder().user_agent("OpenTV").build()?;
     url.query_pairs_mut().append_pair("action", action);
     let data = client.get(url).send().await?.json::<T>().await?;
     Ok(data)
