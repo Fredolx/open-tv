@@ -12,6 +12,7 @@ use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
 use chrono::DateTime;
 use chrono::Local;
+use chrono::NaiveDateTime;
 use chrono::Utc;
 use rusqlite::Transaction;
 use serde::Deserialize;
@@ -84,6 +85,8 @@ struct XtreamEPGItem {
     stop_timestamp: String,
     now_playing: u8,
     has_archive: u8,
+    start: String,
+    end: String,
 }
 
 fn build_xtream_url(source: &mut Source) -> Result<Url> {
@@ -128,14 +131,14 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
     let mut fail_count = 0;
     live.and_then(|live| process_xtream(&tx, live, live_cats?, &source, media_type::LIVESTREAM))
         .unwrap_or_else(|e| {
-            log::log(format!("{:?}", e));
+            log::log(format!("{:?}", e.context("Failed to process live")));
             fail_count += 1;
         });
     vods.and_then(|vods: Vec<XtreamStream>| {
         process_xtream(&tx, vods, vods_cats?, &source, media_type::MOVIE)
     })
     .unwrap_or_else(|e| {
-        log::log(format!("{:?}", e));
+        log::log(format!("{:?}", e.context("Failed to process vods")));
         fail_count += 1;
     });
     series
@@ -143,7 +146,7 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
             process_xtream(&tx, series, series_cats?, &source, media_type::SERIE)
         })
         .unwrap_or_else(|e| {
-            log::log(format!("{:?}", e));
+            log::log(format!("{:?}", e.context("Failed to process series")));
             fail_count += 1;
         });
     if fail_count > 2 {
@@ -166,6 +169,7 @@ where
 {
     let client = reqwest::Client::new();
     url.query_pairs_mut().append_pair("action", action);
+    println!("{:?}", url);
     let data = client.get(url).send().await?.json::<T>().await?;
     Ok(data)
 }
@@ -370,17 +374,24 @@ fn is_valid_epg(epg: &EPG, now: &DateTime<Local>) -> Result<bool> {
 }
 
 fn xtream_epg_to_epg(epg: XtreamEPGItem, url: &Url, stream_id: &str) -> Result<EPG> {
-    let start = epg.start_timestamp.parse()?;
-    let end = epg.stop_timestamp.parse()?;
     Ok(EPG {
         epg_id: epg.id.clone(),
         title: String::from_utf8(BASE64_STANDARD.decode(&epg.title)?)?,
         description: String::from_utf8(BASE64_STANDARD.decode(&epg.description)?)?,
-        start_time: get_local_time(start)?.format("%Hh%M").to_string(),
-        end_time: get_local_time(end)?.format("%Hh%M").to_string(),
+        start_time: get_local_time(epg.start_timestamp.parse()?)?
+            .format("%B %d - %H:%M")
+            .to_string(),
+        end_time: get_local_time(epg.stop_timestamp.parse()?)?
+            .format("%B %d - %H:%M")
+            .to_string(),
         start_timestamp: epg.start_timestamp.parse()?,
         timeshift_url: if epg.has_archive == 1 {
-            Some(get_timeshift_url(url.clone(), start, end, stream_id)?)
+            Some(get_timeshift_url(
+                url.clone(),
+                epg.start,
+                epg.end,
+                stream_id,
+            )?)
         } else {
             None
         },
@@ -400,15 +411,9 @@ fn get_timeshift_url_base(source: &Source) -> Result<Url> {
     Ok(url)
 }
 
-fn get_timeshift_url(
-    mut url: Url,
-    start_timestamp: i64,
-    end_timestamp: i64,
-    stream_id: &str,
-) -> Result<String> {
-    let start = DateTime::<Utc>::from_timestamp(start_timestamp, 0).context("no time")?;
-    let duration = DateTime::<Utc>::from_timestamp(end_timestamp, 0)
-        .context("no time")?
+fn get_timeshift_url(mut url: Url, start: String, end: String, stream_id: &str) -> Result<String> {
+    let start = NaiveDateTime::parse_from_str(&start, "%Y-%m-%d %H:%M:%S")?;
+    let duration = NaiveDateTime::parse_from_str(&end, "%Y-%m-%d %H:%M:%S")?
         .signed_duration_since(start)
         .num_minutes()
         .to_string();

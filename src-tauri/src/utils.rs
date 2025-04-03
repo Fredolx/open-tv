@@ -3,10 +3,10 @@ use crate::{
     m3u,
     settings::{get_default_record_path, get_settings},
     source_type, sql,
-    types::{Channel, Source},
+    types::Source,
     xtream,
 };
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Local, Utc};
 use regex::Regex;
 use reqwest::Client;
@@ -53,18 +53,12 @@ pub fn get_local_time(timestamp: i64) -> Result<DateTime<Local>> {
     Ok(DateTime::<Local>::from(datetime))
 }
 
-pub async fn download(app: AppHandle, channel: Channel) -> Result<()> {
+pub async fn download(app: AppHandle, name: String, url: String) -> Result<()> {
     let client = Client::new();
-    let mut response = client
-        .get(channel.url.as_ref().context("no url")?)
-        .send()
-        .await?;
+    let mut response = client.get(&url).send().await?;
     let total_size = response.content_length().unwrap_or(0);
     let mut downloaded = 0;
-    let mut file = std::fs::File::create(get_download_path(get_filename(
-        channel.name,
-        channel.url.context("no url")?,
-    )?)?)?;
+    let mut file = std::fs::File::create(get_download_path(get_filename(name, url)?)?)?;
     let mut send_threshold: u8 = 5;
     if !response.status().is_success() {
         let error = response.status();
@@ -85,11 +79,7 @@ pub async fn download(app: AppHandle, channel: Channel) -> Result<()> {
 }
 
 fn get_filename(channel_name: String, url: String) -> Result<String> {
-    let extension = url
-        .split(".")
-        .last()
-        .context("url has no extension")?
-        .to_string();
+    let extension = url.split(".").last().unwrap_or("mp4").to_string();
     let channel_name = sanitize(channel_name);
     let filename = format!("{channel_name}.{extension}").to_string();
     Ok(filename)

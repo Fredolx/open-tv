@@ -384,8 +384,8 @@ async fn get_epg(channel: Channel) -> Result<Vec<EPG>, String> {
 }
 
 #[tauri::command]
-async fn download(app: AppHandle, channel: Channel) -> Result<(), String> {
-    utils::download(app, channel)
+async fn download(app: AppHandle, name: String, url: String) -> Result<(), String> {
+    utils::download(app, name, url)
         .await
         .map_err(map_err_frontend)
 }

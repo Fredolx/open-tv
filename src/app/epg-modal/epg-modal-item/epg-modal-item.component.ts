@@ -4,6 +4,8 @@ import { MemoryService } from "../../memory.service";
 import { invoke } from "@tauri-apps/api/core";
 import { EPGNotify } from "../../models/epgNotify";
 import { ErrorService } from "../../error.service";
+import { Channel } from "../../models/channel";
+import { MediaType } from "../../models/mediaType";
 
 @Component({
   selector: "app-epg-modal-item",
@@ -53,5 +55,27 @@ export class EpgModalItemComponent {
       start_timestamp: epg.start_timestamp,
       title: epg.title,
     };
+  }
+
+  timeshift() {
+    let channel: Channel = {
+      id: -1,
+      url: this.epg?.timeshift_url,
+      name: this.epg?.title,
+      media_type: MediaType.movie,
+      favorite: false,
+    };
+    try {
+      invoke("play", {
+        channel: channel,
+        record: false,
+      });
+    } catch (e) {
+      this.error.handleError(e);
+    }
+  }
+
+  async download_timeshift() {
+    await invoke("download", { name: this.name, url: this.epg?.timeshift_url });
   }
 }

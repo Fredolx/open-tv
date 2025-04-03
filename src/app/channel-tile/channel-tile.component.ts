@@ -18,7 +18,6 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { EditChannelModalComponent } from "../edit-channel-modal/edit-channel-modal.component";
 import { EditGroupModalComponent } from "../edit-group-modal/edit-group-modal.component";
 import { DeleteGroupModalComponent } from "../delete-group-modal/delete-group-modal.component";
-import { SourceType } from "../models/sourceType";
 import { EpgModalComponent } from "../epg-modal/epg-modal.component";
 import { EPG } from "../models/epg";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
@@ -37,7 +36,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     private modal: NgbModal,
     private el: ElementRef,
     private renderer: Renderer2,
-  ) { }
+  ) {}
   @Input() channel?: Channel;
   @Input() id!: Number;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
@@ -317,7 +316,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     });
     this.memory.addDownloadingChannel(this.channel!.id!);
     try {
-      await invoke("download", { channel: this.channel });
+      await invoke("download", { name: this.channel?.name, url: this.channel?.url });
       this.error.success("Successfully downloaded movie");
     } catch (e) {
       this.error.handleError(e);
