@@ -169,7 +169,6 @@ where
 {
     let client = reqwest::Client::new();
     url.query_pairs_mut().append_pair("action", action);
-    println!("{:?}", url);
     let data = client.get(url).send().await?.json::<T>().await?;
     Ok(data)
 }
