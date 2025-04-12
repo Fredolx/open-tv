@@ -3,7 +3,7 @@ use crate::{
     m3u,
     settings::{get_default_record_path, get_settings},
     source_type, sql,
-    types::Source,
+    types::{AppState, Source},
     xtream,
 };
 use anyhow::{Context, Result, anyhow, bail};
@@ -13,11 +13,14 @@ use reqwest::Client;
 use serde::Serialize;
 use std::{
     env::{consts::OS, current_exe},
-    io::Write,
     path::Path,
-    sync::LazyLock,
+    sync::{
+        Arc, LazyLock,
+        atomic::{AtomicBool, Ordering::Relaxed},
+    },
 };
 use tauri::{AppHandle, Emitter};
+use tokio::{io::AsyncWriteExt, sync::Mutex};
 use which::which;
 
 const MACOS_POTENTIAL_PATHS: [&str; 3] = [
@@ -53,25 +56,37 @@ pub fn get_local_time(timestamp: i64) -> Result<DateTime<Local>> {
     Ok(DateTime::<Local>::from(datetime))
 }
 
-pub async fn download(app: AppHandle, name: String, url: String) -> Result<()> {
+pub async fn download(
+    stop: Arc<AtomicBool>,
+    app: AppHandle,
+    name: String,
+    url: String,
+    download_id: &str,
+) -> Result<()> {
     let client = Client::new();
     let mut response = client.get(&url).send().await?;
     let total_size = response.content_length().unwrap_or(0);
     let mut downloaded = 0;
-    let mut file = std::fs::File::create(get_download_path(get_filename(name, url)?)?)?;
-    let mut send_threshold: u8 = 5;
+    let file_path = get_download_path(get_filename(name, url)?)?;
+    let mut file = tokio::fs::File::create(&file_path).await?;
+    let mut send_threshold: f64 = 0.1;
     if !response.status().is_success() {
         let error = response.status();
         bail!("Failed to download movie: HTTP {error}")
     }
     while let Some(chunk) = response.chunk().await? {
-        file.write(&chunk)?;
+        if stop.load(Relaxed) {
+            drop(file);
+            tokio::fs::remove_file(file_path).await?;
+            break;
+        }
+        file.write(&chunk).await?;
         downloaded += chunk.len() as u64;
         if total_size > 0 {
-            let progress: u8 = ((downloaded as f64 / total_size as f64) * 100.0) as u8;
+            let progress: f64 = (downloaded as f64 / total_size as f64) * 100.0;
             if progress > send_threshold {
-                app.emit("progress", progress)?;
-                send_threshold = progress + 5;
+                app.emit(&format!("progress-{}", download_id), progress)?;
+                send_threshold = progress + 0.1 as f64;
             }
         }
     }

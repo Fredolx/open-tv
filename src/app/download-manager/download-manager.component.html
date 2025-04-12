@@ -1,0 +1,59 @@
+<div
+  class="position-fixed bottom-0 end-0 m-3 shadow-sm rounded download-box"
+  [class.collapsed]="isMinimized"
+>
+  <div class="d-flex justify-content-between align-items-center px-3 py-2 download-header">
+    <strong class="text-light">Downloads</strong>
+    <button class="btn btn-sm btn-outline-light" (click)="toggleMinimize()">
+      <span *ngIf="isMinimized">
+        <!-- Stylish Up Arrow SVG for Maximize -->
+        <svg
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+        >
+          <title>chevron-up</title>
+          <path
+            d="M5.84,15.41L11.5,9.75L17.16,15.41L16.45,16.11L11.5,11.16L6.55,16.11L5.84,15.41Z"
+          />
+        </svg>
+      </span>
+      <span *ngIf="!isMinimized">
+        <!-- Close SVG Icon for Expand -->
+        <svg
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+        >
+          <title>close</title>
+          <path
+            d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+          />
+        </svg>
+      </span>
+    </button>
+  </div>
+
+  <div *ngIf="!isMinimized" class="p-3">
+    <div *ngFor="let download of downloads" class="mb-3">
+      <div class="d-flex justify-content-between text-light small mb-1">
+        <span>{{ download.name }}</span>
+        <span>{{ download.progress }}%</span>
+      </div>
+      <div class="progress" style="height: 6px">
+        <div
+          class="progress-bar bg-success"
+          role="progressbar"
+          [style.width.%]="download.progress"
+          [attr.aria-valuenow]="download.progress"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        ></div>
+      </div>
+    </div>
+  </div>
+</div>

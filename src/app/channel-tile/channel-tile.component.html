@@ -39,8 +39,11 @@
       <ng-container *ngIf="!alreadyExistsInFav">Favorite</ng-container>
     </button>
     <button [hidden]="!isLivestream()" mat-menu-item (click)="record()">Record</button>
-    <button [disabled]="downloading" [hidden]="!isMovie()" mat-menu-item (click)="download()">
+    <button [hidden]="!isMovie() || isDownloading()" mat-menu-item (click)="downloadVod()">
       Download
+    </button>
+    <button [hidden]="!isMovie() || !isDownloading()" mat-menu-item (click)="cancelDownload()">
+      Cancel download
     </button>
     <button [hidden]="!showEPG()" mat-menu-item (click)="showEPGModal()">EPG</button>
     <button [hidden]="!isCustom()" mat-menu-item (click)="edit()">Edit</button>

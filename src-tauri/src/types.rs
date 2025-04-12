@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     sync::{Arc, atomic::AtomicBool},
     thread::JoinHandle,
 };
@@ -149,6 +150,7 @@ pub struct AppState {
     pub notify_stop: Arc<AtomicBool>,
     pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
     pub restream_stop_signal: Arc<AtomicBool>,
+    pub download_stop: HashMap<String, Arc<AtomicBool>>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
