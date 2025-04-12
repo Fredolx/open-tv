@@ -3,7 +3,7 @@ use crate::{
     m3u,
     settings::{get_default_record_path, get_settings},
     source_type, sql,
-    types::{AppState, Source},
+    types::Source,
     xtream,
 };
 use anyhow::{Context, Result, anyhow, bail};
@@ -78,7 +78,7 @@ pub async fn download(
         if stop.load(Relaxed) {
             drop(file);
             tokio::fs::remove_file(file_path).await?;
-            break;
+            bail!("download aborted");
         }
         file.write(&chunk).await?;
         downloaded += chunk.len() as u64;

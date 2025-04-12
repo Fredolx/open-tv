@@ -53,7 +53,8 @@ export class DownloadService {
       });
       this.error.success("Download completed successfully");
     } catch (e) {
-      this.error.handleError(e);
+      if (e == "download aborted") this.error.info("Download cancelled");
+      else this.error.handleError(e);
     }
     this.deleteDownload(download);
   }
