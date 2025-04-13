@@ -31,7 +31,12 @@ export class EpgModalItemComponent implements OnDestroy {
   progress: number = 0;
   subscriptions: Subscription[] = [];
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void {
+    let download = this.download.Downloads.get(this.getDownloadId());
+    if (download) {
+      this.downloadSubscribe(download);
+    }
+  }
 
   notificationOn(): boolean {
     return this.memory.Watched_epgs.has(this.epg!.epg_id);
