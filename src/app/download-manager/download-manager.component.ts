@@ -1,17 +1,22 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
+import { DownloadService } from "../download.service";
+import { Download } from "../models/download";
 
 @Component({
   selector: "app-download-manager",
   templateUrl: "./download-manager.component.html",
   styleUrl: "./download-manager.component.css",
 })
-export class DownloadManagerComponent {
+export class DownloadManagerComponent implements OnInit {
   isMinimized: boolean = false;
-  downloads = [
-    { name: "File 1.zip", progress: 75 },
-    { name: "Video.mp4", progress: 45 },
-    { name: "Image.png", progress: 100 },
-  ];
+  constructor(public downloadService: DownloadService) {}
+
+  ngOnInit(): void {}
+
+  getDownloads() {
+    return Array.from(this.downloadService.Downloads.values());
+  }
+
   toggleMinimize() {
     this.isMinimized = !this.isMinimized;
   }

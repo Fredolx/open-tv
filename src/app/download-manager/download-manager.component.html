@@ -6,7 +6,6 @@
     <strong class="text-light">Downloads</strong>
     <button class="btn btn-sm btn-outline-light" (click)="toggleMinimize()">
       <span *ngIf="isMinimized">
-        <!-- Stylish Up Arrow SVG for Maximize -->
         <svg
           fill="currentColor"
           xmlns="http://www.w3.org/2000/svg"
@@ -21,7 +20,6 @@
         </svg>
       </span>
       <span *ngIf="!isMinimized">
-        <!-- Close SVG Icon for Expand -->
         <svg
           fill="currentColor"
           xmlns="http://www.w3.org/2000/svg"
@@ -39,7 +37,7 @@
   </div>
 
   <div *ngIf="!isMinimized" class="p-3">
-    <div *ngFor="let download of downloads" class="mb-3">
+    <div *ngFor="let download of getDownloads()" class="mb-3">
       <div class="d-flex justify-content-between text-light small mb-1">
         <span>{{ download.name }}</span>
         <span>{{ download.progress }}%</span>

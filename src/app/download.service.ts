@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, NgZone } from "@angular/core";
 import { Download } from "./models/download";
 import { Subject } from "rxjs";
 import { invoke } from "@tauri-apps/api/core";
@@ -11,7 +11,10 @@ import { listen } from "@tauri-apps/api/event";
 export class DownloadService {
   Downloads: Map<String, Download> = new Map();
 
-  constructor(private error: ErrorService) {}
+  constructor(
+    private error: ErrorService,
+    private ngZone: NgZone,
+  ) {}
 
   async addDownload(id: string, name: string, url: string): Promise<Download> {
     let download: Download = {
@@ -23,7 +26,9 @@ export class DownloadService {
       progressUpdate: new Subject(),
     };
     download.unlisten = await listen<number>(`progress-${download.id}`, (event) => {
-      download.progress = event.payload;
+      this.ngZone.run(() => {
+        download.progress = event.payload;
+      });
       download.progressUpdate.next(download.progress);
     });
     this.Downloads.set(download.id, download);

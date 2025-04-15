@@ -84,6 +84,7 @@ pub async fn download(
         downloaded += chunk.len() as u64;
         if total_size > 0 {
             let progress: f64 = (downloaded as f64 / total_size as f64) * 100.0;
+            let progress = (progress * 10.0).trunc() / 10.0;
             if progress > send_threshold {
                 app.emit(&format!("progress-{}", download_id), progress)?;
                 send_threshold = progress + 0.1 as f64;
