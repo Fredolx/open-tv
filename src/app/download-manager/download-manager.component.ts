@@ -20,4 +20,8 @@ export class DownloadManagerComponent implements OnInit {
   toggleMinimize() {
     this.isMinimized = !this.isMinimized;
   }
+
+  async cancelDownload(downloadId: string) {
+    await this.downloadService.abortDownload(downloadId);
+  }
 }

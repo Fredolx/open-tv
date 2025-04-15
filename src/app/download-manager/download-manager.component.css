@@ -24,3 +24,14 @@ button.btn-outline-light:hover {
 .progress {
   background-color: #2b2d30;
 }
+
+.stop {
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.stop:hover {
+  transform: scale(125%);
+}
