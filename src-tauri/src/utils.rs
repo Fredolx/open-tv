@@ -95,7 +95,12 @@ pub async fn download(
 }
 
 fn get_filename(channel_name: String, url: String) -> Result<String> {
-    let extension = url.split(".").last().unwrap_or("mp4").to_string();
+    let extension = url
+        .rsplit(".")
+        .next()
+        .filter(|ext| !ext.starts_with("php?"))
+        .unwrap_or("mp4")
+        .to_string();
     let channel_name = sanitize(channel_name);
     let filename = format!("{channel_name}.{extension}").to_string();
     Ok(filename)
