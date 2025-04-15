@@ -401,14 +401,14 @@ async fn download(
         let mut state = state.lock().await;
         state.download_stop.insert(download_id.clone(), stop);
     }
-    utils::download(stop_clone, app, name, url, &download_id)
+    let result = utils::download(stop_clone, app, name, url, &download_id)
         .await
-        .map_err(map_err_frontend)?;
+        .map_err(map_err_frontend);
     {
         let mut state = state.lock().await;
         state.download_stop.remove(&download_id);
     }
-    Ok(())
+    result
 }
 
 #[tauri::command]
