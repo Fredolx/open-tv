@@ -20,7 +20,7 @@ use std::{
     },
 };
 use tauri::{AppHandle, Emitter};
-use tokio::{io::AsyncWriteExt, sync::Mutex};
+use tokio::io::AsyncWriteExt;
 use which::which;
 
 const MACOS_POTENTIAL_PATHS: [&str; 3] = [
