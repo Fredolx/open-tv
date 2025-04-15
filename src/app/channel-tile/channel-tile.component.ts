@@ -20,7 +20,6 @@ import { EditGroupModalComponent } from "../edit-group-modal/edit-group-modal.co
 import { DeleteGroupModalComponent } from "../delete-group-modal/delete-group-modal.component";
 import { EpgModalComponent } from "../epg-modal/epg-modal.component";
 import { EPG } from "../models/epg";
-import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import { RestreamModalComponent } from "../restream-modal/restream-modal.component";
 import { DownloadService } from "../download.service";
 import { Download } from "../models/download";
@@ -48,6 +47,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   showImage: boolean = true;
   starting: boolean = false;
   alreadyExistsInFav = false;
+  downloading = false;
   mediaTypeEnum = MediaType;
   subscriptions: Subscription[] = [];
 
@@ -105,6 +105,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   onRightClick(event: MouseEvent) {
     if (this.channel?.media_type == MediaType.group && !this.isCustom()) return;
     this.alreadyExistsInFav = this.channel!.favorite!;
+    this.downloading = this.isDownloading();
     event.preventDefault();
     this.menuTopLeftPosition.x = event.clientX;
     this.menuTopLeftPosition.y = event.clientY;
