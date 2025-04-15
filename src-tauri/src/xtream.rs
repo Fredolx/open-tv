@@ -3,13 +3,17 @@ use crate::media_type;
 use crate::sql;
 use crate::types::Channel;
 use crate::types::ChannelPreserve;
-use crate::types::Source;
 use crate::types::EPG;
+use crate::types::Source;
 use crate::utils::get_local_time;
 use anyhow::anyhow;
 use anyhow::{Context, Result};
-use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use base64::prelude::BASE64_STANDARD;
+use chrono::DateTime;
+use chrono::Local;
+use chrono::NaiveDateTime;
+use reqwest::Client;
 use rusqlite::Transaction;
 use serde::Deserialize;
 use serde::Serialize;
@@ -25,7 +29,7 @@ const GET_SERIES_INFO: &str = "get_series_info";
 const GET_SERIES_CATEGORIES: &str = "get_series_categories";
 const GET_LIVE_STREAM_CATEGORIES: &str = "get_live_categories";
 const GET_VOD_CATEGORIES: &str = "get_vod_categories";
-const GET_SHORT_EPG: &str = "get_short_epg";
+const GET_EPG: &str = "get_simple_data_table";
 const LIVE_STREAM_EXTENSION: &str = "ts";
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -79,6 +83,10 @@ struct XtreamEPGItem {
     description: String,
     start_timestamp: String,
     stop_timestamp: String,
+    now_playing: u8,
+    has_archive: u8,
+    start: String,
+    end: String,
 }
 
 fn build_xtream_url(source: &mut Source) -> Result<Url> {
@@ -123,14 +131,14 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
     let mut fail_count = 0;
     live.and_then(|live| process_xtream(&tx, live, live_cats?, &source, media_type::LIVESTREAM))
         .unwrap_or_else(|e| {
-            log::log(format!("{:?}", e));
+            log::log(format!("{:?}", e.context("Failed to process live")));
             fail_count += 1;
         });
     vods.and_then(|vods: Vec<XtreamStream>| {
         process_xtream(&tx, vods, vods_cats?, &source, media_type::MOVIE)
     })
     .unwrap_or_else(|e| {
-        log::log(format!("{:?}", e));
+        log::log(format!("{:?}", e.context("Failed to process vods")));
         fail_count += 1;
     });
     series
@@ -138,7 +146,7 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
             process_xtream(&tx, series, series_cats?, &source, media_type::SERIE)
         })
         .unwrap_or_else(|e| {
-            log::log(format!("{:?}", e));
+            log::log(format!("{:?}", e.context("Failed to process series")));
             fail_count += 1;
         });
     if fail_count > 2 {
@@ -159,7 +167,7 @@ async fn get_xtream_http_data<T>(mut url: Url, action: &str) -> Result<T>
 where
     T: serde::de::DeserializeOwned,
 {
-    let client = reqwest::Client::new();
+    let client = Client::builder().user_agent("OpenTV").build()?;
     url.query_pairs_mut().append_pair("action", action);
     let data = client.get(url).send().await?.json::<T>().await?;
     Ok(data)
@@ -338,36 +346,82 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: u64) -
     })
 }
 
-pub async fn get_short_epg(channel: Channel) -> Result<Vec<EPG>> {
+pub async fn get_epg(channel: Channel) -> Result<Vec<EPG>> {
     let mut source = sql::get_source_from_id(channel.source_id.context("no source id")?)?;
     let mut url = build_xtream_url(&mut source)?;
-    url.query_pairs_mut().append_pair(
-        "stream_id",
-        &channel
-            .stream_id
-            .context("No stream id, please refresh your sources (Settings -> Refresh All) if you recently updated Open TV")?
-            .to_string(),
-    );
-    let epg: XtreamEPG = get_xtream_http_data(url, GET_SHORT_EPG).await?;
-    epg.epg_listings
-        .iter()
-        .map(xtream_epg_to_epg)
-        .collect::<Result<Vec<EPG>>>()
+    let stream_id = channel.stream_id.context("No stream id")?.to_string();
+    url.query_pairs_mut().append_pair("stream_id", &stream_id);
+    let epg: XtreamEPG = get_xtream_http_data(url, GET_EPG).await?;
+    let url = get_timeshift_url_base(&source)?;
+    let current_time = Local::now();
+    let mut otv_epgs = Vec::new();
+    for item in epg.epg_listings {
+        let item = xtream_epg_to_epg(item, &url, &stream_id)?;
+        if is_valid_epg(&item, &current_time)? {
+            otv_epgs.push(item);
+        }
+    }
+    Ok(otv_epgs)
 }
 
-fn xtream_epg_to_epg(epg: &XtreamEPGItem) -> Result<EPG> {
+fn is_valid_epg(epg: &EPG, now: &DateTime<Local>) -> Result<bool> {
+    let epg_start_local = crate::utils::get_local_time(epg.start_timestamp)?;
+    if epg_start_local < *now && !epg.has_archive && !epg.now_playing {
+        return Ok(false);
+    }
+    Ok(true)
+}
+
+fn xtream_epg_to_epg(epg: XtreamEPGItem, url: &Url, stream_id: &str) -> Result<EPG> {
     Ok(EPG {
         epg_id: epg.id.clone(),
         title: String::from_utf8(BASE64_STANDARD.decode(&epg.title)?)?,
         description: String::from_utf8(BASE64_STANDARD.decode(&epg.description)?)?,
         start_time: get_local_time(epg.start_timestamp.parse()?)?
-            .format("%Hh%M")
+            .format("%B %d - %H:%M")
             .to_string(),
         end_time: get_local_time(epg.stop_timestamp.parse()?)?
-            .format("%Hh%M")
+            .format("%B %d - %H:%M")
             .to_string(),
         start_timestamp: epg.start_timestamp.parse()?,
+        timeshift_url: if epg.has_archive == 1 {
+            Some(get_timeshift_url(
+                url.clone(),
+                epg.start,
+                epg.end,
+                stream_id,
+            )?)
+        } else {
+            None
+        },
+        has_archive: epg.has_archive == 1,
+        now_playing: epg.now_playing == 1,
     })
+}
+
+fn get_timeshift_url_base(source: &Source) -> Result<Url> {
+    let mut url = Url::parse(source.url_origin.as_ref().context("no origin")?)?;
+    url.path_segments_mut()
+        .map_err(|_| anyhow::anyhow!("Can't mutate url"))?
+        .extend(&["streaming", "timeshift.php"]);
+    url.query_pairs_mut()
+        .append_pair("username", source.username.as_ref().context("no username")?)
+        .append_pair("password", source.password.as_ref().context("no password")?);
+    Ok(url)
+}
+
+fn get_timeshift_url(mut url: Url, start: String, end: String, stream_id: &str) -> Result<String> {
+    let start = NaiveDateTime::parse_from_str(&start, "%Y-%m-%d %H:%M:%S")?;
+    let duration = NaiveDateTime::parse_from_str(&end, "%Y-%m-%d %H:%M:%S")?
+        .signed_duration_since(start)
+        .num_minutes()
+        .to_string();
+    let start = start.format("%Y-%m-%d:%H-%M").to_string();
+    url.query_pairs_mut()
+        .append_pair("stream", stream_id)
+        .append_pair("start", &start)
+        .append_pair("duration", &duration);
+    Ok(url.to_string())
 }
 
 #[cfg(test)]
@@ -380,7 +434,7 @@ mod test_xtream {
     use crate::types::Source;
     use crate::xtream::{episode_to_channel, get_xtream};
 
-    use super::{get_local_time, XtreamEpisode, XtreamSeries};
+    use super::{XtreamEpisode, XtreamSeries, get_local_time};
 
     #[tokio::test]
     async fn test_get_xtream() {

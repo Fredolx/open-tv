@@ -28,6 +28,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { WhatsNewModalComponent } from "../whats-new-modal/whats-new-modal.component";
 import { LAST_SEEN_VERSION } from "../models/localStorage";
+import { isInputFocused } from "../utils";
 
 @Component({
   selector: "app-home",
@@ -533,7 +534,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (
       event.key == "Escape" ||
       event.key == "BrowserBack" ||
-      (event.key == "Backspace" && !this.searchFocused())
+      (event.key == "Backspace" && !isInputFocused())
     ) {
       this.goBackHotkey();
       event.preventDefault();

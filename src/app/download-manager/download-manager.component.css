@@ -1,0 +1,37 @@
+.download-box {
+  width: 320px;
+  background-color: #353a3f;
+  border: 1px solid #444;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.download-header {
+  background-color: #202124;
+  border-bottom: 1px solid #444;
+}
+
+button.btn-outline-light {
+  border-color: #666;
+  color: #ccc;
+}
+
+button.btn-outline-light:hover {
+  background-color: #444;
+  border-color: #888;
+}
+
+.progress {
+  background-color: #2b2d30;
+}
+
+.stop {
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.stop:hover {
+  transform: scale(125%);
+}

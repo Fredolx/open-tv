@@ -1,0 +1,70 @@
+<div
+  class="position-fixed bottom-0 end-0 m-3 shadow-sm rounded download-box"
+  [class.collapsed]="isMinimized"
+>
+  <div class="d-flex justify-content-between align-items-center px-3 py-2 download-header">
+    <strong class="text-light">Downloads</strong>
+    <button class="btn btn-sm btn-outline-light" (click)="toggleMinimize()">
+      <span *ngIf="isMinimized">
+        <svg
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+        >
+          <title>chevron-up</title>
+          <path
+            d="M5.84,15.41L11.5,9.75L17.16,15.41L16.45,16.11L11.5,11.16L6.55,16.11L5.84,15.41Z"
+          />
+        </svg>
+      </span>
+      <span *ngIf="!isMinimized">
+        <svg
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+        >
+          <title>close</title>
+          <path
+            d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+          />
+        </svg>
+      </span>
+    </button>
+  </div>
+
+  <div *ngIf="!isMinimized" class="p-3 d-grid gap-3">
+    <div *ngFor="let download of getDownloads()">
+      <div class="d-flex justify-content-between text-light small mb-1">
+        <span>{{ download.name }}</span>
+        <span>{{ download.progress }}%</span>
+      </div>
+      <div class="d-flex align-items-center">
+        <div class="progress" style="height: 6px; width: 90%">
+          <div
+            class="progress-bar bg-success"
+            role="progressbar"
+            [style.width.%]="download.progress"
+            [attr.aria-valuenow]="download.progress"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          ></div>
+        </div>
+        <svg
+          fill="red"
+          (click)="cancelDownload(download.id)"
+          class="stop ms-3"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>

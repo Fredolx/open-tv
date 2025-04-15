@@ -3,21 +3,24 @@ use crate::{
     m3u,
     settings::{get_default_record_path, get_settings},
     source_type, sql,
-    types::{Channel, Source},
+    types::Source,
     xtream,
 };
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Local, Utc};
 use regex::Regex;
 use reqwest::Client;
 use serde::Serialize;
 use std::{
     env::{consts::OS, current_exe},
-    io::Write,
     path::Path,
-    sync::LazyLock,
+    sync::{
+        Arc, LazyLock,
+        atomic::{AtomicBool, Ordering::Relaxed},
+    },
 };
 use tauri::{AppHandle, Emitter};
+use tokio::io::AsyncWriteExt;
 use which::which;
 
 const MACOS_POTENTIAL_PATHS: [&str; 3] = [
@@ -53,31 +56,38 @@ pub fn get_local_time(timestamp: i64) -> Result<DateTime<Local>> {
     Ok(DateTime::<Local>::from(datetime))
 }
 
-pub async fn download(app: AppHandle, channel: Channel) -> Result<()> {
+pub async fn download(
+    stop: Arc<AtomicBool>,
+    app: AppHandle,
+    name: String,
+    url: String,
+    download_id: &str,
+) -> Result<()> {
     let client = Client::new();
-    let mut response = client
-        .get(channel.url.as_ref().context("no url")?)
-        .send()
-        .await?;
+    let mut response = client.get(&url).send().await?;
     let total_size = response.content_length().unwrap_or(0);
     let mut downloaded = 0;
-    let mut file = std::fs::File::create(get_download_path(get_filename(
-        channel.name,
-        channel.url.context("no url")?,
-    )?)?)?;
-    let mut send_threshold: u8 = 5;
+    let file_path = get_download_path(get_filename(name, url)?)?;
+    let mut file = tokio::fs::File::create(&file_path).await?;
+    let mut send_threshold: f64 = 0.1;
     if !response.status().is_success() {
         let error = response.status();
         bail!("Failed to download movie: HTTP {error}")
     }
     while let Some(chunk) = response.chunk().await? {
-        file.write(&chunk)?;
+        if stop.load(Relaxed) {
+            drop(file);
+            tokio::fs::remove_file(file_path).await?;
+            bail!("download aborted");
+        }
+        file.write(&chunk).await?;
         downloaded += chunk.len() as u64;
         if total_size > 0 {
-            let progress: u8 = ((downloaded as f64 / total_size as f64) * 100.0) as u8;
+            let progress: f64 = (downloaded as f64 / total_size as f64) * 100.0;
+            let progress = (progress * 10.0).trunc() / 10.0;
             if progress > send_threshold {
-                app.emit("progress", progress)?;
-                send_threshold = progress + 5;
+                app.emit(&format!("progress-{}", download_id), progress)?;
+                send_threshold = progress + 0.1 as f64;
             }
         }
     }
@@ -86,9 +96,10 @@ pub async fn download(app: AppHandle, channel: Channel) -> Result<()> {
 
 fn get_filename(channel_name: String, url: String) -> Result<String> {
     let extension = url
-        .split(".")
-        .last()
-        .context("url has no extension")?
+        .rsplit(".")
+        .next()
+        .filter(|ext| !ext.starts_with("php?"))
+        .unwrap_or("mp4")
         .to_string();
     let channel_name = sanitize(channel_name);
     let filename = format!("{channel_name}.{extension}").to_string();

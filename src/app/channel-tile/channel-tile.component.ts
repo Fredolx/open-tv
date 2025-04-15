@@ -18,11 +18,12 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { EditChannelModalComponent } from "../edit-channel-modal/edit-channel-modal.component";
 import { EditGroupModalComponent } from "../edit-group-modal/edit-group-modal.component";
 import { DeleteGroupModalComponent } from "../delete-group-modal/delete-group-modal.component";
-import { SourceType } from "../models/sourceType";
 import { EpgModalComponent } from "../epg-modal/epg-modal.component";
 import { EPG } from "../models/epg";
-import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import { RestreamModalComponent } from "../restream-modal/restream-modal.component";
+import { DownloadService } from "../download.service";
+import { Download } from "../models/download";
+import { Subscription, take } from "rxjs";
 
 @Component({
   selector: "app-channel-tile",
@@ -37,43 +38,26 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     private modal: NgbModal,
     private el: ElementRef,
     private renderer: Renderer2,
-  ) { }
+    private download: DownloadService,
+  ) {}
   @Input() channel?: Channel;
   @Input() id!: Number;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
   menuTopLeftPosition = { x: 0, y: 0 };
   showImage: boolean = true;
   starting: boolean = false;
-  // less reactive but prevents the user from seeing the change in action
   alreadyExistsInFav = false;
-  mediaTypeEnum = MediaType;
-  progress = 0;
-  toUnlisten?: UnlistenFn;
   downloading = false;
+  mediaTypeEnum = MediaType;
+  subscriptions: Subscription[] = [];
 
   ngAfterViewInit(): void {
-    if (this.memory.downloadExists(this.channel!.id!)) {
-      let download = this.memory.getDownload(this.channel!.id!);
-      this.progress = download?.[0]!;
-      if (this.progress != 0) this.setDownloadGradient();
-      listen<number>("progress", (event) => {
-        this.progress = event.payload;
-        this.setDownloadGradient();
-      }).then((unlisten) => {
-        this.downloading = true;
-        this.toUnlisten = unlisten;
-        download?.[1].subscribe((_) => {
-          this.downloading = false;
-          if (this.toUnlisten) this.toUnlisten();
-          this.clearDownloadGradient();
-        });
-      });
-    }
+    this.getExistingDownload();
   }
 
-  setDownloadGradient() {
+  setDownloadGradient(progress: number) {
     let element = this.el.nativeElement.querySelector(`#tile-${this.id}`);
-    let background = `linear-gradient(to right, green ${this.progress}%, #343a40 ${this.progress}%)`;
+    let background = `linear-gradient(to right, green ${progress}%, #343a40 ${progress}%)`;
     this.renderer.setStyle(element, "background", background);
   }
 
@@ -121,6 +105,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   onRightClick(event: MouseEvent) {
     if (this.channel?.media_type == MediaType.group && !this.isCustom()) return;
     this.alreadyExistsInFav = this.channel!.favorite!;
+    this.downloading = this.isDownloading();
     event.preventDefault();
     this.menuTopLeftPosition.x = event.clientX;
     this.menuTopLeftPosition.y = event.clientY;
@@ -189,6 +174,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       this.memory.ModalRef.result.then((_) => (this.memory.ModalRef = undefined));
       this.memory.ModalRef.componentInstance.epg = data;
       this.memory.ModalRef.componentInstance.name = this.channel?.name;
+      this.memory.ModalRef.componentInstance.channelId = this.channel?.id;
     } catch (e) {
       this.error.handleError(
         e,
@@ -307,31 +293,47 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     this.memory.Refresh.next(false);
   }
 
-  async download() {
-    if (this.memory.Loading) return;
-    if (this.toUnlisten) this.toUnlisten();
-    this.downloading = true;
-    this.toUnlisten = await listen<number>("progress", (event) => {
-      this.progress = event.payload;
-      this.setDownloadGradient();
-    });
-    this.memory.addDownloadingChannel(this.channel!.id!);
-    try {
-      await invoke("download", { channel: this.channel });
-      this.error.success("Successfully downloaded movie");
-    } catch (e) {
-      this.error.handleError(e);
+  isDownloading() {
+    return this.download.Downloads.has(this.channel!.id!.toString());
+  }
+
+  async downloadVod() {
+    let download = await this.download.addDownload(
+      this.channel!.id!.toString(),
+      this.channel!.name!,
+      this.channel?.url!,
+    );
+    this.downloadSubscribe(download);
+    await this.download.download(download.id);
+  }
+
+  async cancelDownload() {
+    await this.download.abortDownload(this.channel!.id!.toString());
+  }
+
+  getExistingDownload() {
+    let download = this.download.Downloads.get(this.channel!.id!.toString());
+    if (download) {
+      this.setDownloadGradient(download.progress);
+      this.downloadSubscribe(download);
     }
-    this.memory.notifyDownloadFinished(this.channel!.id!);
-    this.memory.removeDownloadingChannel(this.channel!.id!);
-    if (this.toUnlisten) this.toUnlisten();
-    this.progress = 0;
-    this.clearDownloadGradient();
-    this.downloading = false;
+  }
+
+  downloadSubscribe(download: Download) {
+    let progressUpdate = download.progressUpdate.subscribe((progress) => {
+      this.setDownloadGradient(progress);
+      if (progress == 100) progressUpdate.unsubscribe();
+    });
+    this.subscriptions.push(progressUpdate);
+    this.subscriptions.push(
+      download.complete.pipe(take(1)).subscribe((_) => {
+        progressUpdate.unsubscribe();
+        this.clearDownloadGradient();
+      }),
+    );
   }
 
   ngOnDestroy() {
-    if (this.progress != 0) this.memory.setLastDownloadProgress(this.channel!.id!, this.progress);
-    if (this.toUnlisten) this.toUnlisten();
+    this.subscriptions.forEach((x) => x.unsubscribe());
   }
 }

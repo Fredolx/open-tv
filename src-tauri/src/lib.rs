@@ -1,15 +1,18 @@
-use std::sync::LazyLock;
+use std::sync::{
+    Arc, LazyLock,
+    atomic::{AtomicBool, Ordering},
+};
 
 use anyhow::{Context, Error};
 use tauri::{
+    AppHandle, Manager, State,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, State,
 };
 use tokio::sync::Mutex;
 use types::{
-    AppState, Channel, CustomChannel, CustomChannelExtraData, EPGNotify, Filters, Group, IdName,
-    NetworkInfo, Settings, Source, EPG,
+    AppState, Channel, CustomChannel, CustomChannelExtraData, EPG, EPGNotify, Filters, Group,
+    IdName, NetworkInfo, Settings, Source,
 };
 
 pub mod epg;
@@ -97,7 +100,8 @@ pub fn run() {
             share_restream,
             add_last_watched,
             backup_favs,
-            restore_favs
+            restore_favs,
+            abort_download
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -380,16 +384,46 @@ fn update_source(source: Source) -> Result<(), String> {
 
 #[tauri::command]
 async fn get_epg(channel: Channel) -> Result<Vec<EPG>, String> {
-    xtream::get_short_epg(channel)
-        .await
-        .map_err(map_err_frontend)
+    xtream::get_epg(channel).await.map_err(map_err_frontend)
 }
 
 #[tauri::command]
-async fn download(app: AppHandle, channel: Channel) -> Result<(), String> {
-    utils::download(app, channel)
+async fn download(
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+    name: String,
+    url: String,
+    download_id: String,
+) -> Result<(), String> {
+    let stop = Arc::new(AtomicBool::new(false));
+    let stop_clone = stop.clone();
+    {
+        let mut state = state.lock().await;
+        state.download_stop.insert(download_id.clone(), stop);
+    }
+    let result = utils::download(stop_clone, app, name, url, &download_id)
         .await
-        .map_err(map_err_frontend)
+        .map_err(map_err_frontend);
+    {
+        let mut state = state.lock().await;
+        state.download_stop.remove(&download_id);
+    }
+    result
+}
+
+#[tauri::command]
+async fn abort_download(
+    state: State<'_, Mutex<AppState>>,
+    download_id: String,
+) -> Result<(), String> {
+    let mutex = state.lock().await;
+    let download = mutex
+        .download_stop
+        .get(&download_id)
+        .context("download not found")
+        .map_err(map_err_frontend)?;
+    download.store(true, Ordering::Relaxed);
+    Ok(())
 }
 
 #[tauri::command]

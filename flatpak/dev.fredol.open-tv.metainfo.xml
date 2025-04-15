@@ -29,6 +29,13 @@
   </categories>
   <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
   <releases>
+    <release version="1.6.0" date="2025-04-15">
+      <description>
+        <p>
+          Please see the official changelog at github.com/fredolx/open-tv/releases
+        </p>
+      </description>
+    </release>
     <release version="1.5.2" date="2025-03-12">
       <description>
         <p>
