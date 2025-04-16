@@ -219,15 +219,16 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
-INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id, tv_archive)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (name, source_id)
 DO UPDATE SET
     url = excluded.url,
     media_type = excluded.media_type,
     stream_id = excluded.stream_id,
     image = excluded.image,
-    series_id = excluded.series_id;
+    series_id = excluded.series_id,
+    tv_archive = excluded.tv_archive;
 "#,
         params![
             channel.name,
@@ -238,7 +239,8 @@ DO UPDATE SET
             channel.media_type as u8,
             channel.series_id,
             channel.favorite,
-            channel.stream_id
+            channel.stream_id,
+            channel.tv_archive
         ],
     )?;
     Ok(())
