@@ -12,8 +12,8 @@ use tauri::{AppHandle, Emitter, State};
 use tokio::{
     fs,
     sync::{
-        oneshot::{self, Sender},
         Mutex,
+        oneshot::{self, Sender},
     },
 };
 
@@ -171,6 +171,7 @@ pub async fn watch_self(port: u16) -> Result<()> {
         series_id: None,
         source_id: None,
         stream_id: None,
+        tv_archive: None,
     };
     mpv::play(channel, false).await
 }
@@ -189,6 +190,7 @@ pub fn share_restream(address: String, channel: Channel) -> Result<()> {
             group_id: None,
             favorite: false,
             stream_id: None,
+            tv_archive: None,
         },
         Some(format!("RST - {}", channel.id.context("no id")?)),
     )

@@ -22,7 +22,10 @@ pub struct Channel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub group_id: Option<i64>,
     pub favorite: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stream_id: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tv_archive: Option<bool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

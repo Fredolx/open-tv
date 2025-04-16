@@ -44,6 +44,8 @@ struct XtreamStream {
     series_id: serde_json::Value,
     cover: Option<String>,
     container_extension: Option<String>,
+    #[serde(default)]
+    tv_archive: serde_json::Value,
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamSeries {
@@ -245,6 +247,7 @@ fn convert_xtream_live_to_channel(
         favorite: false,
         group_id: None,
         series_id: None,
+        tv_archive: get_serde_json_number(&stream.tv_archive).map(|x| x == 1),
     })
 }
 
@@ -343,6 +346,7 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: u64) -
         stream_id: None,
         group_id: None,
         favorite: false,
+        tv_archive: None,
     })
 }
 
