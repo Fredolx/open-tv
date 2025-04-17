@@ -382,10 +382,10 @@ fn xtream_epg_to_epg(epg: XtreamEPGItem, url: &Url, stream_id: &str) -> Result<E
         title: String::from_utf8(BASE64_STANDARD.decode(&epg.title)?)?,
         description: String::from_utf8(BASE64_STANDARD.decode(&epg.description)?)?,
         start_time: get_local_time(epg.start_timestamp.parse()?)?
-            .format("%B %d - %H:%M")
+            .format("%B %d, %H:%M")
             .to_string(),
         end_time: get_local_time(epg.stop_timestamp.parse()?)?
-            .format("%B %d - %H:%M")
+            .format("%B %d, %H:%M")
             .to_string(),
         start_timestamp: epg.start_timestamp.parse()?,
         timeshift_url: if epg.has_archive == 1 {

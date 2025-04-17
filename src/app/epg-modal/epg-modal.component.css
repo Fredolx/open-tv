@@ -1,7 +1,17 @@
 .epg-item {
-    border-radius: 0.25rem;
-    background-color: #343a40;
-    width: 100%;
-    padding: 1rem;
-    position: relative;
+  border-radius: 0.25rem;
+  background-color: #343a40;
+  width: 100%;
+  padding: 1rem;
+  position: relative;
+}
+
+.arrow {
+  width: 3rem;
+  height: 3rem;
+  cursor: pointer;
+}
+
+.date-text {
+  font-size: 1.1rem;
 }

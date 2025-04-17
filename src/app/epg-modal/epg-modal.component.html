@@ -10,7 +10,30 @@
   ></button>
 </div>
 <div class="modal-body">
-  <div tabindex="0" *ngFor="let item of epg; let i = index" [ngClass]="{ 'mt-3': i != 0 }">
+  <div class="mb-2 d-flex align-items-center justify-content-center">
+    <svg
+      (click)="prev()"
+      fill="#316cf4"
+      class="arrow me-3"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+    >
+      <title>arrow-left</title>
+      <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" />
+    </svg>
+    <span class="date-text">{{ getFormattedDate() }}</span>
+    <svg
+      (click)="next()"
+      fill="#316cf4"
+      class="arrow ms-3"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+    >
+      <title>arrow-right</title>
+      <path d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" />
+    </svg>
+  </div>
+  <div tabindex="0" *ngFor="let item of filteredEPGs; let i = index" [ngClass]="{ 'mt-3': i != 0 }">
     <app-epg-modal-item class="mt-3" [epg]="item" [name]="name"></app-epg-modal-item>
   </div>
 </div>
