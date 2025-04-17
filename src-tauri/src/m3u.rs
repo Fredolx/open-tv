@@ -6,7 +6,7 @@ use std::{
     io::{BufRead, BufReader},
 };
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use regex::{Captures, Regex};
 use rusqlite::Transaction;
 use types::{Channel, Source};
@@ -270,6 +270,7 @@ fn get_channel_from_lines(
         group_id: None,
         favorite: false,
         stream_id: None,
+        tv_archive: None,
     };
     Ok(channel)
 }

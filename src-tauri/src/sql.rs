@@ -10,12 +10,12 @@ use crate::{
     types::{Channel, ChannelHttpHeaders, Filters, Source},
     view_type,
 };
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use directories::ProjectDirs;
 use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::{params, params_from_iter, OptionalExtension, Row, Transaction};
-use rusqlite_migration::{Migrations, M};
+use rusqlite::{OptionalExtension, Row, Transaction, params, params_from_iter};
+use rusqlite_migration::{M, Migrations};
 
 const PAGE_SIZE: u8 = 36;
 static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
@@ -179,6 +179,12 @@ fn apply_migrations() -> Result<()> {
               CREATE UNIQUE INDEX channels_unique ON channels(name, source_id);
             "#,
         ),
+        M::up(
+            r#"
+              ALTER TABLE channels ADD COLUMN tv_archive integer;
+              CREATE INDEX index_channels_tv_archive on channels(tv_archive);
+            "#,
+        ),
     ]);
     migrations.to_latest(&mut sql)?;
     Ok(())
@@ -213,15 +219,16 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
-INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id, tv_archive)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (name, source_id)
 DO UPDATE SET
     url = excluded.url,
     media_type = excluded.media_type,
     stream_id = excluded.stream_id,
     image = excluded.image,
-    series_id = excluded.series_id;
+    series_id = excluded.series_id,
+    tv_archive = excluded.tv_archive;
 "#,
         params![
             channel.name,
@@ -232,7 +239,8 @@ DO UPDATE SET
             channel.media_type as u8,
             channel.series_id,
             channel.favorite,
-            channel.stream_id
+            channel.stream_id,
+            channel.tv_archive
         ],
     )?;
     Ok(())
@@ -531,6 +539,7 @@ fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         favorite: false,
         source_id: row.get("source_id")?,
         stream_id: None,
+        tv_archive: None,
     };
     Ok(channel)
 }
@@ -548,6 +557,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         series_id: None,
         group: None,
         stream_id: row.get("stream_id")?,
+        tv_archive: row.get("tv_archive")?,
     };
     Ok(channel)
 }
@@ -988,6 +998,7 @@ fn row_to_custom_channel(row: &Row) -> Result<CustomChannel, rusqlite::Error> {
             series_id: None,
             source_id: None,
             stream_id: None,
+            tv_archive: None,
         },
         headers: Some(ChannelHttpHeaders {
             http_origin: row.get("http_origin")?,
