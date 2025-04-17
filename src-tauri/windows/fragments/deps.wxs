@@ -22,7 +22,7 @@
           />
         </Component>
         <Component Id="VulkanComponent" Guid="*">
-          <File Id="YtDlpExe" 
+          <File Id="VulkanDLL" 
                 Source="C:\open-tv-deps\vulkan-1.dll" 
                 KeyPath="yes" 
           />
