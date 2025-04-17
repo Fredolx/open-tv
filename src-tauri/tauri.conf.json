@@ -1,6 +1,6 @@
 {
   "productName": "Open TV",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "identifier": "dev.fredol.open-tv",
   "build": {
     "frontendDist": "../dist/open-tv/browser",
