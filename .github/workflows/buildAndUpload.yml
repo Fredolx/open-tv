@@ -27,7 +27,7 @@ jobs:
           $retryDelay = 5
           for ($i = 1; $i -le $retryCount; $i++) {
               try {
-                  Invoke-WebRequest -UserAgent "Wget" -Uri "https://downloads.sourceforge.net/project/mpv-player-windows/release/mpv-0.39.0-x86_64.7z" -OutFile .\mpv.7z
+                  Invoke-WebRequest -UserAgent "Wget" -Uri "https://nightly.link/mpv-player/mpv/workflows/build/master/mpv-x86_64-pc-windows-msvc.zip" -OutFile .\mpv.zip
                   break
               }
               catch {
@@ -36,7 +36,7 @@ jobs:
               }
           }
           New-Item -Path 'C:\open-tv-deps' -ItemType Directory
-          7z e .\mpv.7z -oC:\open-tv-deps mpv.exe
+          7z e .\mpv.zip -oC:\open-tv-deps mpv.exe vulkan-1.dll
 
       - name: Download ffmpeg
         if: matrix.os == 'windows-latest'
