@@ -21,6 +21,12 @@
                 KeyPath="yes" 
           />
         </Component>
+        <Component Id="VulkanComponent" Guid="*">
+          <File Id="YtDlpExe" 
+                Source="C:\open-tv-deps\vulkan-1.dll" 
+                KeyPath="yes" 
+          />
+        </Component>
       </Directory>
     </DirectoryRef>
 
@@ -28,6 +34,7 @@
       <ComponentRef Id="MpvComponent" />
       <ComponentRef Id="FfmpegComponent" />
       <ComponentRef Id="YtDlpComponent" />
+      <ComponentRef Id="VulkanComponent" />
     </ComponentGroup>
   </Fragment>
 </Wix>
