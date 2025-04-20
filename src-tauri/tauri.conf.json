@@ -43,11 +43,11 @@
     },
     "linux": {
       "deb": {
-        "depends": ["mpv", "ffmpeg", "yt-dlp", "libayatana-appindicator"],
+        "depends": ["mpv", "ffmpeg", "yt-dlp"],
         "desktopTemplate": "linux/custom.desktop"
       },
       "rpm": {
-        "depends": ["mpv", "ffmpeg", "yt-dlp", "libayatana-appindicator"],
+        "depends": ["mpv", "ffmpeg", "yt-dlp"],
         "desktopTemplate": "linux/custom.desktop"
       }
     }
