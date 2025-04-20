@@ -91,7 +91,8 @@ jobs:
             libxdo-dev \
             libssl-dev \
             libayatana-appindicator3-dev \
-            librsvg2-dev
+            librsvg2-dev \
+            libgtk-3-dev
 
       - name: Install deps project
         run: |
