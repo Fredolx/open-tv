@@ -1,0 +1,8 @@
+[Desktop Entry]
+Categories={{categories}}
+Comment={{comment}}
+Exec=env WEBKIT_DISABLE_DMABUF_RENDERER=1 open_tv
+Icon={{icon}}
+Name={{name}}
+Terminal=false
+Type=Application
