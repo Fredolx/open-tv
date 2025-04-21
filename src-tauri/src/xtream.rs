@@ -80,7 +80,7 @@ struct XtreamEPG {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamEPGItem {
-    id: String,
+    id: serde_json::Value,
     title: String,
     description: String,
     start_timestamp: String,
@@ -378,7 +378,7 @@ fn is_valid_epg(epg: &EPG, now: &DateTime<Local>) -> Result<bool> {
 
 fn xtream_epg_to_epg(epg: XtreamEPGItem, url: &Url, stream_id: &str) -> Result<EPG> {
     Ok(EPG {
-        epg_id: epg.id.clone(),
+        epg_id: get_serde_json_string(&epg.id).context("no epg id")?,
         title: String::from_utf8(BASE64_STANDARD.decode(&epg.title)?)?,
         description: String::from_utf8(BASE64_STANDARD.decode(&epg.description)?)?,
         start_time: get_local_time(epg.start_timestamp.parse()?)?
