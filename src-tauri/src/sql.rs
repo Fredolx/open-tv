@@ -1207,3 +1207,16 @@ pub fn add_last_watched(id: i64) -> Result<()> {
     )?;
     Ok(())
 }
+
+pub fn clear_history() -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
+          UPDATE channels
+          SET last_watched = NULL
+          WHERE last_watched IS NOT NULL
+        "#,
+        params![],
+    )?;
+    Ok(())
+}

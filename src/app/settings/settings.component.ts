@@ -161,6 +161,16 @@ export class SettingsComponent {
     this.memory.ModalRef.componentInstance.name = "ConfirmDeleteModal";
   }
 
+  async clearHistory() {
+    await this.memory.tryIPC(
+      "History cleared successfully",
+      "Failed to clear history",
+      async () => {
+        await invoke("clear_history");
+      }
+    );
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach((x) => x.unsubscribe());
   }
