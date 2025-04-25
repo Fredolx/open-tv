@@ -101,7 +101,8 @@ pub fn run() {
             add_last_watched,
             backup_favs,
             restore_favs,
-            abort_download
+            abort_download,
+            clear_history
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -510,4 +511,9 @@ fn backup_favs(id: i64, path: String) -> Result<(), String> {
 #[tauri::command(async)]
 fn restore_favs(id: i64, path: String) -> Result<(), String> {
     utils::restore_favs(id, path).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn clear_history() -> Result<(), String> {
+    sql::clear_history().map_err(map_err_frontend)
 }
