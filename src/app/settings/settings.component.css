@@ -56,6 +56,16 @@ button:hover .nuke {
     transform: scale(125%);
 }
 
+button .history {
+    width: 1.5rem;
+    height: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+button:hover .history {
+    transform: scale(125%);
+}
+
 .folder {
     height: 1rem;
     width: 1rem;
