@@ -267,7 +267,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             return event.target.value;
           }),
           debounceTime(300),
-          distinctUntilChanged(),
         )
         .subscribe(async (term: string) => {
           this.focus = 0;
