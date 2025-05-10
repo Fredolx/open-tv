@@ -3,7 +3,7 @@ use crate::sql;
 use crate::types::ChannelHttpHeaders;
 use crate::utils::{find_macos_bin, get_bin};
 use crate::{media_type, settings::get_settings, types::Channel};
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use chrono::Local;
 use std::sync::LazyLock;
 use std::{env::consts::OS, path::Path, process::Stdio};
@@ -25,6 +25,7 @@ const ARG_USER_AGENT: &str = "--user-agent=";
 const ARG_IGNORE_SSL: &str = "--ytdl-raw-options=no-check-certificates=True";
 const ARG_PREFETCH_PLAYLIST: &str = "--prefetch-playlist=yes";
 const ARG_LOOP_PLAYLIST: &str = "--loop-playlist=inf";
+const ARG_HWDEC: &str = "--hwdec=auto";
 const MPV_BIN_NAME: &str = "mpv";
 const YTDLP_BIN_NAME: &str = "yt-dlp";
 const HTTP_ORIGIN: &str = "origin:";
@@ -77,6 +78,9 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
     if settings.use_stream_caching == Some(false) {
         let stream_caching_arg = format!("{ARG_CACHE}{ARG_NO}",);
         args.push(stream_caching_arg);
+    }
+    if settings.enable_hwdec.unwrap_or(true) {
+        args.push(ARG_HWDEC.to_string());
     }
     if record {
         let record_path = match settings.recording_path {

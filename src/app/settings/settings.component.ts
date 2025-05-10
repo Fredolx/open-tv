@@ -26,6 +26,7 @@ export class SettingsComponent {
     enable_tray_icon: true,
     zoom: 100,
     default_sort: SortType.provider,
+    enable_hwdec: true,
   };
   viewModeEnum = ViewMode;
   sources: Source[] = [];
@@ -83,6 +84,7 @@ export class SettingsComponent {
       if (this.settings.enable_tray_icon == undefined) this.settings.enable_tray_icon = true;
       if (this.settings.zoom == undefined) this.settings.zoom = 100;
       if (this.settings.default_sort == undefined) this.settings.default_sort = SortType.provider;
+      if (this.settings.enable_hwdec == undefined) this.settings.enable_hwdec = true;
     });
   }
 
@@ -167,7 +169,7 @@ export class SettingsComponent {
       "Failed to clear history",
       async () => {
         await invoke("clear_history");
-      }
+      },
     );
   }
 

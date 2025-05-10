@@ -58,6 +58,7 @@ pub struct Settings {
     pub enable_tray_icon: Option<bool>,
     pub zoom: Option<u16>,
     pub default_sort: Option<u8>,
+    pub enable_hwdec: Option<bool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

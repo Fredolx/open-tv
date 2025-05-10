@@ -9,4 +9,5 @@ export class Settings {
   enable_tray_icon?: boolean;
   zoom?: number;
   default_sort?: number;
+  enable_hwdec?: boolean;
 }
