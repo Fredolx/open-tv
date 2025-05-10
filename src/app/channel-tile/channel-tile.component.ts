@@ -315,7 +315,6 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   async downloadVod() {
     let file = undefined;
-    console.log(this.memory.IsContainer);
     if (this.memory.IsContainer) {
       file = await save({
         canCreateDirectories: true,
