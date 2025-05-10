@@ -24,6 +24,7 @@ import { RestreamModalComponent } from "../restream-modal/restream-modal.compone
 import { DownloadService } from "../download.service";
 import { Download } from "../models/download";
 import { Subscription, take } from "rxjs";
+import { save } from "@tauri-apps/plugin-dialog";
 
 @Component({
   selector: "app-channel-tile",
@@ -89,9 +90,16 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       this.memory.SetSeriesNode.next(this.channel);
       return;
     }
+    let file = undefined;
+    if (record && this.memory.IsContainer) {
+      file = await save({
+        canCreateDirectories: true,
+        title: "Select where to export custom source",
+      });
+    }
     this.starting = true;
     try {
-      await invoke("play", { channel: this.channel, record: record });
+      await invoke("play", { channel: this.channel, record: record, path: file });
     } catch (e) {
       this.error.handleError(e);
     }
@@ -220,18 +228,26 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     this.memory.ModalRef.componentInstance.channel.data = { ...this.channel };
   }
 
-  share() {
+  async share() {
+    let entityName = this.channel?.media_type == MediaType.group ? "group" : "channel";
+    const file = await save({
+      canCreateDirectories: true,
+      title: `Select where to export ${entityName}`,
+    });
+    if (!file) {
+      return;
+    }
     if (this.channel?.media_type == MediaType.group) {
       this.memory.tryIPC(
-        `Successfully exported category to Downloads/${this.channel?.id}.otvg`,
+        `Successfully exported category to ${file}`,
         "Failed to export channel",
-        () => invoke("share_custom_group", { group: this.channel }),
+        () => invoke("share_custom_group", { group: this.channel, path: file }),
       );
     } else {
       this.memory.tryIPC(
-        `Successfully exported channel to Downloads/${this.channel?.id}.otv`,
+        `Successfully exported channel to ${file}`,
         "Failed to export channel",
-        () => invoke("share_custom_channel", { channel: this.channel }),
+        () => invoke("share_custom_channel", { channel: this.channel, path: file }),
       );
     }
   }
@@ -298,13 +314,24 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   async downloadVod() {
+    let file = undefined;
+    console.log(this.memory.IsContainer);
+    if (this.memory.IsContainer) {
+      file = await save({
+        canCreateDirectories: true,
+        title: "Select where to export custom source",
+      });
+      if (!file) {
+        return;
+      }
+    }
     let download = await this.download.addDownload(
       this.channel!.id!.toString(),
       this.channel!.name!,
       this.channel?.url!,
     );
     this.downloadSubscribe(download);
-    await this.download.download(download.id);
+    await this.download.download(download.id, file);
   }
 
   async cancelDownload() {

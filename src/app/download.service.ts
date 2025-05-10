@@ -48,13 +48,14 @@ export class DownloadService {
     }
   }
 
-  async download(id: String) {
+  async download(id: String, path?: string) {
     let download = this.Downloads.get(id)!;
     try {
       await invoke("download", {
         downloadId: download.id,
         url: download.url,
         name: download.name,
+        path: path,
       });
       this.error.success("Download completed successfully");
     } catch (e) {

@@ -59,16 +59,23 @@ pub fn get_local_time(timestamp: i64) -> Result<DateTime<Local>> {
 pub async fn download(
     stop: Arc<AtomicBool>,
     app: AppHandle,
-    name: String,
+    name: Option<String>,
     url: String,
     download_id: &str,
+    path: Option<String>,
 ) -> Result<()> {
     let client = Client::new();
     let mut response = client.get(&url).send().await?;
     let total_size = response.content_length().unwrap_or(0);
     let mut downloaded = 0;
-    let file_path = get_download_path(get_filename(name, url)?)?;
-    let mut file = tokio::fs::File::create(&file_path).await?;
+    let path = match path {
+        Some(p) => p,
+        None => get_download_path(get_filename(
+            name.context("no name provided to download")?,
+            url,
+        )?)?,
+    };
+    let mut file = tokio::fs::File::create(&path).await?;
     let mut send_threshold: f64 = 0.1;
     if !response.status().is_success() {
         let error = response.status();
@@ -77,7 +84,7 @@ pub async fn download(
     while let Some(chunk) = response.chunk().await? {
         if stop.load(Relaxed) {
             drop(file);
-            tokio::fs::remove_file(file_path).await?;
+            tokio::fs::remove_file(path).await?;
             bail!("download aborted");
         }
         file.write(&chunk).await?;
@@ -120,7 +127,6 @@ fn get_download_path(file_name: String) -> Result<String> {
     path.push(file_name);
     Ok(path.to_string_lossy().to_string())
 }
-
 pub fn get_bin(bin: &str) -> String {
     if OS == "linux" || which(bin).is_ok() {
         return bin.to_string();
@@ -177,6 +183,10 @@ pub fn restore_favs(source_id: i64, path: String) -> Result<()> {
         Ok(())
     })?;
     Ok(())
+}
+
+pub fn is_container() -> bool {
+    std::env::var("container").is_ok()
 }
 
 #[cfg(test)]

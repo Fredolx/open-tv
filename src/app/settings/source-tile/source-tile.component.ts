@@ -89,11 +89,17 @@ export class SourceTileComponent {
   }
 
   async share() {
-    await this.memory.tryIPC(
-      `Successfully exported source in ~/Downloads/${this.source?.id}.otvp`,
-      "Failed to export source",
-      () => invoke("share_custom_source", { source: this.source }),
-    );
+    const file = await save({
+      canCreateDirectories: true,
+      title: "Select where to export custom source",
+    });
+    if (file) {
+      await this.memory.tryIPC(
+        `Successfully exported source in ${file}`,
+        "Failed to export source",
+        () => invoke("share_custom_source", { source: this.source, path: file }),
+      );
+    }
   }
 
   edit() {

@@ -5,6 +5,7 @@ import { ErrorService } from "../error.service";
 import { NetworkInfo } from "../models/networkInfo";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { UnlistenFn, listen } from "@tauri-apps/api/event";
+import { save } from "@tauri-apps/plugin-dialog";
 
 @Component({
   selector: "app-restream-modal",
@@ -70,11 +71,20 @@ export class RestreamModalComponent implements OnInit, OnDestroy {
   }
 
   async share() {
+    const file = await save({
+      canCreateDirectories: true,
+      title: "Select where to export re-stream",
+    });
+    if (!file) {
+      return;
+    }
     try {
-      await invoke("share_restream", { address: this.selectedIP, channel: this.channel });
-      this.error.success(
-        `Successfully exported re-stream to Downloads/rst-${this.channel?.id}.otv`,
-      );
+      await invoke("share_restream", {
+        address: this.selectedIP,
+        channel: this.channel,
+        path: file,
+      });
+      this.error.success(`Successfully exported re-stream to ${file}`);
     } catch (e) {
       this.error.handleError(e);
     }

@@ -3,34 +3,15 @@ use crate::types::ExportedGroup;
 use crate::types::ExportedSource;
 use crate::types::Group;
 use crate::types::Source;
-use crate::utils::sanitize;
 use crate::utils::serialize_to_file;
 use crate::{sql, types::Channel};
-use anyhow::bail;
 use anyhow::Context;
 use anyhow::Result;
-use directories::UserDirs;
+use anyhow::bail;
 
-const CHANNEL_SHARE_EXTENSION: &str = ".otv";
-const GROUP_SHARE_EXTENSION: &str = ".otvg";
-const PLAYLIST_SHARE_EXTENSION: &str = ".otvp";
-
-pub fn share_custom_channel(channel: Channel, filename: Option<String>) -> Result<()> {
+pub fn share_custom_channel(channel: Channel, path: String) -> Result<()> {
     let channel = get_custom_channel(channel)?;
-    let path = get_download_path(
-        filename.unwrap_or(channel.data.id.context("No id on channel?")?.to_string()),
-        CHANNEL_SHARE_EXTENSION,
-    )?;
     serialize_to_file(channel, path)
-}
-
-fn get_download_path(filename: String, extension: &str) -> Result<String> {
-    let path = UserDirs::new().context("No user dirs?")?;
-    let path = path.download_dir().context("No downloads folder")?;
-    let mut path = path.to_path_buf();
-    let filename = sanitize(filename);
-    path.push(format!("{filename}{extension}"));
-    Ok(path.to_string_lossy().to_string())
 }
 
 fn get_custom_channel(channel: Channel) -> Result<CustomChannel> {
@@ -40,7 +21,7 @@ fn get_custom_channel(channel: Channel) -> Result<CustomChannel> {
     })
 }
 
-pub fn share_custom_group(group: Channel) -> Result<()> {
+pub fn share_custom_group(group: Channel, path: String) -> Result<()> {
     let to_export = ExportedGroup {
         group: Group {
             id: group.id,
@@ -50,23 +31,17 @@ pub fn share_custom_group(group: Channel) -> Result<()> {
         },
         channels: sql::get_custom_channels(group.id, group.source_id.context("no source id?")?)?,
     };
-    let path = get_download_path(
-        group.id.context("No group id?")?.to_string(),
-        GROUP_SHARE_EXTENSION,
-    )?;
-    serialize_to_file(to_export, path)?;
-    Ok(())
+    serialize_to_file(to_export, path)
 }
 
-pub fn share_custom_source(mut source: Source) -> Result<()> {
+pub fn share_custom_source(mut source: Source, path: String) -> Result<()> {
     let id = source.id.context("No source id?")?.clone();
     source.id = None;
     let to_export = ExportedSource {
-        source: source,
+        source,
         groups: sql::get_custom_groups(id)?,
         channels: sql::get_custom_channels(None, id)?,
     };
-    let path = get_download_path(id.to_string(), PLAYLIST_SHARE_EXTENSION)?;
     serialize_to_file(to_export, path)?;
     Ok(())
 }

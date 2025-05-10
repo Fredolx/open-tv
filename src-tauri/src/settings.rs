@@ -79,7 +79,10 @@ pub fn update_settings(settings: Settings) -> Result<()> {
 
 pub fn get_default_record_path() -> Result<String> {
     let user_dirs = UserDirs::new().context("Failed to get user dirs")?;
-    let mut path = user_dirs.video_dir().context("No videos dir")?.to_owned();
+    let mut path = user_dirs
+        .video_dir()
+        .context("No videos dir in ~, please set a recording path in Settings")?
+        .to_owned();
     path.push("open-tv");
     std::fs::create_dir_all(&path)?;
     Ok(path.to_string_lossy().to_string())
