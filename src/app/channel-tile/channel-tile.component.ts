@@ -25,6 +25,7 @@ import { DownloadService } from "../download.service";
 import { Download } from "../models/download";
 import { Subscription, take } from "rxjs";
 import { save } from "@tauri-apps/plugin-dialog";
+import { CHANNEL_EXTENSION, GROUP_EXTENSION } from "../models/extensions";
 
 @Component({
   selector: "app-channel-tile",
@@ -96,10 +97,11 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
         canCreateDirectories: true,
         title: "Select where to export custom source",
       });
+      if (!file) return;
     }
     this.starting = true;
     try {
-      await invoke("play", { channel: this.channel, record: record, path: file });
+      await invoke("play", { channel: this.channel, record: record, recordPath: file });
     } catch (e) {
       this.error.handleError(e);
     }
@@ -230,7 +232,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   async share() {
     let entityName = this.channel?.media_type == MediaType.group ? "group" : "channel";
-    const file = await save({
+    let file = await save({
       canCreateDirectories: true,
       title: `Select where to export ${entityName}`,
     });
@@ -238,12 +240,14 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       return;
     }
     if (this.channel?.media_type == MediaType.group) {
+      file += GROUP_EXTENSION;
       this.memory.tryIPC(
         `Successfully exported category to ${file}`,
         "Failed to export channel",
         () => invoke("share_custom_group", { group: this.channel, path: file }),
       );
     } else {
+      file += CHANNEL_EXTENSION;
       this.memory.tryIPC(
         `Successfully exported channel to ${file}`,
         "Failed to export channel",

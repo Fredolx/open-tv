@@ -8,6 +8,7 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { EditGroupModalComponent } from "../../edit-group-modal/edit-group-modal.component";
 import { ImportModalComponent } from "../../import-modal/import-modal.component";
 import { open, save } from "@tauri-apps/plugin-dialog";
+import { PLAYLIST_EXTENSION } from "../../models/extensions";
 
 @Component({
   selector: "app-source-tile",
@@ -89,11 +90,12 @@ export class SourceTileComponent {
   }
 
   async share() {
-    const file = await save({
+    let file = await save({
       canCreateDirectories: true,
       title: "Select where to export custom source",
     });
     if (file) {
+      file += PLAYLIST_EXTENSION;
       await this.memory.tryIPC(
         `Successfully exported source in ${file}`,
         "Failed to export source",

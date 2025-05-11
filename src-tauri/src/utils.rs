@@ -69,7 +69,7 @@ pub async fn download(
     let total_size = response.content_length().unwrap_or(0);
     let mut downloaded = 0;
     let path = match path {
-        Some(p) => p,
+        Some(p) => format!("{}.{}", p, get_extension(url)),
         None => get_download_path(get_filename(
             name.context("no name provided to download")?,
             url,
@@ -102,15 +102,18 @@ pub async fn download(
 }
 
 fn get_filename(channel_name: String, url: String) -> Result<String> {
-    let extension = url
-        .rsplit(".")
-        .next()
-        .filter(|ext| !ext.starts_with("php?"))
-        .unwrap_or("mp4")
-        .to_string();
+    let extension = get_extension(url);
     let channel_name = sanitize(channel_name);
     let filename = format!("{channel_name}.{extension}").to_string();
     Ok(filename)
+}
+
+fn get_extension(url: String) -> String {
+    url.rsplit(".")
+        .next()
+        .filter(|ext| !ext.starts_with("php?"))
+        .unwrap_or("mp4")
+        .to_string()
 }
 
 pub fn sanitize(str: String) -> String {
