@@ -21,8 +21,8 @@ use crate::{
     mpv,
     settings::get_settings,
     sql,
-    types::{AppState, Channel, NetworkInfo},
-    utils::get_bin,
+    types::{AppState, Channel, CustomChannel, NetworkInfo},
+    utils::{get_bin, serialize_to_file},
 };
 
 const WAN_IP_API: &str = "https://api.ipify.org";
@@ -177,8 +177,9 @@ pub async fn watch_self(port: u16) -> Result<()> {
 }
 
 pub fn share_restream(address: String, channel: Channel, path: String) -> Result<()> {
-    crate::share::share_custom_channel(
-        Channel {
+    let channel = CustomChannel {
+        headers: sql::get_channel_headers_by_id(channel.id.context("No id on channel?")?)?,
+        data: Channel {
             id: Some(-1),
             name: format!("RST | {}", channel.name).to_string(),
             url: Some(address),
@@ -192,8 +193,8 @@ pub fn share_restream(address: String, channel: Channel, path: String) -> Result
             stream_id: None,
             tv_archive: None,
         },
-        path,
-    )
+    };
+    serialize_to_file(channel, path)
 }
 
 pub async fn get_network_info() -> Result<NetworkInfo> {
