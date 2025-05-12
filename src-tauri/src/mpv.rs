@@ -26,6 +26,8 @@ const ARG_IGNORE_SSL: &str = "--ytdl-raw-options=no-check-certificates=True";
 const ARG_PREFETCH_PLAYLIST: &str = "--prefetch-playlist=yes";
 const ARG_LOOP_PLAYLIST: &str = "--loop-playlist=inf";
 const ARG_HWDEC: &str = "--hwdec=auto";
+const ARG_GPU_NEXT: &str = "--vo=gpu-next";
+const ARG_GPU_PROFILE_HIGH_QUALITY: &str = "--profile=high-quality";
 const MPV_BIN_NAME: &str = "mpv";
 const YTDLP_BIN_NAME: &str = "yt-dlp";
 const HTTP_ORIGIN: &str = "origin:";
@@ -85,6 +87,10 @@ fn get_play_args(
     }
     if settings.enable_hwdec.unwrap_or(true) {
         args.push(ARG_HWDEC.to_string());
+    }
+    if settings.enable_gpu.unwrap_or(false) {
+        args.push(ARG_GPU_NEXT.to_string());
+        args.push(ARG_GPU_PROFILE_HIGH_QUALITY.to_string());
     }
     if record {
         let path = if let Some(p) = record_path {

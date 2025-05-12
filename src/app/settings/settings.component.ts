@@ -28,6 +28,7 @@ export class SettingsComponent {
     default_sort: SortType.provider,
     enable_hwdec: true,
     always_ask_save: false,
+    enable_gpu: false,
   };
   viewModeEnum = ViewMode;
   sources: Source[] = [];
@@ -87,6 +88,7 @@ export class SettingsComponent {
       if (this.settings.default_sort == undefined) this.settings.default_sort = SortType.provider;
       if (this.settings.enable_hwdec == undefined) this.settings.enable_hwdec = true;
       if (this.settings.always_ask_save == undefined) this.settings.always_ask_save = false;
+      if (this.settings.enable_gpu == undefined) this.settings.enable_gpu = false;
     });
   }
 

@@ -11,4 +11,5 @@ export class Settings {
   default_sort?: number;
   enable_hwdec?: boolean;
   always_ask_save?: boolean;
+  enable_gpu?: boolean;
 }

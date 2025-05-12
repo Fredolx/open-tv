@@ -60,6 +60,7 @@ pub struct Settings {
     pub default_sort: Option<u8>,
     pub enable_hwdec: Option<bool>,
     pub always_ask_save: Option<bool>,
+    pub enable_gpu: Option<bool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
