@@ -6,6 +6,8 @@ import { NetworkInfo } from "../models/networkInfo";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { UnlistenFn, listen } from "@tauri-apps/api/event";
 import { save } from "@tauri-apps/plugin-dialog";
+import { sanitizeFileName } from "../utils";
+import { CHANNEL_EXTENSION } from "../models/extensions";
 
 @Component({
   selector: "app-restream-modal",
@@ -74,6 +76,7 @@ export class RestreamModalComponent implements OnInit, OnDestroy {
     const file = await save({
       canCreateDirectories: true,
       title: "Select where to export re-stream",
+      defaultPath: `${sanitizeFileName(this.channel?.name!)}_rst${CHANNEL_EXTENSION}`,
     });
     if (!file) {
       return;
