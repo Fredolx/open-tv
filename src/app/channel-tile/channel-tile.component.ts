@@ -26,6 +26,7 @@ import { Download } from "../models/download";
 import { Subscription, take } from "rxjs";
 import { save } from "@tauri-apps/plugin-dialog";
 import { CHANNEL_EXTENSION, GROUP_EXTENSION } from "../models/extensions";
+import { sanitizeFileName } from "../utils";
 
 @Component({
   selector: "app-channel-tile",
@@ -235,19 +236,20 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     let file = await save({
       canCreateDirectories: true,
       title: `Select where to export ${entityName}`,
+      defaultPath:
+        sanitizeFileName(this.channel?.name!) +
+        (this.channel?.media_type == MediaType.group ? GROUP_EXTENSION : CHANNEL_EXTENSION),
     });
     if (!file) {
       return;
     }
     if (this.channel?.media_type == MediaType.group) {
-      file += GROUP_EXTENSION;
       this.memory.tryIPC(
         `Successfully exported category to ${file}`,
         "Failed to export channel",
         () => invoke("share_custom_group", { group: this.channel, path: file }),
       );
     } else {
-      file += CHANNEL_EXTENSION;
       this.memory.tryIPC(
         `Successfully exported channel to ${file}`,
         "Failed to export channel",
