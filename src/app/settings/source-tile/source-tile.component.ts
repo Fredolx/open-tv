@@ -8,6 +8,8 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { EditGroupModalComponent } from "../../edit-group-modal/edit-group-modal.component";
 import { ImportModalComponent } from "../../import-modal/import-modal.component";
 import { open, save } from "@tauri-apps/plugin-dialog";
+import { CHANNEL_EXTENSION, FAVS_BACKUP, PLAYLIST_EXTENSION } from "../../models/extensions";
+import { sanitizeFileName } from "../../utils";
 
 @Component({
   selector: "app-source-tile",
@@ -89,11 +91,18 @@ export class SourceTileComponent {
   }
 
   async share() {
-    await this.memory.tryIPC(
-      `Successfully exported source in ~/Downloads/${this.source?.id}.otvp`,
-      "Failed to export source",
-      () => invoke("share_custom_source", { source: this.source }),
-    );
+    let file = await save({
+      canCreateDirectories: true,
+      title: "Select where to export custom source",
+      defaultPath: sanitizeFileName(this.source?.name!) + PLAYLIST_EXTENSION,
+    });
+    if (file) {
+      await this.memory.tryIPC(
+        `Successfully exported source in ${file}`,
+        "Failed to export source",
+        () => invoke("share_custom_source", { source: this.source, path: file }),
+      );
+    }
   }
 
   edit() {
@@ -130,6 +139,7 @@ export class SourceTileComponent {
     const file = await save({
       canCreateDirectories: true,
       title: "Select where to save favorites",
+      defaultPath: `${sanitizeFileName(this.source?.name!)}_favs${FAVS_BACKUP}`,
     });
     if (file) {
       await this.memory.tryIPC(
@@ -148,6 +158,7 @@ export class SourceTileComponent {
       title: "Select a favorites backup",
       directory: false,
       multiple: false,
+      filters: [{ name: "extension", extensions: ["otvf"] }],
     });
     if (file) {
       await this.memory.tryIPC(

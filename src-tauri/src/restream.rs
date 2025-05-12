@@ -173,10 +173,10 @@ pub async fn watch_self(port: u16) -> Result<()> {
         stream_id: None,
         tv_archive: None,
     };
-    mpv::play(channel, false).await
+    mpv::play(channel, false, None).await
 }
 
-pub fn share_restream(address: String, channel: Channel) -> Result<()> {
+pub fn share_restream(address: String, channel: Channel, path: String) -> Result<()> {
     crate::share::share_custom_channel(
         Channel {
             id: Some(-1),
@@ -192,7 +192,7 @@ pub fn share_restream(address: String, channel: Channel) -> Result<()> {
             stream_id: None,
             tv_archive: None,
         },
-        Some(format!("RST - {}", channel.id.context("no id")?)),
+        path,
     )
 }
 

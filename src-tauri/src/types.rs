@@ -59,6 +59,7 @@ pub struct Settings {
     pub zoom: Option<u16>,
     pub default_sort: Option<u8>,
     pub enable_hwdec: Option<bool>,
+    pub always_ask_save: Option<bool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

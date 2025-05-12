@@ -24,6 +24,9 @@ import { RestreamModalComponent } from "../restream-modal/restream-modal.compone
 import { DownloadService } from "../download.service";
 import { Download } from "../models/download";
 import { Subscription, take } from "rxjs";
+import { save } from "@tauri-apps/plugin-dialog";
+import { CHANNEL_EXTENSION, GROUP_EXTENSION, RECORD_EXTENSION } from "../models/extensions";
+import { getDateFormatted, getExtension, sanitizeFileName } from "../utils";
 
 @Component({
   selector: "app-channel-tile",
@@ -89,9 +92,18 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       this.memory.SetSeriesNode.next(this.channel);
       return;
     }
+    let file = undefined;
+    if (record && (this.memory.IsContainer || this.memory.AlwaysAskSave)) {
+      file = await save({
+        canCreateDirectories: true,
+        title: "Select where to save recording",
+        defaultPath: `${sanitizeFileName(this.channel?.name!)}_${getDateFormatted()}${RECORD_EXTENSION}`,
+      });
+      if (!file) return;
+    }
     this.starting = true;
     try {
-      await invoke("play", { channel: this.channel, record: record });
+      await invoke("play", { channel: this.channel, record: record, recordPath: file });
     } catch (e) {
       this.error.handleError(e);
     }
@@ -220,18 +232,29 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     this.memory.ModalRef.componentInstance.channel.data = { ...this.channel };
   }
 
-  share() {
+  async share() {
+    let entityName = this.channel?.media_type == MediaType.group ? "group" : "channel";
+    let file = await save({
+      canCreateDirectories: true,
+      title: `Select where to export ${entityName}`,
+      defaultPath:
+        sanitizeFileName(this.channel?.name!) +
+        (this.channel?.media_type == MediaType.group ? GROUP_EXTENSION : CHANNEL_EXTENSION),
+    });
+    if (!file) {
+      return;
+    }
     if (this.channel?.media_type == MediaType.group) {
       this.memory.tryIPC(
-        `Successfully exported category to Downloads/${this.channel?.id}.otvg`,
+        `Successfully exported category to ${file}`,
         "Failed to export channel",
-        () => invoke("share_custom_group", { group: this.channel }),
+        () => invoke("share_custom_group", { group: this.channel, path: file }),
       );
     } else {
       this.memory.tryIPC(
-        `Successfully exported channel to Downloads/${this.channel?.id}.otv`,
+        `Successfully exported channel to ${file}`,
         "Failed to export channel",
-        () => invoke("share_custom_channel", { channel: this.channel }),
+        () => invoke("share_custom_channel", { channel: this.channel, path: file }),
       );
     }
   }
@@ -298,13 +321,24 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   async downloadVod() {
+    let file = undefined;
+    if (this.memory.IsContainer || this.memory.AlwaysAskSave) {
+      file = await save({
+        canCreateDirectories: true,
+        title: "Select where to download movie",
+        defaultPath: `${sanitizeFileName(this.channel?.name!)}.${getExtension(this.channel?.url!)}`,
+      });
+      if (!file) {
+        return;
+      }
+    }
     let download = await this.download.addDownload(
       this.channel!.id!.toString(),
       this.channel!.name!,
       this.channel?.url!,
     );
     this.downloadSubscribe(download);
-    await this.download.download(download.id);
+    await this.download.download(download.id, file);
   }
 
   async cancelDownload() {

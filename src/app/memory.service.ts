@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, OnInit } from "@angular/core";
 import { Source } from "./models/source";
 import { BehaviorSubject, Subject } from "rxjs";
 import { MatMenuTrigger } from "@angular/material/menu";
@@ -18,7 +18,9 @@ export class MemoryService {
   constructor(
     private toastr: ToastrService,
     private error: ErrorService,
-  ) {}
+  ) {
+    invoke("is_container").then((val) => (this.IsContainer = val as boolean));
+  }
   public SetGroupNode: Subject<IdName> = new Subject();
   public SetSeriesNode: Subject<Channel> = new Subject();
   public Sort: BehaviorSubject<[number, boolean]> = new BehaviorSubject<[number, boolean]>([
@@ -41,6 +43,9 @@ export class MemoryService {
   public LoadingNotification: boolean = false;
   public AppVersion?: string;
   public trayEnabled?: boolean;
+  public IsContainer?: boolean;
+  public AlwaysAskSave?: boolean;
+
   async tryIPC<T>(
     successMessage: string,
     errorMessage: string,

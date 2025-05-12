@@ -16,6 +16,7 @@ pub const ENABLE_TRAY_ICON: &str = "enableTrayIcon";
 pub const ZOOM: &str = "zoom";
 pub const DEFAULT_SORT: &str = "defaultSort";
 pub const ENABLE_HWDEC: &str = "enableHWDEC";
+pub const ALWAYS_ASK_SAVE: &str = "alwaysAskSave";
 
 pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
@@ -31,6 +32,7 @@ pub fn get_settings() -> Result<Settings> {
         zoom: map.get(ZOOM).and_then(|s| s.parse().ok()),
         default_sort: map.get(DEFAULT_SORT).and_then(|s| s.parse().ok()),
         enable_hwdec: map.get(ENABLE_HWDEC).and_then(|s| s.parse().ok()),
+        always_ask_save: map.get(ALWAYS_ASK_SAVE).and_then(|s| s.parse().ok()),
     };
     Ok(settings)
 }
@@ -73,13 +75,19 @@ pub fn update_settings(settings: Settings) -> Result<()> {
     if let Some(hwdec) = settings.enable_hwdec {
         map.insert(ENABLE_HWDEC.to_string(), hwdec.to_string());
     }
+    if let Some(save) = settings.always_ask_save {
+        map.insert(ALWAYS_ASK_SAVE.to_string(), save.to_string());
+    }
     sql::update_settings(map)?;
     Ok(())
 }
 
 pub fn get_default_record_path() -> Result<String> {
     let user_dirs = UserDirs::new().context("Failed to get user dirs")?;
-    let mut path = user_dirs.video_dir().context("No videos dir")?.to_owned();
+    let mut path = user_dirs
+        .video_dir()
+        .context("No videos dir in ~, please set a recording path in Settings")?
+        .to_owned();
     path.push("open-tv");
     std::fs::create_dir_all(&path)?;
     Ok(path.to_string_lossy().to_string())

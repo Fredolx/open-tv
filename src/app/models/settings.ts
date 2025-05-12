@@ -10,4 +10,5 @@ export class Settings {
   zoom?: number;
   default_sort?: number;
   enable_hwdec?: boolean;
+  always_ask_save?: boolean;
 }

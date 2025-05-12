@@ -33,9 +33,9 @@ const HTTP_REFERRER: &str = "referer:";
 static MPV_PATH: LazyLock<String> = LazyLock::new(|| get_bin(MPV_BIN_NAME));
 static YTDLP_PATH: LazyLock<String> = LazyLock::new(|| find_macos_bin(YTDLP_BIN_NAME));
 
-pub async fn play(channel: Channel, record: bool) -> Result<()> {
+pub async fn play(channel: Channel, record: bool, record_path: Option<String>) -> Result<()> {
     println!("{} playing", channel.url.as_ref().unwrap());
-    let args = get_play_args(channel, record)?;
+    let args = get_play_args(channel, record, record_path)?;
     println!("with args: {:?}", args);
     let mut cmd = Command::new(MPV_PATH.clone())
         .args(args)
@@ -67,7 +67,11 @@ pub async fn play(channel: Channel, record: bool) -> Result<()> {
     Ok(())
 }
 
-fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
+fn get_play_args(
+    channel: Channel,
+    record: bool,
+    record_path: Option<String>,
+) -> Result<Vec<String>> {
     let mut args = Vec::new();
     let settings = get_settings()?;
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id?")?)?;
@@ -83,11 +87,14 @@ fn get_play_args(channel: Channel, record: bool) -> Result<Vec<String>> {
         args.push(ARG_HWDEC.to_string());
     }
     if record {
-        let record_path = match settings.recording_path {
-            Some(path) => get_path(path),
-            None => get_default_record_path()?,
+        let path = if let Some(p) = record_path {
+            p
+        } else if let Some(p) = settings.recording_path.map(get_path) {
+            p
+        } else {
+            get_path(get_default_record_path()?)
         };
-        args.push(format!("{ARG_RECORD}{record_path}"));
+        args.push(format!("{ARG_RECORD}{path}"));
     }
     if OS == "macos" && *MPV_PATH != MPV_BIN_NAME {
         args.push(format!("{}{}", ARG_YTDLP_PATH, *YTDLP_PATH));

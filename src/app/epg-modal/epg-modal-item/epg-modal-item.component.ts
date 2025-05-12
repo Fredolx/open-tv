@@ -9,6 +9,8 @@ import { MediaType } from "../../models/mediaType";
 import { DownloadService } from "../../download.service";
 import { Subscription, take } from "rxjs";
 import { Download } from "../../models/download";
+import { save } from "@tauri-apps/plugin-dialog";
+import { getDateFormatted, getExtension, sanitizeFileName } from "../../utils";
 
 @Component({
   selector: "app-epg-modal-item",
@@ -105,6 +107,17 @@ export class EpgModalItemComponent implements OnDestroy {
   }
 
   async downloadTimeshift() {
+    let file = undefined;
+    if (this.memory.IsContainer || this.memory.AlwaysAskSave) {
+      file = await save({
+        canCreateDirectories: true,
+        title: "Select where to save catchback",
+        defaultPath: `${sanitizeFileName(this.epg?.title!)}_${getDateFormatted()}.${getExtension(this.epg?.timeshift_url!)}`,
+      });
+      if (!file) {
+        return;
+      }
+    }
     if (this.downloading()) return;
     let download = await this.download.addDownload(
       this.getDownloadId(),
@@ -112,7 +125,7 @@ export class EpgModalItemComponent implements OnDestroy {
       this.epg!.timeshift_url!,
     );
     this.downloadSubscribe(download);
-    await this.download.download(download.id);
+    await this.download.download(download.id, file);
   }
 
   downloadSubscribe(download: Download) {

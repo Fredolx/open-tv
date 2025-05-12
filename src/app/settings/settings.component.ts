@@ -27,6 +27,7 @@ export class SettingsComponent {
     zoom: 100,
     default_sort: SortType.provider,
     enable_hwdec: true,
+    always_ask_save: false,
   };
   viewModeEnum = ViewMode;
   sources: Source[] = [];
@@ -85,6 +86,7 @@ export class SettingsComponent {
       if (this.settings.zoom == undefined) this.settings.zoom = 100;
       if (this.settings.default_sort == undefined) this.settings.default_sort = SortType.provider;
       if (this.settings.enable_hwdec == undefined) this.settings.enable_hwdec = true;
+      if (this.settings.always_ask_save == undefined) this.settings.always_ask_save = false;
     });
   }
 

@@ -102,7 +102,8 @@ pub fn run() {
             backup_favs,
             restore_favs,
             abort_download,
-            clear_history
+            clear_history,
+            is_container
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -196,8 +197,10 @@ async fn get_m3u8_from_link(source: Source) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn play(channel: Channel, record: bool) -> Result<(), String> {
-    mpv::play(channel, record).await.map_err(map_err_frontend)
+async fn play(channel: Channel, record: bool, record_path: Option<String>) -> Result<(), String> {
+    mpv::play(channel, record, record_path)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
@@ -312,8 +315,8 @@ fn add_custom_source(name: String) -> Result<(), String> {
 }
 
 #[tauri::command(async)]
-fn share_custom_channel(channel: Channel) -> Result<(), String> {
-    share::share_custom_channel(channel, None).map_err(map_err_frontend)
+fn share_custom_channel(channel: Channel, path: String) -> Result<(), String> {
+    share::share_custom_channel(channel, path).map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
@@ -355,13 +358,13 @@ fn group_exists(name: String, source_id: i64) -> Result<bool, String> {
 }
 
 #[tauri::command(async)]
-fn share_custom_group(group: Channel) -> Result<(), String> {
-    share::share_custom_group(group).map_err(map_err_frontend)
+fn share_custom_group(group: Channel, path: String) -> Result<(), String> {
+    share::share_custom_group(group, path).map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
-fn share_custom_source(source: Source) -> Result<(), String> {
-    share::share_custom_source(source).map_err(map_err_frontend)
+fn share_custom_source(source: Source, path: String) -> Result<(), String> {
+    share::share_custom_source(source, path).map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
@@ -392,9 +395,10 @@ async fn get_epg(channel: Channel) -> Result<Vec<EPG>, String> {
 async fn download(
     state: State<'_, Mutex<AppState>>,
     app: AppHandle,
-    name: String,
+    name: Option<String>,
     url: String,
     download_id: String,
+    path: Option<String>,
 ) -> Result<(), String> {
     let stop = Arc::new(AtomicBool::new(false));
     let stop_clone = stop.clone();
@@ -402,7 +406,7 @@ async fn download(
         let mut state = state.lock().await;
         state.download_stop.insert(download_id.clone(), stop);
     }
-    let result = utils::download(stop_clone, app, name, url, &download_id)
+    let result = utils::download(stop_clone, app, name, url, &download_id, path)
         .await
         .map_err(map_err_frontend);
     {
@@ -494,8 +498,8 @@ async fn get_network_info() -> Result<NetworkInfo, String> {
 }
 
 #[tauri::command(async)]
-fn share_restream(address: String, channel: Channel) -> Result<(), String> {
-    restream::share_restream(address, channel).map_err(map_err_frontend)
+fn share_restream(address: String, channel: Channel, path: String) -> Result<(), String> {
+    restream::share_restream(address, channel, path).map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
@@ -516,4 +520,9 @@ fn restore_favs(id: i64, path: String) -> Result<(), String> {
 #[tauri::command(async)]
 fn clear_history() -> Result<(), String> {
     sql::clear_history().map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn is_container() -> bool {
+    utils::is_container()
 }
