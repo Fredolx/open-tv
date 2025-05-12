@@ -29,6 +29,32 @@
   </categories>
   <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
   <releases>
+    <release version="1.7.0" date="2025-05-12">
+      <description>
+          <ul>
+              <li>
+                Added an option in settings to conveniently enable hardware decoding (HWDEC=auto), enabled by
+                default.
+              </li>
+              <li>
+                Added an option in settings to enable modern hardware features for the player (HDR, gpu UI,
+                etc). Not enabled by default, please try to enable it if you have a recent GPU.
+              </li>
+              <li>
+                Added an option in settings to always ask where to save files (VOD/Catchback downloads,
+                recording).
+              </li>
+              <li>Added an option in settings to clear history</li>
+              <li>
+                Reduced permissions of flatpak package to the bare minimum. Using Open TV in a containerized
+                environment like flatpak/distrobox/podman/appImage will act as if "Always ask where to save
+                file" is on.
+              </li>
+              <li>Fixed a bug with EPG not working on some Xtream subscriptions</li>
+              <li>Added a .rpm to the releases for Fedora/RHEL</li>
+          </ul>
+      </description>
+    </release>
     <release version="1.6.1" date="2025-04-16">
       <description>
         <p>
