@@ -26,7 +26,7 @@ import { Download } from "../models/download";
 import { Subscription, take } from "rxjs";
 import { save } from "@tauri-apps/plugin-dialog";
 import { CHANNEL_EXTENSION, GROUP_EXTENSION, RECORD_EXTENSION } from "../models/extensions";
-import { getDateFormatted, sanitizeFileName } from "../utils";
+import { getDateFormatted, getExtension, sanitizeFileName } from "../utils";
 
 @Component({
   selector: "app-channel-tile",
@@ -326,7 +326,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       file = await save({
         canCreateDirectories: true,
         title: "Select where to download movie",
-        defaultPath: this.channel?.name,
+        defaultPath: `${this.channel?.name}.${getExtension(this.channel?.url!)}`,
       });
       if (!file) {
         return;

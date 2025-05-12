@@ -10,7 +10,7 @@ import { DownloadService } from "../../download.service";
 import { Subscription, take } from "rxjs";
 import { Download } from "../../models/download";
 import { save } from "@tauri-apps/plugin-dialog";
-import { getDateFormatted } from "../../utils";
+import { getDateFormatted, getExtension } from "../../utils";
 
 @Component({
   selector: "app-epg-modal-item",
@@ -106,20 +106,13 @@ export class EpgModalItemComponent implements OnDestroy {
     return `${this.channelId}-${this.epg?.epg_id}`;
   }
 
-  getExtension(url: string): string {
-    let split = url.split(".");
-    let last = split[split.length - 1];
-    if (last.startsWith("php?")) return "mp4";
-    else return last;
-  }
-
   async downloadTimeshift() {
     let file = undefined;
     if (this.memory.IsContainer) {
       file = await save({
         canCreateDirectories: true,
         title: "Select where to save catchback",
-        defaultPath: `${this.epg?.title}_${getDateFormatted()}.${this.getExtension(this.epg?.timeshift_url!)}`,
+        defaultPath: `${this.epg?.title}_${getDateFormatted()}.${getExtension(this.epg?.timeshift_url!)}`,
       });
       if (!file) {
         return;
