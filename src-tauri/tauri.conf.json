@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "Open TV (v1.6.1)",
+        "title": "Open TV (v1.7.0)",
         "width": 800,
         "height": 600,
         "resizable": true,
