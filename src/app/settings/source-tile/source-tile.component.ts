@@ -8,7 +8,7 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { EditGroupModalComponent } from "../../edit-group-modal/edit-group-modal.component";
 import { ImportModalComponent } from "../../import-modal/import-modal.component";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import { CHANNEL_EXTENSION, PLAYLIST_EXTENSION } from "../../models/extensions";
+import { CHANNEL_EXTENSION, FAVS_BACKUP, PLAYLIST_EXTENSION } from "../../models/extensions";
 import { sanitizeFileName } from "../../utils";
 
 @Component({
@@ -139,6 +139,7 @@ export class SourceTileComponent {
     const file = await save({
       canCreateDirectories: true,
       title: "Select where to save favorites",
+      defaultPath: `${this.source?.name}_favs${FAVS_BACKUP}`,
     });
     if (file) {
       await this.memory.tryIPC(
@@ -157,6 +158,7 @@ export class SourceTileComponent {
       title: "Select a favorites backup",
       directory: false,
       multiple: false,
+      filters: [{ name: "extension", extensions: ["otvf"] }],
     });
     if (file) {
       await this.memory.tryIPC(

@@ -23,6 +23,7 @@ export class ImportModalComponent {
       directory: false,
       canCreateDirectories: false,
       title: "Select Open TV export file",
+      filters: [{ name: "extension", extensions: ["otv", "otvg"] }],
     });
     if (file == null) {
       return;

@@ -120,6 +120,7 @@ export class SetupComponent {
       directory: false,
       canCreateDirectories: false,
       title: "Select Open TV export file (.otvp)",
+      filters: [{ name: "extension", extensions: ["otvp"] }],
     });
     if (file == null) {
       return;
