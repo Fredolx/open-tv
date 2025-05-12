@@ -25,8 +25,8 @@ import { DownloadService } from "../download.service";
 import { Download } from "../models/download";
 import { Subscription, take } from "rxjs";
 import { save } from "@tauri-apps/plugin-dialog";
-import { CHANNEL_EXTENSION, GROUP_EXTENSION } from "../models/extensions";
-import { sanitizeFileName } from "../utils";
+import { CHANNEL_EXTENSION, GROUP_EXTENSION, RECORD_EXTENSION } from "../models/extensions";
+import { getDateFormatted, sanitizeFileName } from "../utils";
 
 @Component({
   selector: "app-channel-tile",
@@ -96,7 +96,8 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     if (record && this.memory.IsContainer) {
       file = await save({
         canCreateDirectories: true,
-        title: "Select where to export custom source",
+        title: "Select where to save recording",
+        defaultPath: `${sanitizeFileName(this.channel?.name!)}_${getDateFormatted()}${RECORD_EXTENSION}`,
       });
       if (!file) return;
     }
@@ -324,7 +325,8 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     if (this.memory.IsContainer) {
       file = await save({
         canCreateDirectories: true,
-        title: "Select where to export custom source",
+        title: "Select where to download movie",
+        defaultPath: this.channel?.name,
       });
       if (!file) {
         return;

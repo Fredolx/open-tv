@@ -87,10 +87,13 @@ fn get_play_args(
         args.push(ARG_HWDEC.to_string());
     }
     if record {
-        let path = record_path
-            .or_else(|| settings.recording_path.map(get_path))
-            .map(Ok)
-            .unwrap_or_else(|| get_default_record_path())?;
+        let path = if let Some(p) = record_path {
+            p
+        } else if let Some(p) = settings.recording_path.map(get_path) {
+            p
+        } else {
+            get_path(get_default_record_path()?)
+        };
         args.push(format!("{ARG_RECORD}{path}"));
     }
     if OS == "macos" && *MPV_PATH != MPV_BIN_NAME {

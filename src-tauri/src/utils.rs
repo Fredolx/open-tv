@@ -69,7 +69,7 @@ pub async fn download(
     let total_size = response.content_length().unwrap_or(0);
     let mut downloaded = 0;
     let path = match path {
-        Some(p) => format!("{}.{}", p, get_extension(url)),
+        Some(p) => p,
         None => get_download_path(get_filename(
             name.context("no name provided to download")?,
             url,

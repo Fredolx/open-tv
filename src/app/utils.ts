@@ -14,3 +14,7 @@ export const sanitizeFileName = (fileName: string) => {
       .replace(/^\s+|\s+$/g, "") || "untitled"
   );
 };
+
+export const getDateFormatted = () => {
+  return new Date().toISOString().replace(/T|:/g, "-").split(".")[0];
+};
