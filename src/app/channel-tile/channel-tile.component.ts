@@ -93,7 +93,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       return;
     }
     let file = undefined;
-    if (record && this.memory.IsContainer) {
+    if (record && (this.memory.IsContainer || this.memory.AlwaysAskSave)) {
       file = await save({
         canCreateDirectories: true,
         title: "Select where to save recording",
@@ -322,7 +322,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   async downloadVod() {
     let file = undefined;
-    if (this.memory.IsContainer) {
+    if (this.memory.IsContainer || this.memory.AlwaysAskSave) {
       file = await save({
         canCreateDirectories: true,
         title: "Select where to download movie",

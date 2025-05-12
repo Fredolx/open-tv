@@ -108,7 +108,7 @@ export class EpgModalItemComponent implements OnDestroy {
 
   async downloadTimeshift() {
     let file = undefined;
-    if (this.memory.IsContainer) {
+    if (this.memory.IsContainer || this.memory.AlwaysAskSave) {
       file = await save({
         canCreateDirectories: true,
         title: "Select where to save catchback",

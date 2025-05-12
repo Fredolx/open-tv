@@ -44,6 +44,7 @@ export class MemoryService {
   public AppVersion?: string;
   public trayEnabled?: boolean;
   public IsContainer?: boolean;
+  public AlwaysAskSave?: boolean;
 
   async tryIPC<T>(
     successMessage: string,
