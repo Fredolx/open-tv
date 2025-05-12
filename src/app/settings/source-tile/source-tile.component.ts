@@ -139,7 +139,7 @@ export class SourceTileComponent {
     const file = await save({
       canCreateDirectories: true,
       title: "Select where to save favorites",
-      defaultPath: `${this.source?.name}_favs${FAVS_BACKUP}`,
+      defaultPath: `${sanitizeFileName(this.source?.name!)}_favs${FAVS_BACKUP}`,
     });
     if (file) {
       await this.memory.tryIPC(

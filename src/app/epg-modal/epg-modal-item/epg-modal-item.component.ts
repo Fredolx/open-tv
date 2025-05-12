@@ -10,7 +10,7 @@ import { DownloadService } from "../../download.service";
 import { Subscription, take } from "rxjs";
 import { Download } from "../../models/download";
 import { save } from "@tauri-apps/plugin-dialog";
-import { getDateFormatted, getExtension } from "../../utils";
+import { getDateFormatted, getExtension, sanitizeFileName } from "../../utils";
 
 @Component({
   selector: "app-epg-modal-item",
@@ -112,7 +112,7 @@ export class EpgModalItemComponent implements OnDestroy {
       file = await save({
         canCreateDirectories: true,
         title: "Select where to save catchback",
-        defaultPath: `${this.epg?.title}_${getDateFormatted()}.${getExtension(this.epg?.timeshift_url!)}`,
+        defaultPath: `${sanitizeFileName(this.epg?.title!)}_${getDateFormatted()}.${getExtension(this.epg?.timeshift_url!)}`,
       });
       if (!file) {
         return;

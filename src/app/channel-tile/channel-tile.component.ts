@@ -326,7 +326,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       file = await save({
         canCreateDirectories: true,
         title: "Select where to download movie",
-        defaultPath: `${this.channel?.name}.${getExtension(this.channel?.url!)}`,
+        defaultPath: `${sanitizeFileName(this.channel?.name!)}.${getExtension(this.channel?.url!)}`,
       });
       if (!file) {
         return;
