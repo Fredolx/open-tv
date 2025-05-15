@@ -101,7 +101,8 @@
         *ngIf="
           source.source_type != sourceTypeEnum.M3U &&
           source.source_type != sourceTypeEnum.Custom &&
-          source.source_type != sourceTypeEnum.CustomImport
+          source.source_type != sourceTypeEnum.CustomImport &&
+          source.source_type != sourceTypeEnum.W3U
         "
       >
         <div class="row justify-content-center mt-2">
@@ -166,7 +167,11 @@
       </div>
       <div class="mt-3 text-center">
         <button [disabled]="!form.valid" class="btn btn-primary d-inline-flex align-items-center">
-          <ng-container *ngIf="source.source_type == sourceTypeEnum.M3U">
+          <ng-container
+            *ngIf="
+              source.source_type == sourceTypeEnum.M3U || source.source_type == sourceTypeEnum.W3U
+            "
+          >
             <span>Select file</span>
             <svg class="anim-svg ms-1" viewBox="0 0 24 24" fill="currentColor">
               <path
@@ -174,7 +179,12 @@
               />
             </svg>
           </ng-container>
-          <ng-container *ngIf="source.source_type == sourceTypeEnum.M3ULink">
+          <ng-container
+            *ngIf="
+              source.source_type == sourceTypeEnum.M3ULink ||
+              source.source_type == sourceTypeEnum.W3ULink
+            "
+          >
             <span>Fetch</span>
             <svg class="anim-svg ms-1" viewBox="0 0 24 24" fill="currentColor">
               <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use tokio::fs;
 
 use crate::sql;
-use crate::types::{Channel, ChannelPreserve};
+use crate::types::{Channel, ChannelHttpHeaders, ChannelPreserve};
 use crate::utils::get_media_type;
 use crate::{
     source_type,
@@ -33,6 +33,8 @@ struct W3UStream {
     name: String,
     image: Option<String>,
     url: String,
+    referer: Option<String>,
+    user_agent: Option<String>,
 }
 
 pub async fn get_w3u_from_link(source: Source, wipe: bool) -> Result<()> {
@@ -103,5 +105,15 @@ fn process_station(
         id: None,
         url: Some(station.url),
     };
-    sql::insert_channel(tx, channel)
+    sql::insert_channel(tx, channel)?;
+    if station.referer.is_some() || station.user_agent.is_some() {
+        let headers = ChannelHttpHeaders {
+            channel_id: Some(tx.last_insert_rowid()),
+            referrer: station.referer,
+            user_agent: station.user_agent,
+            ..Default::default()
+        };
+        sql::insert_channel_headers(tx, headers)?
+    }
+    Ok(())
 }
