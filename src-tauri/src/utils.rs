@@ -4,7 +4,7 @@ use crate::{
     settings::{get_default_record_path, get_settings},
     source_type, sql,
     types::Source,
-    xtream,
+    w3u, xtream,
 };
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Local, Utc};
@@ -38,6 +38,8 @@ pub async fn refresh_source(source: Source) -> Result<()> {
         source_type::M3U_LINK => m3u::get_m3u8_from_link(source, true).await?,
         source_type::XTREAM => xtream::get_xtream(source, true).await?,
         source_type::CUSTOM => {}
+        source_type::W3U => w3u::read_w3u(source, true).await?,
+        source_type::W3U_LINK => w3u::get_w3u_from_link(source, true).await?,
         _ => return Err(anyhow!("invalid source_type")),
     }
     Ok(())

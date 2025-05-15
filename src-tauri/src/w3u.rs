@@ -41,7 +41,7 @@ pub async fn get_w3u_from_link(source: Source, wipe: bool) -> Result<()> {
         get_tmp_path(W3U_TEMP_FILENAME).await?,
     )
     .await?;
-    Ok(())
+    read_w3u(source, wipe).await
 }
 
 pub async fn read_w3u(source: Source, wipe: bool) -> Result<()> {
