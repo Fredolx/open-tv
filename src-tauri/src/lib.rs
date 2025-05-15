@@ -29,6 +29,7 @@ pub mod sql;
 pub mod types;
 pub mod utils;
 pub mod view_type;
+pub mod w3u;
 pub mod xtream;
 
 static ENABLE_TRAY_ICON: LazyLock<bool> = LazyLock::new(|| {
@@ -184,9 +185,11 @@ fn map_err_frontend(e: Error) -> String {
     return format!("{:?}", e);
 }
 
-#[tauri::command(async)]
-fn get_m3u8(source: Source) -> Result<(), String> {
-    m3u::read_m3u8(source, false).map_err(map_err_frontend)
+#[tauri::command]
+async fn get_m3u8(source: Source) -> Result<(), String> {
+    m3u::read_m3u8(source, false)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command]

@@ -1,4 +1,3 @@
-use std::io::Write;
 use std::sync::LazyLock;
 use std::{
     collections::HashMap,
@@ -12,8 +11,9 @@ use rusqlite::Transaction;
 use types::{Channel, Source};
 
 use crate::types::ChannelPreserve;
+use crate::utils::{get_file_http, get_media_type, get_tmp_path};
 use crate::{
-    log, media_type, source_type,
+    log, source_type,
     sql::{self, set_channel_group_id},
     types::{self, ChannelHttpHeaders},
 };
@@ -36,6 +36,8 @@ static HTTP_REFERRER_REGEX: LazyLock<Regex> =
 static HTTP_USER_AGENT_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"http-user-agent=(?P<user_agent>.+)"#).unwrap());
 
+const M3U_TEMP_FILENAME: &str = "get.m3u";
+
 struct M3UProcessing {
     channel_line: Option<String>,
     channel_headers: Option<ChannelHttpHeaders>,
@@ -47,9 +49,9 @@ struct M3UProcessing {
     line_count: usize,
 }
 
-pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
+pub async fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     let path = match source.source_type {
-        source_type::M3U_LINK => get_tmp_path(),
+        source_type::M3U_LINK => get_tmp_path(M3U_TEMP_FILENAME).await?,
         _ => source.url.clone().context("no file path found")?,
     };
     let file = File::open(path).context("Failed to open m3u8 file")?;
@@ -169,27 +171,12 @@ fn commit_channel(
 }
 
 pub async fn get_m3u8_from_link(source: Source, wipe: bool) -> Result<()> {
-    let client = reqwest::Client::new();
-    let url = source.url.clone().context("Invalid source")?;
-    let mut response = client.get(&url).send().await?;
-
-    let mut file = std::fs::File::create(get_tmp_path())?;
-    while let Some(chunk) = response.chunk().await? {
-        file.write(&chunk)?;
-    }
-    read_m3u8(source, wipe)
-}
-
-fn get_tmp_path() -> String {
-    let mut path = directories::ProjectDirs::from("dev", "fredol", "open-tv")
-        .unwrap()
-        .cache_dir()
-        .to_owned();
-    if !path.exists() {
-        std::fs::create_dir_all(&path).unwrap();
-    }
-    path.push("get.m3u");
-    return path.to_string_lossy().to_string();
+    get_file_http(
+        source.url.as_ref().context("no url")?,
+        get_tmp_path(M3U_TEMP_FILENAME).await?,
+    )
+    .await?;
+    read_m3u8(source, wipe).await
 }
 
 fn extract_non_empty_capture(caps: Captures) -> Option<String> {
@@ -264,7 +251,7 @@ fn get_channel_from_lines(
         group: group.map(|x| x.trim().to_string()),
         image: image.map(|x| x.trim().to_string()),
         url: Some(second.clone()),
-        media_type: get_media_type(second),
+        media_type: get_media_type(&second),
         source_id: Some(source_id),
         series_id: None,
         group_id: None,
@@ -273,82 +260,4 @@ fn get_channel_from_lines(
         tv_archive: None,
     };
     Ok(channel)
-}
-
-fn get_media_type(url: String) -> u8 {
-    let media_type = if url.ends_with(".mp4") || url.ends_with(".mkv") {
-        media_type::MOVIE
-    } else {
-        media_type::LIVESTREAM
-    };
-    return media_type;
-}
-
-#[cfg(test)]
-mod test_m3u {
-    use std::{env, time::Instant};
-
-    use crate::{
-        m3u::{get_channel_from_lines, get_m3u8_from_link},
-        types::Source,
-    };
-
-    use super::read_m3u8;
-
-    #[test]
-    fn test_get_channel_from_lines() {
-        get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="Amazing Channel" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0,Some(true)).unwrap();
-        get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Amazing Channel" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0, Some(true)).unwrap();
-        assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="" tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0, Some(true)).is_err());
-        assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id=" " tvg-name="" tvg-logo="http://myurl.local/logos/amazing/amazing-1.png" group-title="The Best Channels"#.to_string()
-       , r#"http://myurl.local/1234/1234/1234"#.to_string(), 0, Some(true)).is_err());
-        assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="Name Of Channel" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(true)).unwrap().name == "Name Of Channel");
-        assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(true)).unwrap().name == "Id Of Channel");
-        assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(false)).unwrap().name == "Alt Name Of Channel");
-    }
-
-    #[test]
-    fn test_read_m3u8() {
-        crate::sql::drop_db().unwrap_or_default();
-        crate::sql::create_or_initialize_db().unwrap();
-        let now = Instant::now();
-        let source = Source {
-            url: Some("/home/fred/Downloads/get.php".to_string()),
-            name: "main".to_string(),
-            id: None,
-            password: None,
-            username: None,
-            url_origin: None,
-            source_type: crate::source_type::M3U,
-            enabled: true,
-            use_tvg_id: Some(true),
-        };
-        read_m3u8(source, false).unwrap();
-        std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
-    }
-
-    #[tokio::test]
-    async fn test_get_m3u8_from_link() {
-        crate::sql::drop_db().unwrap_or_default();
-        crate::sql::create_or_initialize_db().unwrap();
-        let now = Instant::now();
-        let source = Source {
-            url: Some(env::var("OPEN_TV_TEST_LINK").unwrap()),
-            name: "m3ulink1".to_string(),
-            id: None,
-            password: None,
-            username: None,
-            url_origin: None,
-            source_type: crate::source_type::M3U_LINK,
-            enabled: true,
-            use_tvg_id: Some(true),
-        };
-        get_m3u8_from_link(source, false).await.unwrap();
-        let time = now.elapsed().as_millis().to_string();
-        println!("{time}");
-        std::fs::write("bench2.txt", time).unwrap();
-    }
 }

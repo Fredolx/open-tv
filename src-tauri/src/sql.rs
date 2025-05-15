@@ -263,7 +263,7 @@ VALUES (?, ?, ?, ?, ?);
     Ok(())
 }
 
-fn get_or_insert_group(
+pub fn get_or_insert_group(
     tx: &Transaction,
     group: &str,
     image: &Option<String>,
