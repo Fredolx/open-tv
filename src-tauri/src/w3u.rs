@@ -1,5 +1,5 @@
-use anyhow::anyhow;
 use anyhow::{Context, Result};
+use anyhow::{anyhow, bail};
 use rusqlite::Transaction;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
@@ -17,8 +17,10 @@ const W3U_TEMP_FILENAME: &str = "get.w3u";
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct W3uData {
-    groups: Vec<W3UGroup>,
-    stations: Vec<W3UStream>,
+    #[serde(default)]
+    groups: serde_json::Value, //Vec<W3UGroup>
+    #[serde(default)]
+    stations: serde_json::Value, //Vec<W3UStream>
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -56,18 +58,30 @@ pub async fn read_w3u(source: Source, wipe: bool) -> Result<()> {
     let data: W3uData = serde_json::from_slice(&data)?;
     let mut channel_preserve: Vec<ChannelPreserve> = Vec::new();
     sql::do_tx(|tx| {
-        let mut source_id = source.id.context("no source id")?;
+        let mut source_id = source.id.unwrap_or(-1);
         if wipe {
+            if source_id == -1 {
+                bail!("invalid source id");
+            }
             channel_preserve = sql::get_channel_preserve(&tx, source_id).unwrap_or(Vec::new());
             sql::wipe(&tx, source_id)?;
         } else {
             source_id = sql::create_or_find_source_by_name(&tx, &source)?;
         }
-        for group in data.groups {
-            process_group(group, source_id, tx)?;
+        let groups: Option<Vec<W3UGroup>> = serde_json::from_value(data.groups).ok();
+        let stations: Option<Vec<W3UStream>> = serde_json::from_value(data.stations).ok();
+        if groups.is_none() && stations.is_none() {
+            bail!("No data in w3u");
         }
-        for station in data.stations {
-            process_station(station, source_id, None, tx)?;
+        if let Some(g) = groups {
+            for group in g {
+                process_group(group, source_id, tx)?;
+            }
+        }
+        if let Some(s) = stations {
+            for station in s {
+                process_station(station, source_id, None, tx)?;
+            }
         }
         if wipe {
             sql::restore_preserve(&tx, source_id, channel_preserve)?;
@@ -106,6 +120,7 @@ fn process_station(
         url: Some(station.url),
     };
     sql::insert_channel(tx, channel)?;
+    println!("{}", tx.last_insert_rowid());
     if station.referer.is_some() || station.user_agent.is_some() {
         let headers = ChannelHttpHeaders {
             channel_id: Some(tx.last_insert_rowid()),
