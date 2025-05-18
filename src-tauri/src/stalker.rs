@@ -1,3 +1,5 @@
+use crate::types::Source;
+
 struct StalkerLive {
     js: StalkerLiveData,
 }
@@ -27,6 +29,7 @@ struct StalkerVodChannel {
     name: String,
     category_id: String,
     screenshot_uri: String,
+    cmd: String,
 }
 
 struct StalkerSeries {
@@ -41,6 +44,22 @@ struct StalkerSeriesItem {
     id: String,
     name: String,
     screenshot_uri: String,
+    category_id: String,
 }
 
-struct StalkerSeriesEpisodes {}
+struct StalkerSeriesEpisodes {
+    js: StalkerSeriesEpisodesData,
+}
+
+struct StalkerSeriesEpisodesData {
+    data: Vec<StalkerSeriesEpisodesItem>,
+}
+
+struct StalkerSeriesEpisodesItem {
+    name: String,
+    series: Vec<u32>,
+    screenshot_uri: String,
+    cmd: String,
+}
+
+fn get_stalker(source: Source, wipe: bool) {}
