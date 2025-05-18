@@ -26,6 +26,7 @@ pub mod share;
 pub mod sort_type;
 pub mod source_type;
 pub mod sql;
+pub mod stalker;
 pub mod types;
 pub mod utils;
 pub mod view_type;
