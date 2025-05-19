@@ -105,7 +105,8 @@ pub fn run() {
             restore_favs,
             abort_download,
             clear_history,
-            is_container
+            is_container,
+            get_stalker,
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -527,4 +528,11 @@ fn clear_history() -> Result<(), String> {
 #[tauri::command(async)]
 fn is_container() -> bool {
     utils::is_container()
+}
+
+#[tauri::command]
+async fn get_stalker(source: Source) -> Result<(), String> {
+    stalker::get_stalker(source, false)
+        .await
+        .map_err(map_err_frontend)
 }
