@@ -4,6 +4,7 @@ use anyhow::{Context, Result, bail};
 use reqwest::Client;
 use rusqlite::Transaction;
 use serde::{Deserialize, Serialize};
+use tokio::task::JoinSet;
 use url::Url;
 
 use crate::{
@@ -18,6 +19,8 @@ struct StalkerJsData {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct StalkerData {
+    total_items: Option<u32>,
+    max_page_items: Option<u32>,
     data: Vec<StalkerItem>,
 }
 
@@ -63,16 +66,24 @@ struct StalkerGenre {
     title: String,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct CreateStreamDTO {
+    cmd: String,
+}
+
 pub async fn get_stalker(source: Source, wipe: bool) -> Result<()> {
-    let mut url = build_base_url(&source)?;
-    let token = get_token(url.clone()).await?;
-    add_token_to_url(&mut url, token);
-    let live_cats = get_genres(url.clone()).await?;
-    let vod_cats = get_categories(url.clone(), stalker_type::VOD).await?;
-    let series_cats = get_categories(url.clone(), stalker_type::SERIES).await?;
-    let lives = get_all_channels(url.clone(), stalker_type::LIVE).await?;
-    let vods = get_all_channels(url.clone(), stalker_type::VOD).await?;
-    let series = get_all_channels(url, stalker_type::SERIES).await?;
+    let url = source.url.as_ref().context("no url")?;
+    let mac = source
+        .username
+        .as_ref()
+        .context("no mac address in source.username")?;
+    let token = get_token(url, mac).await?;
+    let live_cats = get_genres(url, &token, mac).await?;
+    let vod_cats = get_categories(url, stalker_type::VOD, &token, mac).await?;
+    let series_cats = get_categories(url, stalker_type::SERIES, &token, mac).await?;
+    let lives = get_all_channels(url, stalker_type::LIVE, &token, mac).await?;
+    let vods = get_all_channels(url, stalker_type::VOD, &token, mac).await?;
+    let series = get_all_channels(url, stalker_type::SERIES, &token, mac).await?;
     let mut channel_preserve: Vec<ChannelPreserve> = Vec::new();
     sql::do_tx(|tx| {
         let mut source_id = source.id.unwrap_or(-1);
@@ -144,30 +155,15 @@ fn stalker_type_to_otv_type(stalker_type: &str) -> u8 {
 }
 
 fn build_stalker_client() -> Result<Client> {
-    let client = Client::builder().user_agent("Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3
-  X-User-Agent: Model: MAG250; Link: WiFi").build()?;
+    let client = Client::builder().user_agent("Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3 X-User-Agent: Model: MAG250; Link: WiFi").build()?;
     Ok(client)
 }
 
-fn build_base_url(source: &Source) -> Result<Url> {
-    let mut url = Url::from_str(source.url.as_ref().context("no url in source.url")?)?;
-    url.query_pairs_mut().append_pair(
-        "mac",
-        source
-            .username
-            .as_ref()
-            .context("no mac address in source.username")?,
-    );
-    Ok(url)
-}
-
-fn add_token_to_url(url: &mut Url, token: String) {
-    url.query_pairs_mut().append_pair("token", &token);
-}
-
-async fn get_token(mut url: Url) -> Result<String> {
+pub async fn get_token(url: &str, mac: &str) -> Result<String> {
     let client = build_stalker_client()?;
+    let mut url = Url::from_str(&url)?;
     url.query_pairs_mut()
+        .append_pair("mac", &mac)
         .append_pair("type", "stb")
         .append_pair("action", "handshake");
     Ok(client
@@ -180,39 +176,72 @@ async fn get_token(mut url: Url) -> Result<String> {
         .token)
 }
 
-async fn get_all_channels(url: Url, content_type: &str) -> Result<Vec<StalkerItem>> {
-    let mut page: u32 = 0;
+async fn get_all_channels(
+    url: &str,
+    content_type: &str,
+    token: &str,
+    mac: &str,
+) -> Result<Vec<StalkerItem>> {
     let mut channels: Vec<StalkerItem> = Vec::new();
-    loop {
-        let result: StalkerJsData = get_ordered_list(url.clone(), content_type, page).await?;
-        if result.js.data.is_empty() {
-            break;
+    let result: StalkerJsData = get_ordered_list(url, content_type, 1, token, mac).await?;
+    let total_items = result.js.total_items.context("no total items")?;
+    let max_page_items = result.js.max_page_items.context("no max page items")?;
+    let pages = (total_items as f32 / max_page_items as f32).ceil() as u32;
+    let mut set = JoinSet::new();
+    println!("pages: {}", pages);
+    for page in 1..=pages {
+        let url = url.to_string();
+        let content_type = content_type.to_string();
+        let token = token.to_string();
+        let mac = mac.to_string();
+        set.spawn(async move { get_ordered_list(&url, &content_type, page, &token, &mac).await });
+    }
+    while let Some(res) = set.join_next().await {
+        println!("data collected");
+        if let Ok(Ok(data)) = res {
+            let data: StalkerJsData = data;
+            channels.extend(data.js.data);
         }
-        channels.extend(result.js.data);
-        page += 1;
     }
     Ok(channels)
 }
 
-async fn get_ordered_list<T>(mut url: Url, content_type: &str, page: u32) -> Result<T>
+async fn get_ordered_list<T>(
+    url: &str,
+    content_type: &str,
+    page: u32,
+    token: &str,
+    mac: &str,
+) -> Result<T>
 where
     T: serde::de::DeserializeOwned,
 {
     let client = build_stalker_client()?;
+    let mut url = Url::from_str(url)?;
     url.query_pairs_mut()
         .append_pair("type", content_type)
+        .append_pair("token", token)
+        .append_pair("mac", mac)
         .append_pair("p", &page.to_string())
         .append_pair("action", "get_ordered_list");
     Ok(client.get(url).send().await?.json::<T>().await?)
 }
 
-async fn get_categories(mut url: Url, content_type: &str) -> Result<HashMap<String, String>> {
+async fn get_categories(
+    url: &str,
+    content_type: &str,
+    token: &str,
+    mac: &str,
+) -> Result<HashMap<String, String>> {
     let client = build_stalker_client()?;
     if content_type == stalker_type::LIVE {
         bail!("get_categories does not support LIVE (itv)")
     }
+    let mut url = Url::from_str(&url)?;
     url.query_pairs_mut()
         .append_pair("type", content_type)
+        .append_pair("token", token)
+        .append_pair("mac", mac)
         .append_pair("action", "get_categories");
     let result = client
         .get(url)
@@ -223,10 +252,13 @@ async fn get_categories(mut url: Url, content_type: &str) -> Result<HashMap<Stri
     Ok(result.js.into_iter().map(|f| (f.id, f.title)).collect())
 }
 
-async fn get_genres(mut url: Url) -> Result<HashMap<String, String>> {
+async fn get_genres(url: &str, token: &str, mac: &str) -> Result<HashMap<String, String>> {
     let client = build_stalker_client()?;
+    let mut url = Url::from_str(&url)?;
     url.query_pairs_mut()
         .append_pair("type", stalker_type::LIVE)
+        .append_pair("token", token)
+        .append_pair("mac", mac)
         .append_pair("action", "get_genres");
     let result = client
         .get(url)
@@ -237,12 +269,42 @@ async fn get_genres(mut url: Url) -> Result<HashMap<String, String>> {
     Ok(result.js.into_iter().map(|f| (f.id, f.title)).collect())
 }
 
-async fn get_episodes(
-    client: Client,
-    mut url: Url,
-    movie_id: &str,
-) -> Result<StalkerSeriesEpisode> {
+pub async fn create_stream(
+    url: &str,
+    cmd: String,
+    mac: &str,
+    episode: Option<u32>,
+) -> Result<String> {
+    let client = build_stalker_client()?;
+    let token = get_token(url, mac).await?;
+    let mut url = Url::from_str(&url)?;
     url.query_pairs_mut()
+        .append_pair("type", stalker_type::LIVE)
+        .append_pair("mac", mac)
+        .append_pair("action", "create_link")
+        .append_pair("token", &token)
+        .append_pair("cmd", &cmd);
+    if let Some(episode) = episode {
+        url.query_pairs_mut()
+            .append_pair("series", &episode.to_string());
+    }
+    Ok(client
+        .get(url)
+        .send()
+        .await?
+        .json::<StalkerJs<CreateStreamDTO>>()
+        .await?
+        .js
+        .cmd)
+}
+
+async fn get_episodes(url: &str, movie_id: &str, mac: &str) -> Result<StalkerSeriesEpisode> {
+    let client = build_stalker_client()?;
+    let token = get_token(url, mac).await?;
+    let mut url = Url::from_str(&url)?;
+    url.query_pairs_mut()
+        .append_pair("token", &token)
+        .append_pair("mac", mac)
         .append_pair("type", "series")
         .append_pair("action", "get_ordered_list")
         .append_pair("movie_id", movie_id);

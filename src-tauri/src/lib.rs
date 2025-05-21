@@ -107,6 +107,8 @@ pub fn run() {
             clear_history,
             is_container,
             get_stalker,
+            create_stream,
+            get_token
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -533,6 +535,25 @@ fn is_container() -> bool {
 #[tauri::command]
 async fn get_stalker(source: Source) -> Result<(), String> {
     stalker::get_stalker(source, false)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn get_token(url: String, mac: String) -> Result<String, String> {
+    stalker::get_token(&url, &mac)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn create_stream(
+    url: String,
+    cmd: String,
+    mac: String,
+    episode: Option<u32>,
+) -> Result<String, String> {
+    stalker::create_stream(&url, cmd, &mac, episode)
         .await
         .map_err(map_err_frontend)
 }

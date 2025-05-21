@@ -111,6 +111,9 @@ export class SetupComponent {
       case SourceType.CustomImport:
         await this.customImport();
         break;
+      case SourceType.Stalker:
+        await this.stalker();
+        break;
     }
   }
 
@@ -165,11 +168,8 @@ export class SetupComponent {
     this.source.url = this.source.url?.trim();
     this.source.username = this.source.username?.trim();
     this.source.password = this.source.password?.trim();
-    if (!this.source?.url?.startsWith("http://") && !this.source?.url?.startsWith("https://")) {
-      this.source.url = `http://${this.source.url}`;
-      this.toastr.info("Since the given URL lacked a protocol, http was assumed");
-    }
-    let url = new URL(this.source.url);
+    this.addHttp();
+    let url = new URL(this.source.url!);
     if (url.pathname == "/") {
       let result = await this.modalService.open(ConfirmModalComponent, {
         keyboard: false,
@@ -182,6 +182,28 @@ export class SetupComponent {
     }
     try {
       await invoke("get_xtream", { source: this.source });
+      this.success();
+    } catch (e) {
+      this.error.handleError(e, "Invalid URL or credentials. Please try again");
+    }
+    this.loading = false;
+  }
+
+  addHttp() {
+    if (!this.source?.url?.startsWith("http://") && !this.source?.url?.startsWith("https://")) {
+      this.source.url = `http://${this.source.url}`;
+      this.toastr.info("Since the given URL lacked a protocol, http was assumed");
+    }
+  }
+
+  async stalker() {
+    this.loading = true;
+    this.source.use_tvg_id = undefined;
+    this.source.url = this.source.url?.trim();
+    this.source.username = this.source.username?.trim();
+    this.addHttp();
+    try {
+      await invoke("get_stalker", { source: this.source });
       this.success();
     } catch (e) {
       this.error.handleError(e, "Invalid URL or credentials. Please try again");

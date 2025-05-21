@@ -3,5 +3,6 @@ export enum SourceType {
     M3ULink = 1,
     Xtream = 2,
     Custom = 3,
-    CustomImport = 4
+    CustomImport = 4,
+    Stalker = 5
 }

@@ -146,7 +146,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             this.memory.Sort.next([settings.default_sort, false]);
             this.filters.sort = settings.default_sort;
           }
-          this.chkSerie = this.anyXtream();
+          this.chkSerie = this.anyXtream(); // @TODO: Stalker too
           if (settings.refresh_on_start === true && !sessionStorage.getItem("refreshedOnStart")) {
             sessionStorage.setItem("refreshedOnStart", "true");
             this.refreshOnStart().then((_) => _);
