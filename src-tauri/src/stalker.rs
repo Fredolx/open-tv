@@ -1,10 +1,10 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, str::FromStr, time::Instant};
 
 use anyhow::{Context, Result, bail};
 use reqwest::Client;
 use rusqlite::Transaction;
 use serde::{Deserialize, Serialize};
-use tokio::task::JoinSet;
+use tokio_retry2::{Retry, RetryError, strategy::ExponentialFactorBackoff};
 use url::Url;
 
 use crate::{
@@ -182,27 +182,25 @@ async fn get_all_channels(
     token: &str,
     mac: &str,
 ) -> Result<Vec<StalkerItem>> {
+    let start = Instant::now();
     let mut channels: Vec<StalkerItem> = Vec::new();
-    let result: StalkerJsData = get_ordered_list(url, content_type, 1, token, mac).await?;
-    let total_items = result.js.total_items.context("no total items")?;
-    let max_page_items = result.js.max_page_items.context("no max page items")?;
-    let pages = (total_items as f32 / max_page_items as f32).ceil() as u32;
-    let mut set = JoinSet::new();
-    println!("pages: {}", pages);
-    for page in 1..=pages {
-        let url = url.to_string();
-        let content_type = content_type.to_string();
-        let token = token.to_string();
-        let mac = mac.to_string();
-        set.spawn(async move { get_ordered_list(&url, &content_type, page, &token, &mac).await });
-    }
-    while let Some(res) = set.join_next().await {
-        println!("data collected");
-        if let Ok(Ok(data)) = res {
-            let data: StalkerJsData = data;
-            channels.extend(data.js.data);
+    let mut page: u32 = 0;
+    loop {
+        let retry_strategy = ExponentialFactorBackoff::from_millis(500, 2.0).take(3);
+        let result: StalkerJsData = Retry::spawn(retry_strategy, async || {
+            get_ordered_list(url, content_type, page, token, mac)
+                .await
+                .map_err(RetryError::from)
+        })
+        .await?;
+        if result.js.data.is_empty() {
+            break;
         }
+        channels.extend(result.js.data);
+        page += 1;
+        println!("page: {}", page);
     }
+    println!("{}", start.elapsed().as_secs().to_string());
     Ok(channels)
 }
 

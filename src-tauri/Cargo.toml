@@ -43,6 +43,7 @@ base64 = "0.22.1"
 tauri-plugin-notification = "2.2.2"
 warp = "0.3.7"
 if-addrs = "0.13.4"
+tokio-retry2 = "0.5.7"
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
 shell-words = "1.1.0"
 [target.'cfg(target_os = "windows")'.dependencies]
