@@ -83,8 +83,8 @@ struct XtreamEPGItem {
     id: serde_json::Value,
     title: String,
     description: String,
-    start_timestamp: String,
-    stop_timestamp: String,
+    start_timestamp: serde_json::Value,
+    stop_timestamp: serde_json::Value,
     now_playing: u8,
     has_archive: u8,
     start: String,
@@ -222,7 +222,7 @@ fn convert_xtream_live_to_channel(
     stream_type: u8,
     category_name: Option<String>,
 ) -> Result<Channel> {
-    let stream_id = get_serde_json_number(&stream.stream_id);
+    let stream_id = get_serde_json_u64(&stream.stream_id);
     Ok(Channel {
         id: None,
         group: category_name.map(|x| x.trim().to_string()),
@@ -247,7 +247,7 @@ fn convert_xtream_live_to_channel(
         favorite: false,
         group_id: None,
         series_id: None,
-        tv_archive: get_serde_json_number(&stream.tv_archive).map(|x| x == 1),
+        tv_archive: get_serde_json_u64(&stream.tv_archive).map(|x| x == 1),
     })
 }
 
@@ -295,10 +295,10 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
     let mut episodes: Vec<XtreamEpisode> =
         episodes.into_values().flat_map(|episode| episode).collect();
     episodes.sort_by(|a, b| {
-        get_serde_json_number(&a.season)
-            .cmp(&get_serde_json_number(&b.season))
+        get_serde_json_u64(&a.season)
+            .cmp(&get_serde_json_u64(&b.season))
             .then_with(|| {
-                get_serde_json_number(&a.episode_num).cmp(&get_serde_json_number(&b.episode_num))
+                get_serde_json_u64(&a.episode_num).cmp(&get_serde_json_u64(&b.episode_num))
             })
     });
     sql::do_tx(|tx| {
@@ -319,11 +319,18 @@ fn get_serde_json_string(value: &serde_json::Value) -> Option<String> {
         .map(|cid| cid.trim().to_string())
 }
 
-fn get_serde_json_number(value: &serde_json::Value) -> Option<u64> {
+fn get_serde_json_u64(value: &serde_json::Value) -> Option<u64> {
     value
         .as_str()
         .and_then(|val| val.trim().parse::<u64>().ok())
         .or_else(|| value.as_u64())
+}
+
+fn get_serde_json_i64(value: &serde_json::Value) -> Option<i64> {
+    value
+        .as_str()
+        .and_then(|val| val.trim().parse::<i64>().ok())
+        .or_else(|| value.as_i64())
 }
 
 fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: u64) -> Result<Channel> {
@@ -377,17 +384,21 @@ fn is_valid_epg(epg: &EPG, now: &DateTime<Local>) -> Result<bool> {
 }
 
 fn xtream_epg_to_epg(epg: XtreamEPGItem, url: &Url, stream_id: &str) -> Result<EPG> {
+    let start_timestamp =
+        get_serde_json_i64(&epg.start_timestamp).context("no valid start timestamp")?;
     Ok(EPG {
         epg_id: get_serde_json_string(&epg.id).context("no epg id")?,
         title: String::from_utf8(BASE64_STANDARD.decode(&epg.title)?)?,
         description: String::from_utf8(BASE64_STANDARD.decode(&epg.description)?)?,
-        start_time: get_local_time(epg.start_timestamp.parse()?)?
+        start_time: get_local_time(start_timestamp)?
             .format("%B %d, %H:%M")
             .to_string(),
-        end_time: get_local_time(epg.stop_timestamp.parse()?)?
-            .format("%B %d, %H:%M")
-            .to_string(),
-        start_timestamp: epg.start_timestamp.parse()?,
+        end_time: get_local_time(
+            get_serde_json_i64(&epg.stop_timestamp).context("no valid end timestamp")?,
+        )?
+        .format("%B %d, %H:%M")
+        .to_string(),
+        start_timestamp,
         timeshift_url: if epg.has_archive == 1 {
             Some(get_timeshift_url(
                 url.clone(),
