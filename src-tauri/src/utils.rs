@@ -1,10 +1,10 @@
 use crate::{
     log::log,
-    m3u,
+    m3u, media_type,
     settings::{get_default_record_path, get_settings},
     source_type, sql,
     types::Source,
-    xtream,
+    w3u, xtream,
 };
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Local, Utc};
@@ -34,10 +34,12 @@ static ILLEGAL_CHARS_REGEX: LazyLock<Regex> =
 
 pub async fn refresh_source(source: Source) -> Result<()> {
     match source.source_type {
-        source_type::M3U => m3u::read_m3u8(source, true)?,
+        source_type::M3U => m3u::read_m3u8(source, true).await?,
         source_type::M3U_LINK => m3u::get_m3u8_from_link(source, true).await?,
         source_type::XTREAM => xtream::get_xtream(source, true).await?,
         source_type::CUSTOM => {}
+        source_type::W3U => w3u::read_w3u(source, true).await?,
+        source_type::W3U_LINK => w3u::get_w3u_from_link(source, true).await?,
         _ => return Err(anyhow!("invalid source_type")),
     }
     Ok(())
@@ -190,6 +192,37 @@ pub fn restore_favs(source_id: i64, path: String) -> Result<()> {
 
 pub fn is_container() -> bool {
     std::env::var("container").is_ok()
+}
+
+pub async fn get_tmp_path(file: &str) -> Result<String> {
+    let mut path = directories::ProjectDirs::from("dev", "fredol", "open-tv")
+        .context("no project dir found")?
+        .cache_dir()
+        .to_owned();
+    if !path.exists() {
+        tokio::fs::create_dir_all(&path).await?;
+    }
+    path.push(file);
+    Ok(path.to_string_lossy().to_string())
+}
+
+pub async fn get_file_http(url: &str, path: String) -> Result<()> {
+    let client = reqwest::Client::new();
+    let mut response = client.get(url).send().await?;
+    let mut file = tokio::fs::File::create(path).await?;
+    while let Some(chunk) = response.chunk().await? {
+        file.write(&chunk).await?;
+    }
+    Ok(())
+}
+
+pub fn get_media_type(url: &str) -> u8 {
+    let media_type = if url.ends_with(".mp4") || url.ends_with(".mkv") {
+        media_type::MOVIE
+    } else {
+        media_type::LIVESTREAM
+    };
+    return media_type;
 }
 
 #[cfg(test)]

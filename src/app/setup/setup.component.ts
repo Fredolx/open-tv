@@ -68,6 +68,12 @@ export class SetupComponent {
     const file = await open({
       multiple: false,
       directory: false,
+      filters: [
+        {
+          name: "extensions",
+          extensions: ["m3u", "m3u8"],
+        },
+      ],
     });
     if (file == null) {
       return;
@@ -111,7 +117,52 @@ export class SetupComponent {
       case SourceType.CustomImport:
         await this.customImport();
         break;
+      case SourceType.W3U:
+        await this.getW3U();
+        break;
+      case SourceType.W3ULink:
+        await this.getW3ULink();
+        break;
     }
+  }
+
+  async getW3U() {
+    this.removeUnusedFieldsFromSource();
+    const file = await open({
+      multiple: false,
+      directory: false,
+      filters: [
+        {
+          name: "extensions",
+          extensions: ["w3u"],
+        },
+      ],
+    });
+    if (file == null) {
+      return;
+    }
+    this.loading = true;
+    this.source.url = file;
+    try {
+      await invoke("get_w3u", { source: this.source });
+      this.success();
+    } catch (e) {
+      this.error.handleError(e, "Could not parse selected file");
+    }
+    this.loading = false;
+  }
+
+  async getW3ULink() {
+    this.removeUnusedFieldsFromSource();
+    this.source.url = this.source.url?.trim();
+    this.loading = true;
+    try {
+      await invoke("get_w3u_from_link", { source: this.source });
+      this.success();
+    } catch (e) {
+      this.error.handleError(e, "Invalid URL or credentials. Please try again");
+    }
+    this.loading = false;
   }
 
   async customImport() {
