@@ -249,8 +249,14 @@ DO UPDATE SET
 pub fn insert_channel_headers(tx: &Transaction, headers: ChannelHttpHeaders) -> Result<()> {
     tx.execute(
         r#"
-INSERT OR IGNORE INTO channel_http_headers (channel_id, referrer, user_agent, http_origin, ignore_ssl)
-VALUES (?, ?, ?, ?, ?);
+INSERT INTO channel_http_headers (channel_id, referrer, user_agent, http_origin, ignore_ssl)
+VALUES (?, ?, ?, ?, ?)
+ON CONFLICT (channel_id)
+DO UPDATE SET
+    referrer = excluded.referrer,
+    user_agent = excluded.user_agent,
+    http_origin = excluded.http_origin,
+    ignore_ssl = excluded.ignore_ssl;
 "#,
         params![
             headers.channel_id,
@@ -263,7 +269,7 @@ VALUES (?, ?, ?, ?, ?);
     Ok(())
 }
 
-fn get_or_insert_group(
+pub fn get_or_insert_group(
     tx: &Transaction,
     group: &str,
     image: &Option<String>,
