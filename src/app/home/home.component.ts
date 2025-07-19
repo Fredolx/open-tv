@@ -295,22 +295,26 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       {
         key: "ctrl + a",
         label: "Switching modes",
-        description: "Selects the all channels mode",
+        description: "Selects the all channels view",
         preventDefault: true,
         command: async (_) => await this.switchMode(this.viewModeEnum.All),
       },
       {
         key: "ctrl + s",
         label: "Switching modes",
-        description: "Selects the categories channels mode",
-        allowIn: [AllowIn.Input],
+        description: "Selects the categories view",
         command: async (_) => await this.switchMode(this.viewModeEnum.Categories),
       },
       {
         key: "ctrl + d",
         label: "Switching modes",
-        description: "Selects the favorites channels mode",
-        allowIn: [AllowIn.Input],
+        description: "Selects the history view",
+        command: async (_) => await this.switchMode(this.viewModeEnum.History),
+      },
+      {
+        key: "ctrl + r",
+        label: "Switching modes",
+        description: "Selects the favorites view",
         command: async (_) => await this.switchMode(this.viewModeEnum.Favorites),
       },
       {
@@ -405,7 +409,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   focusSearch() {
-    this.focus = 0;
+    if (this.searchFocused()) {
+      this.selectFirstChannel();
+      return;
+    } else {
+      this.focus = 0;
+      this.focusArea = FocusArea.Tiles;
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
     this.search.nativeElement.focus({
       preventScroll: true,
@@ -425,6 +435,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       return;
     } else if (this.memory.currentContextMenu?.menuOpen) {
       this.closeContextMenu();
+    } else if (this.searchFocused()) {
+      this.selectFirstChannel();
     } else if (this.filters?.query) {
       if (this.filters?.query) {
         this.clearSearch();
@@ -460,6 +472,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   async nav(key: string) {
+    if (this.searchFocused()) return;
     let lowSize = this.currentWindowSize < 768;
     if (this.memory.currentContextMenu?.menuOpen || this.memory.ModalRef) {
       return;
