@@ -272,6 +272,7 @@ fn get_channel_from_lines(
         stream_id: None,
         tv_archive: None,
         season_id: None,
+        episode_num: None,
     };
     Ok(channel)
 }

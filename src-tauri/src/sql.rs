@@ -196,6 +196,10 @@ fn apply_migrations() -> Result<()> {
               ADD COLUMN season_id INTEGER;
               CREATE INDEX index_channels_season_id ON channels(season_id);
 
+              ALTER TABLE channels
+              ADD COLUMN episode_num INTEGER;
+              CREATE INDEX index_channels_episode_num on channels(episode_num);
+
               CREATE TABLE IF NOT EXISTS "seasons" (
                 "id" INTEGER PRIMARY KEY,
                 "name" VARCHAR(50),
@@ -264,8 +268,8 @@ pub fn insert_season(tx: &Transaction, season: Season) -> Result<i64> {
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
-INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id, tv_archive, season_id)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id, tv_archive, season_id, episode_num)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (name, source_id)
 DO UPDATE SET
     url = excluded.url,
@@ -287,7 +291,8 @@ DO UPDATE SET
             channel.favorite,
             channel.stream_id,
             channel.tv_archive,
-            channel.season_id
+            channel.season_id,
+            channel.episode_num
         ],
     )?;
     Ok(())
@@ -559,6 +564,7 @@ fn season_row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Er
         stream_id: None,
         tv_archive: None,
         url: None,
+        episode_num: None,
     })
 }
 
@@ -664,6 +670,7 @@ fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         stream_id: None,
         tv_archive: None,
         season_id: None,
+        episode_num: None,
     };
     Ok(channel)
 }
@@ -678,6 +685,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         source_id: row.get("source_id")?,
         url: row.get("url")?,
         favorite: row.get("favorite")?,
+        episode_num: row.get("episode_num")?,
         series_id: None,
         group: None,
         stream_id: row.get("stream_id")?,
@@ -1125,6 +1133,7 @@ fn row_to_custom_channel(row: &Row) -> Result<CustomChannel, rusqlite::Error> {
             stream_id: None,
             tv_archive: None,
             season_id: None,
+            episode_num: None,
         },
         headers: Some(ChannelHttpHeaders {
             http_origin: row.get("http_origin")?,
@@ -1345,4 +1354,22 @@ pub fn clear_history() -> Result<()> {
         params![],
     )?;
     Ok(())
+}
+
+pub fn find_all_episodes_after(channel: &Channel) -> Result<Vec<String>> {
+    let sql = get_conn()?;
+    Ok(sql
+        .prepare(
+            r#"
+        SELECT url FROM channels
+        WHERE season_id = ?
+        AND episode_num > ?
+        ORDER BY episode_num
+      "#,
+        )?
+        .query_map(params![channel.season_id, channel.episode_num], |row| {
+            row.get::<_, String>(0)
+        })?
+        .filter_map(Result::ok)
+        .collect())
 }

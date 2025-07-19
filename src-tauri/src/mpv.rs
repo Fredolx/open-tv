@@ -127,6 +127,11 @@ fn get_play_args(
     let settings = get_settings()?;
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id?")?)?;
     args.push(channel.url.clone().context("no url")?);
+    if channel.episode_num.is_some() {
+        for url in sql::find_all_episodes_after(channel)? {
+            args.push(url);
+        }
+    }
     if channel.media_type != media_type::LIVESTREAM {
         args.push(ARG_SAVE_POSITION_ON_QUIT.to_string());
     }
@@ -156,8 +161,10 @@ fn get_play_args(
     }
     args.push(format!("{}{}", ARG_TITLE, channel.name));
     args.push(ARG_MSG_LEVEL.to_string());
-    args.push(ARG_PREFETCH_PLAYLIST.to_string());
-    args.push(ARG_LOOP_PLAYLIST.to_string());
+    if channel.media_type == media_type::LIVESTREAM {
+        args.push(ARG_PREFETCH_PLAYLIST.to_string());
+        args.push(ARG_LOOP_PLAYLIST.to_string());
+    }
     if let Some(volume) = settings.volume {
         args.push(format!("{ARG_VOLUME}{volume}"));
     }

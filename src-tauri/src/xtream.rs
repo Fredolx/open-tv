@@ -263,6 +263,7 @@ fn convert_xtream_live_to_channel(
         series_id: None,
         tv_archive: get_serde_json_u64(&stream.tv_archive).map(|x| x == 1),
         season_id: None,
+        episode_num: None,
     })
 }
 
@@ -394,11 +395,12 @@ fn episode_to_channel(
             Some(episode.container_extension),
         )?),
         series_id: Some(series_id),
+        episode_num: get_serde_json_i64(&episode.episode_num),
+        season_id: get_serde_json_i64(&episode.season).and_then(|f| seasons.get(&f).copied()),
         stream_id: None,
         group_id: None,
         favorite: false,
         tv_archive: None,
-        season_id: get_serde_json_i64(&episode.season).and_then(|f| seasons.get(&f).copied()),
     })
 }
 
