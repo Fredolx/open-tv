@@ -75,7 +75,8 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     if (this.starting === true) return;
     if (
       this.channel?.media_type == MediaType.serie ||
-      this.channel?.media_type == MediaType.group
+      this.channel?.media_type == MediaType.group ||
+      this.channel?.media_type == MediaType.season
     ) {
       if (
         this.channel.media_type == MediaType.serie &&
@@ -123,7 +124,11 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   onRightClick(event: MouseEvent) {
-    if (this.channel?.media_type == MediaType.group && !this.isCustom()) return;
+    if (
+      (this.channel?.media_type == MediaType.group && !this.isCustom()) ||
+      this.channel?.media_type == MediaType.season
+    )
+      return;
     this.alreadyExistsInFav = this.channel!.favorite!;
     this.downloading = this.isDownloading();
     event.preventDefault();

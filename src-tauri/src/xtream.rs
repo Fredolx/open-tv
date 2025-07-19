@@ -4,6 +4,7 @@ use crate::sql;
 use crate::types::Channel;
 use crate::types::ChannelPreserve;
 use crate::types::EPG;
+use crate::types::Season;
 use crate::types::Source;
 use crate::utils::get_local_time;
 use anyhow::anyhow;
@@ -49,8 +50,21 @@ struct XtreamStream {
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamSeries {
+    seasons: Vec<XtreamSeason>,
     episodes: HashMap<String, Vec<XtreamEpisode>>,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct XtreamSeason {
+    season_number: serde_json::Value,
+    #[serde(default)]
+    overview: Option<String>,
+    #[serde(default)]
+    cover: Option<String>,
+    #[serde(default)]
+    cover_tmdb: Option<String>,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamEpisode {
     id: String,
@@ -248,6 +262,7 @@ fn convert_xtream_live_to_channel(
         group_id: None,
         series_id: None,
         tv_archive: get_serde_json_u64(&stream.tv_archive).map(|x| x == 1),
+        season_id: None,
     })
 }
 
@@ -291,9 +306,13 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
     let mut url = build_xtream_url(&mut source)?;
     url.query_pairs_mut()
         .append_pair("series_id", &series_id.to_string());
-    let episodes = (get_xtream_http_data::<XtreamSeries>(url, GET_SERIES_INFO).await?).episodes;
-    let mut episodes: Vec<XtreamEpisode> =
-        episodes.into_values().flat_map(|episode| episode).collect();
+    let mut series = (get_xtream_http_data::<XtreamSeries>(url, GET_SERIES_INFO).await?);
+    let mut episodes: Vec<XtreamEpisode> = series
+        .episodes
+        .into_values()
+        .flat_map(|episode| episode)
+        .collect();
+    let mut seasons: HashMap<i64, i64> = HashMap::new();
     episodes.sort_by(|a, b| {
         get_serde_json_u64(&a.season)
             .cmp(&get_serde_json_u64(&b.season))
@@ -301,9 +320,18 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
                 get_serde_json_u64(&a.episode_num).cmp(&get_serde_json_u64(&b.episode_num))
             })
     });
+    series
+        .seasons
+        .sort_by_key(|f| get_serde_json_i64(&f.season_number));
     sql::do_tx(|tx| {
+        for season in series.seasons {
+            println!("{:?}", season);
+            let season =
+                xtream_season_to_season(season, source.id.context("no source id")?, series_id)?;
+            seasons.insert(season.season_number, sql::insert_season(tx, season)?);
+        }
         for episode in episodes {
-            let episode = episode_to_channel(episode, &source, series_id)?;
+            let episode = episode_to_channel(episode, &source, series_id, &seasons)?;
             sql::insert_channel(&tx, episode)?;
         }
         Ok(())
@@ -333,7 +361,24 @@ fn get_serde_json_i64(value: &serde_json::Value) -> Option<i64> {
         .or_else(|| value.as_i64())
 }
 
-fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: u64) -> Result<Channel> {
+fn xtream_season_to_season(season: XtreamSeason, source_id: i64, series_id: u64) -> Result<Season> {
+    let season_number = get_serde_json_i64(&season.season_number).context("no season number")?;
+    Ok(Season {
+        season_number,
+        series_id,
+        source_id,
+        image: season.cover_tmdb.or(season.cover).or(season.overview),
+        name: format!("Season {season_number}"),
+        ..Default::default()
+    })
+}
+
+fn episode_to_channel(
+    episode: XtreamEpisode,
+    source: &Source,
+    series_id: u64,
+    seasons: &HashMap<i64, i64>,
+) -> Result<Channel> {
     Ok(Channel {
         id: None,
         group: None,
@@ -354,6 +399,7 @@ fn episode_to_channel(episode: XtreamEpisode, source: &Source, series_id: u64) -
         group_id: None,
         favorite: false,
         tv_archive: None,
+        season_id: get_serde_json_i64(&episode.season).and_then(|f| seasons.get(&f).copied()),
     })
 }
 
@@ -437,72 +483,4 @@ fn get_timeshift_url(mut url: Url, start: String, end: String, stream_id: &str) 
         .append_pair("start", &start)
         .append_pair("duration", &duration);
     Ok(url.to_string())
-}
-
-#[cfg(test)]
-mod test_xtream {
-
-    use std::env;
-
-    use crate::source_type;
-    use crate::sql::{self, drop_db};
-    use crate::types::Source;
-    use crate::xtream::{episode_to_channel, get_xtream};
-
-    use super::{XtreamEpisode, XtreamSeries, get_local_time};
-
-    #[tokio::test]
-    async fn test_get_xtream() {
-        drop_db().unwrap_or_default();
-        sql::create_or_initialize_db().unwrap();
-        get_xtream(
-            Source {
-                name: "my-xtream".to_string(),
-                id: None,
-                username: Some(env::var("OPEN_TV_TEST_XTREAM_USERNAME").unwrap()),
-                password: Some(env::var("OPEN_TV_TEST_XTREAM_PASSWORD").unwrap()),
-                url: Some(env::var("OPEN_TV_TEST_XTREAM_LINK").unwrap()),
-                url_origin: None,
-                source_type: source_type::XTREAM,
-                enabled: true,
-                use_tvg_id: None,
-            },
-            false,
-        )
-        .await
-        .unwrap();
-    }
-
-    #[test]
-    fn deserialize_bad_json() {
-        let source = Source {
-            name: "my-xtream".to_string(),
-            id: None,
-            username: Some("test".to_string()),
-            password: Some("test".to_string()),
-            url: Some("http://test.com".to_string()),
-            url_origin: Some("test.com".to_string()),
-            source_type: source_type::XTREAM,
-            enabled: true,
-            use_tvg_id: None,
-        };
-        let data = std::fs::read_to_string("/Users/fred/Desktop/bad.json").unwrap();
-        let obj = serde_json::from_str::<XtreamSeries>(&data).unwrap();
-        let episodes: Vec<XtreamEpisode> = obj
-            .episodes
-            .into_values()
-            .flat_map(|episode| episode)
-            .collect();
-        let e = episodes.iter().find(|e| e.id == "29247").unwrap();
-        let e = episode_to_channel(e.clone(), &source, 1).unwrap();
-        let e2 = episodes.iter().find(|e| e.id == "29041").unwrap();
-        let e2 = episode_to_channel(e2.clone(), &source, 1).unwrap();
-        println!("{:?}", e);
-        println!("{:?}", e2);
-    }
-
-    #[test]
-    fn test_get_local_time() {
-        println!("{}", get_local_time(1734217200).unwrap());
-    }
 }

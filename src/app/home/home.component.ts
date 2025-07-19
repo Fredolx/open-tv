@@ -198,7 +198,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         else if (dto.type == NodeType.Series) {
           this.filters!.series_id = dto.id;
           this.filters!.source_ids = [dto.sourceId!];
-        }
+        } else if (dto.type == NodeType.Season) this.filters!.season = dto.id;
         this.clearSearch();
         await this.load();
         if (this.focusArea == FocusArea.Tiles) this.selectFirstChannelDelayed(100);
@@ -462,6 +462,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     else if (node.type == NodeType.Series) {
       this.filters!.series_id = undefined;
       this.filters!.source_ids = this.memory.Sources.map((x) => x.id!);
+    } else if (node.type == NodeType.Season) {
+      this.filters!.season = undefined;
     }
     this.search.nativeElement.value = node.query;
     this.filters!.query = node.query;

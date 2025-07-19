@@ -3,7 +3,8 @@ use std::{collections::HashMap, sync::LazyLock};
 use crate::log::log;
 use crate::sort_type;
 use crate::types::{
-    ChannelPreserve, CustomChannel, CustomChannelExtraData, EPGNotify, ExportedGroup, Group, IdName,
+    ChannelPreserve, CustomChannel, CustomChannelExtraData, EPGNotify, ExportedGroup, Group,
+    IdName, Season,
 };
 use crate::{
     media_type, source_type,
@@ -188,8 +189,24 @@ fn apply_migrations() -> Result<()> {
         M::up(
             r#"
               ALTER TABLE groups
-              ADD COLUMN media_type integer;
+              ADD COLUMN media_type INTEGER;
               CREATE INDEX index_groups_media_type ON groups(media_type);
+
+              ALTER TABLE channels
+              ADD COLUMN season_id INTEGER;
+              CREATE INDEX index_channels_season_id ON channels(season_id);
+
+              CREATE TABLE IF NOT EXISTS "seasons" (
+                "id" INTEGER PRIMARY KEY,
+                "name" VARCHAR(50),
+                "season_number" INTEGER,
+                "series_id" INTEGER,
+                "source_id" INTEGER,
+                "image" varchar(200),
+                FOREIGN KEY (source_id) REFERENCES sources(id) ON DELETE CASCADE
+              );
+              CREATE INDEX index_seasons_name ON seasons(name);
+              CREATE UNIQUE INDEX unique_seasons ON seasons(season_number, series_id, source_id);
             "#,
         ),
     ]);
@@ -223,11 +240,32 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
     Ok(tx.last_insert_rowid())
 }
 
+pub fn insert_season(tx: &Transaction, season: Season) -> Result<i64> {
+    tx.execute(
+        r#"
+        INSERT INTO seasons (name, image, series_id, season_number, source_id)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT (series_id, season_number, source_id)
+        DO UPDATE SET
+          image = excluded.image,
+          name = excluded.name
+        "#,
+        params![
+            season.name,
+            season.image,
+            season.series_id,
+            season.season_number,
+            season.source_id,
+        ],
+    )?;
+    Ok(tx.last_insert_rowid())
+}
+
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
-INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id, tv_archive)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id, tv_archive, season_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (name, source_id)
 DO UPDATE SET
     url = excluded.url,
@@ -235,7 +273,8 @@ DO UPDATE SET
     stream_id = excluded.stream_id,
     image = excluded.image,
     series_id = excluded.series_id,
-    tv_archive = excluded.tv_archive;
+    tv_archive = excluded.tv_archive,
+    season_id = excluded.season_id;
 "#,
         params![
             channel.name,
@@ -247,7 +286,8 @@ DO UPDATE SET
             channel.series_id,
             channel.favorite,
             channel.stream_id,
-            channel.tv_archive
+            channel.tv_archive,
+            channel.season_id
         ],
     )?;
     Ok(())
@@ -382,6 +422,9 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     {
         return search_group(filters);
     }
+    if filters.series_id.is_some() && filters.season.is_none() {
+        return search_series(filters);
+    }
     let sql = get_conn()?;
     let offset: u16 = filters.page as u16 * PAGE_SIZE as u16 - PAGE_SIZE as u16;
     let media_types = match filters.series_id.is_some() {
@@ -422,6 +465,10 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         sql_query += &format!("\nAND group_id = ?");
         baked_params += 1;
     }
+    if filters.season.is_some() {
+        sql_query += &format!("\nAND season_id = ?");
+        baked_params += 1;
+    }
     if filters.sort != sort_type::PROVIDER && filters.view_type != view_type::HISTORY {
         let order = match filters.sort {
             sort_type::ALPHABETICAL_ASC => "ASC",
@@ -442,6 +489,9 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     } else if let Some(ref group) = filters.group_id {
         params.push(group);
     }
+    if let Some(ref season) = filters.season {
+        params.push(season);
+    }
     params.push(&offset);
     params.push(&PAGE_SIZE);
     let channels: Vec<Channel> = sql
@@ -450,6 +500,66 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         .filter_map(Result::ok)
         .collect();
     Ok(channels)
+}
+
+fn search_series(filters: Filters) -> Result<Vec<Channel>> {
+    let sql = get_conn()?;
+    let offset: u16 = filters.page as u16 * PAGE_SIZE as u16 - PAGE_SIZE as u16;
+    let query = filters.query.unwrap_or("".to_string());
+    let keywords: Vec<String> = match filters.use_keywords {
+        true => query
+            .split(" ")
+            .map(|f| format!("%{f}%").to_string())
+            .collect(),
+        false => vec![format!("%{query}%")],
+    };
+    let mut sql_query = format!(
+        r#"
+      SELECT *
+      FROM seasons
+      WHERE ({})
+      AND source_id = ?
+      AND series_id = ?
+      "#,
+        get_keywords_sql(keywords.len()),
+    );
+    let order = match filters.sort {
+        sort_type::ALPHABETICAL_DESC => "DESC",
+        _ => "ASC",
+    };
+    sql_query += &format!("\nORDER BY season_number {}", order);
+    sql_query += "\nLIMIT ?, ?";
+    let mut params: Vec<&dyn rusqlite::ToSql> =
+        Vec::with_capacity(2 + filters.source_ids.len() + keywords.len());
+    params.extend(to_to_sql(&keywords));
+    params.push(filters.source_ids.first().context("no source ids")?);
+    params.push(filters.series_id.as_ref().context("no series id")?);
+    params.push(&offset);
+    params.push(&PAGE_SIZE);
+    let channels: Vec<Channel> = sql
+        .prepare(&sql_query)?
+        .query_map(params_from_iter(params), season_row_to_channel)?
+        .filter_map(Result::ok)
+        .collect();
+    Ok(channels)
+}
+
+fn season_row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
+    Ok(Channel {
+        id: row.get("id")?,
+        image: row.get("image")?,
+        favorite: false,
+        group: None,
+        group_id: None,
+        media_type: media_type::SEASON,
+        name: row.get("name")?,
+        series_id: row.get("series_id")?,
+        season_id: None,
+        source_id: None,
+        stream_id: None,
+        tv_archive: None,
+        url: None,
+    })
 }
 
 fn to_to_sql<T: rusqlite::ToSql>(values: &[T]) -> Vec<&dyn rusqlite::ToSql> {
@@ -553,6 +663,7 @@ fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         source_id: row.get("source_id")?,
         stream_id: None,
         tv_archive: None,
+        season_id: None,
     };
     Ok(channel)
 }
@@ -571,6 +682,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         group: None,
         stream_id: row.get("stream_id")?,
         tv_archive: row.get("tv_archive")?,
+        season_id: row.get("season_id")?,
     };
     Ok(channel)
 }
@@ -1012,6 +1124,7 @@ fn row_to_custom_channel(row: &Row) -> Result<CustomChannel, rusqlite::Error> {
             source_id: None,
             stream_id: None,
             tv_archive: None,
+            season_id: None,
         },
         headers: Some(ChannelHttpHeaders {
             http_origin: row.get("http_origin")?,
