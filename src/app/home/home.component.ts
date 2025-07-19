@@ -219,6 +219,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   clearSearch() {
     this.search.nativeElement.value = "";
+    this.prevSearchValue = "";
     this.filters!.query = "";
   }
 
@@ -265,7 +266,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(
       fromEvent(this.search.nativeElement, "keyup")
         .pipe(
-          filter((event: any) => event.key !== "Escape"), // Ignore Escape key
+          filter((event: any) => event.key !== "Escape"),
           map((event: any) => {
             this.focus = 0;
             this.focusArea = FocusArea.Tiles;
@@ -422,15 +423,17 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       )
         this.memory.ModalRef.close("close");
       return;
-    } else if (this.nodeStack.hasNodes()) {
-      await this.goBack();
-      this.selectFirstChannelDelayed(100);
     } else if (this.memory.currentContextMenu) this.closeContextMenu();
-    else {
+    else if (this.filters?.query) {
       if (this.filters?.query) {
         this.clearSearch();
         await this.load();
       }
+      this.selectFirstChannelDelayed(100);
+    } else if (this.nodeStack.hasNodes()) {
+      await this.goBack();
+      this.selectFirstChannelDelayed(100);
+    } else {
       this.selectFirstChannelDelayed(100);
     }
   }
