@@ -430,9 +430,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   async goBackHotkey() {
     if (this.memory.ModalRef) {
-      if (this.memory.ModalRef.componentInstance.name == "WhatsNewModal") {
-        this.memory.updateVersion();
-      }
       if (
         this.memory.ModalRef.componentInstance.name != "RestreamModalComponent" ||
         !this.memory.ModalRef.componentInstance.started

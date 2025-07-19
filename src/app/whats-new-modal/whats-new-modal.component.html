@@ -1,11 +1,5 @@
 <div class="modal-header">
   <h4 class="modal-title lbl">What's new in v{{ memory.AppVersion }} Fan Edition</h4>
-  <button
-    type="button"
-    class="btn-close btn-close-white"
-    aria-label="Close"
-    (click)="close()"
-  ></button>
 </div>
 <div class="modal-body">
   <p>
@@ -32,8 +26,8 @@
   </p>
   <br />
   <p>
-    I am currently looking for a job in Canada. I haven't had a permanent position for the last 3
-    years and would really appreciate any decent opportunity.
+    I am currently looking for a job in Canada. I would really appreciate if one of you could refer
+    me. I'm also availaible if you'd like me to build you an app or a website.
     <a href="https://www.linkedin.com/in/frederic-lachapelle/" target="_blank"
       >You can find my Linked In here.</a
     >
@@ -70,11 +64,21 @@
       Re-added the scrollbar. I personally don't like it, but you guys do, so it's back. I will
       consider making it an option if I get feedback that I'm not the only scrollbar hater.
     </li>
-    <li>All episodes are added to the queue when playing an episode</li>
+    <li>All episodes of a season are added to the queue when playing an episode.</li>
+    <li>Fixed a bug where you couldn't use left or right arrow keys in the search bar.</li>
     <li>
       The linux flatpak package now uses mpv as base, which means it should be kept up-to-date with
-      the latest dependencies in a more consistent fashion.
+      the latest dependencies in a more consistent fashion. If you had problems with the flatpak
+      package, please try it now.
     </li>
     <li>Updated all dependencies</li>
   </ul>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" (click)="openDonate()">
+    <span>Donate</span>
+  </button>
+  <button class="btn btn-secondary ml-2" (click)="close()">
+    <span>Don't show again</span>
+  </button>
 </div>
