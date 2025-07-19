@@ -425,7 +425,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       return;
     } else if (this.memory.currentContextMenu?.menuOpen) {
       this.closeContextMenu();
-      console.log("hello?");
     } else if (this.filters?.query) {
       if (this.filters?.query) {
         this.clearSearch();
@@ -502,7 +501,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       if (tmpFocus >= this.channels.length && this.focusArea == FocusArea.Tiles)
         tmpFocus = (this.channels.length == 0 ? 1 : this.channels.length) - 1;
       this.focus = tmpFocus;
-      console.log(`${FocusAreaPrefix[this.focusArea]}${this.focus}`);
       setTimeout(() => {
         document.getElementById(`${FocusAreaPrefix[this.focusArea]}${this.focus}`)?.focus();
       }, 0);
@@ -534,7 +532,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           : 2
         : 3;
     let id = FocusAreaPrefix[this.focusArea] + this.focus;
-    console.log(id);
     document.getElementById(id)?.focus();
   }
 
