@@ -498,7 +498,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   shortFiltersMode() {
-    return !this.memory.Sources && this.focusArea == FocusArea.Filters;
+    return this.filters?.source_ids.findIndex((x) => this.memory.XtreamSourceIds.has(x)) == -1;
   }
 
   anyXtream() {
