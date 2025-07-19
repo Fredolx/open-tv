@@ -415,7 +415,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  goBackHotkey() {
+  async goBackHotkey() {
     if (this.memory.ModalRef) {
       if (this.memory.ModalRef.componentInstance.name == "WhatsNewModal") {
         this.memory.updateVersion();
@@ -426,16 +426,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       )
         this.memory.ModalRef.close("close");
       return;
+    } else if (this.filters?.group_id || this.filters?.series_id) {
+      await this.goBack();
+      window.scrollTo({ top: 0, behavior: "instant" });
+      setTimeout(() => this.selectFirstChannel(), 100);
+    } else if (this.memory.currentContextMenu) this.closeContextMenu();
+    else {
+      this.selectFirstChannel();
     }
-    if (this.filters?.group_id || this.filters?.series_id) {
-      if (this.filters.group_id && this.focusArea == FocusArea.Filters) {
-        this.focusArea = FocusArea.Tiles;
-        this.focus = 0;
-      }
-      this.goBack();
-    }
-    this.closeContextMenu();
-    this.selectFirstChannel();
   }
 
   async goBack() {
@@ -546,6 +544,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   selectFirstChannel() {
     this.focusArea = FocusArea.Tiles;
+    this.focus = 0;
     (document.getElementById("first")?.firstChild as HTMLElement)?.focus();
   }
 
