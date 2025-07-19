@@ -12,4 +12,5 @@ export class Filters {
   public series_id?: number;
   public use_keywords!: boolean;
   public sort?: SortType;
+  public season?: number;
 }

@@ -158,7 +158,7 @@ async fn delete_old_segments(dir: &Path) -> Result<()> {
     Ok(())
 }
 
-pub async fn watch_self(port: u16) -> Result<()> {
+pub async fn watch_self(port: u16, state: State<'_, Mutex<AppState>>) -> Result<()> {
     let channel = Channel {
         url: Some(format!("http://127.0.0.1:{port}/stream.m3u8").to_string()),
         name: "Local livestream".to_string(),
@@ -172,8 +172,10 @@ pub async fn watch_self(port: u16) -> Result<()> {
         source_id: None,
         stream_id: None,
         tv_archive: None,
+        season_id: None,
+        episode_num: None,
     };
-    mpv::play(channel, false, None).await
+    mpv::play(channel, false, None, state).await
 }
 
 pub fn share_restream(address: String, channel: Channel, path: String) -> Result<()> {
@@ -192,6 +194,8 @@ pub fn share_restream(address: String, channel: Channel, path: String) -> Result
             favorite: false,
             stream_id: None,
             tv_archive: None,
+            season_id: None,
+            episode_num: None,
         },
     };
     serialize_to_file(channel, path)

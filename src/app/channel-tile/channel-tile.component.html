@@ -43,7 +43,9 @@
 <mat-menu #rightMenu="matMenu">
   <ng-template matMenuContent let-item="item">
     <button
-      [hidden]="channel?.media_type == mediaTypeEnum.group"
+      [hidden]="
+        channel?.media_type == mediaTypeEnum.group || channel?.media_type == mediaTypeEnum.season
+      "
       mat-menu-item
       (click)="favorite()"
     >

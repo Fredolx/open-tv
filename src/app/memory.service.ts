@@ -10,6 +10,8 @@ import { NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
 import { invoke } from "@tauri-apps/api/core";
 import { SortType } from "./models/sortType";
 import { LAST_SEEN_VERSION } from "./models/localStorage";
+import { Stack } from "./models/stack";
+import { SetNodeDTO } from "./models/setNodeDTO";
 
 @Injectable({
   providedIn: "root",
@@ -21,8 +23,8 @@ export class MemoryService {
   ) {
     invoke("is_container").then((val) => (this.IsContainer = val as boolean));
   }
-  public SetGroupNode: Subject<IdName> = new Subject();
-  public SetSeriesNode: Subject<Channel> = new Subject();
+  public SetNode: Subject<SetNodeDTO> = new Subject();
+  public SetFocus: Subject<number> = new Subject();
   public Sort: BehaviorSubject<[number, boolean]> = new BehaviorSubject<[number, boolean]>([
     SortType.provider,
     false,

@@ -1,16 +1,19 @@
 use crate::settings::get_default_record_path;
 use crate::sql;
-use crate::types::ChannelHttpHeaders;
+use crate::types::{AppState, ChannelHttpHeaders};
 use crate::utils::{find_macos_bin, get_bin};
 use crate::{media_type, settings::get_settings, types::Channel};
 use anyhow::{Context, Result, bail};
 use chrono::Local;
 use std::sync::LazyLock;
 use std::{env::consts::OS, path::Path, process::Stdio};
+use tauri::State;
+use tokio::sync::Mutex;
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     process::Command,
 };
+use tokio_util::sync::CancellationToken;
 
 const ARG_SAVE_POSITION_ON_QUIT: &str = "--save-position-on-quit";
 const ARG_CACHE: &str = "--cache=";
@@ -35,49 +38,100 @@ const HTTP_REFERRER: &str = "referer:";
 static MPV_PATH: LazyLock<String> = LazyLock::new(|| get_bin(MPV_BIN_NAME));
 static YTDLP_PATH: LazyLock<String> = LazyLock::new(|| find_macos_bin(YTDLP_BIN_NAME));
 
-pub async fn play(channel: Channel, record: bool, record_path: Option<String>) -> Result<()> {
+pub async fn play(
+    channel: Channel,
+    record: bool,
+    record_path: Option<String>,
+    state: State<'_, Mutex<AppState>>,
+) -> Result<()> {
     println!("{} playing", channel.url.as_ref().unwrap());
-    let args = get_play_args(channel, record, record_path)?;
+    let args = get_play_args(&channel, record, record_path)?;
     println!("with args: {:?}", args);
-    let mut cmd = Command::new(MPV_PATH.clone())
+
+    let cmd = Command::new(MPV_PATH.clone())
         .args(args)
         .stdout(Stdio::piped())
+        .kill_on_drop(true)
         .spawn()?;
 
-    let status = cmd.wait().await?;
-    if !status.success() {
-        let stdout = cmd.stdout.take();
-        if let Some(stdout) = stdout {
-            let mut error: String = "".to_string();
-            let mut lines = BufReader::new(stdout).lines();
-            let mut first = true;
-            while let Some(line) = lines.next_line().await? {
-                error += &line;
-                if !first {
-                    error += "\n"
-                } else {
-                    first = false;
+    let mut child = cmd;
+    let child_id = child.id().unwrap_or_default();
+    let token = CancellationToken::new();
+    {
+        state
+            .lock()
+            .await
+            .play_stop
+            .insert(channel.id.context("no channel id")?, token.clone());
+    }
+    tokio::select! {
+        status = child.wait() => {
+            let status = status?;
+            if !status.success() {
+                let stdout = child.stdout.take();
+                if let Some(stdout) = stdout {
+                    let mut error: String = String::new();
+                    let mut lines = BufReader::new(stdout).lines();
+                    let mut first = true;
+                    while let Some(line) = lines.next_line().await? {
+                        error += &line;
+                        if !first {
+                            error += "\n";
+                        } else {
+                            first = false;
+                        }
+                    }
+                    {
+                        state.lock().await.play_stop.remove(channel.id.as_ref().context("no channel id")?);
+                    }
+                    if error != "" {
+                        bail!(error);
+                    } else {
+                        bail!("Mpv encountered an unknown error");
+                    }
                 }
             }
-            if error != "" {
-                bail!(error);
-            } else {
-                bail!("Mpv encountered an unknown error");
-            }
+        },
+        _ = token.cancelled() => {
+            println!("Cancellation received. Killing mpv (pid {})", child_id);
+            child.kill().await?;
         }
+    }
+    {
+        state
+            .lock()
+            .await
+            .play_stop
+            .remove(channel.id.as_ref().context("no channel id")?);
     }
     Ok(())
 }
 
+pub async fn cancel_play(id: i64, state: State<'_, Mutex<AppState>>) -> Result<()> {
+    state
+        .lock()
+        .await
+        .play_stop
+        .get(&id)
+        .context("no cancel token found for id")?
+        .cancel();
+    Ok(())
+}
+
 fn get_play_args(
-    channel: Channel,
+    channel: &Channel,
     record: bool,
     record_path: Option<String>,
 ) -> Result<Vec<String>> {
     let mut args = Vec::new();
     let settings = get_settings()?;
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id?")?)?;
-    args.push(channel.url.context("no url")?);
+    args.push(channel.url.clone().context("no url")?);
+    if channel.episode_num.is_some() {
+        for url in sql::find_all_episodes_after(channel)? {
+            args.push(url);
+        }
+    }
     if channel.media_type != media_type::LIVESTREAM {
         args.push(ARG_SAVE_POSITION_ON_QUIT.to_string());
     }
@@ -107,8 +161,10 @@ fn get_play_args(
     }
     args.push(format!("{}{}", ARG_TITLE, channel.name));
     args.push(ARG_MSG_LEVEL.to_string());
-    args.push(ARG_PREFETCH_PLAYLIST.to_string());
-    args.push(ARG_LOOP_PLAYLIST.to_string());
+    if channel.media_type == media_type::LIVESTREAM {
+        args.push(ARG_PREFETCH_PLAYLIST.to_string());
+        args.push(ARG_LOOP_PLAYLIST.to_string());
+    }
     if let Some(volume) = settings.volume {
         args.push(format!("{ARG_VOLUME}{volume}"));
     }

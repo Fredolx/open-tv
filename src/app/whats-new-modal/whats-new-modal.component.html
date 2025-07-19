@@ -1,11 +1,5 @@
 <div class="modal-header">
-  <h4 class="modal-title lbl">What's new in v{{ memory.AppVersion }}</h4>
-  <button
-    type="button"
-    class="btn-close btn-close-white"
-    aria-label="Close"
-    (click)="close()"
-  ></button>
+  <h4 class="modal-title lbl">What's new in v{{ memory.AppVersion }} Fan Edition</h4>
 </div>
 <div class="modal-body">
   <p>
@@ -16,27 +10,77 @@
     >
   </p>
   <br />
+  <p>
+    1.8.0 is the Fan Edition! It combines all the most hotly requested features from all of you and
+    bunch of crucial bugfixes. I always made Open TV mostly to my own taste, but this changes today
+    as this update celebrates your support by implementing every single popular feature request. I
+    hope you'll enjoy it.
+  </p>
+  <br />
+  <p>
+    On a seperate note, Open TV Mobile has finally launched! It's a bit of an early release so
+    expect a few bugs. Every purchase directly contributes to the development.
+    <a href="https://github.com/fredolx/open-tv-mobile" target="_blank"
+      >You can find the repo here.</a
+    >
+  </p>
+  <br />
+  <p>
+    I am currently looking for a job in Canada. I would really appreciate if one of you could refer
+    me. I'm also availaible if you'd like me to build you an app or a website.
+    <a href="https://www.linkedin.com/in/frederic-lachapelle/" target="_blank"
+      >You can find my Linked In here.</a
+    >
+  </p>
+  <br />
+  <p>
+    If you'd like to follow updates about Open TV and related projects, I made a bluesky!
+    <a href="https://bsky.app/profile/fredoldev.bsky.social" target="_blank"
+      >You can follow me here.</a
+    >
+  </p>
+  <br />
+  <p>
+    Stalker (mac address login) users! I haven't forgotten about you and an upcoming app is in the
+    works. It's mostly done and you can get updates about it on my BlueSky.
+  </p>
+  <br />
+  <p>To enjoy some of the features listed here, you will need to refresh your sources.</p>
+  <br />
   <h3>Changes:</h3>
   <ul>
     <li>
-      Added an option in settings to conveniently enable hardware decoding (HWDEC=auto), enabled by
-      default.
+      Vastly improved navigation. Keyboard navigation should be a lot smoother. Use Escape or
+      Backspace to go back in any view. Press F1 for more details. Please send feedback if you like
+      keyboard-centric apps.
     </li>
     <li>
-      Added an option in settings to enable modern hardware features for the player (HDR, gpu UI,
-      etc). Not enabled by default, please try to enable it if you have a recent GPU.
+      Categories view now follows your media type filters. Only want to see categories of vods? It's
+      here.
     </li>
+    <li>Series are now organized in seasons. This was probably the most requested feature.</li>
+    <li>Playback of channels can be cancelled by just clicking on them again. No more zombies.</li>
+    <li>Squashed a ton of xtream bugs</li>
+    <li>Open TV now remembers your last search before entering a category, series or season</li>
     <li>
-      Added an option in settings to always ask where to save files (VOD/Catchback downloads,
-      recording).
+      Re-added the scrollbar. I personally don't like it, but you guys do, so it's back. I will
+      consider making it an option if I get feedback that I'm not the only scrollbar hater.
     </li>
-    <li>Added an option in settings to clear history</li>
+    <li>All episodes of a season are added to the queue when playing an episode.</li>
+    <li>Fixed a bug where you couldn't use left or right arrow keys in the search bar.</li>
     <li>
-      Reduced permissions of flatpak package to the bare minimum. Using Open TV in a containerized
-      environment like flatpak/distrobox/podman/appImage will act as if "Always ask where to save
-      file" is on.
+      The linux flatpak package now uses mpv as base, which means it should be kept up-to-date with
+      the latest dependencies in a more consistent fashion. If you had problems with the flatpak
+      package, please try it now.
     </li>
-    <li>Fixed a bug with EPG not working on some Xtream subscriptions</li>
-    <li>Added a .rpm to the releases for Fedora/RHEL</li>
+    <li>Updated all dependencies</li>
   </ul>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" (click)="openDonate()">
+    <span>Donate</span>
+  </button>
+  <button class="btn btn-secondary ml-2" (click)="close()">
+    <span>Don't show again</span>
+  </button>
 </div>

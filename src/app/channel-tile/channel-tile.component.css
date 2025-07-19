@@ -42,7 +42,11 @@
 }
 
 .playing:hover {
-  background: #0048ff;
+  background: red;
+}
+
+.playing:focus {
+  background: red;
 }
 
 @keyframes pulse {

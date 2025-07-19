@@ -27,6 +27,7 @@ import { Subscription, take } from "rxjs";
 import { save } from "@tauri-apps/plugin-dialog";
 import { CHANNEL_EXTENSION, GROUP_EXTENSION, RECORD_EXTENSION } from "../models/extensions";
 import { getDateFormatted, getExtension, sanitizeFileName } from "../utils";
+import { NodeType, fromMediaType } from "../models/nodeType";
 
 @Component({
   selector: "app-channel-tile",
@@ -44,7 +45,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     private download: DownloadService,
   ) {}
   @Input() channel?: Channel;
-  @Input() id!: Number;
+  @Input() id!: number;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
   menuTopLeftPosition = { x: 0, y: 0 };
   showImage: boolean = true;
@@ -71,16 +72,23 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   async click(record = false) {
-    if (this.starting === true) return;
-    if (this.channel?.media_type == MediaType.group) {
-      this.memory.SetGroupNode.next({
-        id: this.channel.id!,
-        name: this.channel.name!,
-      });
+    if (this.starting === true) {
+      try {
+        await invoke("cancel_play", { channelId: this.channel?.id });
+      } catch (e) {
+        this.error.handleError(e);
+      }
       return;
     }
-    if (this.channel?.media_type == MediaType.serie) {
-      if (!this.memory.SeriesRefreshed.has(this.channel.id!)) {
+    if (
+      this.channel?.media_type == MediaType.serie ||
+      this.channel?.media_type == MediaType.group ||
+      this.channel?.media_type == MediaType.season
+    ) {
+      if (
+        this.channel.media_type == MediaType.serie &&
+        !this.memory.SeriesRefreshed.has(this.channel.id!)
+      ) {
         this.memory.HideChannels.next(false);
         try {
           await invoke("get_episodes", { channel: this.channel });
@@ -89,7 +97,15 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
           this.error.handleError(e, "Failed to fetch series");
         }
       }
-      this.memory.SetSeriesNode.next(this.channel);
+      this.memory.SetNode.next({
+        id:
+          this.channel?.media_type == MediaType.serie
+            ? parseInt(this.channel.url!)
+            : this.channel.id!,
+        name: this.channel.name!,
+        type: fromMediaType(this.channel.media_type),
+        sourceId: this.channel.source_id,
+      });
       return;
     }
     let file = undefined;
@@ -102,6 +118,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       if (!file) return;
     }
     this.starting = true;
+    this.memory.SetFocus.next(this.id);
     try {
       await invoke("play", { channel: this.channel, record: record, recordPath: file });
     } catch (e) {
@@ -115,7 +132,11 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   onRightClick(event: MouseEvent) {
-    if (this.channel?.media_type == MediaType.group && !this.isCustom()) return;
+    if (
+      (this.channel?.media_type == MediaType.group && !this.isCustom()) ||
+      this.channel?.media_type == MediaType.season
+    )
+      return;
     this.alreadyExistsInFav = this.channel!.favorite!;
     this.downloading = this.isDownloading();
     event.preventDefault();

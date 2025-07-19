@@ -8,7 +8,15 @@ import {
 } from "@angular/core";
 import { Router } from "@angular/router";
 import { AllowIn, ShortcutInput } from "ng-keyboard-shortcuts";
-import { Subscription, debounceTime, distinctUntilChanged, fromEvent, map, skip } from "rxjs";
+import {
+  Subscription,
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  fromEvent,
+  map,
+  skip,
+} from "rxjs";
 import { MemoryService } from "../memory.service";
 import { Channel } from "../models/channel";
 import { ViewMode } from "../models/viewMode";
@@ -29,6 +37,9 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { WhatsNewModalComponent } from "../whats-new-modal/whats-new-modal.component";
 import { LAST_SEEN_VERSION } from "../models/localStorage";
 import { isInputFocused } from "../utils";
+import { Node } from "../models/node";
+import { NodeType } from "../models/nodeType";
+import { Stack } from "../models/stack";
 
 @Component({
   selector: "app-home",
@@ -77,13 +88,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   chkLiveStream = true;
   chkMovie = true;
   chkSerie = true;
-  current_series_name?: string;
-  current_group_name?: string;
   reachedMax = false;
   readonly PAGE_SIZE = 36;
   channelsVisible = true;
-  prevSearchValue?: String;
+  prevSearchValue: String = "";
   loading = false;
+  nodeStack: Stack = new Stack();
 
   constructor(
     private router: Router,
@@ -182,24 +192,21 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       }),
     );
     this.subscriptions.push(
-      this.memory.SetSeriesNode.subscribe(async (channel) => {
-        this.clearSearch();
-        this.filters!.series_id = parseInt(channel.url!);
-        this.filters!.source_ids = [channel.source_id!];
-        this.filters!.page = 1;
-        this.reachedMax = false;
-        this.current_series_name = channel.name;
-        await this.load();
+      this.memory.SetFocus.subscribe((focus) => {
+        this.focus = focus;
       }),
     );
     this.subscriptions.push(
-      this.memory.SetGroupNode.subscribe(async (idName) => {
+      this.memory.SetNode.subscribe(async (dto) => {
+        this.nodeStack.add(new Node(dto.id, dto.name, dto.type, this.filters?.query));
+        if (dto.type == NodeType.Category) this.filters!.group_id = dto.id;
+        else if (dto.type == NodeType.Series) {
+          this.filters!.series_id = dto.id;
+          this.filters!.source_ids = [dto.sourceId!];
+        } else if (dto.type == NodeType.Season) this.filters!.season = dto.id;
         this.clearSearch();
-        this.filters!.group_id = idName.id;
-        this.filters!.page = 1;
-        this.reachedMax = false;
-        this.current_group_name = idName.name;
         await this.load();
+        if (this.focusArea == FocusArea.Tiles) this.selectFirstChannelDelayed(100);
       }),
     );
     this.subscriptions.push(
@@ -211,8 +218,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.memory.Sort.pipe(skip(1)).subscribe(async ([sort, load]) => {
         if (!this.filters || !load) return;
         this.filters!.sort = sort;
-        this.filters.page = 1;
-        this.reachedMax = false;
         await this.load();
       }),
     );
@@ -220,6 +225,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   clearSearch() {
     this.search.nativeElement.value = "";
+    this.prevSearchValue = "";
     this.filters!.query = "";
   }
 
@@ -230,6 +236,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   async load(more = false) {
     this.loading = true;
+    if (more) {
+      this.filters!.page++;
+    } else {
+      this.filters!.page = 1;
+    }
     try {
       let channels: Channel[] = await invoke("search", { filters: this.filters });
       if (!more) {
@@ -261,7 +272,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(
       fromEvent(this.search.nativeElement, "keyup")
         .pipe(
+          filter((event: any) => event.key !== "Escape"),
           map((event: any) => {
+            this.focus = 0;
+            this.focusArea = FocusArea.Tiles;
             if (this.channelsVisible && event.target.value != this.prevSearchValue)
               this.channelsVisible = false;
             this.prevSearchValue = event.target.value;
@@ -270,17 +284,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           debounceTime(300),
         )
         .subscribe(async (term: string) => {
-          this.focus = 0;
           this.filters!.query = term;
-          this.filters!.page = 1;
-          this.reachedMax = false;
           await this.load();
         }),
     );
 
     this.shortcuts.push(
       {
-        key: ["ctrl + f", "ctrl + space"],
+        key: ["ctrl + f", "ctrl + space", "cmd + f"],
         label: "Search",
         description: "Go to search",
         preventDefault: true,
@@ -288,24 +299,28 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         command: (_) => this.focusSearch(),
       },
       {
-        key: "ctrl + a",
+        key: ["ctrl + a", "cmd + a"],
         label: "Switching modes",
-        description: "Selects the all channels mode",
+        description: "Selects the all channels view",
         preventDefault: true,
         command: async (_) => await this.switchMode(this.viewModeEnum.All),
       },
       {
-        key: "ctrl + s",
+        key: ["ctrl + s", "cmd + s"],
         label: "Switching modes",
-        description: "Selects the categories channels mode",
-        allowIn: [AllowIn.Input],
+        description: "Selects the categories view",
         command: async (_) => await this.switchMode(this.viewModeEnum.Categories),
       },
       {
-        key: "ctrl + d",
+        key: ["ctrl + d", "cmd + d"],
         label: "Switching modes",
-        description: "Selects the favorites channels mode",
-        allowIn: [AllowIn.Input],
+        description: "Selects the history view",
+        command: async (_) => await this.switchMode(this.viewModeEnum.History),
+      },
+      {
+        key: ["ctrl + r", "cmd + r"],
+        label: "Switching modes",
+        description: "Selects the favorites view",
         command: async (_) => await this.switchMode(this.viewModeEnum.Favorites),
       },
       {
@@ -378,27 +393,20 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     let index = this.filters!.media_types.indexOf(mediaType);
     if (index == -1) this.filters!.media_types.push(mediaType);
     else this.filters!.media_types.splice(index, 1);
-    this.filters!.page = 1;
-    this.reachedMax = false;
     this.load();
   }
 
   filtersVisible() {
-    return !(
-      (this.filters?.view_type == this.viewModeEnum.Categories && !this.filters?.group_id) ||
-      this.filters?.series_id
-    );
+    return !this.filters?.series_id;
   }
 
   async switchMode(viewMode: ViewMode) {
     if (viewMode == this.filters?.view_type) return;
-    this.filters!.page = 1;
-    this.focus = 0;
     this.filters!.series_id = undefined;
     this.filters!.group_id = undefined;
-    this.reachedMax = false;
     this.filters!.view_type = viewMode;
     this.clearSearch();
+    this.nodeStack.clear();
     await this.load();
   }
 
@@ -410,46 +418,57 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (this.searchFocused()) {
       this.selectFirstChannel();
       return;
+    } else {
+      this.focus = 0;
+      this.focusArea = FocusArea.Tiles;
     }
-    this.focus = 0;
     window.scrollTo({ top: 0, behavior: "smooth" });
     this.search.nativeElement.focus({
       preventScroll: true,
     });
   }
 
-  goBackHotkey() {
+  async goBackHotkey() {
     if (this.memory.ModalRef) {
-      if (this.memory.ModalRef.componentInstance.name == "WhatsNewModal") {
-        this.memory.updateVersion();
-      }
       if (
         this.memory.ModalRef.componentInstance.name != "RestreamModalComponent" ||
         !this.memory.ModalRef.componentInstance.started
       )
         this.memory.ModalRef.close("close");
       return;
-    }
-    if (this.filters?.group_id || this.filters?.series_id) {
-      if (this.filters.group_id && this.focusArea == FocusArea.Filters) {
-        this.focusArea = FocusArea.Tiles;
-        this.focus = 0;
+    } else if (this.memory.currentContextMenu?.menuOpen) {
+      this.closeContextMenu();
+    } else if (this.searchFocused()) {
+      this.selectFirstChannel();
+    } else if (this.filters?.query) {
+      if (this.filters?.query) {
+        this.clearSearch();
+        await this.load();
       }
-      this.goBack();
+      this.selectFirstChannelDelayed(100);
+    } else if (this.nodeStack.hasNodes()) {
+      await this.goBack();
+      this.selectFirstChannelDelayed(100);
+    } else {
+      this.selectFirstChannel();
     }
-    this.closeContextMenu();
-    this.selectFirstChannel();
+  }
+
+  selectFirstChannelDelayed(milliseconds: number) {
+    setTimeout(() => this.selectFirstChannel(), milliseconds);
   }
 
   async goBack() {
-    if (this.filters?.series_id) {
+    var node = this.nodeStack.pop();
+    if (node.type == NodeType.Category) this.filters!.group_id = undefined;
+    else if (node.type == NodeType.Series) {
       this.filters!.series_id = undefined;
-      this.filters.source_ids = this.memory.Sources.map((x) => x.id!);
-    } else {
-      this.filters!.group_id = undefined;
+      this.filters!.source_ids = this.memory.Sources.map((x) => x.id!);
+    } else if (node.type == NodeType.Season) {
+      this.filters!.season = undefined;
     }
-    this.filters!.page = 1;
-    this.clearSearch();
+    this.search.nativeElement.value = node.query;
+    this.filters!.query = node.query;
     await this.load();
   }
 
@@ -458,6 +477,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   async nav(key: string) {
+    if (this.searchFocused()) return;
     let lowSize = this.currentWindowSize < 768;
     if (this.memory.currentContextMenu?.menuOpen || this.memory.ModalRef) {
       return;
@@ -481,6 +501,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
     let goOverSize = this.shortFiltersMode() ? 1 : 2;
     if (lowSize && tmpFocus % 3 == 0 && this.focusArea == FocusArea.Tiles) tmpFocus / 3;
+    if (tmpFocus == 3 && this.focusArea == FocusArea.ViewMode) tmpFocus++;
     tmpFocus += this.focus;
     if (tmpFocus < 0) {
       this.changeFocusArea(false);
@@ -488,7 +509,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.changeFocusArea(true);
     } else if (tmpFocus > 3 && this.focusArea == FocusArea.ViewMode) {
       this.changeFocusArea(true);
-    } else if (this.focusArea == FocusArea.Tiles && tmpFocus >= this.filters!.page * 36)
+    } else if (
+      this.focusArea == FocusArea.Tiles &&
+      tmpFocus >= this.filters!.page * 36 &&
+      !this.reachedMax
+    )
       await this.loadMore();
     else {
       if (tmpFocus >= this.channels.length && this.focusArea == FocusArea.Tiles)
@@ -501,7 +526,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   shortFiltersMode() {
-    return !this.memory.Sources && this.focusArea == FocusArea.Filters;
+    return this.filters?.source_ids.findIndex((x) => this.memory.XtreamSourceIds.has(x)) == -1;
   }
 
   anyXtream() {
@@ -549,6 +574,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   selectFirstChannel() {
     this.focusArea = FocusArea.Tiles;
+    this.focus = 0;
     (document.getElementById("first")?.firstChild as HTMLElement)?.focus();
   }
 
@@ -564,8 +590,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   async toggleKeywords() {
     this.filters!.use_keywords = !this.filters!.use_keywords;
-    this.filters!.page = 1;
-    this.reachedMax = false;
     await this.load();
   }
 }

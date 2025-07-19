@@ -5,6 +5,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
+use tokio_util::sync::CancellationToken;
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Channel {
@@ -26,6 +27,20 @@ pub struct Channel {
     pub stream_id: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tv_archive: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub season_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub episode_num: Option<i64>,
+}
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize, Default)]
+pub struct Season {
+    pub id: Option<i64>,
+    pub name: String,
+    pub season_number: i64,
+    pub image: Option<String>,
+    pub series_id: u64,
+    pub source_id: i64,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -74,6 +89,7 @@ pub struct Filters {
     pub group_id: Option<i64>,
     pub use_keywords: bool,
     pub sort: u8,
+    pub season: Option<i64>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize, Default)]
@@ -157,6 +173,7 @@ pub struct AppState {
     pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
     pub restream_stop_signal: Arc<AtomicBool>,
     pub download_stop: HashMap<String, Arc<AtomicBool>>,
+    pub play_stop: HashMap<i64, CancellationToken>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
