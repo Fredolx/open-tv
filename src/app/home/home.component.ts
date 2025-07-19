@@ -423,8 +423,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       )
         this.memory.ModalRef.close("close");
       return;
-    } else if (this.memory.currentContextMenu) this.closeContextMenu();
-    else if (this.filters?.query) {
+    } else if (this.memory.currentContextMenu?.menuOpen) {
+      this.closeContextMenu();
+      console.log("hello?");
+    } else if (this.filters?.query) {
       if (this.filters?.query) {
         this.clearSearch();
         await this.load();
