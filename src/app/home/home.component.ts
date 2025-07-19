@@ -479,6 +479,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
     let goOverSize = this.shortFiltersMode() ? 1 : 2;
     if (lowSize && tmpFocus % 3 == 0 && this.focusArea == FocusArea.Tiles) tmpFocus / 3;
+    if (tmpFocus == 3 && this.focusArea == FocusArea.ViewMode) tmpFocus++;
     tmpFocus += this.focus;
     if (tmpFocus < 0) {
       this.changeFocusArea(false);
@@ -496,11 +497,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       if (tmpFocus >= this.channels.length && this.focusArea == FocusArea.Tiles)
         tmpFocus = (this.channels.length == 0 ? 1 : this.channels.length) - 1;
       this.focus = tmpFocus;
+      console.log(`${FocusAreaPrefix[this.focusArea]}${this.focus}`);
       setTimeout(() => {
         document.getElementById(`${FocusAreaPrefix[this.focusArea]}${this.focus}`)?.focus();
       }, 0);
     }
-    console.log(this.focus + " : " + this.focusArea);
   }
 
   shortFiltersMode() {
@@ -528,6 +529,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           : 2
         : 3;
     let id = FocusAreaPrefix[this.focusArea] + this.focus;
+    console.log(id);
     document.getElementById(id)?.focus();
   }
 
