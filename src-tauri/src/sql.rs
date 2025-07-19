@@ -185,6 +185,13 @@ fn apply_migrations() -> Result<()> {
               CREATE INDEX index_channels_tv_archive on channels(tv_archive);
             "#,
         ),
+        M::up(
+            r#"
+              ALTER TABLE groups
+              ADD COLUMN media_type integer;
+              CREATE INDEX index_groups_media_type ON groups(media_type);
+            "#,
+        ),
     ]);
     migrations.to_latest(&mut sql)?;
     Ok(())
@@ -210,7 +217,7 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
         return Ok(id);
     }
     tx.execute(
-    "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+    "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id) VALUES (?, ?, ?, ?, ?, ?)",
     params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id],
     )?;
     Ok(tx.last_insert_rowid())
@@ -268,13 +275,14 @@ fn get_or_insert_group(
     group: &str,
     image: &Option<String>,
     source_id: &i64,
+    media_type: u8,
 ) -> Result<i64> {
     let rows_changed = tx.execute(
         r#"
-        INSERT OR IGNORE INTO groups (name, image, source_id)
-        VALUES (?1, ?2, ?3);
+        INSERT OR IGNORE INTO groups (name, image, source_id, media_type)
+        VALUES (?, ?, ?, ?);
         "#,
-        params![group, &image, source_id],
+        params![group, &image, source_id, media_type],
     )?;
     if rows_changed == 0 {
         return Ok(tx.query_row(
@@ -301,6 +309,7 @@ pub fn set_channel_group_id(
             channel.group.as_ref().unwrap(),
             &channel.image,
             source_id,
+            channel.media_type,
         )?;
         groups.insert(channel.group.clone().unwrap(), id);
         channel.group_id = Some(id);
@@ -392,7 +401,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         SELECT * FROM CHANNELS
         WHERE ({})
         AND media_type IN ({})
-		AND source_id IN ({})
+        AND source_id IN ({})
         AND url IS NOT NULL"#,
         get_keywords_sql(keywords.len()),
         generate_placeholders(media_types.len()),
@@ -487,6 +496,7 @@ pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
     let sql = get_conn()?;
     let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
     let query = filters.query.unwrap_or("".to_string());
+    let media_types = filters.media_types.context("no media types")?;
     let keywords: Vec<String> = match filters.use_keywords {
         true => query
             .split(" ")
@@ -501,9 +511,11 @@ pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
         FROM groups
         WHERE ({})
         AND source_id in ({})
+        AND (media_type IS NULL OR media_type in ({}))
     "#,
         get_keywords_sql(keywords.len()),
-        generate_placeholders(filters.source_ids.len())
+        generate_placeholders(filters.source_ids.len()),
+        generate_placeholders(media_types.len())
     );
     if filters.sort != sort_type::PROVIDER {
         let order = match filters.sort {
@@ -516,6 +528,7 @@ pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
     sql_query += "\nLIMIT ?, ?";
     params.extend(to_to_sql(&keywords));
     params.extend(to_to_sql(&filters.source_ids));
+    params.extend(to_to_sql(&media_types));
     params.push(&offset);
     params.push(&PAGE_SIZE);
     let channels: Vec<Channel> = sql

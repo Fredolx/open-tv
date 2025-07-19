@@ -384,10 +384,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   filtersVisible() {
-    return !(
-      (this.filters?.view_type == this.viewModeEnum.Categories && !this.filters?.group_id) ||
-      this.filters?.series_id
-    );
+    return !this.filters?.series_id;
   }
 
   async switchMode(viewMode: ViewMode) {
