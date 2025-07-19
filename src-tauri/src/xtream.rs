@@ -306,7 +306,7 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
     let mut url = build_xtream_url(&mut source)?;
     url.query_pairs_mut()
         .append_pair("series_id", &series_id.to_string());
-    let mut series = (get_xtream_http_data::<XtreamSeries>(url, GET_SERIES_INFO).await?);
+    let mut series = get_xtream_http_data::<XtreamSeries>(url, GET_SERIES_INFO).await?;
     let mut episodes: Vec<XtreamEpisode> = series
         .episodes
         .into_values()
@@ -325,7 +325,6 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
         .sort_by_key(|f| get_serde_json_i64(&f.season_number));
     sql::do_tx(|tx| {
         for season in series.seasons {
-            println!("{:?}", season);
             let season =
                 xtream_season_to_season(season, source.id.context("no source id")?, series_id)?;
             seasons.insert(season.season_number, sql::insert_season(tx, season)?);
