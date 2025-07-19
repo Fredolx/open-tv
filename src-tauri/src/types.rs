@@ -5,6 +5,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
+use tokio_util::sync::CancellationToken;
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Channel {
@@ -170,6 +171,7 @@ pub struct AppState {
     pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
     pub restream_stop_signal: Arc<AtomicBool>,
     pub download_stop: HashMap<String, Arc<AtomicBool>>,
+    pub play_stop: HashMap<i64, CancellationToken>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

@@ -72,7 +72,14 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   async click(record = false) {
-    if (this.starting === true) return;
+    if (this.starting === true) {
+      try {
+        await invoke("cancel_play", { channelId: this.channel?.id });
+      } catch (e) {
+        this.error.handleError(e);
+      }
+      return;
+    }
     if (
       this.channel?.media_type == MediaType.serie ||
       this.channel?.media_type == MediaType.group ||

@@ -103,7 +103,8 @@ pub fn run() {
             restore_favs,
             abort_download,
             clear_history,
-            is_container
+            is_container,
+            cancel_play
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -197,8 +198,13 @@ async fn get_m3u8_from_link(source: Source) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn play(channel: Channel, record: bool, record_path: Option<String>) -> Result<(), String> {
-    mpv::play(channel, record, record_path)
+async fn play(
+    channel: Channel,
+    record: bool,
+    record_path: Option<String>,
+    state: State<'_, Mutex<AppState>>,
+) -> Result<(), String> {
+    mpv::play(channel, record, record_path, state)
         .await
         .map_err(map_err_frontend)
 }
@@ -488,8 +494,10 @@ async fn stop_restream(state: State<'_, Mutex<AppState>>) -> Result<(), String> 
 }
 
 #[tauri::command]
-async fn watch_self(port: u16) -> Result<(), String> {
-    restream::watch_self(port).await.map_err(map_err_frontend)
+async fn watch_self(port: u16, state: State<'_, Mutex<AppState>>) -> Result<(), String> {
+    restream::watch_self(port, state)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command]
@@ -525,4 +533,11 @@ fn clear_history() -> Result<(), String> {
 #[tauri::command(async)]
 fn is_container() -> bool {
     utils::is_container()
+}
+
+#[tauri::command]
+async fn cancel_play(channel_id: i64, state: State<'_, Mutex<AppState>>) -> Result<(), String> {
+    mpv::cancel_play(channel_id, state)
+        .await
+        .map_err(map_err_frontend)
 }

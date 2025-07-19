@@ -67,7 +67,7 @@ struct XtreamSeason {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamEpisode {
-    id: String,
+    id: serde_json::Value,
     title: String,
     container_extension: String,
     #[serde(default)]
@@ -388,7 +388,7 @@ fn episode_to_channel(
         name: episode.title.trim().to_string(),
         source_id: source.id,
         url: Some(get_url(
-            episode.id,
+            get_serde_json_string(&episode.id).context("no id")?,
             &source,
             media_type::SERIE,
             Some(episode.container_extension),
