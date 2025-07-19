@@ -447,7 +447,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       await this.goBack();
       this.selectFirstChannelDelayed(100);
     } else {
-      this.selectFirstChannelDelayed(100);
+      this.selectFirstChannel();
     }
   }
 
