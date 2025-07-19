@@ -45,7 +45,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     private download: DownloadService,
   ) {}
   @Input() channel?: Channel;
-  @Input() id!: Number;
+  @Input() id!: number;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
   menuTopLeftPosition = { x: 0, y: 0 };
   showImage: boolean = true;
@@ -118,6 +118,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       if (!file) return;
     }
     this.starting = true;
+    this.memory.SetFocus.next(this.id);
     try {
       await invoke("play", { channel: this.channel, record: record, recordPath: file });
     } catch (e) {

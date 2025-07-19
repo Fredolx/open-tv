@@ -192,6 +192,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       }),
     );
     this.subscriptions.push(
+      this.memory.SetFocus.subscribe((focus) => {
+        this.focus = focus;
+      }),
+    );
+    this.subscriptions.push(
       this.memory.SetNode.subscribe(async (dto) => {
         this.nodeStack.add(new Node(dto.id, dto.name, dto.type, this.filters?.query));
         if (dto.type == NodeType.Category) this.filters!.group_id = dto.id;

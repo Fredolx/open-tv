@@ -24,6 +24,7 @@ export class MemoryService {
     invoke("is_container").then((val) => (this.IsContainer = val as boolean));
   }
   public SetNode: Subject<SetNodeDTO> = new Subject();
+  public SetFocus: Subject<number> = new Subject();
   public Sort: BehaviorSubject<[number, boolean]> = new BehaviorSubject<[number, boolean]>([
     SortType.provider,
     false,
