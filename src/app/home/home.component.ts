@@ -201,6 +201,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         }
         this.clearSearch();
         await this.load();
+        if (this.focusArea == FocusArea.Tiles) this.selectFirstChannelDelayed(100);
       }),
     );
     this.subscriptions.push(
@@ -293,26 +294,26 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         command: (_) => this.focusSearch(),
       },
       {
-        key: "ctrl + a",
+        key: ["ctrl + a", "cmd + a"],
         label: "Switching modes",
         description: "Selects the all channels view",
         preventDefault: true,
         command: async (_) => await this.switchMode(this.viewModeEnum.All),
       },
       {
-        key: "ctrl + s",
+        key: ["ctrl + s", "cmd + s"],
         label: "Switching modes",
         description: "Selects the categories view",
         command: async (_) => await this.switchMode(this.viewModeEnum.Categories),
       },
       {
-        key: "ctrl + d",
+        key: ["ctrl + d", "cmd + d"],
         label: "Switching modes",
         description: "Selects the history view",
         command: async (_) => await this.switchMode(this.viewModeEnum.History),
       },
       {
-        key: "ctrl + r",
+        key: ["ctrl + r", "cmd + r"],
         label: "Switching modes",
         description: "Selects the favorites view",
         command: async (_) => await this.switchMode(this.viewModeEnum.Favorites),
