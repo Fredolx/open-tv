@@ -31,6 +31,7 @@ const ARG_LOOP_PLAYLIST: &str = "--loop-playlist=inf";
 const ARG_HWDEC: &str = "--hwdec=auto";
 const ARG_GPU_NEXT: &str = "--vo=gpu-next";
 const ARG_GPU_PROFILE_HIGH_QUALITY: &str = "--profile=high-quality";
+const ARG_NO_RESUME_PLAYBACK: &str = "--no-resume-playback";
 const MPV_BIN_NAME: &str = "mpv";
 const YTDLP_BIN_NAME: &str = "yt-dlp";
 const HTTP_ORIGIN: &str = "origin:";
@@ -131,6 +132,7 @@ fn get_play_args(
         for url in sql::find_all_episodes_after(channel)? {
             args.push(url);
         }
+        args.push(ARG_NO_RESUME_PLAYBACK.to_string());
     }
     if channel.media_type != media_type::LIVESTREAM {
         args.push(ARG_SAVE_POSITION_ON_QUIT.to_string());
