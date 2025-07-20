@@ -104,8 +104,14 @@ jobs:
           CI=true npm run tauri build
 
       - name: Build
+        if: matrix.os == 'windows-latest'
         run: |
           npm run tauri build
+
+      - name: Build
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          npm run tauri build -- --bundles deb,rpm
 
       - name: Repackage deb
         if: matrix.os == 'ubuntu-22.04'
