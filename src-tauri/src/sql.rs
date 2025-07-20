@@ -469,10 +469,6 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     if filters.view_type == view_type::FAVORITES && filters.series_id.is_none() {
         sql_query += "\nAND favorite = 1";
     }
-    if filters.view_type == view_type::HISTORY {
-        sql_query += "\nAND last_watched IS NOT NULL";
-        sql_query += "\nORDER BY last_watched DESC";
-    }
     if filters.series_id.is_some() {
         sql_query += &format!("\nAND series_id = ?");
         baked_params += 1;
@@ -484,12 +480,16 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         sql_query += &format!("\nAND season_id = ?");
         baked_params += 1;
     }
-    if filters.sort != sort_type::PROVIDER && filters.view_type != view_type::HISTORY {
-        let order = match filters.sort {
-            sort_type::ALPHABETICAL_ASC => "ASC",
-            sort_type::ALPHABETICAL_DESC => "DESC",
-            _ => "ASC",
-        };
+    let order = match filters.sort {
+        sort_type::ALPHABETICAL_DESC => "DESC",
+        _ => "ASC",
+    };
+    if filters.view_type == view_type::HISTORY {
+        sql_query += "\nAND last_watched IS NOT NULL";
+        sql_query += "\nORDER BY last_watched DESC";
+    } else if filters.season.is_some() {
+        sql_query += &format!("ORDER BY episode_num {}", order)
+    } else if filters.sort != sort_type::PROVIDER {
         sql_query += &format!("\nORDER BY name {}", order);
     }
     sql_query += "\nLIMIT ?, ?";
