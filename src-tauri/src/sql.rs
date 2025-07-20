@@ -1304,7 +1304,9 @@ pub fn get_channel_preserve(tx: &Transaction, source_id: i64) -> Result<Vec<Chan
             r#"
               SELECT name, favorite, last_watched
               FROM channels
-              WHERE (favorite = 1 OR last_watched IS NOT NULL && series_id IS NULL) AND source_id = ?
+              WHERE (favorite = 1 OR last_watched IS NOT NULL)
+              AND series_id IS NULL
+              AND source_id = ?
             "#,
         )?
         .query_map(params![source_id], row_to_channel_preserve)?
