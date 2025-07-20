@@ -45,10 +45,6 @@
   background: red;
 }
 
-.playing:focus {
-  background: red;
-}
-
 @keyframes pulse {
   from {
     transform: scale3d(1, 1, 1);
