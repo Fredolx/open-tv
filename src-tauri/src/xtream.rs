@@ -15,7 +15,6 @@ use base64::prelude::BASE64_STANDARD;
 use chrono::DateTime;
 use chrono::Local;
 use chrono::NaiveDateTime;
-use regex::Regex;
 use reqwest::Client;
 use rusqlite::Transaction;
 use serde::Deserialize;
