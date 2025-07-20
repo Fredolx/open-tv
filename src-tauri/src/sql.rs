@@ -262,7 +262,17 @@ pub fn insert_season(tx: &Transaction, season: Season) -> Result<i64> {
             season.source_id,
         ],
     )?;
-    Ok(tx.last_insert_rowid())
+    Ok(tx.query_row(
+        r#"
+        SELECT id
+        FROM seasons
+        WHERE series_id = ?
+        AND season_number = ?
+        AND source_id = ?
+      "#,
+        params![season.series_id, season.season_number, season.source_id],
+        |r| r.get(0),
+    )?)
 }
 
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
@@ -459,10 +469,6 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     if filters.view_type == view_type::FAVORITES && filters.series_id.is_none() {
         sql_query += "\nAND favorite = 1";
     }
-    if filters.view_type == view_type::HISTORY {
-        sql_query += "\nAND last_watched IS NOT NULL";
-        sql_query += "\nORDER BY last_watched DESC";
-    }
     if filters.series_id.is_some() {
         sql_query += &format!("\nAND series_id = ?");
         baked_params += 1;
@@ -474,12 +480,16 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         sql_query += &format!("\nAND season_id = ?");
         baked_params += 1;
     }
-    if filters.sort != sort_type::PROVIDER && filters.view_type != view_type::HISTORY {
-        let order = match filters.sort {
-            sort_type::ALPHABETICAL_ASC => "ASC",
-            sort_type::ALPHABETICAL_DESC => "DESC",
-            _ => "ASC",
-        };
+    let order = match filters.sort {
+        sort_type::ALPHABETICAL_DESC => "DESC",
+        _ => "ASC",
+    };
+    if filters.view_type == view_type::HISTORY {
+        sql_query += "\nAND last_watched IS NOT NULL";
+        sql_query += "\nORDER BY last_watched DESC";
+    } else if filters.season.is_some() {
+        sql_query += &format!("ORDER BY episode_num {}", order)
+    } else if filters.sort != sort_type::PROVIDER {
         sql_query += &format!("\nORDER BY name {}", order);
     }
     sql_query += "\nLIMIT ?, ?";
@@ -706,6 +716,17 @@ pub fn delete_channels_by_source(tx: &Transaction, source_id: i64) -> Result<()>
     Ok(())
 }
 
+pub fn delete_seasons_by_source(tx: &Transaction, source_id: i64) -> Result<()> {
+    tx.execute(
+        r#"
+        DELETE FROM seasons
+        WHERE source_id = ?
+    "#,
+        params![source_id],
+    )?;
+    Ok(())
+}
+
 pub fn delete_groups_by_source(tx: &Transaction, source_id: i64) -> Result<()> {
     tx.execute(
         r#"
@@ -729,6 +750,13 @@ pub fn delete_source(id: i64) -> Result<()> {
     sql.execute(
         r#"
         DELETE FROM groups
+        WHERE source_id = ?;
+    "#,
+        params![id],
+    )?;
+    sql.execute(
+        r#"
+        DELETE FROM seasons
         WHERE source_id = ?;
     "#,
         params![id],
@@ -1209,6 +1237,7 @@ pub fn update_source(source: Source) -> Result<()> {
 }
 
 pub fn wipe(tx: &Transaction, id: i64) -> Result<()> {
+    delete_seasons_by_source(tx, id)?;
     delete_channels_by_source(tx, id)?;
     delete_groups_by_source(tx, id)?;
     Ok(())
@@ -1275,7 +1304,9 @@ pub fn get_channel_preserve(tx: &Transaction, source_id: i64) -> Result<Vec<Chan
             r#"
               SELECT name, favorite, last_watched
               FROM channels
-              WHERE (favorite = 1 OR last_watched IS NOT NULL) AND source_id = ?
+              WHERE (favorite = 1 OR last_watched IS NOT NULL)
+              AND series_id IS NULL
+              AND source_id = ?
             "#,
         )?
         .query_map(params![source_id], row_to_channel_preserve)?
