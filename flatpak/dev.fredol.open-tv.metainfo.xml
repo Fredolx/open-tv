@@ -29,6 +29,34 @@
   </categories>
   <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
   <releases>
+    <release version="1.8.1" date="2025-07-20">
+      <description>
+        <ul>
+            <li>
+              Vastly improved navigation. Keyboard navigation should be a lot smoother. Use Escape or
+              Backspace to go back in any view. Press F1 for more details. Please send feedback if you like
+              keyboard-centric apps.
+            </li>
+            <li>
+              Categories view now follows your media type filters. Only want to see categories of vods? It's
+              here.
+            </li>
+            <li>Series are now organized in seasons. This was probably the most requested feature.</li>
+            <li>Playback of channels can be cancelled by just clicking on them again. No more zombies.</li>
+            <li>Squashed a ton of xtream bugs</li>
+            <li>Open TV now remembers your last search before entering a category, series or season</li>
+            <li>
+              Re-added the scrollbar.
+            </li>
+            <li>All episodes of a season are added to the queue when playing an episode.</li>
+            <li>Fixed a bug where you couldn't use left or right arrow keys in the search bar.</li>
+            <li>
+              The linux flatpak package now uses mpv as base, which means it should be kept up-to-date with
+              the latest dependencies in a more consistent fashion.
+            </li>
+        </ul>
+      </description>
+    </release>
     <release version="1.7.0" date="2025-05-12">
       <description>
           <ul>
