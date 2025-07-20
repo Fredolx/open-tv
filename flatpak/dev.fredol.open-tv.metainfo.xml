@@ -29,6 +29,27 @@
   </categories>
   <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
   <releases>
+  <release version="1.8.2" date="2025-07-20">
+      <description>
+        <ul>
+            <li>
+              Added support for series without seasons
+            </li>
+            <li>
+              Added support for episodes without seasons
+            </li>
+            <li>
+              Fixed a bug where a different episode would play than the one selected
+            </li>
+            <li>
+              Fixed xtream bugs
+            </li>
+            <li>
+              Fixed a bug where the search bar would show 'undefined'
+            </li>
+        </ul>
+      </description>
+    </release>
     <release version="1.8.1" date="2025-07-20">
       <description>
         <ul>
