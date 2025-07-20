@@ -706,6 +706,17 @@ pub fn delete_channels_by_source(tx: &Transaction, source_id: i64) -> Result<()>
     Ok(())
 }
 
+pub fn delete_seasons_by_source(tx: &Transaction, source_id: i64) -> Result<()> {
+    tx.execute(
+        r#"
+        DELETE FROM seasons
+        WHERE source_id = ?
+    "#,
+        params![source_id],
+    )?;
+    Ok(())
+}
+
 pub fn delete_groups_by_source(tx: &Transaction, source_id: i64) -> Result<()> {
     tx.execute(
         r#"
@@ -729,6 +740,13 @@ pub fn delete_source(id: i64) -> Result<()> {
     sql.execute(
         r#"
         DELETE FROM groups
+        WHERE source_id = ?;
+    "#,
+        params![id],
+    )?;
+    sql.execute(
+        r#"
+        DELETE FROM seasons
         WHERE source_id = ?;
     "#,
         params![id],
@@ -1209,6 +1227,7 @@ pub fn update_source(source: Source) -> Result<()> {
 }
 
 pub fn wipe(tx: &Transaction, id: i64) -> Result<()> {
+    delete_seasons_by_source(tx, id)?;
     delete_channels_by_source(tx, id)?;
     delete_groups_by_source(tx, id)?;
     Ok(())
@@ -1275,7 +1294,7 @@ pub fn get_channel_preserve(tx: &Transaction, source_id: i64) -> Result<Vec<Chan
             r#"
               SELECT name, favorite, last_watched
               FROM channels
-              WHERE (favorite = 1 OR last_watched IS NOT NULL) AND source_id = ?
+              WHERE (favorite = 1 OR last_watched IS NOT NULL && series_id IS NULL) AND source_id = ?
             "#,
         )?
         .query_map(params![source_id], row_to_channel_preserve)?
