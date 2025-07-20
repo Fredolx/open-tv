@@ -262,7 +262,17 @@ pub fn insert_season(tx: &Transaction, season: Season) -> Result<i64> {
             season.source_id,
         ],
     )?;
-    Ok(tx.last_insert_rowid())
+    Ok(tx.query_row(
+        r#"
+        SELECT id
+        FROM seasons
+        WHERE series_id = ?
+        AND season_number = ?
+        AND source_id = ?
+      "#,
+        params![season.series_id, season.season_number, season.source_id],
+        |r| r.get(0),
+    )?)
 }
 
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
