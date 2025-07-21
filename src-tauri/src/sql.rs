@@ -488,7 +488,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         sql_query += "\nAND last_watched IS NOT NULL";
         sql_query += "\nORDER BY last_watched DESC";
     } else if filters.season.is_some() {
-        sql_query += &format!("ORDER BY episode_num {}", order)
+        sql_query += &format!("\nORDER BY episode_num {0}, name {0}", order)
     } else if filters.sort != sort_type::PROVIDER {
         sql_query += &format!("\nORDER BY name {}", order);
     }

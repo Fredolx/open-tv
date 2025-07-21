@@ -468,8 +468,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     } else if (node.type == NodeType.Season) {
       this.filters!.season = undefined;
     }
-    this.search.nativeElement.value = node.query;
-    this.filters!.query = node.query;
+    if (node.query) {
+      this.search.nativeElement.value = node.query;
+      this.filters!.query = node.query;
+    }
     await this.load();
   }
 

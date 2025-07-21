@@ -1,6 +1,7 @@
 use crate::log;
 use crate::media_type;
 use crate::sql;
+use crate::sql::insert_season;
 use crate::types::Channel;
 use crate::types::ChannelPreserve;
 use crate::types::EPG;
@@ -32,6 +33,7 @@ const GET_LIVE_STREAM_CATEGORIES: &str = "get_live_categories";
 const GET_VOD_CATEGORIES: &str = "get_vod_categories";
 const GET_EPG: &str = "get_simple_data_table";
 const LIVE_STREAM_EXTENSION: &str = "ts";
+const NO_SEASON_NUMBER: i64 = -9999;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamStream {
@@ -56,6 +58,7 @@ struct XtreamSeries {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamSeason {
+    #[serde(default)]
     season_number: serde_json::Value,
     #[serde(default)]
     overview: Option<String>,
@@ -313,7 +316,14 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
         .into_values()
         .flat_map(|episode| episode)
         .collect();
-    let mut seasons: HashMap<i64, i64> = HashMap::new();
+    series
+        .seasons
+        .sort_by_key(|f| get_serde_json_i64(&f.season_number));
+    let seasons: HashMap<i64, XtreamSeason> = series
+        .seasons
+        .iter()
+        .filter_map(|x| get_serde_json_i64(&x.season_number).map(|y| (y, x.clone())))
+        .collect();
     episodes.sort_by(|a, b| {
         get_serde_json_u64(&a.season)
             .cmp(&get_serde_json_u64(&b.season))
@@ -321,22 +331,99 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
                 get_serde_json_u64(&a.episode_num).cmp(&get_serde_json_u64(&b.episode_num))
             })
     });
-    series
-        .seasons
-        .sort_by_key(|f| get_serde_json_i64(&f.season_number));
+    insert_episodes(&source, seasons, episodes, series_id, channel.image)?;
+    Ok(())
+}
+
+fn insert_episodes(
+    source: &Source,
+    seasons: HashMap<i64, XtreamSeason>,
+    episodes: Vec<XtreamEpisode>,
+    series_id: u64,
+    default_season_image: Option<String>,
+) -> Result<()> {
+    let mut seasons_db: HashMap<i64, i64> = HashMap::new();
     sql::do_tx(|tx| {
-        for season in series.seasons {
-            let season =
-                xtream_season_to_season(season, source.id.context("no source id")?, series_id)?;
-            seasons.insert(season.season_number, sql::insert_season(tx, season)?);
-        }
         for episode in episodes {
-            let episode = episode_to_channel(episode, &source, series_id, &seasons)?;
-            sql::insert_channel(&tx, episode)?;
+            match insert_episode(
+                episode.clone(),
+                source,
+                tx,
+                &mut seasons_db,
+                &seasons,
+                series_id,
+                default_season_image.clone(),
+            )
+            .with_context(|| format!("Failed to insert episode {:?}", episode))
+            {
+                Ok(_) => (),
+                Err(e) => {
+                    log::log(format!("{:?}", e));
+                    continue;
+                }
+            }
         }
         Ok(())
-    })?;
+    })
+}
+
+fn insert_episode(
+    episode: XtreamEpisode,
+    source: &Source,
+    tx: &Transaction,
+    seasons_db: &mut HashMap<i64, i64>,
+    seasons: &HashMap<i64, XtreamSeason>,
+    series_id: u64,
+    default_season_image: Option<String>,
+) -> Result<()> {
+    let season_number = get_serde_json_i64(&episode.season).unwrap_or(NO_SEASON_NUMBER);
+    let season_id = seasons_db.get(&season_number);
+    let season_id: i64 = match season_id {
+        Some(s) => s.clone(),
+        None => {
+            let season = seasons
+                .get(&season_number)
+                .and_then(|f| {
+                    xtream_season_to_season(f.clone(), source.id.unwrap(), series_id)
+                        .with_context(|| "Failed to convert XtreamSeason to Season")
+                        .inspect_err(|e| log::log(format!("{}", e)))
+                        .ok()
+                })
+                .unwrap_or_else(|| {
+                    create_makeshift_season(
+                        season_number,
+                        series_id,
+                        source.id.unwrap(),
+                        default_season_image,
+                    )
+                });
+            let id = insert_season(tx, season)?;
+            seasons_db.insert(season_number, id);
+            id
+        }
+    };
+    let episode = episode_to_channel(episode, &source, series_id, season_id)?;
+    sql::insert_channel(&tx, episode)?;
     Ok(())
+}
+
+fn create_makeshift_season(
+    number: i64,
+    series_id: u64,
+    source_id: i64,
+    image: Option<String>,
+) -> Season {
+    Season {
+        name: match number == NO_SEASON_NUMBER {
+            true => "Uncategorized".to_string(),
+            false => format!("Season {number}"),
+        },
+        series_id,
+        season_number: number,
+        source_id,
+        image,
+        ..Default::default()
+    }
 }
 
 fn get_serde_json_string(value: &serde_json::Value) -> Option<String> {
@@ -377,7 +464,7 @@ fn episode_to_channel(
     episode: XtreamEpisode,
     source: &Source,
     series_id: u64,
-    seasons: &HashMap<i64, i64>,
+    season_id: i64,
 ) -> Result<Channel> {
     Ok(Channel {
         id: None,
@@ -396,7 +483,7 @@ fn episode_to_channel(
         )?),
         series_id: Some(series_id),
         episode_num: get_serde_json_i64(&episode.episode_num),
-        season_id: get_serde_json_i64(&episode.season).and_then(|f| seasons.get(&f).copied()),
+        season_id: Some(season_id),
         stream_id: None,
         group_id: None,
         favorite: false,
