@@ -509,7 +509,6 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     }
     params.push(&offset);
     params.push(&PAGE_SIZE);
-    println!("{}", sql_query);
     let channels: Vec<Channel> = sql
         .prepare(&sql_query)?
         .query_map(params_from_iter(params), row_to_channel)?
