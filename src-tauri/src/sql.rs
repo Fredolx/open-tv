@@ -488,7 +488,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         sql_query += "\nAND last_watched IS NOT NULL";
         sql_query += "\nORDER BY last_watched DESC";
     } else if filters.season.is_some() {
-        sql_query += &format!("ORDER BY episode_num {0}, name {0}", order)
+        sql_query += &format!("\nORDER BY episode_num {0}, name {0}", order)
     } else if filters.sort != sort_type::PROVIDER {
         sql_query += &format!("\nORDER BY name {}", order);
     }
@@ -509,6 +509,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     }
     params.push(&offset);
     params.push(&PAGE_SIZE);
+    println!("{}", sql_query);
     let channels: Vec<Channel> = sql
         .prepare(&sql_query)?
         .query_map(params_from_iter(params), row_to_channel)?
