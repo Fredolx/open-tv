@@ -19,6 +19,7 @@ use rusqlite::{OptionalExtension, Row, Transaction, params, params_from_iter};
 use rusqlite_migration::{M, Migrations};
 
 const PAGE_SIZE: u8 = 36;
+pub const DB_NAME: &str = "db.sqlite";
 static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
 
 pub fn get_conn() -> Result<PooledConnection<SqliteConnectionManager>> {
@@ -38,7 +39,7 @@ fn get_and_create_sqlite_db_path() -> String {
     if !path.exists() {
         std::fs::create_dir_all(&path).unwrap();
     }
-    path.push("db.sqlite");
+    path.push(DB_NAME);
     return path.to_string_lossy().to_string();
 }
 
@@ -115,11 +116,6 @@ fn structure_exists() -> Result<bool> {
         .optional()?
         .is_some();
     Ok(table_exists)
-}
-
-pub fn delete_database() -> Result<()> {
-    std::fs::remove_file(get_and_create_sqlite_db_path())?;
-    std::process::exit(0);
 }
 
 pub fn create_or_initialize_db() -> Result<()> {
@@ -213,6 +209,12 @@ fn apply_migrations() -> Result<()> {
               CREATE UNIQUE INDEX unique_seasons ON seasons(season_number, series_id, source_id);
             "#,
         ),
+        M::up(
+            r#"
+              DROP INDEX IF EXISTS channels_unique;
+              CREATE UNIQUE INDEX channels_unique ON channels(name, source_id, url, series_id, season_id);
+        "#,
+        ),
     ]);
     migrations.to_latest(&mut sql)?;
     Ok(())
@@ -280,7 +282,7 @@ pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
         r#"
 INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id, tv_archive, season_id, episode_num)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-ON CONFLICT (name, source_id)
+ON CONFLICT (name, source_id, url, series_id, season_id)
 DO UPDATE SET
     url = excluded.url,
     media_type = excluded.media_type,

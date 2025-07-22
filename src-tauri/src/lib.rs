@@ -287,7 +287,7 @@ fn toggle_source(value: bool, source_id: i64) -> Result<(), String> {
 
 #[tauri::command(async)]
 fn delete_database() -> Result<(), String> {
-    sql::delete_database().map_err(map_err_frontend)
+    utils::create_nuke_request().map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]

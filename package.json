@@ -1,12 +1,12 @@
 {
   "name": "open-tv",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "scripts": {
     "ng": "ng",
     "tauri": "tauri",
     "start": "ng serve",
     "build": "tauri build",
-    "buildMac": "tauri build --target universal-apple-darwin",
+    "buildMac": "APPLE_SIGNING_IDENTITY=J5GA8GVZ43 tauri build --target universal-apple-darwin",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

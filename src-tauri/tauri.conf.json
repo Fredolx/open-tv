@@ -1,6 +1,6 @@
 {
   "productName": "Open TV",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "identifier": "dev.fredol.open-tv",
   "build": {
     "frontendDist": "../dist/open-tv/browser",
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "Open TV (v1.8.2)",
+        "title": "Open TV (v1.8.3)",
         "width": 800,
         "height": 600,
         "resizable": true,

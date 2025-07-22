@@ -230,7 +230,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   async loadMore() {
-    this.filters!.page++;
     this.load(true);
   }
 
