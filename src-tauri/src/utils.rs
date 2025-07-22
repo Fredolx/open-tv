@@ -8,12 +8,14 @@ use crate::{
 };
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Local, Utc};
+use directories::ProjectDirs;
 use regex::Regex;
 use reqwest::Client;
 use serde::Serialize;
 use std::{
     env::{consts::OS, current_exe},
-    path::Path,
+    fs::File,
+    path::{Path, PathBuf},
     sync::{
         Arc, LazyLock,
         atomic::{AtomicBool, Ordering::Relaxed},
@@ -190,6 +192,34 @@ pub fn restore_favs(source_id: i64, path: String) -> Result<()> {
 
 pub fn is_container() -> bool {
     std::env::var("container").is_ok()
+}
+
+pub fn create_nuke_request() -> Result<()> {
+    let path = get_nuke_path()?;
+    File::create(path)?;
+    std::process::exit(0);
+}
+
+fn get_nuke_path() -> Result<PathBuf> {
+    let path = ProjectDirs::from("dev", "fredol", "open-tv").context("project dir not found")?;
+    let path = path.cache_dir();
+    let path = path.join("nuke.txt");
+    Ok(path)
+}
+
+pub fn check_nuke() -> Result<()> {
+    let path = get_nuke_path()?;
+    if !path.exists() {
+        return Ok(());
+    }
+    std::fs::remove_file(path)?;
+    let path = ProjectDirs::from("dev", "fredol", "open-tv").context("project dir not found")?;
+    let path = path.data_dir();
+    let path = path.join(sql::DB_NAME);
+    if path.exists() {
+        std::fs::remove_file(path)?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]
