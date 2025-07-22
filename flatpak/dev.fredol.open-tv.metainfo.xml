@@ -29,6 +29,16 @@
   </categories>
   <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
   <releases>
+  <release version="1.8.3" date="2025-07-22">
+    <description>
+      <ul>
+        <li>Fixed a critical pagination bug for all views</li>
+        <li>Re-added "duplicate" channels (keyed by name, source, url, series, season instead of name, source)</li>
+        <li>MacOS app is now signed. Expect a brew and Mac App Store release soon.</li>
+        <li>Docker image release will be available from 1.8.3</li>
+      </ul>
+    </description>
+  </release>
   <release version="1.8.2" date="2025-07-20">
       <description>
         <ul>
