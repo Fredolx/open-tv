@@ -29,6 +29,7 @@ export class SettingsComponent {
     enable_hwdec: true,
     always_ask_save: false,
     enable_gpu: false,
+    user_agent: "",
   };
   viewModeEnum = ViewMode;
   sources: Source[] = [];
@@ -89,6 +90,7 @@ export class SettingsComponent {
       if (this.settings.enable_hwdec == undefined) this.settings.enable_hwdec = true;
       if (this.settings.always_ask_save == undefined) this.settings.always_ask_save = false;
       if (this.settings.enable_gpu == undefined) this.settings.enable_gpu = false;
+      if (this.settings.user_agent == undefined) this.settings.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/";
     });
   }
 

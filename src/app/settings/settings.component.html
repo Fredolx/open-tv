@@ -203,6 +203,22 @@
 
   <div class="row mt-3 align-items-center">
     <div class="col-4">
+      <span>User Agent</span>
+    </div>
+    <div class="col">
+      <textarea
+        #user_agent
+        id="user_agent"
+        [(ngModel)]="settings.user_agent"
+        (ngModelChange)="this.updateSettings()"
+        placeholder="User agent string applied to all requests. Ex : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/"
+        class="form-control"
+      ></textarea>
+    </div>
+  </div>
+
+  <div class="row mt-3 align-items-center">
+    <div class="col-4">
       <span
         [ngbTooltip]="
           'Opens the file dialog for all downloads and recordings. Overrides recording path. '

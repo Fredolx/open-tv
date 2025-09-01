@@ -12,4 +12,5 @@ export class Settings {
   enable_hwdec?: boolean;
   always_ask_save?: boolean;
   enable_gpu?: boolean;
+  user_agent?: string;
 }

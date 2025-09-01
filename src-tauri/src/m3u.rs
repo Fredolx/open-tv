@@ -13,7 +13,7 @@ use types::{Channel, Source};
 
 use crate::types::ChannelPreserve;
 use crate::{
-    log, media_type, source_type,
+    log, media_type, source_type, settings,
     sql::{self, set_channel_group_id},
     types::{self, ChannelHttpHeaders},
 };
@@ -169,10 +169,20 @@ fn commit_channel(
 }
 
 pub async fn get_m3u8_from_link(source: Source, wipe: bool) -> Result<()> {
+    let settings = settings::get_settings()?;
+    let mut headers = reqwest::header::HeaderMap::new();
+    let user_agent = settings.user_agent.as_deref().unwrap_or("");
+    headers.insert(
+        reqwest::header::USER_AGENT,
+        reqwest::header::HeaderValue::from_str(user_agent)?,
+    );
+
     let client = reqwest::Client::new();
     let url = source.url.clone().context("Invalid source")?;
-    let mut response = client.get(&url).send().await?;
-
+    let mut response = client.get(&url).headers(headers).send().await?;
+    if !response.status().is_success() {
+        log::log(format!("Failed to get m3u8 from link, status: {}", response.status()));
+    }
     let mut file = std::fs::File::create(get_tmp_path())?;
     while let Some(chunk) = response.chunk().await? {
         file.write(&chunk)?;
