@@ -13,7 +13,7 @@ use types::{Channel, Source};
 
 use crate::types::ChannelPreserve;
 use crate::{
-    log, media_type, source_type, settings,
+    log, media_type, source_type,
     sql::{self, set_channel_group_id},
     types::{self, ChannelHttpHeaders},
 };
@@ -169,12 +169,11 @@ fn commit_channel(
 }
 
 pub async fn get_m3u8_from_link(source: Source, wipe: bool) -> Result<()> {
-    let settings = settings::get_settings()?;
     let mut headers = reqwest::header::HeaderMap::new();
-    let user_agent = settings.user_agent.as_deref().unwrap_or("");
+    let user_agent = source.user_agent.clone().context("no user agent")?;
     headers.insert(
         reqwest::header::USER_AGENT,
-        reqwest::header::HeaderValue::from_str(user_agent)?,
+        reqwest::header::HeaderValue::from_str(&user_agent)?,
     );
 
     let client = reqwest::Client::new();
@@ -337,6 +336,7 @@ mod test_m3u {
             source_type: crate::source_type::M3U,
             enabled: true,
             use_tvg_id: Some(true),
+            user_agent: Some("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/".to_string()),
         };
         read_m3u8(source, false).unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
@@ -357,6 +357,7 @@ mod test_m3u {
             source_type: crate::source_type::M3U_LINK,
             enabled: true,
             use_tvg_id: Some(true),
+            user_agent: Some("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/".to_string()),
         };
         get_m3u8_from_link(source, false).await.unwrap();
         let time = now.elapsed().as_millis().to_string();

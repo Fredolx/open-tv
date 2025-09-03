@@ -40,6 +40,14 @@
                     </div>
                 </div>
             </div>
+            <div *ngIf="source.source_type == sourceTypeEnum.M3ULink" class="row mt-2 justify-content-center">
+                <div class="col-lg-6 col-md-8">
+                    <label class="form-check-label" for="user-agent">User-agent</label>
+                    <input autocomplete="off" name="user-agent" empty class="form-control" [(ngModel)]="source.user_agent"
+                        placeholder="User Agent">
+                </div>
+            </div>
+
             <div *ngIf="source.source_type == sourceTypeEnum.M3U || source.source_type == sourceTypeEnum.M3ULink" class="row mt-2 justify-content-center">
                 <div class="col-lg-6 col-md-8">
                     <div class="form-check form-switch">

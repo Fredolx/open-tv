@@ -59,6 +59,7 @@ pub struct Source {
     pub source_type: u8,
     pub use_tvg_id: Option<bool>,
     pub enabled: bool,
+    pub user_agent: Option<String>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -76,7 +77,6 @@ pub struct Settings {
     pub enable_hwdec: Option<bool>,
     pub always_ask_save: Option<bool>,
     pub enable_gpu: Option<bool>,
-    pub user_agent: Option<String>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

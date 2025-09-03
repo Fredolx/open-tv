@@ -30,6 +30,7 @@ export class SetupComponent {
     source_type: SourceType.M3U,
     enabled: true,
     use_tvg_id: true,
+    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/"
   };
 
   @HostListener("document:keydown", ["$event"])

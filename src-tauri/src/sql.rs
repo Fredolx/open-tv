@@ -54,6 +54,7 @@ CREATE TABLE "sources" (
   "url"         varchar(500),
   "username"    varchar(100),
   "password"    varchar(100),
+  "user_agent"  varchar(500),
   "enabled"     integer DEFAULT 1
 );
 
@@ -240,8 +241,8 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
         return Ok(id);
     }
     tx.execute(
-    "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id) VALUES (?, ?, ?, ?, ?, ?)",
-    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id],
+    "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id, source.user_agent],
     )?;
     Ok(tx.last_insert_rowid())
 }
@@ -846,6 +847,7 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
         url_origin: None,
         enabled: row.get("enabled")?,
         use_tvg_id: row.get("use_tvg_id")?,
+        user_agent: row.get("user_agent")?,
     })
 }
 
@@ -902,6 +904,7 @@ pub fn get_custom_source(name: String) -> Source {
         url: None,
         url_origin: None,
         use_tvg_id: None,
+        user_agent: None,
     }
 }
 
@@ -1225,13 +1228,14 @@ pub fn update_source(source: Source) -> Result<()> {
     sql.execute(
         r#"
         UPDATE sources
-        SET username = ?, password = ?, url = ?, use_tvg_id = ?
+        SET username = ?, password = ?, url = ?, use_tvg_id = ?, user_agent = ?
         WHERE id = ?"#,
         params![
             source.username,
             source.password,
             source.url,
             source.use_tvg_id,
+            source.user_agent,
             source.id
         ],
     )?;

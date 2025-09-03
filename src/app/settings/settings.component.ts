@@ -29,7 +29,6 @@ export class SettingsComponent {
     enable_hwdec: true,
     always_ask_save: false,
     enable_gpu: false,
-    user_agent: "",
   };
   viewModeEnum = ViewMode;
   sources: Source[] = [];
