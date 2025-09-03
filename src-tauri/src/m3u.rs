@@ -336,7 +336,7 @@ mod test_m3u {
             source_type: crate::source_type::M3U,
             enabled: true,
             use_tvg_id: Some(true),
-            user_agent: Some("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/".to_string()),
+            user_agent: None,
         };
         read_m3u8(source, false).unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
