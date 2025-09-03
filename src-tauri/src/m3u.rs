@@ -181,6 +181,7 @@ pub async fn get_m3u8_from_link(source: Source, wipe: bool) -> Result<()> {
     let mut response = client.get(&url).headers(headers).send().await?;
     if !response.status().is_success() {
         log::log(format!("Failed to get m3u8 from link, status: {}", response.status()));
+        bail!("Failed to get m3u8 from link, status: {}", response.status());
     }
     let mut file = std::fs::File::create(get_tmp_path())?;
     while let Some(chunk) = response.chunk().await? {
