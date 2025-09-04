@@ -30,7 +30,7 @@ export class SetupComponent {
     source_type: SourceType.M3U,
     enabled: true,
     use_tvg_id: true,
-    user_agent: `Fred TV`
+    user_agent: "Fred TV"
   };
 
   @HostListener("document:keydown", ["$event"])
