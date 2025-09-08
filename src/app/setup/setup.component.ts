@@ -10,6 +10,7 @@ import { ConfirmModalComponent } from "./confirm-modal/confirm-modal.component";
 import { MemoryService } from "../memory.service";
 import { ErrorService } from "../error.service";
 import { ConfirmDeleteModalComponent } from "../confirm-delete-modal/confirm-delete-modal.component";
+
 @Component({
   selector: "app-setup",
   templateUrl: "./setup.component.html",
@@ -29,8 +30,7 @@ export class SetupComponent {
   source: Source = {
     source_type: SourceType.M3U,
     enabled: true,
-    use_tvg_id: true,
-    user_agent: "Fred TV"
+    use_tvg_id: true
   };
 
   @HostListener("document:keydown", ["$event"])

@@ -14,6 +14,7 @@ use types::{Channel, Source};
 use crate::types::ChannelPreserve;
 use crate::{
     log, media_type, source_type,
+    utils::get_user_agent_from_source,
     sql::{self, set_channel_group_id},
     types::{self, ChannelHttpHeaders},
 };
@@ -169,16 +170,10 @@ fn commit_channel(
 }
 
 pub async fn get_m3u8_from_link(source: Source, wipe: bool) -> Result<()> {
-    let mut headers = reqwest::header::HeaderMap::new();
-    let user_agent = source.user_agent.clone().context("no user agent")?;
-    headers.insert(
-        reqwest::header::USER_AGENT,
-        reqwest::header::HeaderValue::from_str(&user_agent)?,
-    );
-
-    let client = reqwest::Client::new();
+    let user_agent = get_user_agent_from_source(source.clone())?;
+    let client = reqwest::Client::builder().user_agent(user_agent).build()?;
     let url = source.url.clone().context("Invalid source")?;
-    let mut response = client.get(&url).headers(headers).send().await?;
+    let mut response = client.get(&url).send().await?;
     if !response.status().is_success() {
         log::log(format!("Failed to get m3u8 from link, status: {}", response.status()));
         bail!("Failed to get m3u8 from link, status: {}", response.status());
@@ -358,7 +353,7 @@ mod test_m3u {
             source_type: crate::source_type::M3U_LINK,
             enabled: true,
             use_tvg_id: Some(true),
-            user_agent: Some("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/".to_string()),
+            user_agent: Some("Fred TV".to_string()),
         };
         get_m3u8_from_link(source, false).await.unwrap();
         let time = now.elapsed().as_millis().to_string();

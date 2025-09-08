@@ -31,6 +31,8 @@ const MACOS_POTENTIAL_PATHS: [&str; 3] = [
     "/usr/local/bin",    // Homebrew on AMD64 Mac
 ];
 
+const DEFAULT_USER_AGENT: &str = "Fred TV";
+
 static ILLEGAL_CHARS_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"[<>:"/\\|?*\x00-\x1F]"#).unwrap());
 
@@ -220,6 +222,15 @@ pub fn check_nuke() -> Result<()> {
         std::fs::remove_file(path)?;
     }
     Ok(())
+}
+
+pub fn get_user_agent_from_source(source: Source) -> Result<String> {
+    let user_agent = source
+        .user_agent
+        .filter(|s| !s.trim().is_empty())
+        .or(Some(DEFAULT_USER_AGENT.to_string()))
+        .context("no user agent")?;
+    Ok(user_agent)
 }
 
 #[cfg(test)]
