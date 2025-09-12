@@ -30,7 +30,7 @@ export class SetupComponent {
   source: Source = {
     source_type: SourceType.M3U,
     enabled: true,
-    use_tvg_id: true
+    use_tvg_id: true,
   };
 
   @HostListener("document:keydown", ["$event"])
