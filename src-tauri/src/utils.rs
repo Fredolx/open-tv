@@ -224,13 +224,13 @@ pub fn check_nuke() -> Result<()> {
     Ok(())
 }
 
-pub fn get_user_agent_from_source(source: Source) -> Result<String> {
-    let user_agent = source
+pub fn get_user_agent_from_source(source: &Source) -> Result<String> {
+    let user_agent: &str = source
         .user_agent
+        .as_deref()
         .filter(|s| !s.trim().is_empty())
-        .or(Some(DEFAULT_USER_AGENT.to_string()))
-        .context("no user agent")?;
-    Ok(user_agent)
+        .unwrap_or(DEFAULT_USER_AGENT);
+    Ok(user_agent.to_string())
 }
 
 #[cfg(test)]

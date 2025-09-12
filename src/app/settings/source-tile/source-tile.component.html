@@ -33,10 +33,10 @@
         [ngClass]="{'align-items-center': editing && source?.source_type != sourceTypeEnum.M3U, 'align-items-baseline': !editing}">
         <div class="col-2">User-agent:</div>
         <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
-            {{source?.user_agent}}
+            {{source?.user_agent && source?.user_agent !== "" ? source?.user_agent : defaultUserAgent}}
         </div>
         <div class="col" *ngIf="editing && source?.source_type != sourceTypeEnum.M3U">
-            <input class="form-control form-control-sm" name="user_agent" [(ngModel)]="editableSource.user_agent" placeholder="User-Agent (optional)">
+            <input class="form-control form-control-sm" name="user_agent" [(ngModel)]="editableSource.user_agent" [placeholder]="defaultUserAgent">
         </div>
     </div>
     <div class="row align-items-baseline mt-2" *ngIf="source?.source_type == 2">
