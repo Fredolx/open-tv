@@ -54,7 +54,6 @@ CREATE TABLE "sources" (
   "url"         varchar(500),
   "username"    varchar(100),
   "password"    varchar(100),
-  "user_agent"  varchar(500),
   "enabled"     integer DEFAULT 1
 );
 
@@ -215,6 +214,11 @@ fn apply_migrations() -> Result<()> {
               DROP INDEX IF EXISTS channels_unique;
               CREATE UNIQUE INDEX channels_unique ON channels(name, source_id, url, series_id, season_id);
         "#,
+        ),
+        M::up(
+            r#"
+              ALTER TABLE sources ADD COLUMN user_agent varchar(500);
+            "#,
         ),
     ]);
     migrations.to_latest(&mut sql)?;
