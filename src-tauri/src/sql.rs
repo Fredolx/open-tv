@@ -622,7 +622,7 @@ fn to_sql_like(query: Option<String>) -> String {
 
 pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
     let sql = get_conn()?;
-    let offset = filters.page * PAGE_SIZE - PAGE_SIZE;
+    let offset: u16 = filters.page as u16 * PAGE_SIZE as u16 - PAGE_SIZE as u16;
     let query = filters.query.unwrap_or("".to_string());
     let media_types = filters.media_types.context("no media types")?;
     let keywords: Vec<String> = match filters.use_keywords {
