@@ -14,6 +14,7 @@ use types::{Channel, Source};
 use crate::types::ChannelPreserve;
 use crate::{
     log, media_type, source_type,
+    utils::get_user_agent_from_source,
     sql::{self, set_channel_group_id},
     types::{self, ChannelHttpHeaders},
 };
@@ -169,10 +170,14 @@ fn commit_channel(
 }
 
 pub async fn get_m3u8_from_link(source: Source, wipe: bool) -> Result<()> {
-    let client = reqwest::Client::new();
+    let user_agent = get_user_agent_from_source(&source)?;
+    let client = reqwest::Client::builder().user_agent(user_agent).build()?;
     let url = source.url.clone().context("Invalid source")?;
     let mut response = client.get(&url).send().await?;
-
+    if !response.status().is_success() {
+        log::log(format!("Failed to get m3u8 from link, status: {}", response.status()));
+        bail!("Failed to get m3u8 from link, status: {}", response.status());
+    }
     let mut file = std::fs::File::create(get_tmp_path())?;
     while let Some(chunk) = response.chunk().await? {
         file.write(&chunk)?;
@@ -327,6 +332,7 @@ mod test_m3u {
             source_type: crate::source_type::M3U,
             enabled: true,
             use_tvg_id: Some(true),
+            user_agent: None,
         };
         read_m3u8(source, false).unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
@@ -347,6 +353,7 @@ mod test_m3u {
             source_type: crate::source_type::M3U_LINK,
             enabled: true,
             use_tvg_id: Some(true),
+            user_agent: Some("Fred TV".to_string()),
         };
         get_m3u8_from_link(source, false).await.unwrap();
         let time = now.elapsed().as_millis().to_string();

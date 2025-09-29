@@ -10,6 +10,7 @@ import { ConfirmModalComponent } from "./confirm-modal/confirm-modal.component";
 import { MemoryService } from "../memory.service";
 import { ErrorService } from "../error.service";
 import { ConfirmDeleteModalComponent } from "../confirm-delete-modal/confirm-delete-modal.component";
+
 @Component({
   selector: "app-setup",
   templateUrl: "./setup.component.html",
