@@ -60,6 +60,7 @@ pub struct Source {
     pub use_tvg_id: Option<bool>,
     pub enabled: bool,
     pub user_agent: Option<String>,
+    pub streams: Option<i8>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -168,13 +169,20 @@ pub struct EPGNotify {
     pub channel_name: String,
 }
 
+#[derive(Debug)]
+pub struct PlayStop {
+    pub token: CancellationToken,
+    pub source_id: i64,
+    pub start_time: i64,
+}
+
 #[derive(Debug, Default)]
 pub struct AppState {
     pub notify_stop: Arc<AtomicBool>,
     pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
     pub restream_stop_signal: Arc<AtomicBool>,
     pub download_stop: HashMap<String, Arc<AtomicBool>>,
-    pub play_stop: HashMap<i64, CancellationToken>,
+    pub play_stop: HashMap<i64, PlayStop>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

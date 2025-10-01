@@ -10,4 +10,5 @@ export class Source {
     enabled?: boolean;
     use_tvg_id?: boolean;
     user_agent?: string;
+    streams?: number;
 }

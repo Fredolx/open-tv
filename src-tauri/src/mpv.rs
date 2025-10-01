@@ -1,6 +1,6 @@
 use crate::settings::get_default_record_path;
 use crate::sql;
-use crate::types::{AppState, ChannelHttpHeaders};
+use crate::types::{AppState, ChannelHttpHeaders, PlayStop};
 use crate::utils::{find_macos_bin, get_bin};
 use crate::{media_type, settings::get_settings, types::Channel};
 use anyhow::{Context, Result, bail};
@@ -49,6 +49,39 @@ pub async fn play(
     let args = get_play_args(&channel, record, record_path)?;
     println!("with args: {:?}", args);
 
+    let source_id = channel.source_id.context("no source_id")?;
+    let source = sql::get_source_from_id(source_id).context("no source found")?;
+    if let Some(max_streams) = source.streams {
+        if let Some(target_source_id) = channel.source_id {
+            let (current_streams, oldest_id) = {
+                let guard = state.lock().await;
+                let mut streams: i8 = 0;
+                let mut oldest: Option<(i64, i64)> = None;
+
+                for (&id, p) in guard.play_stop.iter() {
+                    if p.source_id == target_source_id {
+                        streams += 1;
+
+                        match oldest {
+                            Some((_, oldest_time)) if p.start_time >= oldest_time => {}
+                            _ => oldest = Some((id, p.start_time)),
+                        }
+                    }
+                }
+
+                (streams, oldest)
+            };
+
+            if current_streams >= max_streams {
+                if let Some((id, _)) = oldest_id {
+                    if let Some(p) = state.lock().await.play_stop.remove(&id) {
+                        p.token.cancel();
+                    }
+                }
+            }
+        }
+    }
+
     let cmd = Command::new(MPV_PATH.clone())
         .args(args)
         .stdout(Stdio::piped())
@@ -63,7 +96,14 @@ pub async fn play(
             .lock()
             .await
             .play_stop
-            .insert(channel.id.context("no channel id")?, token.clone());
+            .insert(
+            channel.id.context("no channel id")?,
+            PlayStop {
+                token: token.clone(),
+                source_id: source_id,
+                start_time: chrono::Utc::now().timestamp(),
+            },
+        );
     }
     tokio::select! {
         status = child.wait() => {
@@ -115,6 +155,7 @@ pub async fn cancel_play(id: i64, state: State<'_, Mutex<AppState>>) -> Result<(
         .play_stop
         .get(&id)
         .context("no cancel token found for id")?
+        .token
         .cancel();
     Ok(())
 }

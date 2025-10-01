@@ -333,6 +333,7 @@ mod test_m3u {
             enabled: true,
             use_tvg_id: Some(true),
             user_agent: None,
+            streams: Some(1),
         };
         read_m3u8(source, false).unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
@@ -354,6 +355,7 @@ mod test_m3u {
             enabled: true,
             use_tvg_id: Some(true),
             user_agent: Some("Fred TV".to_string()),
+            streams: Some(1),
         };
         get_m3u8_from_link(source, false).await.unwrap();
         let time = now.elapsed().as_millis().to_string();
