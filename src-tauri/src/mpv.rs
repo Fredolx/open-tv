@@ -1,10 +1,11 @@
 use crate::settings::get_default_record_path;
 use crate::sql;
-use crate::types::{AppState, ChannelHttpHeaders, PlayStop};
+use crate::types::{AppState, ChannelHttpHeaders};
 use crate::utils::{find_macos_bin, get_bin};
 use crate::{media_type, settings::get_settings, types::Channel};
 use anyhow::{Context, Result, bail};
 use chrono::Local;
+use indexmap::IndexMap;
 use std::sync::LazyLock;
 use std::{env::consts::OS, path::Path, process::Stdio};
 use tauri::State;
@@ -52,30 +53,12 @@ pub async fn play(
     let source_id = channel.source_id.context("no source_id")?;
     let source = sql::get_source_from_id(source_id).context("no source found")?;
     if let Some(max_streams) = source.streams {
-        if let Some(target_source_id) = channel.source_id {
-            let (current_streams, oldest_id) = {
-                let guard = state.lock().await;
-                let mut streams: i8 = 0;
-                let mut oldest: Option<(i64, i64)> = None;
-
-                for (&id, p) in guard.play_stop.iter() {
-                    if p.source_id == target_source_id {
-                        streams += 1;
-
-                        match oldest {
-                            Some((_, oldest_time)) if p.start_time >= oldest_time => {}
-                            _ => oldest = Some((id, p.start_time)),
-                        }
-                    }
-                }
-
-                (streams, oldest)
-            };
-
-            if current_streams >= max_streams {
-                if let Some((id, _)) = oldest_id {
-                    if let Some(p) = state.lock().await.play_stop.remove(&id) {
-                        p.token.cancel();
+        if max_streams > 0 {
+            let mut guard = state.lock().await;
+            if let Some(channels) = guard.play_stop.get_mut(&source_id) {
+                if channels.len() >= max_streams as usize {
+                    if let Some((_, token)) = channels.shift_remove_index(0) {
+                        token.cancel();
                     }
                 }
             }
@@ -91,19 +74,21 @@ pub async fn play(
     let mut child = cmd;
     let child_id = child.id().unwrap_or_default();
     let token = CancellationToken::new();
+    let channel_id = channel.id.context("no channel id")?;
     {
         state
             .lock()
             .await
             .play_stop
-            .insert(
-            channel.id.context("no channel id")?,
-            PlayStop {
-                token: token.clone(),
-                source_id: source_id,
-                start_time: chrono::Utc::now().timestamp(),
-            },
-        );
+            .entry(source_id)
+            .and_modify(|map| {
+                map.insert(channel_id, token.clone());
+            })
+            .or_insert_with(|| {
+                let mut map = IndexMap::new();
+                map.insert(channel_id, token.clone());
+                map
+            });
     }
     tokio::select! {
         status = child.wait() => {
@@ -123,7 +108,12 @@ pub async fn play(
                         }
                     }
                     {
-                        state.lock().await.play_stop.remove(channel.id.as_ref().context("no channel id")?);
+                        state
+                            .lock()
+                            .await
+                            .play_stop
+                            .get_mut(&source_id)
+                            .and_then(|map| map.swap_remove(&channel_id));
                     }
                     if error != "" {
                         bail!(error);
@@ -143,20 +133,21 @@ pub async fn play(
             .lock()
             .await
             .play_stop
-            .remove(channel.id.as_ref().context("no channel id")?);
+            .get_mut(&source_id)
+            .and_then(|map| map.swap_remove(&channel_id));
     }
     Ok(())
 }
 
-pub async fn cancel_play(id: i64, state: State<'_, Mutex<AppState>>) -> Result<()> {
-    state
-        .lock()
-        .await
+pub async fn cancel_play(source_id: i64, id: i64, state: State<'_, Mutex<AppState>>) -> Result<()> {
+    println!("cancelling play for source_id {}, channel id {}", source_id, id);
+    let guard = state.lock().await;
+    let token = guard
         .play_stop
-        .get(&id)
-        .context("no cancel token found for id")?
-        .token
-        .cancel();
+        .get(&source_id)
+        .and_then(|map| map.get(&id))
+        .context("no cancel token found for id")?;
+    token.cancel();
     Ok(())
 }
 

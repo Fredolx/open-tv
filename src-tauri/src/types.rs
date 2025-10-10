@@ -6,6 +6,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
+use indexmap::IndexMap;
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Channel {
@@ -169,20 +170,13 @@ pub struct EPGNotify {
     pub channel_name: String,
 }
 
-#[derive(Debug)]
-pub struct PlayStop {
-    pub token: CancellationToken,
-    pub source_id: i64,
-    pub start_time: i64,
-}
-
 #[derive(Debug, Default)]
 pub struct AppState {
     pub notify_stop: Arc<AtomicBool>,
     pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
     pub restream_stop_signal: Arc<AtomicBool>,
     pub download_stop: HashMap<String, Arc<AtomicBool>>,
-    pub play_stop: HashMap<i64, PlayStop>,
+    pub play_stop: HashMap<i64, IndexMap<i64, CancellationToken>>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
