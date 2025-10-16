@@ -49,7 +49,7 @@
             <div *ngIf="source.source_type != sourceTypeEnum.Custom && source.source_type != sourceTypeEnum.CustomImport" class="row mt-2 justify-content-center">
                 <div class="col-lg-6 col-md-8">
                     <input autocomplete="off" name="streams" class="form-control" [(ngModel)]="source.streams"
-                        type="number" placeholder="Number of streams (optional, -1 unlimited)">
+                        type="number" placeholder="Number of streams (default 1, -1 for unlimited)">
                 </div>
             </div>
 

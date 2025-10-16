@@ -51,19 +51,7 @@ pub async fn play(
     println!("with args: {:?}", args);
 
     let source_id = channel.source_id.context("no source_id")?;
-    let source = sql::get_source_from_id(source_id).context("no source found")?;
-    if let Some(max_streams) = source.streams {
-        if max_streams > 0 {
-            let mut guard = state.lock().await;
-            if let Some(channels) = guard.play_stop.get_mut(&source_id) {
-                if channels.len() >= max_streams as usize {
-                    if let Some((_, token)) = channels.shift_remove_index(0) {
-                        token.cancel();
-                    }
-                }
-            }
-        }
-    }
+    handle_max_streams(source_id, &state).await?;
 
     let cmd = Command::new(MPV_PATH.clone())
         .args(args)
@@ -75,21 +63,7 @@ pub async fn play(
     let child_id = child.id().unwrap_or_default();
     let token = CancellationToken::new();
     let channel_id = channel.id.context("no channel id")?;
-    {
-        state
-            .lock()
-            .await
-            .play_stop
-            .entry(source_id)
-            .and_modify(|map| {
-                map.insert(channel_id, token.clone());
-            })
-            .or_insert_with(|| {
-                let mut map = IndexMap::new();
-                map.insert(channel_id, token.clone());
-                map
-            });
-    }
+    insert_play_token(source_id, channel_id, token.clone(), &state).await;
     tokio::select! {
         status = child.wait() => {
             let status = status?;
@@ -149,6 +123,45 @@ pub async fn cancel_play(source_id: i64, id: i64, state: State<'_, Mutex<AppStat
         .context("no cancel token found for id")?;
     token.cancel();
     Ok(())
+}
+
+async fn handle_max_streams(
+    source_id: i64,
+    state: &State<'_, Mutex<AppState>>,
+) -> Result<()>{
+    let source = sql::get_source_from_id(source_id)
+        .with_context(|| format!("failed to fetch source with id {}", source_id))?;
+
+    if let Some(max_streams) = source.streams {
+        if max_streams > 0 {
+            let mut guard = state.lock().await;
+            if let Some(channels) = guard.play_stop.get_mut(&source_id) {
+                if channels.len() >= max_streams as usize {
+                    if let Some((_, token)) = channels.shift_remove_index(0) {
+                        token.cancel();
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+async fn insert_play_token(
+    source_id: i64,
+    channel_id: i64,
+    token: CancellationToken,
+    state: &State<'_, Mutex<AppState>>,
+) {
+    let mut guard = state.lock().await;
+    if guard.play_stop.get(&source_id).is_none() {
+        guard
+            .play_stop
+            .insert(source_id, IndexMap::<i64, CancellationToken>::new());
+    }
+    if let Some(map) = guard.play_stop.get_mut(&source_id) {
+        map.insert(channel_id, token);
+    }
 }
 
 fn get_play_args(
