@@ -131,8 +131,7 @@ async fn handle_max_streams(
 ) -> Result<()>{
     let source = sql::get_source_from_id(source_id)
         .with_context(|| format!("failed to fetch source with id {}", source_id))?;
-
-    if let Some(max_streams) = source.streams {
+    if let Some(max_streams) = source.streams.or(Some(1)) {
         if max_streams > 0 {
             let mut guard = state.lock().await;
             if let Some(channels) = guard.play_stop.get_mut(&source_id) {
