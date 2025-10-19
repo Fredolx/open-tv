@@ -140,7 +140,7 @@ async fn handle_max_streams(source_id: i64, state: &State<'_, Mutex<AppState>>) 
         return Ok(());
     }
     let channels = channels.unwrap();
-    if channels.len() < max_streams.into() {
+    if channels.len() <= max_streams.into() {
         return Ok(());
     }
     let (_, token) = channels
