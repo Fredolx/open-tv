@@ -251,7 +251,7 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
     }
     tx.execute(
     "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id, user_agent, streams) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id, source.user_agent, source.streams],
+    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id, source.user_agent, source.max_streams],
     )?;
     Ok(tx.last_insert_rowid())
 }
@@ -857,7 +857,7 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
         enabled: row.get("enabled")?,
         use_tvg_id: row.get("use_tvg_id")?,
         user_agent: row.get("user_agent")?,
-        streams: row.get("streams")?,
+        max_streams: row.get("streams")?,
     })
 }
 
@@ -915,7 +915,7 @@ pub fn get_custom_source(name: String) -> Source {
         url_origin: None,
         use_tvg_id: None,
         user_agent: None,
-        streams: None,
+        max_streams: None,
     }
 }
 
@@ -1247,7 +1247,7 @@ pub fn update_source(source: Source) -> Result<()> {
             source.url,
             source.use_tvg_id,
             source.user_agent,
-            source.streams,
+            source.max_streams,
             source.id
         ],
     )?;

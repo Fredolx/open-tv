@@ -4,9 +4,9 @@ use std::{
     thread::JoinHandle,
 };
 
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
-use indexmap::IndexMap;
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Channel {
@@ -61,7 +61,7 @@ pub struct Source {
     pub use_tvg_id: Option<bool>,
     pub enabled: bool,
     pub user_agent: Option<String>,
-    pub streams: Option<i8>,
+    pub max_streams: Option<u8>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

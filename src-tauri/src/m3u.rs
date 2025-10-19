@@ -14,9 +14,9 @@ use types::{Channel, Source};
 use crate::types::ChannelPreserve;
 use crate::{
     log, media_type, source_type,
-    utils::get_user_agent_from_source,
     sql::{self, set_channel_group_id},
     types::{self, ChannelHttpHeaders},
+    utils::get_user_agent_from_source,
 };
 
 static NAME_REGEX: LazyLock<Regex> =
@@ -175,8 +175,14 @@ pub async fn get_m3u8_from_link(source: Source, wipe: bool) -> Result<()> {
     let url = source.url.clone().context("Invalid source")?;
     let mut response = client.get(&url).send().await?;
     if !response.status().is_success() {
-        log::log(format!("Failed to get m3u8 from link, status: {}", response.status()));
-        bail!("Failed to get m3u8 from link, status: {}", response.status());
+        log::log(format!(
+            "Failed to get m3u8 from link, status: {}",
+            response.status()
+        ));
+        bail!(
+            "Failed to get m3u8 from link, status: {}",
+            response.status()
+        );
     }
     let mut file = std::fs::File::create(get_tmp_path())?;
     while let Some(chunk) = response.chunk().await? {
@@ -333,7 +339,7 @@ mod test_m3u {
             enabled: true,
             use_tvg_id: Some(true),
             user_agent: None,
-            streams: Some(1),
+            max_streams: Some(1),
         };
         read_m3u8(source, false).unwrap();
         std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
@@ -355,7 +361,7 @@ mod test_m3u {
             enabled: true,
             use_tvg_id: Some(true),
             user_agent: Some("Fred TV".to_string()),
-            streams: Some(1),
+            max_streams: Some(1),
         };
         get_m3u8_from_link(source, false).await.unwrap();
         let time = now.elapsed().as_millis().to_string();

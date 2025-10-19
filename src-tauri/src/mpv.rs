@@ -1,7 +1,7 @@
 use crate::settings::get_default_record_path;
-use crate::sql;
 use crate::types::{AppState, ChannelHttpHeaders};
 use crate::utils::{find_macos_bin, get_bin};
+use crate::{log, sql};
 use crate::{media_type, settings::get_settings, types::Channel};
 use anyhow::{Context, Result, bail};
 use chrono::Local;
@@ -67,41 +67,44 @@ pub async fn play(
     tokio::select! {
         status = child.wait() => {
             let status = status?;
-            if !status.success() {
-                let stdout = child.stdout.take();
-                if let Some(stdout) = stdout {
-                    let mut error: String = String::new();
-                    let mut lines = BufReader::new(stdout).lines();
-                    let mut first = true;
-                    while let Some(line) = lines.next_line().await? {
-                        error += &line;
-                        if !first {
-                            error += "\n";
-                        } else {
-                            first = false;
-                        }
-                    }
-                    {
-                        state
-                            .lock()
-                            .await
-                            .play_stop
-                            .get_mut(&source_id)
-                            .and_then(|map| map.swap_remove(&channel_id));
-                    }
-                    if error != "" {
-                        bail!(error);
-                    } else {
-                        bail!("Mpv encountered an unknown error");
-                    }
+            if status.success() {
+              return Ok(());
+            }
+            let stdout = child.stdout.take();
+            if stdout.is_none() {
+              return Ok(());
+            }
+            let stdout = stdout.unwrap();
+            let mut error: String = String::new();
+            let mut lines = BufReader::new(stdout).lines();
+            let mut first = true;
+            while let Some(line) = lines.next_line().await? {
+                error += &line;
+                if !first {
+                    error += "\n";
+                } else {
+                    first = false;
                 }
+            }
+            {
+                state
+                    .lock()
+                    .await
+                    .play_stop
+                    .get_mut(&source_id)
+                    .and_then(|map| map.swap_remove(&channel_id));
+            }
+            if error != "" {
+                bail!(error);
+            } else {
+                bail!("Mpv encountered an unknown error");
             }
         },
         _ = token.cancelled() => {
-            println!("Cancellation received. Killing mpv (pid {})", child_id);
+            log::log(format!("Cancellation received. Killing mpv (pid {})", child_id));
             child.kill().await?;
         }
-    }
+    };
     {
         state
             .lock()
@@ -114,7 +117,7 @@ pub async fn play(
 }
 
 pub async fn cancel_play(source_id: i64, id: i64, state: State<'_, Mutex<AppState>>) -> Result<()> {
-    println!("cancelling play for source_id {}, channel id {}", source_id, id);
+    log::log(format!("Cancelling play for channel: {}", id));
     let guard = state.lock().await;
     let token = guard
         .play_stop
@@ -125,24 +128,23 @@ pub async fn cancel_play(source_id: i64, id: i64, state: State<'_, Mutex<AppStat
     Ok(())
 }
 
-async fn handle_max_streams(
-    source_id: i64,
-    state: &State<'_, Mutex<AppState>>,
-) -> Result<()>{
+async fn handle_max_streams(source_id: i64, state: &State<'_, Mutex<AppState>>) -> Result<()> {
     let source = sql::get_source_from_id(source_id)
         .with_context(|| format!("failed to fetch source with id {}", source_id))?;
-    if let Some(max_streams) = source.streams.or(Some(1)) {
-        if max_streams > 0 {
-            let mut guard = state.lock().await;
-            if let Some(channels) = guard.play_stop.get_mut(&source_id) {
-                if channels.len() >= max_streams as usize {
-                    if let Some((_, token)) = channels.shift_remove_index(0) {
-                        token.cancel();
-                    }
-                }
-            }
-        }
+    let max_streams = source.max_streams.unwrap_or(1);
+    let mut guard = state.lock().await;
+    let channels = guard.play_stop.get_mut(&source_id);
+    if channels.is_none() {
+        return Ok(());
     }
+    let channels = channels.unwrap();
+    if channels.len() < max_streams.into() {
+        return Ok(());
+    }
+    let (_, token) = channels
+        .shift_remove_index(0)
+        .context("failed to remove channel from indexMap")?;
+    token.cancel();
     Ok(())
 }
 
