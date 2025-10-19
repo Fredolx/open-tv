@@ -222,7 +222,7 @@ fn apply_migrations() -> Result<()> {
         ),
         M::up(
             r#"
-              ALTER TABLE sources ADD COLUMN streams integer;
+              ALTER TABLE sources ADD COLUMN max_streams integer;
             "#,
         ),
     ]);
@@ -250,7 +250,7 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
         return Ok(id);
     }
     tx.execute(
-    "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id, user_agent, streams) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id, user_agent, max_streams) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id, source.user_agent, source.max_streams],
     )?;
     Ok(tx.last_insert_rowid())
@@ -857,7 +857,7 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
         enabled: row.get("enabled")?,
         use_tvg_id: row.get("use_tvg_id")?,
         user_agent: row.get("user_agent")?,
-        max_streams: row.get("streams")?,
+        max_streams: row.get("max_streams")?,
     })
 }
 
@@ -1239,7 +1239,7 @@ pub fn update_source(source: Source) -> Result<()> {
     sql.execute(
         r#"
         UPDATE sources
-        SET username = ?, password = ?, url = ?, use_tvg_id = ?, user_agent = ?, streams = ?
+        SET username = ?, password = ?, url = ?, use_tvg_id = ?, user_agent = ?, max_streams = ?
         WHERE id = ?"#,
         params![
             source.username,
