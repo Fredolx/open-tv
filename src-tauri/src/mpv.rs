@@ -62,7 +62,8 @@ pub async fn play(
         .spawn()?;
     let token = CancellationToken::new();
     let channel_id = channel.id.context("no channel id")?;
-    insert_play_token(source_id, channel_id, token.clone(), &state).await;
+    _ = insert_play_token(source_id, channel_id, token.clone(), &state).await
+      .map_err(|e| log::log(format!("{:?}", e)));
     tokio::select! {
         status = cmd.wait() => {
             let status = status?;
@@ -151,16 +152,16 @@ async fn insert_play_token(
     channel_id: i64,
     token: CancellationToken,
     state: &State<'_, Mutex<AppState>>,
-) {
+) -> Result<()> {
     let mut guard = state.lock().await;
     if guard.play_stop.get(&source_id).is_none() {
         guard
             .play_stop
             .insert(source_id, IndexMap::<i64, CancellationToken>::new());
     }
-    if let Some(map) = guard.play_stop.get_mut(&source_id) {
-        map.insert(channel_id, token);
-    }
+   let map = guard.play_stop.get_mut(&source_id).context("no indexMap found")?;
+   map.insert(channel_id, token);
+   Ok(())
 }
 
 fn get_play_args(
