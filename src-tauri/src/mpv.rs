@@ -51,7 +51,9 @@ pub async fn play(
     println!("with args: {:?}", args);
 
     let source_id = channel.source_id.context("no source_id")?;
-    handle_max_streams(source_id, &state).await?;
+    _ = handle_max_streams(source_id, &state)
+        .await
+        .map_err(|e| log::log(format!("{:?}", e)));
 
     let cmd = Command::new(MPV_PATH.clone())
         .args(args)
@@ -86,14 +88,10 @@ pub async fn play(
                     first = false;
                 }
             }
-            {
-                state
-                    .lock()
-                    .await
-                    .play_stop
-                    .get_mut(&source_id)
-                    .and_then(|map| map.swap_remove(&channel_id));
-            }
+            _ = remove_from_play_stop(state, &source_id, &channel_id)
+            .await
+            .map_err(|e| log::log(format!("{:?}", e)));
+
             if error != "" {
                 bail!(error);
             } else {
@@ -105,25 +103,29 @@ pub async fn play(
             child.kill().await?;
         }
     };
-    {
-        state
-            .lock()
-            .await
-            .play_stop
-            .get_mut(&source_id)
-            .and_then(|map| map.swap_remove(&channel_id));
-    }
+    _ = remove_from_play_stop(state, &source_id, &channel_id)
+        .await
+        .map_err(|e| log::log(format!("{:?}", e)));
     Ok(())
+}
+
+async fn remove_from_play_stop(
+    state: State<'_, Mutex<AppState>>,
+    source_id: &i64,
+    channel_id: &i64,
+) -> Result<Option<CancellationToken>> {
+    let mut state = state.lock().await;
+    let map = state
+        .play_stop
+        .get_mut(&source_id)
+        .context("no indexMap for sourceId")?;
+    Ok(map.swap_remove(channel_id))
 }
 
 pub async fn cancel_play(source_id: i64, id: i64, state: State<'_, Mutex<AppState>>) -> Result<()> {
     log::log(format!("Cancelling play for channel: {}", id));
-    let guard = state.lock().await;
-    let token = guard
-        .play_stop
-        .get(&source_id)
-        .and_then(|map| map.get(&id))
-        .context("no cancel token found for id")?;
+    let token = remove_from_play_stop(state, &source_id, &id).await?;
+    let token = token.context("no channel found")?;
     token.cancel();
     Ok(())
 }
