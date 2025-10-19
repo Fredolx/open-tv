@@ -55,24 +55,21 @@ pub async fn play(
         .await
         .map_err(|e| log::log(format!("{:?}", e)));
 
-    let cmd = Command::new(MPV_PATH.clone())
+    let mut cmd = Command::new(MPV_PATH.clone())
         .args(args)
         .stdout(Stdio::piped())
         .kill_on_drop(true)
         .spawn()?;
-
-    let mut child = cmd;
-    let child_id = child.id().unwrap_or_default();
     let token = CancellationToken::new();
     let channel_id = channel.id.context("no channel id")?;
     insert_play_token(source_id, channel_id, token.clone(), &state).await;
     tokio::select! {
-        status = child.wait() => {
+        status = cmd.wait() => {
             let status = status?;
             if status.success() {
               return Ok(());
             }
-            let stdout = child.stdout.take();
+            let stdout = cmd.stdout.take();
             if stdout.is_none() {
               return Ok(());
             }
@@ -99,8 +96,7 @@ pub async fn play(
             }
         },
         _ = token.cancelled() => {
-            log::log(format!("Cancellation received. Killing mpv (pid {})", child_id));
-            child.kill().await?;
+            cmd.kill().await?;
         }
     };
     _ = remove_from_play_stop(state, &source_id, &channel_id)
