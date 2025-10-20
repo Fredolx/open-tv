@@ -116,7 +116,7 @@ async fn remove_from_play_stop(
         .play_stop
         .get_mut(&source_id)
         .context("no indexMap for sourceId")?;
-    Ok(map.swap_remove(channel_id))
+    Ok(map.shift_remove(channel_id))
 }
 
 pub async fn cancel_play(source_id: i64, id: i64, state: State<'_, Mutex<AppState>>) -> Result<()> {
