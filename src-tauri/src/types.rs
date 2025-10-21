@@ -4,6 +4,7 @@ use std::{
     thread::JoinHandle,
 };
 
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
 
@@ -60,6 +61,7 @@ pub struct Source {
     pub use_tvg_id: Option<bool>,
     pub enabled: bool,
     pub user_agent: Option<String>,
+    pub max_streams: Option<u8>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -174,7 +176,7 @@ pub struct AppState {
     pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
     pub restream_stop_signal: Arc<AtomicBool>,
     pub download_stop: HashMap<String, Arc<AtomicBool>>,
-    pub play_stop: HashMap<i64, CancellationToken>,
+    pub play_stop: HashMap<i64, IndexMap<i64, CancellationToken>>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

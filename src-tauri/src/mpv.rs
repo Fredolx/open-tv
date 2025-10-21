@@ -1,10 +1,11 @@
 use crate::settings::get_default_record_path;
-use crate::sql;
 use crate::types::{AppState, ChannelHttpHeaders};
 use crate::utils::{find_macos_bin, get_bin};
+use crate::{log, sql};
 use crate::{media_type, settings::get_settings, types::Channel};
 use anyhow::{Context, Result, bail};
 use chrono::Local;
+use indexmap::IndexMap;
 use std::sync::LazyLock;
 use std::{env::consts::OS, path::Path, process::Stdio};
 use tauri::State;
@@ -49,74 +50,118 @@ pub async fn play(
     let args = get_play_args(&channel, record, record_path)?;
     println!("with args: {:?}", args);
 
-    let cmd = Command::new(MPV_PATH.clone())
+    let source_id = channel.source_id.context("no source_id")?;
+    _ = handle_max_streams(source_id, &state)
+        .await
+        .map_err(|e| log::log(format!("{:?}", e)));
+
+    let mut cmd = Command::new(MPV_PATH.clone())
         .args(args)
         .stdout(Stdio::piped())
         .kill_on_drop(true)
         .spawn()?;
-
-    let mut child = cmd;
-    let child_id = child.id().unwrap_or_default();
     let token = CancellationToken::new();
-    {
-        state
-            .lock()
-            .await
-            .play_stop
-            .insert(channel.id.context("no channel id")?, token.clone());
-    }
+    let channel_id = channel.id.context("no channel id")?;
+    _ = insert_play_token(source_id, channel_id, token.clone(), &state).await
+      .map_err(|e| log::log(format!("{:?}", e)));
     tokio::select! {
-        status = child.wait() => {
+        status = cmd.wait() => {
             let status = status?;
-            if !status.success() {
-                let stdout = child.stdout.take();
-                if let Some(stdout) = stdout {
-                    let mut error: String = String::new();
-                    let mut lines = BufReader::new(stdout).lines();
-                    let mut first = true;
-                    while let Some(line) = lines.next_line().await? {
-                        error += &line;
-                        if !first {
-                            error += "\n";
-                        } else {
-                            first = false;
-                        }
-                    }
-                    {
-                        state.lock().await.play_stop.remove(channel.id.as_ref().context("no channel id")?);
-                    }
-                    if error != "" {
-                        bail!(error);
-                    } else {
-                        bail!("Mpv encountered an unknown error");
-                    }
+            if status.success() {
+              return Ok(());
+            }
+            let stdout = cmd.stdout.take();
+            if stdout.is_none() {
+              return Ok(());
+            }
+            let stdout = stdout.unwrap();
+            let mut error: String = String::new();
+            let mut lines = BufReader::new(stdout).lines();
+            let mut first = true;
+            while let Some(line) = lines.next_line().await? {
+                error += &line;
+                if !first {
+                    error += "\n";
+                } else {
+                    first = false;
                 }
+            }
+            _ = remove_from_play_stop(state, &source_id, &channel_id)
+            .await
+            .map_err(|e| log::log(format!("{:?}", e)));
+
+            if error != "" {
+                bail!(error);
+            } else {
+                bail!("Mpv encountered an unknown error");
             }
         },
         _ = token.cancelled() => {
-            println!("Cancellation received. Killing mpv (pid {})", child_id);
-            child.kill().await?;
+            cmd.kill().await?;
         }
-    }
-    {
-        state
-            .lock()
-            .await
-            .play_stop
-            .remove(channel.id.as_ref().context("no channel id")?);
-    }
+    };
+    _ = remove_from_play_stop(state, &source_id, &channel_id)
+        .await
+        .map_err(|e| log::log(format!("{:?}", e)));
     Ok(())
 }
 
-pub async fn cancel_play(id: i64, state: State<'_, Mutex<AppState>>) -> Result<()> {
-    state
-        .lock()
-        .await
+async fn remove_from_play_stop(
+    state: State<'_, Mutex<AppState>>,
+    source_id: &i64,
+    channel_id: &i64,
+) -> Result<Option<CancellationToken>> {
+    let mut state = state.lock().await;
+    let map = state
         .play_stop
-        .get(&id)
-        .context("no cancel token found for id")?
-        .cancel();
+        .get_mut(&source_id)
+        .context("no indexMap for sourceId")?;
+    Ok(map.shift_remove(channel_id))
+}
+
+pub async fn cancel_play(source_id: i64, id: i64, state: State<'_, Mutex<AppState>>) -> Result<()> {
+    log::log(format!("Cancelling play for channel: {}", id));
+    let token = remove_from_play_stop(state, &source_id, &id).await?;
+    let token = token.context("no channel found")?;
+    token.cancel();
     Ok(())
+}
+
+async fn handle_max_streams(source_id: i64, state: &State<'_, Mutex<AppState>>) -> Result<()> {
+    let source = sql::get_source_from_id(source_id)
+        .with_context(|| format!("failed to fetch source with id {}", source_id))?;
+    let max_streams = source.max_streams.unwrap_or(1);
+    let mut guard = state.lock().await;
+    let channels = guard.play_stop.get_mut(&source_id);
+    if channels.is_none() {
+        return Ok(());
+    }
+    let channels = channels.unwrap();
+    if channels.len() < max_streams.into() {
+        return Ok(());
+    }
+    let (_, token) = channels
+        .shift_remove_index(0)
+        .context("failed to remove channel from indexMap")?;
+    token.cancel();
+    Ok(())
+}
+
+async fn insert_play_token(
+    source_id: i64,
+    channel_id: i64,
+    token: CancellationToken,
+    state: &State<'_, Mutex<AppState>>,
+) -> Result<()> {
+    let mut guard = state.lock().await;
+    if guard.play_stop.get(&source_id).is_none() {
+        guard
+            .play_stop
+            .insert(source_id, IndexMap::<i64, CancellationToken>::new());
+    }
+   let map = guard.play_stop.get_mut(&source_id).context("no indexMap found")?;
+   map.insert(channel_id, token);
+   Ok(())
 }
 
 fn get_play_args(

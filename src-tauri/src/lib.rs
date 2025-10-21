@@ -536,8 +536,8 @@ fn is_container() -> bool {
 }
 
 #[tauri::command]
-async fn cancel_play(channel_id: i64, state: State<'_, Mutex<AppState>>) -> Result<(), String> {
-    mpv::cancel_play(channel_id, state)
+async fn cancel_play(source_id: i64, channel_id: i64, state: State<'_, Mutex<AppState>>) -> Result<(), String> {
+    mpv::cancel_play(source_id, channel_id, state)
         .await
         .map_err(map_err_frontend)
 }

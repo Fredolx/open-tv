@@ -74,7 +74,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   async click(record = false) {
     if (this.starting === true) {
       try {
-        await invoke("cancel_play", { channelId: this.channel?.id });
+        await invoke("cancel_play", { sourceId: this.channel?.source_id, channelId: this.channel?.id });
       } catch (e) {
         this.error.handleError(e);
       }
