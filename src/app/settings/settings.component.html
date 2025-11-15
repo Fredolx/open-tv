@@ -54,6 +54,61 @@
 
   <div class="row mt-3 align-items-center">
     <div class="col-4">
+      <span [ngbTooltip]="'Forces MPV to use specific subtitle language'">
+        Default subtitle language
+      </span>
+    </div>
+    <div class="col">
+      <select
+        (ngModelChange)="updateSettings()"
+        [(ngModel)]="settings.default_subtitle_language"
+        class="form-control"
+      >
+        <option [ngValue]="null">None</option>
+        <option [ngValue]="'ar'">Arabic</option>
+        <option [ngValue]="'bg'">Bulgarian</option>
+        <option [ngValue]="'zh'">Chinese</option>
+        <option [ngValue]="'hr'">Croatian</option>
+        <option [ngValue]="'cs'">Czech</option>
+        <option [ngValue]="'da'">Danish</option>
+        <option [ngValue]="'nl'">Dutch</option>
+        <option [ngValue]="'en'">English</option>
+        <option [ngValue]="'et'">Estonian</option>
+        <option [ngValue]="'fi'">Finnish</option>
+        <option [ngValue]="'fr'">French</option>
+        <option [ngValue]="'de'">German</option>
+        <option [ngValue]="'el'">Greek</option>
+        <option [ngValue]="'he'">Hebrew</option>
+        <option [ngValue]="'hi'">Hindi</option>
+        <option [ngValue]="'hu'">Hungarian</option>
+        <option [ngValue]="'is'">Icelandic</option>
+        <option [ngValue]="'id'">Indonesian</option>
+        <option [ngValue]="'it'">Italian</option>
+        <option [ngValue]="'ja'">Japanese</option>
+        <option [ngValue]="'ko'">Korean</option>
+        <option [ngValue]="'lv'">Latvian</option>
+        <option [ngValue]="'lt'">Lithuanian</option>
+        <option [ngValue]="'ms'">Malay</option>
+        <option [ngValue]="'no'">Norwegian</option>
+        <option [ngValue]="'pl'">Polish</option>
+        <option [ngValue]="'pt'">Portuguese</option>
+        <option [ngValue]="'ro'">Romanian</option>
+        <option [ngValue]="'ru'">Russian</option>
+        <option [ngValue]="'sr'">Serbian</option>
+        <option [ngValue]="'sk'">Slovak</option>
+        <option [ngValue]="'sl'">Slovenian</option>
+        <option [ngValue]="'es'">Spanish</option>
+        <option [ngValue]="'sv'">Swedish</option>
+        <option [ngValue]="'th'">Thai</option>
+        <option [ngValue]="'tr'">Turkish</option>
+        <option [ngValue]="'uk'">Ukrainian</option>
+        <option [ngValue]="'vi'">Vietnamese</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row mt-3 align-items-center">
+    <div class="col-4">
       <span>Default view</span>
     </div>
     <div class="col">

@@ -29,6 +29,7 @@ export class SettingsComponent {
     enable_hwdec: true,
     always_ask_save: false,
     enable_gpu: false,
+    default_subtitle_language: null,
   };
   viewModeEnum = ViewMode;
   sources: Source[] = [];
@@ -89,6 +90,7 @@ export class SettingsComponent {
       if (this.settings.enable_hwdec == undefined) this.settings.enable_hwdec = true;
       if (this.settings.always_ask_save == undefined) this.settings.always_ask_save = false;
       if (this.settings.enable_gpu == undefined) this.settings.enable_gpu = false;
+      if (this.settings.default_subtitle_language == undefined) this.settings.default_subtitle_language = null;
     });
   }
 

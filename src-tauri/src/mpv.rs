@@ -216,6 +216,14 @@ fn get_play_args(
         args.push(format!("{ARG_VOLUME}{volume}"));
     }
     set_headers(headers, &mut args);
+    // Subtitle params must come before user's Global MPV Parameters (Strategy A)
+    // This allows users to override default subtitle language by adding --slang in Global MPV Parameters
+    if let Some(lang) = &settings.default_subtitle_language {
+        // Skip if empty string to avoid sending invalid --slang= parameter to mpv
+        if !lang.is_empty() {
+            args.push(get_subtitle_slang_param(lang));
+        }
+    }
     if let Some(mpv_params) = settings.mpv_params {
         #[cfg(not(target_os = "windows"))]
         let mut params = shell_words::split(&mpv_params)?;
@@ -262,4 +270,52 @@ fn get_file_name() -> String {
     let current_time = Local::now();
     let formatted_time = current_time.format("%Y-%m-%d-%H-%M-%S").to_string();
     format!("{formatted_time}.mp4")
+}
+
+// Maps language code to MPV slang parameter with multiple ISO 639 variants
+// Includes 2-letter and 3-letter codes for maximum compatibility
+// MPV will try each code in order until it finds a matching subtitle track
+fn get_subtitle_slang_param(lang_code: &str) -> String {
+    let slang_codes = match lang_code {
+        "ar" => "ar,ara",
+        "bg" => "bg,bul",
+        "zh" => "zh,chi,zho",
+        "hr" => "hr,hrv",
+        "cs" => "cs,cze,ces",
+        "da" => "da,dan",
+        "nl" => "nl,dut,nld",
+        "en" => "en,eng",
+        "et" => "et,est",
+        "fi" => "fi,fin",
+        "fr" => "fr,fre,fra",
+        "de" => "de,ger,deu",
+        "el" => "el,gre,ell",
+        "he" => "he,heb",
+        "hi" => "hi,hin",
+        "hu" => "hu,hun",
+        "is" => "is,ice,isl",
+        "id" => "id,ind",
+        "it" => "it,ita",
+        "ja" => "ja,jpn",
+        "ko" => "ko,kor",
+        "lv" => "lv,lav",
+        "lt" => "lt,lit",
+        "ms" => "ms,may,msa",
+        "no" => "no,nb,nn,nor,nob,nno",
+        "pl" => "pl,pol",
+        "pt" => "pt,por",
+        "ro" => "ro,rum,ron",
+        "ru" => "ru,rus",
+        "sr" => "sr,srp",
+        "sk" => "sk,slo,slk",
+        "sl" => "sl,slv",
+        "es" => "es,spa",
+        "sv" => "sv,se,swe",
+        "th" => "th,tha",
+        "tr" => "tr,tur",
+        "uk" => "uk,ukr",
+        "vi" => "vi,vie",
+        _ => lang_code, // Fallback to the provided code if not in the list
+    };
+    format!("--slang={}", slang_codes)
 }
