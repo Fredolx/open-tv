@@ -21,7 +21,7 @@ tauri-build = { version = "2.3.0", features = [] }
 serde_json = "1.0.141"
 rusqlite = { version = "0.32.1", features = ["bundled"] }
 serde = { version = "1.0.219", features = ["derive"] }
-tauri = { version = "2.6.2", features = ["tray-icon"] }
+tauri = { version = "2.6.2", features = [] }
 anyhow = { version = "1.0.98" }
 regex = { version = "1.11.1", features = ["std"] }
 directories = "6.0.0"
@@ -51,3 +51,5 @@ shell-words = "1.1.0"
 winsplit = "0.1.0"
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = "2.3.0"
+[target.'cfg(any(target_os = "macos", target_os = "windows"))'.dependencies]
+tauri = { version = "2.6.2", features = ["tray-icon"] }

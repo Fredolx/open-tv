@@ -1,18 +1,21 @@
+use anyhow::{Context, Error};
 use std::sync::{
-    Arc, LazyLock,
+    Arc,
     atomic::{AtomicBool, Ordering},
 };
-
-use anyhow::{Context, Error};
-use tauri::{
-    AppHandle, Manager, State,
-    menu::{Menu, MenuItem},
-    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-};
+use tauri::{AppHandle, Manager, State};
 use tokio::sync::Mutex;
 use types::{
     AppState, Channel, CustomChannel, CustomChannelExtraData, EPG, EPGNotify, Filters, Group,
     IdName, NetworkInfo, Settings, Source,
+};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use {
+    std::sync::LazyLock,
+    tauri::{
+        menu::{Menu, MenuItem},
+        tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    },
 };
 
 pub mod epg;
@@ -31,6 +34,7 @@ pub mod utils;
 pub mod view_type;
 pub mod xtream;
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 static ENABLE_TRAY_ICON: LazyLock<bool> = LazyLock::new(|| {
     settings::get_settings()
         .and_then(|s| s.enable_tray_icon.context("no value"))
@@ -110,17 +114,20 @@ pub fn run() {
             app.manage(Mutex::new(AppState {
                 ..Default::default()
             }));
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             if *ENABLE_TRAY_ICON {
                 let _ = build_tray_icon(app);
             }
             Ok(())
         })
-        .on_window_event(|window, event| match event {
+        .on_window_event(|_window, event| match event {
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             tauri::WindowEvent::CloseRequested { api, .. } => {
                 if !*ENABLE_TRAY_ICON {
                     return;
                 }
-                window.hide().unwrap();
+
+                _window.hide().unwrap();
                 api.prevent_close();
             }
             _ => {}
@@ -141,6 +148,7 @@ pub fn run() {
         });
 }
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 fn build_tray_icon(app: &mut tauri::App) -> anyhow::Result<()> {
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     let show_i = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
