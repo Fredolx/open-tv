@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, env::consts::OS};
 
 use anyhow::{Context, Result};
 use directories::UserDirs;
@@ -29,7 +29,11 @@ pub fn get_settings() -> Result<Settings> {
         volume: map.get(VOLUME).and_then(|s| s.parse().ok()),
         refresh_on_start: map.get(REFRESH_ON_START).and_then(|s| s.parse().ok()),
         restream_port: map.get(RESTREAM_PORT).and_then(|s| s.parse().ok()),
-        enable_tray_icon: map.get(ENABLE_TRAY_ICON).and_then(|s| s.parse().ok()),
+        enable_tray_icon: if OS == "linux" {
+            Some(false)
+        } else {
+            map.get(ENABLE_TRAY_ICON).and_then(|s| s.parse().ok())
+        },
         zoom: map.get(ZOOM).and_then(|s| s.parse().ok()),
         default_sort: map.get(DEFAULT_SORT).and_then(|s| s.parse().ok()),
         enable_hwdec: map.get(ENABLE_HWDEC).and_then(|s| s.parse().ok()),
