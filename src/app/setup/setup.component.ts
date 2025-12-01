@@ -69,6 +69,7 @@ export class SetupComponent {
     const file = await open({
       multiple: false,
       directory: false,
+      filters: [{ name: "extension", extensions: ["m3u", "m3u8"] }],
     });
     if (file == null) {
       return;
