@@ -141,7 +141,9 @@ export class SettingsComponent {
   }
 
   async updateSettings() {
-    if (this.settings.mpv_params) this.settings.mpv_params = this.settings.mpv_params?.trim();
+    this.settings.mpv_params = this.settings.mpv_params?.trim();
+    if (this.settings.mpv_params == "")
+      this.settings.mpv_params = undefined;
     await invoke("update_settings", { settings: this.settings });
   }
 

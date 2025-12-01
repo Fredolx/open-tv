@@ -62,6 +62,7 @@ pub struct Source {
     pub enabled: bool,
     pub user_agent: Option<String>,
     pub max_streams: Option<u8>,
+    pub stream_user_agent: Option<String>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
