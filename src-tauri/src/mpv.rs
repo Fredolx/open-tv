@@ -1,5 +1,5 @@
 use crate::settings::get_default_record_path;
-use crate::types::{AppState, ChannelHttpHeaders};
+use crate::types::{AppState, ChannelHttpHeaders, Source};
 use crate::utils::{find_macos_bin, get_bin};
 use crate::{log, sql};
 use crate::{media_type, settings::get_settings, types::Channel};
@@ -46,12 +46,14 @@ pub async fn play(
     record_path: Option<String>,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<()> {
-    println!("{} playing", channel.url.as_ref().unwrap());
-    let args = get_play_args(&channel, record, record_path)?;
-    println!("with args: {:?}", args);
-
+    eprintln!("{} playing", channel.url.as_ref().context("no channel url")?);
     let source_id = channel.source_id.context("no source_id")?;
-    _ = handle_max_streams(source_id, &state)
+    let source = sql::get_source_from_id(source_id).with_context(|| format!("failed to fetch source with id {}", source_id))?;
+    println!("{:#?}", source);
+    let args = get_play_args(&channel, record, record_path, &source)?;
+    eprintln!("with args: {:?}", args);
+
+    _ = handle_max_streams(&source, &state)
         .await
         .map_err(|e| log::log(format!("{:?}", e)));
 
@@ -62,8 +64,9 @@ pub async fn play(
         .spawn()?;
     let token = CancellationToken::new();
     let channel_id = channel.id.context("no channel id")?;
-    _ = insert_play_token(source_id, channel_id, token.clone(), &state).await
-      .map_err(|e| log::log(format!("{:?}", e)));
+    _ = insert_play_token(source_id, channel_id, token.clone(), &state)
+        .await
+        .map_err(|e| log::log(format!("{:?}", e)));
     tokio::select! {
         status = cmd.wait() => {
             let status = status?;
@@ -74,7 +77,7 @@ pub async fn play(
             if stdout.is_none() {
               return Ok(());
             }
-            let stdout = stdout.unwrap();
+            let stdout = stdout.context("no stdout")?;
             let mut error: String = String::new();
             let mut lines = BufReader::new(stdout).lines();
             let mut first = true;
@@ -127,16 +130,14 @@ pub async fn cancel_play(source_id: i64, id: i64, state: State<'_, Mutex<AppStat
     Ok(())
 }
 
-async fn handle_max_streams(source_id: i64, state: &State<'_, Mutex<AppState>>) -> Result<()> {
-    let source = sql::get_source_from_id(source_id)
-        .with_context(|| format!("failed to fetch source with id {}", source_id))?;
+async fn handle_max_streams(source: &Source, state: &State<'_, Mutex<AppState>>) -> Result<()> {
     let max_streams = source.max_streams.unwrap_or(1);
     let mut guard = state.lock().await;
-    let channels = guard.play_stop.get_mut(&source_id);
+    let channels = guard.play_stop.get_mut(source.id.as_ref().context("no id")?);
     if channels.is_none() {
         return Ok(());
     }
-    let channels = channels.unwrap();
+    let channels = channels.context("no channels")?;
     if channels.len() < max_streams.into() {
         return Ok(());
     }
@@ -159,15 +160,19 @@ async fn insert_play_token(
             .play_stop
             .insert(source_id, IndexMap::<i64, CancellationToken>::new());
     }
-   let map = guard.play_stop.get_mut(&source_id).context("no indexMap found")?;
-   map.insert(channel_id, token);
-   Ok(())
+    let map = guard
+        .play_stop
+        .get_mut(&source_id)
+        .context("no indexMap found")?;
+    map.insert(channel_id, token);
+    Ok(())
 }
 
 fn get_play_args(
     channel: &Channel,
     record: bool,
     record_path: Option<String>,
+    source: &Source
 ) -> Result<Vec<String>> {
     let mut args = Vec::new();
     let settings = get_settings()?;
@@ -215,7 +220,7 @@ fn get_play_args(
     if let Some(volume) = settings.volume {
         args.push(format!("{ARG_VOLUME}{volume}"));
     }
-    set_headers(headers, &mut args);
+    set_headers(headers, &mut args, source);
     if let Some(mpv_params) = settings.mpv_params {
         #[cfg(not(target_os = "windows"))]
         let mut params = shell_words::split(&mpv_params)?;
@@ -226,11 +231,8 @@ fn get_play_args(
     Ok(args)
 }
 
-fn set_headers(headers: Option<ChannelHttpHeaders>, args: &mut Vec<String>) {
-    if headers.is_none() {
-        return;
-    }
-    let headers = headers.unwrap();
+fn set_headers(headers: Option<ChannelHttpHeaders>, args: &mut Vec<String>, source: &Source) {
+    let headers = headers.unwrap_or_default();
     let mut headers_vec: Vec<String> = Vec::with_capacity(2);
     if let Some(origin) = headers.http_origin {
         headers_vec.push(format!("{HTTP_ORIGIN}{origin}"));
@@ -238,7 +240,7 @@ fn set_headers(headers: Option<ChannelHttpHeaders>, args: &mut Vec<String>) {
     if let Some(referrer) = headers.referrer {
         headers_vec.push(format!("{HTTP_REFERRER}{referrer}"));
     }
-    if let Some(user_agent) = headers.user_agent {
+    if let Some(user_agent) = headers.user_agent.or(source.stream_user_agent.clone()) {
         args.push(format!("{ARG_USER_AGENT}{user_agent}"));
     }
     if let Some(ignore_ssl) = headers.ignore_ssl {

@@ -11,4 +11,5 @@ export class Source {
   use_tvg_id?: boolean;
   user_agent?: string;
   max_streams?: number;
+  stream_user_agent?: string;
 }

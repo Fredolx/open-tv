@@ -113,6 +113,12 @@ export class SourceTileComponent {
 
   async save() {
     await this.memory.tryIPC("Successfully saved changes", "Failed to save changes", async () => {
+      this.editableSource.user_agent = this.editableSource.user_agent?.trim();
+      this.editableSource.stream_user_agent = this.editableSource.stream_user_agent?.trim();
+      if (this.editableSource.user_agent == "")
+        this.editableSource.user_agent = undefined;
+      if (this.editableSource.stream_user_agent == "")
+        this.editableSource.stream_user_agent = undefined;
       await invoke("update_source", { source: this.editableSource });
       this.source = this.editableSource;
       this.editing = false;

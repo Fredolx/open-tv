@@ -218,11 +218,8 @@ fn apply_migrations() -> Result<()> {
         M::up(
             r#"
               ALTER TABLE sources ADD COLUMN user_agent varchar(500);
-            "#,
-        ),
-        M::up(
-            r#"
               ALTER TABLE sources ADD COLUMN max_streams integer;
+              ALTER TABLE sources ADD COLUMN stream_user_agent varchar(500);
             "#,
         ),
     ]);
@@ -858,6 +855,7 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
         use_tvg_id: row.get("use_tvg_id")?,
         user_agent: row.get("user_agent")?,
         max_streams: row.get("max_streams")?,
+        stream_user_agent: row.get("stream_user_agent")?,
     })
 }
 
@@ -916,6 +914,7 @@ pub fn get_custom_source(name: String) -> Source {
         use_tvg_id: None,
         user_agent: None,
         max_streams: None,
+        stream_user_agent: None,
     }
 }
 
@@ -1239,7 +1238,7 @@ pub fn update_source(source: Source) -> Result<()> {
     sql.execute(
         r#"
         UPDATE sources
-        SET username = ?, password = ?, url = ?, use_tvg_id = ?, user_agent = ?, max_streams = ?
+        SET username = ?, password = ?, url = ?, use_tvg_id = ?, user_agent = ?, max_streams = ?, stream_user_agent = ?
         WHERE id = ?"#,
         params![
             source.username,
@@ -1248,6 +1247,7 @@ pub fn update_source(source: Source) -> Result<()> {
             source.use_tvg_id,
             source.user_agent,
             source.max_streams,
+            source.stream_user_agent,
             source.id
         ],
     )?;
