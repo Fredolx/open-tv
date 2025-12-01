@@ -266,7 +266,7 @@ fn set_headers(
     }
     if let Some(user_agent) = headers
         .user_agent
-        .or(source.as_ref().and_then(|f| f.stream_user_agent.clone()))
+        .or_else(|| source.as_ref().and_then(|f| f.stream_user_agent.clone()))
     {
         args.push(format!("{ARG_USER_AGENT}{user_agent}"));
     }
