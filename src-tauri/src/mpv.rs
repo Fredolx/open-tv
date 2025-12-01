@@ -238,7 +238,9 @@ fn get_play_args(
     if let Some(volume) = settings.volume {
         args.push(format!("{ARG_VOLUME}{volume}"));
     }
-    set_headers(headers, &mut args, source);
+    if headers.is_some() || source.is_some() {
+      set_headers(headers, &mut args, source);
+    }
     if let Some(mpv_params) = settings.mpv_params {
         #[cfg(not(target_os = "windows"))]
         let mut params = shell_words::split(&mpv_params)?;
