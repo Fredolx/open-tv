@@ -44,6 +44,10 @@ p {
   padding-left: 1rem !important;
 }
 
+html {
+  overflow-y: scroll;
+}
+
 html,
 body {
   height: fit-content;
