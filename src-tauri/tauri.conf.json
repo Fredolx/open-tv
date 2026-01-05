@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "Open TV (v1.8.3)",
+        "title": "Fred TV (v1.9.0)",
         "width": 800,
         "height": 600,
         "resizable": true,

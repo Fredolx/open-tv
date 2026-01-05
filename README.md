@@ -1,4 +1,4 @@
-# Open TV
+# Fred TV (Formerly Open TV)
 
 Completely rewritten to accommodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience.
 
@@ -120,4 +120,4 @@ BNB:
 
 ## Disclaimer
 
-Open TV is an independent open-source project created to provide a fast and powerful IPTV experience. The name "Open TV" is used solely to represent this specific software and its purpose as described in the project documentation. Any other software, applications, or products bearing the same or similar name are unrelated to this project. Any resemblance to other software or applications is purely coincidental and unintended. We do not intend to cause confusion or imply affiliation with any other products or organizations that may share a similar name.
+Fred TV is an independent open-source project created to provide a fast and powerful IPTV experience. The name "Fred TV" is used solely to represent this specific software and its purpose as described in the project documentation. Any other software, applications, or products bearing the same or similar name are unrelated to this project. Any resemblance to other software or applications is purely coincidental and unintended. We do not intend to cause confusion or imply affiliation with any other products or organizations that may share a similar name.
