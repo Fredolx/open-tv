@@ -16,7 +16,7 @@
   margin-top: 2rem;
 }
 
-@media screen and (max-width: 627px) {
+@media screen and (max-width: 767px) {
   .reserve-settings-space {
     margin-top: 5rem;
   }
