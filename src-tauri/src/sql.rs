@@ -451,6 +451,9 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     {
         return search_group(filters);
     }
+    if filters.view_type == view_type::HIDDEN {
+        return search_hidden(filters);
+    }
     if filters.series_id.is_some() && filters.season.is_none() {
         return search_series(filters);
     }
@@ -474,7 +477,8 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         WHERE ({})
         AND media_type IN ({})
         AND source_id IN ({})
-        AND url IS NOT NULL"#,
+        AND url IS NOT NULL
+        AND hidden = 0"#,
         get_keywords_sql(keywords.len()),
         generate_placeholders(media_types.len()),
         generate_placeholders(filters.source_ids.len()),
@@ -483,11 +487,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     if filters.view_type == view_type::FAVORITES && filters.series_id.is_none() {
         sql_query += "\nAND favorite = 1";
     }
-    if filters.view_type == view_type::HIDDEN {
-        sql_query += "\nAND hidden = 1";
-    } else {
-        sql_query += "\nAND hidden = 0";
-    }
+
     if filters.series_id.is_some() {
         sql_query += &format!("\nAND series_id = ?");
         baked_params += 1;
@@ -598,6 +598,71 @@ fn season_row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Er
     })
 }
 
+fn search_hidden(filters: Filters) -> Result<Vec<Channel>> {
+    let sql = get_conn()?;
+    let offset: u16 = filters.page as u16 * PAGE_SIZE as u16 - PAGE_SIZE as u16;
+
+    let media_types = match filters.series_id.is_some() {
+        true => vec![1],
+        false => filters.media_types.clone().unwrap(),
+    };
+
+    let query = filters.query.unwrap_or("".to_string());
+    let keywords: Vec<String> = match filters.use_keywords {
+        true => query
+            .split(" ")
+            .map(|f| format!("%{f}%").to_string())
+            .collect(),
+        false => vec![format!("%{query}%")],
+    };
+
+    let keywords_sql = get_keywords_sql(keywords.len());
+    let media_placeholders = generate_placeholders(media_types.len());
+    let source_placeholders = generate_placeholders(filters.source_ids.len());
+
+    let sql_query = format!(
+        r#"
+        SELECT id, image, name, series_id, source_id, stream_id, tv_archive, url, episode_num, hidden, media_type, NULL as group_id, NULL as season_id, 0 as favorite
+        FROM channels
+        WHERE ({})
+        AND media_type IN ({})
+        AND source_id IN ({})
+        AND hidden = 1
+        UNION ALL
+        SELECT id, image, name, NULL as series_id, source_id, NULL as stream_id, NULL as tv_archive, NULL as url, NULL as episode_num, hidden, 3 as media_type, NULL as group_id, NULL as season_id, 0 as favorite
+        FROM groups
+        WHERE ({})
+        AND source_id IN ({})
+        AND hidden = 1
+        ORDER BY name ASC
+        LIMIT ?, ?
+        "#,
+        keywords_sql, media_placeholders, source_placeholders, keywords_sql, source_placeholders
+    );
+
+    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::new();
+
+    // Channels params
+    params.extend(to_to_sql(&keywords));
+    params.extend(to_to_sql(&media_types));
+    params.extend(to_to_sql(&filters.source_ids));
+
+    // Groups params
+    params.extend(to_to_sql(&keywords));
+    params.extend(to_to_sql(&filters.source_ids));
+
+    params.push(&offset);
+    params.push(&PAGE_SIZE);
+
+    let channels: Vec<Channel> = sql
+        .prepare(&sql_query)?
+        .query_map(params_from_iter(params), row_to_channel)?
+        .filter_map(Result::ok)
+        .collect();
+
+    Ok(channels)
+}
+
 fn to_to_sql<T: rusqlite::ToSql>(values: &[T]) -> Vec<&dyn rusqlite::ToSql> {
     values.iter().map(|x| x as &dyn rusqlite::ToSql).collect()
 }
@@ -663,11 +728,7 @@ pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
         generate_placeholders(filters.source_ids.len()),
         generate_placeholders(media_types.len())
     );
-    if filters.view_type == view_type::HIDDEN {
-        sql_query += "\nAND hidden = 1";
-    } else {
-        sql_query += "\nAND hidden = 0";
-    }
+    sql_query += "\nAND hidden = 0";
     if filters.sort != sort_type::PROVIDER {
         let order = match filters.sort {
             sort_type::ALPHABETICAL_ASC => "ASC",
@@ -727,7 +788,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         stream_id: row.get("stream_id")?,
         tv_archive: row.get("tv_archive")?,
         season_id: row.get("season_id")?,
-        hidden: row.get::<_, bool>("hidden").unwrap_or(false),
+        hidden: row.get("hidden")?,
     };
     Ok(channel)
 }
@@ -1140,7 +1201,7 @@ fn row_to_custom_group(row: &Row) -> Result<Group, rusqlite::Error> {
         name: row.get("name")?,
         image: row.get("image")?,
         source_id: row.get("source_id")?,
-        hidden: row.get::<_, bool>("hidden").unwrap_or(false),
+        hidden: row.get("hidden")?,
     })
 }
 

@@ -208,12 +208,25 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     );
     this.subscriptions.push(
       this.memory.SetNode.subscribe(async (dto) => {
-        this.nodeStack.add(new Node(dto.id, dto.name, dto.type, this.filters?.query));
+        this.nodeStack.add(
+          new Node(
+            dto.id,
+            dto.name,
+            dto.type,
+            this.filters?.query,
+            this.filters?.view_type,
+          ),
+        );
         if (dto.type == NodeType.Category) this.filters!.group_id = dto.id;
         else if (dto.type == NodeType.Series) {
           this.filters!.series_id = dto.id;
           this.filters!.source_ids = [dto.sourceId!];
         } else if (dto.type == NodeType.Season) this.filters!.season = dto.id;
+
+        if (this.filters!.view_type == ViewMode.Hidden) {
+          this.filters!.view_type = ViewMode.Categories;
+        }
+
         this.clearSearch();
         await this.load();
         if (this.focusArea == FocusArea.Tiles) this.selectFirstChannelDelayed(100);
@@ -493,6 +506,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (node.query) {
       this.search.nativeElement.value = node.query;
       this.filters!.query = node.query;
+    }
+    if (node.fromViewType && this.filters!.view_type !== node.fromViewType) {
+      this.filters!.view_type = node.fromViewType;
     }
     await this.load();
   }

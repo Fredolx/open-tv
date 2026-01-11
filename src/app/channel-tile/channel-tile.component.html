@@ -1,6 +1,6 @@
 <div id="tile-{{ id }}" placement="top" tabindex="0" (keyup.enter)="click()" [ngClass]="{ 
     playing: starting, 
-    faded: (channel?.hidden && viewMode != viewModeEnum.Hidden) || (viewMode == viewModeEnum.Hidden && !channel?.hidden) || (!channel?.favorite && viewMode == viewModeEnum.Favorites)
+    faded: fade
 }" [ngbTooltip]="channel?.name" triggers="hover" (click)="click()" class="channel d-inline-flex p-2 align-items-center"
   (contextmenu)="onRightClick($event)">
   <div style="height: 100%; min-width: 50px">
@@ -30,8 +30,8 @@
       <ng-container *ngIf="alreadyExistsInFav">Unfavorite</ng-container>
       <ng-container *ngIf="!alreadyExistsInFav">Favorite</ng-container>
     </button>
-    <button [hidden]="channel?.favorite || isCustom() || viewMode == viewModeEnum.History" mat-menu-item
-      (click)="hide()"> <ng-container *ngIf="alreadyHidden">Unhide</ng-container>
+    <button [hidden]="isCustom() || viewMode == viewModeEnum.History" mat-menu-item (click)="hide()"> <ng-container
+        *ngIf="alreadyHidden">Unhide</ng-container>
       <ng-container *ngIf="!alreadyHidden">Hide</ng-container>
     </button>
     <button [hidden]="!isLivestream()" mat-menu-item (click)="record()">Record</button>

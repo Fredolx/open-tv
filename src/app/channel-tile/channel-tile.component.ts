@@ -59,6 +59,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   mediaTypeEnum = MediaType;
   viewModeEnum = ViewMode;
   subscriptions: Subscription[] = [];
+  fade = false;
 
   ngAfterViewInit(): void {
     this.getExistingDownload();
@@ -137,11 +138,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   onRightClick(event: MouseEvent) {
-    if (
-      (this.channel?.media_type == MediaType.group && !this.isCustom()) ||
-      this.channel?.media_type == MediaType.season
-    )
-      return;
+    if (this.channel?.media_type == MediaType.season) return;
     this.alreadyExistsInFav = this.channel!.favorite!;
     this.alreadyHidden = this.channel!.hidden!;
     this.downloading = this.isDownloading();
@@ -169,8 +166,12 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       await invoke(call, { channelId: this.channel!.id });
       this.channel!.favorite = !wasFavorite;
       if (wasFavorite) {
+        if (this.viewMode == ViewMode.Favorites)
+          this.fade = true;
         this.toastr.success(`${msg} (updates on reload)`);
       } else {
+        if (this.viewMode == ViewMode.Favorites)
+          this.fade = false;
         this.toastr.success(msg);
       }
     } catch (e) {
@@ -190,18 +191,19 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   async hide() {
     const isGroup = this.channel?.media_type === MediaType.group;
-    const isHiding = !this.channel!.hidden;
+    const hide = !this.channel!.hidden;
 
     const command = isGroup ? "hide_group" : "hide_channel";
-    const args = { id: this.channel!.id, hidden: isHiding };
+    const args = { id: this.channel!.id, hidden: hide };
 
-    const action = isHiding ? "Hidden" : "Unhidden";
+    const action = hide ? "Hidden" : "Unhidden";
     const type = isGroup ? "group " : "";
     const msg = `${action} ${type}"${this.channel?.name}"`;
 
     try {
       await invoke(command, args);
-      this.channel!.hidden = isHiding;
+      this.channel!.hidden = hide;
+      this.fade = this.viewMode == ViewMode.Hidden ? !hide : hide;
       this.toastr.success(`${msg} (updates on reload)`);
     } catch (e) {
       this.error.handleError(e, `Failed to hide/unhide "${this.channel?.name}"`);
