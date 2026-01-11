@@ -1,3 +1,4 @@
+use crate::types::{AppState, Channel};
 use crate::{
     log::log,
     m3u,
@@ -9,20 +10,23 @@ use crate::{
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Local, Utc};
 use directories::ProjectDirs;
+use indexmap::IndexMap;
 use regex::Regex;
-use reqwest::Client;
+use reqwest::{
+    Client,
+    header::{HeaderMap, HeaderValue},
+};
 use serde::Serialize;
 use std::{
     env::{consts::OS, current_exe},
     fs::File,
     path::{Path, PathBuf},
-    sync::{
-        Arc, LazyLock,
-        atomic::{AtomicBool, Ordering::Relaxed},
-    },
+    sync::LazyLock,
 };
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, State};
 use tokio::io::AsyncWriteExt;
+use tokio::sync::Mutex;
+use tokio_util::sync::CancellationToken;
 use which::which;
 
 const MACOS_POTENTIAL_PATHS: [&str; 3] = [
@@ -61,23 +65,57 @@ pub fn get_local_time(timestamp: i64) -> Result<DateTime<Local>> {
 }
 
 pub async fn download(
-    stop: Arc<AtomicBool>,
+    state: State<'_, Mutex<AppState>>,
     app: AppHandle,
-    name: Option<String>,
-    url: String,
+    channel: Channel,
     download_id: &str,
     path: Option<String>,
 ) -> Result<()> {
-    let client = Client::new();
+    let source_id = channel.source_id.context("no source id provided")?;
+    let source = sql::get_source_from_id(source_id)
+        .with_context(|| format!("failed to fetch source with id {}", source_id))?;
+
+    _ = handle_max_streams(&source, &state)
+        .await
+        .map_err(|e| log(format!("{:?}", e)));
+
+    let token = CancellationToken::new();
+    _ = insert_play_token(source_id, download_id.to_string(), token.clone(), &state)
+        .await
+        .map_err(|e| log(format!("{:?}", e)));
+
+    let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id?")?)?;
+    let mut client = Client::builder();
+    let mut headers_map = HeaderMap::new();
+    if let Some(headers) = headers {
+        if let Some(origin) = headers.http_origin {
+            headers_map.insert("Origin", HeaderValue::from_str(&origin)?);
+        }
+        if let Some(referrer) = headers.referrer {
+            headers_map.insert("Referer", HeaderValue::from_str(&referrer)?);
+        }
+        if let Some(user_agent) = headers
+            .user_agent
+            .or_else(|| source.stream_user_agent.clone())
+        {
+            client = client.user_agent(user_agent);
+        }
+        if let Some(ignore_ssl) = headers.ignore_ssl {
+            if ignore_ssl {
+                client = client.danger_accept_invalid_certs(true);
+            }
+        }
+    }
+    client = client.default_headers(headers_map);
+    let client = client.build()?;
+    let url = channel.url.clone().context("no url provided")?;
+    let name = channel.name.clone();
     let mut response = client.get(&url).send().await?;
     let total_size = response.content_length().unwrap_or(0);
     let mut downloaded = 0;
     let path = match path {
         Some(p) => p,
-        None => get_download_path(get_filename(
-            name.context("no name provided to download")?,
-            url,
-        )?)?,
+        None => get_download_path(get_filename(name, url)?)?,
     };
     let mut file = tokio::fs::File::create(&path).await?;
     let mut send_threshold: f64 = 0.1;
@@ -85,23 +123,99 @@ pub async fn download(
         let error = response.status();
         bail!("Failed to download movie: HTTP {error}")
     }
-    while let Some(chunk) = response.chunk().await? {
-        if stop.load(Relaxed) {
+
+    let result: Result<()> = loop {
+        tokio::select! {
+          chunk = response.chunk() => {
+               match chunk {
+                   Ok(Some(chunk)) => {
+                       if let Err(e) = file.write(&chunk).await {
+                           break Err(e.into());
+                       }
+                       downloaded += chunk.len() as u64;
+                       if total_size > 0 {
+                           let progress: f64 = (downloaded as f64 / total_size as f64) * 100.0;
+                           let progress = (progress * 10.0).trunc() / 10.0;
+                           if progress > send_threshold {
+                               let _ = app.emit(&format!("progress-{}", download_id), progress);
+                               send_threshold = progress + 0.1 as f64;
+                           }
+                       }
+                   }
+                   Ok(None) => break Ok(()),
+                   Err(e) => break Err(e.into()),
+               }
+          }
+          _ = token.cancelled() => {
+               break Err(anyhow!("download aborted"));
+          }
+        }
+    };
+
+    _ = remove_from_play_stop(state, &source_id, &download_id.to_string())
+        .await
+        .map_err(|e| log(format!("{:?}", e)));
+
+    if let Err(e) = &result {
+        if e.to_string() == "download aborted" {
             drop(file);
-            tokio::fs::remove_file(path).await?;
+            let _ = tokio::fs::remove_file(path).await;
             bail!("download aborted");
         }
-        file.write(&chunk).await?;
-        downloaded += chunk.len() as u64;
-        if total_size > 0 {
-            let progress: f64 = (downloaded as f64 / total_size as f64) * 100.0;
-            let progress = (progress * 10.0).trunc() / 10.0;
-            if progress > send_threshold {
-                app.emit(&format!("progress-{}", download_id), progress)?;
-                send_threshold = progress + 0.1 as f64;
-            }
-        }
     }
+    result
+}
+
+pub async fn remove_from_play_stop(
+    state: State<'_, Mutex<AppState>>,
+    source_id: &i64,
+    key: &str,
+) -> Result<Option<CancellationToken>> {
+    let mut state = state.lock().await;
+    let map = state
+        .play_stop
+        .get_mut(&source_id)
+        .context("no indexMap for sourceId")?;
+    Ok(map.shift_remove(key))
+}
+
+pub async fn handle_max_streams(source: &Source, state: &State<'_, Mutex<AppState>>) -> Result<()> {
+    let max_streams = source.max_streams.unwrap_or(1);
+    let mut guard = state.lock().await;
+    let channels = guard
+        .play_stop
+        .get_mut(source.id.as_ref().context("no id")?);
+    if channels.is_none() {
+        return Ok(());
+    }
+    let channels = channels.context("no channels")?;
+    if channels.len() < max_streams.into() {
+        return Ok(());
+    }
+    let (_, token) = channels
+        .shift_remove_index(0)
+        .context("failed to remove channel from indexMap")?;
+    token.cancel();
+    Ok(())
+}
+
+pub async fn insert_play_token(
+    source_id: i64,
+    key: String,
+    token: CancellationToken,
+    state: &State<'_, Mutex<AppState>>,
+) -> Result<()> {
+    let mut guard = state.lock().await;
+    if guard.play_stop.get(&source_id).is_none() {
+        guard
+            .play_stop
+            .insert(source_id, IndexMap::<String, CancellationToken>::new());
+    }
+    let map = guard
+        .play_stop
+        .get_mut(&source_id)
+        .context("no indexMap found")?;
+    map.insert(key, token);
     Ok(())
 }
 

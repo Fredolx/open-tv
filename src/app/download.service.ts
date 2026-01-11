@@ -4,6 +4,7 @@ import { Subject } from "rxjs";
 import { invoke } from "@tauri-apps/api/core";
 import { ErrorService } from "./error.service";
 import { listen } from "@tauri-apps/api/event";
+import { Channel } from "./models/channel";
 
 @Injectable({
   providedIn: "root",
@@ -14,15 +15,14 @@ export class DownloadService {
   constructor(
     private error: ErrorService,
     private ngZone: NgZone,
-  ) {}
+  ) { }
 
-  async addDownload(id: string, name: string, url: string): Promise<Download> {
+  async addDownload(id: string, channel: Channel): Promise<Download> {
     let download: Download = {
-      name: name,
+      channel: channel,
       progress: 0,
       complete: new Subject(),
       id: id,
-      url: url,
       progressUpdate: new Subject(),
     };
     download.unlisten = await listen<number>(`progress-${download.id}`, (event) => {
@@ -37,11 +37,14 @@ export class DownloadService {
 
   async abortDownload(id: String) {
     try {
-      await invoke("abort_download", {
-        downloadId: id,
-      });
       let download = this.Downloads.get(id);
-      if (download) this.deleteDownload(download);
+      if (download) {
+        await invoke("abort_download", {
+          sourceId: download.channel.source_id,
+          downloadId: download.id,
+        });
+        this.deleteDownload(download);
+      }
     } catch (e) {
       console.error(e);
       this.error.handleError(e);
@@ -53,8 +56,7 @@ export class DownloadService {
     try {
       await invoke("download", {
         downloadId: download.id,
-        url: download.url,
-        name: download.name,
+        channel: download.channel,
         path: path,
       });
       this.error.success("Download completed successfully");

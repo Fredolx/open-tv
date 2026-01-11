@@ -23,11 +23,14 @@ export class EpgModalItemComponent implements OnDestroy {
     private error: ErrorService,
     private download: DownloadService,
     private ngZone: NgZone,
-  ) {}
+  ) { }
   @Input()
   epg?: EPG;
   @Input()
   name?: string;
+  @Input()
+  sourceId?: number;
+  @Input()
   channelId?: number;
   playing: boolean = false;
   progress: number = 0;
@@ -83,7 +86,9 @@ export class EpgModalItemComponent implements OnDestroy {
       url: this.epg?.timeshift_url,
       name: this.epg?.title,
       media_type: MediaType.movie,
+
       favorite: false,
+      source_id: this.sourceId,
     };
     try {
       await invoke("play", {
@@ -119,10 +124,17 @@ export class EpgModalItemComponent implements OnDestroy {
       }
     }
     if (this.downloading()) return;
+    let channel: Channel = {
+      id: this.channelId,
+      url: this.epg?.timeshift_url,
+      name: this.epg?.title,
+      media_type: MediaType.movie,
+      favorite: false,
+      source_id: this.sourceId,
+    };
     let download = await this.download.addDownload(
       this.getDownloadId(),
-      this.epg!.title,
-      this.epg!.timeshift_url!,
+      channel,
     );
     this.downloadSubscribe(download);
     await this.download.download(download.id, file);

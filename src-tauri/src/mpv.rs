@@ -3,9 +3,9 @@ use crate::types::{AppState, ChannelHttpHeaders, Source};
 use crate::utils::{find_macos_bin, get_bin};
 use crate::{log, sql};
 use crate::{media_type, settings::get_settings, types::Channel};
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use chrono::Local;
-use indexmap::IndexMap;
+
 use std::sync::LazyLock;
 use std::{env::consts::OS, path::Path, process::Stdio};
 use tauri::State;
@@ -62,7 +62,7 @@ pub async fn play(
     eprintln!("with args: {:?}", args);
 
     if let Some(source) = source.as_ref() {
-        _ = handle_max_streams(source, &state)
+        _ = crate::utils::handle_max_streams(source, &state)
             .await
             .map_err(|e| log::log(format!("{:?}", e)));
     }
@@ -75,114 +75,68 @@ pub async fn play(
     let token = CancellationToken::new();
     let channel_id = channel.id.context("no channel id")?;
     if let Some(source_id) = source.as_ref().and_then(|s| s.id) {
-        _ = insert_play_token(source_id, channel_id, token.clone(), &state)
-            .await
-            .map_err(|e| log::log(format!("{:?}", e)));
+        _ = crate::utils::insert_play_token(
+            source_id,
+            channel_id.to_string(),
+            token.clone(),
+            &state,
+        )
+        .await
+        .map_err(|e| log::log(format!("{:?}", e)));
     }
-    tokio::select! {
+    let result: Result<()> = tokio::select! {
         status = cmd.wait() => {
             let status = status?;
             if status.success() {
-              return Ok(());
-            }
-            let stdout = cmd.stdout.take();
-            if stdout.is_none() {
-              return Ok(());
-            }
-            let stdout = stdout.context("no stdout")?;
-            let mut error: String = String::new();
-            let mut lines = BufReader::new(stdout).lines();
-            let mut first = true;
-            while let Some(line) = lines.next_line().await? {
-                error += &line;
-                if !first {
-                    error += "\n";
-                } else {
-                    first = false;
-                }
-            }
-              if let Some(source_id) = source.as_ref().and_then(|s| s.id) {
-                _ = remove_from_play_stop(state, &source_id, &channel_id)
-                .await
-                .map_err(|e| log::log(format!("{:?}", e)));
-              }
-
-            if error != "" {
-                bail!(error);
+                Ok(())
             } else {
-                bail!("Mpv encountered an unknown error");
+                let stdout = cmd.stdout.take();
+                if stdout.is_none() {
+                     Ok(())
+                } else {
+                    let stdout = stdout.context("no stdout")?;
+                    let mut error: String = String::new();
+                    let mut lines = BufReader::new(stdout).lines();
+                    let mut first = true;
+                    while let Some(line) = lines.next_line().await? {
+                        error += &line;
+                        if !first {
+                            error += "\n";
+                        } else {
+                            first = false;
+                        }
+                    }
+                    if error != "" {
+                        Err(anyhow::anyhow!(error))
+                    } else {
+                        Err(anyhow::anyhow!("Mpv encountered an unknown error"))
+                    }
+                }
             }
         },
         _ = token.cancelled() => {
             cmd.kill().await?;
+            Ok(())
         }
     };
-    if let Some(source_id) = source.and_then(|s| s.id) {
-        _ = remove_from_play_stop(state, &source_id, &channel_id)
+
+    if let Some(source_id) = source.as_ref().and_then(|s| s.id) {
+        _ = crate::utils::remove_from_play_stop(state, &source_id, &channel_id.to_string())
             .await
             .map_err(|e| log::log(format!("{:?}", e)));
     }
-    Ok(())
+    result
 }
 
-async fn remove_from_play_stop(
+pub async fn cancel_play(
+    source_id: i64,
+    key: String,
     state: State<'_, Mutex<AppState>>,
-    source_id: &i64,
-    channel_id: &i64,
-) -> Result<Option<CancellationToken>> {
-    let mut state = state.lock().await;
-    let map = state
-        .play_stop
-        .get_mut(&source_id)
-        .context("no indexMap for sourceId")?;
-    Ok(map.shift_remove(channel_id))
-}
-
-pub async fn cancel_play(source_id: i64, id: i64, state: State<'_, Mutex<AppState>>) -> Result<()> {
-    log::log(format!("Cancelling play for channel: {}", id));
-    let token = remove_from_play_stop(state, &source_id, &id).await?;
+) -> Result<()> {
+    log::log(format!("Cancelling play for channel: {}", key));
+    let token = crate::utils::remove_from_play_stop(state, &source_id, &key).await?;
     let token = token.context("no channel found")?;
     token.cancel();
-    Ok(())
-}
-
-async fn handle_max_streams(source: &Source, state: &State<'_, Mutex<AppState>>) -> Result<()> {
-    let max_streams = source.max_streams.unwrap_or(1);
-    let mut guard = state.lock().await;
-    let channels = guard
-        .play_stop
-        .get_mut(source.id.as_ref().context("no id")?);
-    if channels.is_none() {
-        return Ok(());
-    }
-    let channels = channels.context("no channels")?;
-    if channels.len() < max_streams.into() {
-        return Ok(());
-    }
-    let (_, token) = channels
-        .shift_remove_index(0)
-        .context("failed to remove channel from indexMap")?;
-    token.cancel();
-    Ok(())
-}
-
-async fn insert_play_token(
-    source_id: i64,
-    channel_id: i64,
-    token: CancellationToken,
-    state: &State<'_, Mutex<AppState>>,
-) -> Result<()> {
-    let mut guard = state.lock().await;
-    if guard.play_stop.get(&source_id).is_none() {
-        guard
-            .play_stop
-            .insert(source_id, IndexMap::<i64, CancellationToken>::new());
-    }
-    let map = guard
-        .play_stop
-        .get_mut(&source_id)
-        .context("no indexMap found")?;
-    map.insert(channel_id, token);
     Ok(())
 }
 
@@ -239,7 +193,7 @@ fn get_play_args(
         args.push(format!("{ARG_VOLUME}{volume}"));
     }
     if headers.is_some() || source.is_some() {
-      set_headers(headers, &mut args, source);
+        set_headers(headers, &mut args, source);
     }
     if let Some(mpv_params) = settings.mpv_params {
         #[cfg(not(target_os = "windows"))]
