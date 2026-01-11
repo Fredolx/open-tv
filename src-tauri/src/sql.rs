@@ -220,14 +220,11 @@ fn apply_migrations() -> Result<()> {
               ALTER TABLE sources ADD COLUMN user_agent varchar(500);
               ALTER TABLE sources ADD COLUMN max_streams integer;
               ALTER TABLE sources ADD COLUMN stream_user_agent varchar(500);
-            "#,
-        ),
-        M::up(
-            r#"
               ALTER TABLE channels ADD COLUMN hidden integer DEFAULT 0;
               ALTER TABLE groups ADD COLUMN hidden integer DEFAULT 0;
               CREATE INDEX index_channels_hidden ON channels(hidden);
               CREATE INDEX index_groups_hidden ON groups(hidden);
+              ANALYZE;
             "#,
         ),
     ]);
@@ -801,6 +798,7 @@ pub fn delete_source(id: i64) -> Result<()> {
     if count != 1 {
         return Err(anyhow!("No sources were deleted"));
     }
+    sql.execute("ANALYZE;", params![])?;
     Ok(())
 }
 
@@ -1426,6 +1424,11 @@ pub fn restore_preserve(
             ],
         )?;
     }
+    Ok(())
+}
+
+pub fn analyze(tx: &Transaction) -> Result<()> {
+    tx.execute("ANALYZE;", params![])?;
     Ok(())
 }
 

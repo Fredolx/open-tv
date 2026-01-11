@@ -110,6 +110,7 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     if wipe {
         sql::restore_preserve(&tx, source.id.context("no source id")?, channel_preserve)?;
     }
+    sql::analyze(&tx)?;
     tx.commit()?;
     Ok(())
 }
