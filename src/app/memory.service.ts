@@ -1,16 +1,13 @@
-import { Injectable, OnInit } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { Source } from "./models/source";
 import { BehaviorSubject, Subject } from "rxjs";
 import { MatMenuTrigger } from "@angular/material/menu";
-import { IdName } from "./models/idName";
 import { ToastrService } from "ngx-toastr";
 import { ErrorService } from "./error.service";
-import { Channel } from "./models/channel";
 import { NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
 import { invoke } from "@tauri-apps/api/core";
 import { SortType } from "./models/sortType";
 import { LAST_SEEN_VERSION } from "./models/localStorage";
-import { Stack } from "./models/stack";
 import { SetNodeDTO } from "./models/setNodeDTO";
 
 @Injectable({
@@ -29,7 +26,7 @@ export class MemoryService {
     SortType.provider,
     false,
   ]);
-  public Sources: Source[] = [];
+  public Sources: Map<number, Source> = new Map();
   public currentContextMenu?: MatMenuTrigger;
   public Loading = false;
   public Refresh: Subject<boolean> = new Subject();

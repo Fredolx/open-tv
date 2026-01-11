@@ -234,6 +234,11 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     );
   }
 
+  getSourceName(): string {
+    if (!this.channel?.source_id) return "";
+    return this.memory.Sources.get(this.channel.source_id)?.name || "";
+  }
+
   async showEPGModal() {
     try {
       let data: EPG[] = await invoke("get_epg", { channel: this.channel });

@@ -121,7 +121,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         if (settings.zoom) getCurrentWebview().setZoom(Math.trunc(settings.zoom! * 100) / 10000);
         this.memory.trayEnabled = settings.enable_tray_icon ?? true;
         this.memory.AlwaysAskSave = settings.always_ask_save ?? false;
-        this.memory.Sources = sources.filter((x) => x.enabled);
+        this.memory.Sources = new Map(sources.filter((x) => x.enabled).map(s => [s.id!, s]));
         if (sources.length == 0) this.reset();
         else {
           getVersion().then((version) => {
@@ -151,7 +151,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             invoke("on_start_check_epg");
           }
           this.filters = {
-            source_ids: this.memory.Sources.map((x) => x.id!),
+            source_ids: Array.from(this.memory.Sources.keys()),
             view_type: settings.default_view ?? ViewMode.All,
             media_types: [MediaType.livestream, MediaType.movie, MediaType.serie],
             page: 1,
@@ -499,7 +499,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (node.type == NodeType.Category) this.filters!.group_id = undefined;
     else if (node.type == NodeType.Series) {
       this.filters!.series_id = undefined;
-      this.filters!.source_ids = this.memory.Sources.map((x) => x.id!);
+      this.filters!.source_ids = Array.from(this.memory.Sources.keys());
     } else if (node.type == NodeType.Season) {
       this.filters!.season = undefined;
     }
@@ -570,7 +570,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   anyXtream() {
-    return this.memory.Sources.findIndex((x) => x.source_type == SourceType.Xtream) != -1;
+    return Array.from(this.memory.Sources.values()).findIndex((x) => x.source_type == SourceType.Xtream) != -1;
   }
 
   changeFocusArea(down: boolean) {

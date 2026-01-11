@@ -1,6 +1,6 @@
 .channel {
   border-radius: 0.25rem;
-  height: 3em;
+  height: 4.5em;
   width: 100%;
   background: #343a40;
   overflow-y: hidden;
@@ -9,18 +9,41 @@
   transition: width 0.5s ease-out;
 }
 
-.channel-title {
+.channel-title-container {
   margin-left: 10px;
   margin-right: 10px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.channel-title {
   font-size: 0.9rem;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
 }
 
+.channel-source {
+  font-size: 0.75rem;
+  color: #adb5bd;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .channel-image {
-  max-width: 50px;
-  max-height: 2em;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.image-container {
+  height: 100%;
+  width: 50px;
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .channel:hover {
@@ -70,4 +93,10 @@
 .archive-icon {
   width: 1.25rem;
   height: 1.25rem;
+}
+
+.favorite-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #ffc107;
 }
