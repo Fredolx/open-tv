@@ -87,18 +87,12 @@ pub async fn download(
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id?")?)?;
     let mut client = Client::builder();
     let mut headers_map = HeaderMap::new();
-    if let Some(headers) = headers {
-        if let Some(origin) = headers.http_origin {
-            headers_map.insert("Origin", HeaderValue::from_str(&origin)?);
+    if let Some(headers) = headers.as_ref() {
+        if let Some(origin) = headers.http_origin.as_ref() {
+            headers_map.insert("Origin", HeaderValue::from_str(origin)?);
         }
-        if let Some(referrer) = headers.referrer {
-            headers_map.insert("Referer", HeaderValue::from_str(&referrer)?);
-        }
-        if let Some(user_agent) = headers
-            .user_agent
-            .or_else(|| source.stream_user_agent.clone())
-        {
-            client = client.user_agent(user_agent);
+        if let Some(referrer) = headers.referrer.as_ref() {
+            headers_map.insert("Referer", HeaderValue::from_str(referrer)?);
         }
         if let Some(ignore_ssl) = headers.ignore_ssl {
             if ignore_ssl {
@@ -106,8 +100,14 @@ pub async fn download(
             }
         }
     }
-    client = client.default_headers(headers_map);
-    let client = client.build()?;
+    let user_agent = headers
+        .and_then(|f| f.user_agent)
+        .or(source.stream_user_agent)
+        .unwrap_or_else(|| DEFAULT_USER_AGENT.to_string());
+    let client = client
+        .user_agent(user_agent)
+        .default_headers(headers_map)
+        .build()?;
     let url = channel.url.clone().context("no url provided")?;
     let name = channel.name.clone();
     let mut response = client.get(&url).send().await?;
