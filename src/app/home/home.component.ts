@@ -95,6 +95,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   prevSearchValue: String = "";
   loading = false;
   nodeStack: Stack = new Stack();
+  showScrollTop = false;
+
+  scrollToTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   constructor(
     private router: Router,
@@ -262,8 +267,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.loading = false;
   }
 
-  @HostListener("window:scroll", ["$event"])
-  async scroll(event: any) {
+  checkScrollTop() {
+    const scrollPosition =
+      window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    this.showScrollTop = scrollPosition > 300;
+  }
+
+  async checkScrollEnd() {
     if (this.reachedMax === true || this.loading === true) return;
     const scrollHeight = document.documentElement.scrollHeight;
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -271,6 +281,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (scrollTop + clientHeight >= scrollHeight * 0.75) {
       await this.loadMore();
     }
+  }
+
+  @HostListener("window:scroll", ["$event"])
+  async scroll(event: any) {
+    this.checkScrollTop();
+    await this.checkScrollEnd();
   }
 
   ngAfterViewInit(): void {
