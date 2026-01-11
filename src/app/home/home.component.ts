@@ -82,6 +82,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   shortcuts: ShortcutInput[] = [];
   focus: number = 0;
   focusArea = FocusArea.Tiles;
+  viewType = ViewMode.All;
   currentWindowSize: number = window.innerWidth;
   subscriptions: Subscription[] = [];
   filters?: Filters;
@@ -211,7 +212,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     );
     this.subscriptions.push(
       this.memory.Refresh.subscribe((favs) => {
-        if (favs === false || this.filters?.view_type == ViewMode.Favorites) this.load();
+        this.load();
       }),
     );
     this.subscriptions.push(
@@ -245,6 +246,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       if (!more) {
         this.channels = channels;
         this.channelsVisible = true;
+        // prevent flicker of hiding opacity
+        this.viewType = this.filters!.view_type;
       } else {
         this.channels = this.channels.concat(channels);
       }
@@ -503,13 +506,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
     let goOverSize = this.shortFiltersMode() ? 1 : 2;
     if (lowSize && tmpFocus % 3 == 0 && this.focusArea == FocusArea.Tiles) tmpFocus / 3;
-    if (tmpFocus == 3 && this.focusArea == FocusArea.ViewMode) tmpFocus++;
     tmpFocus += this.focus;
     if (tmpFocus < 0) {
       this.changeFocusArea(false);
     } else if (tmpFocus > goOverSize && this.focusArea == FocusArea.Filters) {
       this.changeFocusArea(true);
-    } else if (tmpFocus > 3 && this.focusArea == FocusArea.ViewMode) {
+    } else if (tmpFocus > 4 && this.focusArea == FocusArea.ViewMode) {
       this.changeFocusArea(true);
     } else if (
       this.focusArea == FocusArea.Tiles &&
@@ -550,7 +552,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         ? this.shortFiltersMode()
           ? 1
           : 2
-        : 3;
+        : 4;
     let id = FocusAreaPrefix[this.focusArea] + this.focus;
     document.getElementById(id)?.focus();
   }

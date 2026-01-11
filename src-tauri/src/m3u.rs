@@ -284,6 +284,7 @@ fn get_channel_from_lines(
         tv_archive: None,
         season_id: None,
         episode_num: None,
+        hidden: false,
     };
     Ok(channel)
 }

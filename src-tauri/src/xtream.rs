@@ -277,6 +277,7 @@ fn convert_xtream_live_to_channel(
         tv_archive: get_serde_json_u64(&stream.tv_archive).map(|x| x == 1),
         season_id: None,
         episode_num: None,
+        hidden: false,
     })
 }
 
@@ -500,6 +501,7 @@ fn episode_to_channel(
         group_id: None,
         favorite: false,
         tv_archive: None,
+        hidden: false,
     })
 }
 

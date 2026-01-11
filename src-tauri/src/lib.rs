@@ -105,7 +105,10 @@ pub fn run() {
             abort_download,
             clear_history,
             is_container,
-            cancel_play
+            cancel_play,
+            hide_channel,
+            hide_group,
+            remove_from_history,
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -263,6 +266,21 @@ fn favorite_channel(channel_id: i64) -> Result<(), String> {
 #[tauri::command(async)]
 fn unfavorite_channel(channel_id: i64) -> Result<(), String> {
     sql::favorite_channel(channel_id, false).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn hide_channel(id: i64, hidden: bool) -> Result<(), String> {
+    sql::hide_channel(id, hidden).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn hide_group(id: i64, hidden: bool) -> Result<(), String> {
+    sql::hide_group(id, hidden).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn remove_from_history(id: i64) -> Result<(), String> {
+    sql::remove_last_watched(id).map_err(map_err_frontend)
 }
 
 #[tauri::command(async)]
