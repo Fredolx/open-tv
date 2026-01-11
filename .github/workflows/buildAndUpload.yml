@@ -27,7 +27,7 @@ jobs:
           $retryDelay = 5
           for ($i = 1; $i -le $retryCount; $i++) {
               try {
-                  Invoke-WebRequest -UserAgent "Wget" -Uri "https://nightly.link/mpv-player/mpv/workflows/build/master/mpv-x86_64-pc-windows-msvc.zip" -OutFile .\mpv.zip
+                  Invoke-WebRequest -UserAgent "Wget" -Uri "https://nightly.link/mpv-player/mpv/workflows/build/master/mpv-v0.41.0-dev-g9483d6e12-20870813220-x86_64-pc-windows-msvc.zip" -OutFile .\mpv.zip
                   break
               }
               catch {
