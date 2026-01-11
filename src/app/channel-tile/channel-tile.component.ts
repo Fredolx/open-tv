@@ -43,7 +43,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     private el: ElementRef,
     private renderer: Renderer2,
     private download: DownloadService,
-  ) {}
+  ) { }
   @Input() channel?: Channel;
   @Input() id!: number;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
@@ -208,6 +208,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       this.memory.ModalRef.componentInstance.epg = data;
       this.memory.ModalRef.componentInstance.name = this.channel?.name;
       this.memory.ModalRef.componentInstance.channelId = this.channel?.id;
+      this.memory.ModalRef.componentInstance.sourceId = this.channel?.source_id;
     } catch (e) {
       this.error.handleError(
         e,
@@ -355,8 +356,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     }
     let download = await this.download.addDownload(
       this.channel!.id!.toString(),
-      this.channel!.name!,
-      this.channel?.url!,
+      this.channel!,
     );
     this.downloadSubscribe(download);
     await this.download.download(download.id, file);

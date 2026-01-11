@@ -1,8 +1,5 @@
 use anyhow::{Context, Error};
-use std::sync::{
-    Arc,
-    atomic::{AtomicBool, Ordering},
-};
+
 use tauri::{AppHandle, Manager, State};
 use tokio::sync::Mutex;
 use types::{
@@ -409,40 +406,24 @@ async fn get_epg(channel: Channel) -> Result<Vec<EPG>, String> {
 async fn download(
     state: State<'_, Mutex<AppState>>,
     app: AppHandle,
-    name: Option<String>,
-    url: String,
+    channel: Channel,
     download_id: String,
     path: Option<String>,
 ) -> Result<(), String> {
-    let stop = Arc::new(AtomicBool::new(false));
-    let stop_clone = stop.clone();
-    {
-        let mut state = state.lock().await;
-        state.download_stop.insert(download_id.clone(), stop);
-    }
-    let result = utils::download(stop_clone, app, name, url, &download_id, path)
+    utils::download(state.clone(), app, channel, &download_id, path)
         .await
-        .map_err(map_err_frontend);
-    {
-        let mut state = state.lock().await;
-        state.download_stop.remove(&download_id);
-    }
-    result
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command]
 async fn abort_download(
     state: State<'_, Mutex<AppState>>,
+    source_id: i64,
     download_id: String,
 ) -> Result<(), String> {
-    let mutex = state.lock().await;
-    let download = mutex
-        .download_stop
-        .get(&download_id)
-        .context("download not found")
-        .map_err(map_err_frontend)?;
-    download.store(true, Ordering::Relaxed);
-    Ok(())
+    mpv::cancel_play(source_id, download_id, state)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command]
@@ -544,8 +525,12 @@ fn is_container() -> bool {
 }
 
 #[tauri::command]
-async fn cancel_play(source_id: i64, channel_id: i64, state: State<'_, Mutex<AppState>>) -> Result<(), String> {
-    mpv::cancel_play(source_id, channel_id, state)
+async fn cancel_play(
+    source_id: i64,
+    channel_id: i64,
+    state: State<'_, Mutex<AppState>>,
+) -> Result<(), String> {
+    mpv::cancel_play(source_id, channel_id.to_string(), state)
         .await
         .map_err(map_err_frontend)
 }

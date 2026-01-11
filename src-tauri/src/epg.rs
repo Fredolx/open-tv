@@ -1,7 +1,7 @@
 use std::{
     sync::{
-        atomic::{AtomicBool, Ordering::Relaxed},
         Arc,
+        atomic::{AtomicBool, Ordering::Relaxed},
     },
     thread::{self, sleep},
     time::Duration,

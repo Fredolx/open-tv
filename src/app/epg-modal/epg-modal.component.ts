@@ -11,13 +11,15 @@ import { MemoryService } from "../memory.service";
 })
 export class EpgModalComponent implements OnInit {
   name?: string;
+  sourceId?: number;
+  channelId?: number;
   epg: EPG[] = [];
   filteredEPGs: EPG[] = [];
   currentDate = new Date();
   constructor(
     public activeModal: NgbActiveModal,
     private memory: MemoryService,
-  ) {}
+  ) { }
 
   ngOnInit() {
     invoke("get_epg_ids").then((x) => {
