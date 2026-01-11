@@ -182,6 +182,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     );
   }
 
+  async reload() {
+    await this.load();
+  }
+
   reset() {
     this.router.navigateByUrl("setup");
   }

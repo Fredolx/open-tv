@@ -58,6 +58,21 @@
   cursor: pointer;
 }
 
+.reload-icon {
+  height: 1.75rem;
+  width: 1.75rem;
+  position: absolute;
+  right: 5.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: transform 0.5s ease;
+}
+
+.reload-icon:hover {
+  transform: translateY(-50%) rotate(360deg);
+}
+
 .search-box {
   position: relative;
 }

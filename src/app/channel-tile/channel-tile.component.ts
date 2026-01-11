@@ -159,17 +159,22 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   async favorite() {
     let call = "favorite_channel";
-    let msg = `Added ${this.channel?.name} to favorites`;
-    if (this.channel!.favorite) {
+    const wasFavorite = this.channel!.favorite;
+    let msg = `Added "${this.channel?.name}" to favorites`;
+    if (wasFavorite) {
       call = "unfavorite_channel";
-      msg = `Removed ${this.channel?.name} from favorites`;
+      msg = `Removed "${this.channel?.name}" from favorites`;
     }
     try {
       await invoke(call, { channelId: this.channel!.id });
-      this.channel!.favorite = !this.channel!.favorite;
-      this.toastr.success(msg);
+      this.channel!.favorite = !wasFavorite;
+      if (wasFavorite) {
+        this.toastr.success(`${msg} (updates on reload)`);
+      } else {
+        this.toastr.success(msg);
+      }
     } catch (e) {
-      this.error.handleError(e, `Failed to add/remove ${this.channel?.name} to/from favorites`);
+      this.error.handleError(e, `Failed to add/remove "${this.channel?.name}" to/from favorites`);
     }
   }
 
@@ -177,9 +182,9 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     try {
       await invoke("remove_from_history", { id: this.channel!.id });
       this.memory.Refresh.next(true);
-      this.toastr.success(`Removed ${this.channel?.name} from history`);
+      this.toastr.success(`Removed "${this.channel?.name}" from history`);
     } catch (e) {
-      this.error.handleError(e, `Failed to remove ${this.channel?.name} from history`);
+      this.error.handleError(e, `Failed to remove "${this.channel?.name}" from history`);
     }
   }
 
@@ -192,14 +197,14 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
     const action = isHiding ? "Hidden" : "Unhidden";
     const type = isGroup ? "group " : "";
-    const msg = `${action} ${type}${this.channel?.name}`;
+    const msg = `${action} ${type}"${this.channel?.name}"`;
 
     try {
       await invoke(command, args);
       this.channel!.hidden = isHiding;
-      this.toastr.success(msg);
+      this.toastr.success(`${msg} (updates on reload)`);
     } catch (e) {
-      this.error.handleError(e, `Failed to ${isHiding ? "hide" : "unhide"} ${this.channel?.name}`);
+      this.error.handleError(e, `Failed to hide/unhide "${this.channel?.name}"`);
     }
   }
 
