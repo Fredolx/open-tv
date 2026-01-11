@@ -28,6 +28,7 @@ pub fn share_custom_group(group: Channel, path: String) -> Result<()> {
             image: group.image,
             name: group.name,
             source_id: None,
+            hidden: false,
         },
         channels: sql::get_custom_channels(group.id, group.source_id.context("no source id?")?)?,
     };
@@ -73,7 +74,11 @@ fn import_channel(data: String, source_id: i64, name_override: Option<String>) -
         bail!("Duplicate exists");
     }
     data.data.source_id = Some(source_id);
-    sql::do_tx(|tx| sql::add_custom_channel(tx, data))?;
+    sql::do_tx(|tx| {
+        sql::add_custom_channel(tx, data)?;
+        sql::analyze(tx)?;
+        Ok(())
+    })?;
     Ok(())
 }
 
@@ -93,6 +98,7 @@ fn import_group(data: String, source_id: i64, name_override: Option<String>) -> 
             channel.data.source_id = Some(source_id);
             sql::add_custom_channel(&tx, channel)?;
         }
+        sql::analyze(&tx)?;
         Ok(())
     })?;
     Ok(())
@@ -121,6 +127,7 @@ fn import_playlist(data: String, name_override: Option<String>) -> Result<()> {
             channel.data.source_id = Some(source_id);
             sql::add_custom_channel(&tx, channel)?;
         }
+        sql::analyze(&tx)?;
         Ok(())
     })?;
     Ok(())

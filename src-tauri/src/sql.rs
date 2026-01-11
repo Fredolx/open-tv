@@ -220,6 +220,11 @@ fn apply_migrations() -> Result<()> {
               ALTER TABLE sources ADD COLUMN user_agent varchar(500);
               ALTER TABLE sources ADD COLUMN max_streams integer;
               ALTER TABLE sources ADD COLUMN stream_user_agent varchar(500);
+              ALTER TABLE channels ADD COLUMN hidden integer DEFAULT 0;
+              ALTER TABLE groups ADD COLUMN hidden integer DEFAULT 0;
+              CREATE INDEX index_channels_hidden ON channels(hidden);
+              CREATE INDEX index_groups_hidden ON groups(hidden);
+              ANALYZE;
             "#,
         ),
     ]);
@@ -446,6 +451,9 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     {
         return search_group(filters);
     }
+    if filters.view_type == view_type::HIDDEN {
+        return search_hidden(filters);
+    }
     if filters.series_id.is_some() && filters.season.is_none() {
         return search_series(filters);
     }
@@ -469,7 +477,8 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         WHERE ({})
         AND media_type IN ({})
         AND source_id IN ({})
-        AND url IS NOT NULL"#,
+        AND url IS NOT NULL
+        AND hidden = 0"#,
         get_keywords_sql(keywords.len()),
         generate_placeholders(media_types.len()),
         generate_placeholders(filters.source_ids.len()),
@@ -478,6 +487,7 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     if filters.view_type == view_type::FAVORITES && filters.series_id.is_none() {
         sql_query += "\nAND favorite = 1";
     }
+
     if filters.series_id.is_some() {
         sql_query += &format!("\nAND series_id = ?");
         baked_params += 1;
@@ -584,7 +594,73 @@ fn season_row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Er
         tv_archive: None,
         url: None,
         episode_num: None,
+        hidden: false,
     })
+}
+
+fn search_hidden(filters: Filters) -> Result<Vec<Channel>> {
+    let sql = get_conn()?;
+    let offset: u16 = filters.page as u16 * PAGE_SIZE as u16 - PAGE_SIZE as u16;
+
+    let media_types = match filters.series_id.is_some() {
+        true => vec![1],
+        false => filters.media_types.clone().unwrap(),
+    };
+
+    let query = filters.query.unwrap_or("".to_string());
+    let keywords: Vec<String> = match filters.use_keywords {
+        true => query
+            .split(" ")
+            .map(|f| format!("%{f}%").to_string())
+            .collect(),
+        false => vec![format!("%{query}%")],
+    };
+
+    let keywords_sql = get_keywords_sql(keywords.len());
+    let media_placeholders = generate_placeholders(media_types.len());
+    let source_placeholders = generate_placeholders(filters.source_ids.len());
+
+    let sql_query = format!(
+        r#"
+        SELECT id, image, name, series_id, source_id, stream_id, tv_archive, url, episode_num, hidden, media_type, NULL as group_id, NULL as season_id, 0 as favorite
+        FROM channels
+        WHERE ({})
+        AND media_type IN ({})
+        AND source_id IN ({})
+        AND hidden = 1
+        UNION ALL
+        SELECT id, image, name, NULL as series_id, source_id, NULL as stream_id, NULL as tv_archive, NULL as url, NULL as episode_num, hidden, 3 as media_type, NULL as group_id, NULL as season_id, 0 as favorite
+        FROM groups
+        WHERE ({})
+        AND source_id IN ({})
+        AND hidden = 1
+        ORDER BY name ASC
+        LIMIT ?, ?
+        "#,
+        keywords_sql, media_placeholders, source_placeholders, keywords_sql, source_placeholders
+    );
+
+    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::new();
+
+    // Channels params
+    params.extend(to_to_sql(&keywords));
+    params.extend(to_to_sql(&media_types));
+    params.extend(to_to_sql(&filters.source_ids));
+
+    // Groups params
+    params.extend(to_to_sql(&keywords));
+    params.extend(to_to_sql(&filters.source_ids));
+
+    params.push(&offset);
+    params.push(&PAGE_SIZE);
+
+    let channels: Vec<Channel> = sql
+        .prepare(&sql_query)?
+        .query_map(params_from_iter(params), row_to_channel)?
+        .filter_map(Result::ok)
+        .collect();
+
+    Ok(channels)
 }
 
 fn to_to_sql<T: rusqlite::ToSql>(values: &[T]) -> Vec<&dyn rusqlite::ToSql> {
@@ -652,6 +728,7 @@ pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
         generate_placeholders(filters.source_ids.len()),
         generate_placeholders(media_types.len())
     );
+    sql_query += "\nAND hidden = 0";
     if filters.sort != sort_type::PROVIDER {
         let order = match filters.sort {
             sort_type::ALPHABETICAL_ASC => "ASC",
@@ -690,6 +767,7 @@ fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         tv_archive: None,
         season_id: None,
         episode_num: None,
+        hidden: row.get("hidden")?,
     };
     Ok(channel)
 }
@@ -710,6 +788,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         stream_id: row.get("stream_id")?,
         tv_archive: row.get("tv_archive")?,
         season_id: row.get("season_id")?,
+        hidden: row.get("hidden")?,
     };
     Ok(channel)
 }
@@ -780,6 +859,7 @@ pub fn delete_source(id: i64) -> Result<()> {
     if count != 1 {
         return Err(anyhow!("No sources were deleted"));
     }
+    sql.execute("ANALYZE;", params![])?;
     Ok(())
 }
 
@@ -818,6 +898,45 @@ pub fn favorite_channel(channel_id: i64, favorite: bool) -> Result<()> {
         WHERE id = ?2
     "#,
         params![favorite, channel_id],
+    )?;
+    Ok(())
+}
+
+pub fn hide_channel(channel_id: i64, hidden: bool) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
+        UPDATE channels
+        SET hidden = ?1
+        WHERE id = ?2
+    "#,
+        params![hidden, channel_id],
+    )?;
+    Ok(())
+}
+
+pub fn hide_group(group_id: i64, hidden: bool) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
+        UPDATE groups
+        SET hidden = ?1
+        WHERE id = ?2
+    "#,
+        params![hidden, group_id],
+    )?;
+    Ok(())
+}
+
+pub fn remove_last_watched(channel_id: i64) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        r#"
+        UPDATE channels
+        SET last_watched = NULL
+        WHERE id = ?1
+    "#,
+        params![channel_id],
     )?;
     Ok(())
 }
@@ -1082,6 +1201,7 @@ fn row_to_custom_group(row: &Row) -> Result<Group, rusqlite::Error> {
         name: row.get("name")?,
         image: row.get("image")?,
         source_id: row.get("source_id")?,
+        hidden: row.get("hidden")?,
     })
 }
 
@@ -1177,6 +1297,7 @@ fn row_to_custom_channel(row: &Row) -> Result<CustomChannel, rusqlite::Error> {
             tv_archive: None,
             season_id: None,
             episode_num: None,
+            hidden: false,
         },
         headers: Some(ChannelHttpHeaders {
             http_origin: row.get("http_origin")?,
@@ -1215,6 +1336,7 @@ pub fn get_custom_groups(source_id: i64) -> Result<Vec<ExportedGroup>> {
                 image: group.image,
                 source_id: None,
                 id: None,
+                hidden: false,
             },
             channels: get_custom_channels(group.id, source_id)?,
         });
@@ -1320,9 +1442,9 @@ pub fn get_channel_preserve(tx: &Transaction, source_id: i64) -> Result<Vec<Chan
     Ok(tx
         .prepare(
             r#"
-              SELECT name, favorite, last_watched
+              SELECT name, favorite, last_watched, hidden
               FROM channels
-              WHERE (favorite = 1 OR last_watched IS NOT NULL)
+              WHERE (favorite = 1 OR last_watched IS NOT NULL OR hidden = 1)
               AND series_id IS NULL
               AND source_id = ?
             "#,
@@ -1337,6 +1459,7 @@ fn row_to_channel_preserve(row: &Row) -> Result<ChannelPreserve, rusqlite::Error
         name: row.get("name")?,
         favorite: row.get("favorite")?,
         last_watched: row.get("last_watched")?,
+        hidden: row.get("hidden")?,
     })
 }
 
@@ -1349,18 +1472,24 @@ pub fn restore_preserve(
         tx.execute(
             r#"
               UPDATE channels
-              SET favorite = ?, last_watched = ?
+              SET favorite = ?, last_watched = ?, hidden = ?
               WHERE name = ?
               AND source_id = ?
             "#,
             params![
                 channel.favorite,
                 channel.last_watched,
+                channel.hidden,
                 channel.name,
                 source_id
             ],
         )?;
     }
+    Ok(())
+}
+
+pub fn analyze(tx: &Transaction) -> Result<()> {
+    tx.execute("ANALYZE;", params![])?;
     Ok(())
 }
 

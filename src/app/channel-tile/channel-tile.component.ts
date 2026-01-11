@@ -29,6 +29,8 @@ import { CHANNEL_EXTENSION, GROUP_EXTENSION, RECORD_EXTENSION } from "../models/
 import { getDateFormatted, getExtension, sanitizeFileName } from "../utils";
 import { NodeType, fromMediaType } from "../models/nodeType";
 
+import { ViewMode } from "../models/viewMode";
+
 @Component({
   selector: "app-channel-tile",
   templateUrl: "./channel-tile.component.html",
@@ -46,14 +48,18 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   ) { }
   @Input() channel?: Channel;
   @Input() id!: number;
+  @Input() viewMode: number = 0;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
   menuTopLeftPosition = { x: 0, y: 0 };
   showImage: boolean = true;
   starting: boolean = false;
   alreadyExistsInFav = false;
+  alreadyHidden = false;
   downloading = false;
   mediaTypeEnum = MediaType;
+  viewModeEnum = ViewMode;
   subscriptions: Subscription[] = [];
+  fade = false;
 
   ngAfterViewInit(): void {
     this.getExistingDownload();
@@ -132,12 +138,9 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   onRightClick(event: MouseEvent) {
-    if (
-      (this.channel?.media_type == MediaType.group && !this.isCustom()) ||
-      this.channel?.media_type == MediaType.season
-    )
-      return;
+    if (this.channel?.media_type == MediaType.season) return;
     this.alreadyExistsInFav = this.channel!.favorite!;
+    this.alreadyHidden = this.channel!.hidden!;
     this.downloading = this.isDownloading();
     event.preventDefault();
     this.menuTopLeftPosition.x = event.clientX;
@@ -153,18 +156,57 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   async favorite() {
     let call = "favorite_channel";
-    let msg = `Added ${this.channel?.name} to favorites`;
-    if (this.channel!.favorite) {
+    const wasFavorite = this.channel!.favorite;
+    let msg = `Added "${this.channel?.name}" to favorites`;
+    if (wasFavorite) {
       call = "unfavorite_channel";
-      msg = `Removed ${this.channel?.name} from favorites`;
+      msg = `Removed "${this.channel?.name}" from favorites`;
     }
     try {
       await invoke(call, { channelId: this.channel!.id });
-      if (this.channel!.favorite) this.memory.Refresh.next(true);
-      this.channel!.favorite = !this.channel!.favorite;
-      this.toastr.success(msg);
+      this.channel!.favorite = !wasFavorite;
+      if (wasFavorite) {
+        if (this.viewMode == ViewMode.Favorites)
+          this.fade = true;
+        this.toastr.success(`${msg} (updates on reload)`);
+      } else {
+        if (this.viewMode == ViewMode.Favorites)
+          this.fade = false;
+        this.toastr.success(msg);
+      }
     } catch (e) {
-      this.error.handleError(e, `Failed to add/remove ${this.channel?.name} to/from favorites`);
+      this.error.handleError(e, `Failed to add/remove "${this.channel?.name}" to/from favorites`);
+    }
+  }
+
+  async removeFromHistory() {
+    try {
+      await invoke("remove_from_history", { id: this.channel!.id });
+      this.memory.Refresh.next(true);
+      this.toastr.success(`Removed "${this.channel?.name}" from history`);
+    } catch (e) {
+      this.error.handleError(e, `Failed to remove "${this.channel?.name}" from history`);
+    }
+  }
+
+  async hide() {
+    const isGroup = this.channel?.media_type === MediaType.group;
+    const hide = !this.channel!.hidden;
+
+    const command = isGroup ? "hide_group" : "hide_channel";
+    const args = { id: this.channel!.id, hidden: hide };
+
+    const action = hide ? "Hidden" : "Unhidden";
+    const type = isGroup ? "group " : "";
+    const msg = `${action} ${type}"${this.channel?.name}"`;
+
+    try {
+      await invoke(command, args);
+      this.channel!.hidden = hide;
+      this.fade = this.viewMode == ViewMode.Hidden ? !hide : hide;
+      this.toastr.success(`${msg} (updates on reload)`);
+    } catch (e) {
+      this.error.handleError(e, `Failed to hide/unhide "${this.channel?.name}"`);
     }
   }
 

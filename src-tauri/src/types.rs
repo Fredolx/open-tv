@@ -32,6 +32,7 @@ pub struct Channel {
     pub season_id: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub episode_num: Option<i64>,
+    pub hidden: bool,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize, Default)]
@@ -123,6 +124,7 @@ pub struct Group {
     pub image: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source_id: Option<i64>,
+    pub hidden: bool,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -191,5 +193,6 @@ pub struct NetworkInfo {
 pub struct ChannelPreserve {
     pub name: String,
     pub favorite: bool,
-    pub last_watched: Option<u64>,
+    pub last_watched: Option<usize>,
+    pub hidden: bool,
 }

@@ -24,7 +24,7 @@ export class SetupComponent {
     public memory: MemoryService,
     private error: ErrorService,
     private modal: NgbModal,
-  ) {}
+  ) { }
   loading = false;
   sourceTypeEnum = SourceType;
   source: Source = {
@@ -54,7 +54,7 @@ export class SetupComponent {
     );
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   switchMode(sourceType: SourceType) {
     this.source.source_type = sourceType;
@@ -86,7 +86,7 @@ export class SetupComponent {
   }
 
   success() {
-    this.toastr.success(`${this.source.name} successfully added`);
+    this.toastr.success(`"${this.source.name}" successfully added`);
     this.nav.navigateByUrl("");
   }
 

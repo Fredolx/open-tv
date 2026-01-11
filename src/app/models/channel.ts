@@ -11,4 +11,5 @@ export class Channel {
   favorite?: boolean;
   stream_id?: number;
   tv_archive?: boolean;
+  hidden?: boolean;
 }

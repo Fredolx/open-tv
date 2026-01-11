@@ -82,6 +82,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   shortcuts: ShortcutInput[] = [];
   focus: number = 0;
   focusArea = FocusArea.Tiles;
+  viewType = ViewMode.All;
   currentWindowSize: number = window.innerWidth;
   subscriptions: Subscription[] = [];
   filters?: Filters;
@@ -94,6 +95,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   prevSearchValue: String = "";
   loading = false;
   nodeStack: Stack = new Stack();
+  showScrollTop = false;
+
+  scrollToTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   constructor(
     private router: Router,
@@ -181,6 +187,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     );
   }
 
+  async reload() {
+    await this.load();
+  }
+
   reset() {
     this.router.navigateByUrl("setup");
   }
@@ -198,12 +208,25 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     );
     this.subscriptions.push(
       this.memory.SetNode.subscribe(async (dto) => {
-        this.nodeStack.add(new Node(dto.id, dto.name, dto.type, this.filters?.query));
+        this.nodeStack.add(
+          new Node(
+            dto.id,
+            dto.name,
+            dto.type,
+            this.filters?.query,
+            this.filters?.view_type,
+          ),
+        );
         if (dto.type == NodeType.Category) this.filters!.group_id = dto.id;
         else if (dto.type == NodeType.Series) {
           this.filters!.series_id = dto.id;
           this.filters!.source_ids = [dto.sourceId!];
         } else if (dto.type == NodeType.Season) this.filters!.season = dto.id;
+
+        if (this.filters!.view_type == ViewMode.Hidden) {
+          this.filters!.view_type = ViewMode.Categories;
+        }
+
         this.clearSearch();
         await this.load();
         if (this.focusArea == FocusArea.Tiles) this.selectFirstChannelDelayed(100);
@@ -211,7 +234,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     );
     this.subscriptions.push(
       this.memory.Refresh.subscribe((favs) => {
-        if (favs === false || this.filters?.view_type == ViewMode.Favorites) this.load();
+        this.load();
       }),
     );
     this.subscriptions.push(
@@ -245,6 +268,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       if (!more) {
         this.channels = channels;
         this.channelsVisible = true;
+        // prevent flicker of hiding opacity
+        this.viewType = this.filters!.view_type;
       } else {
         this.channels = this.channels.concat(channels);
       }
@@ -255,8 +280,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.loading = false;
   }
 
-  @HostListener("window:scroll", ["$event"])
-  async scroll(event: any) {
+  checkScrollTop() {
+    const scrollPosition =
+      window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    this.showScrollTop = scrollPosition > 300;
+  }
+
+  async checkScrollEnd() {
     if (this.reachedMax === true || this.loading === true) return;
     const scrollHeight = document.documentElement.scrollHeight;
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -264,6 +294,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (scrollTop + clientHeight >= scrollHeight * 0.75) {
       await this.loadMore();
     }
+  }
+
+  @HostListener("window:scroll", ["$event"])
+  async scroll(event: any) {
+    this.checkScrollTop();
+    await this.checkScrollEnd();
   }
 
   ngAfterViewInit(): void {
@@ -471,6 +507,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.search.nativeElement.value = node.query;
       this.filters!.query = node.query;
     }
+    if (node.fromViewType && this.filters!.view_type !== node.fromViewType) {
+      this.filters!.view_type = node.fromViewType;
+    }
     await this.load();
   }
 
@@ -503,13 +542,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
     let goOverSize = this.shortFiltersMode() ? 1 : 2;
     if (lowSize && tmpFocus % 3 == 0 && this.focusArea == FocusArea.Tiles) tmpFocus / 3;
-    if (tmpFocus == 3 && this.focusArea == FocusArea.ViewMode) tmpFocus++;
     tmpFocus += this.focus;
     if (tmpFocus < 0) {
       this.changeFocusArea(false);
     } else if (tmpFocus > goOverSize && this.focusArea == FocusArea.Filters) {
       this.changeFocusArea(true);
-    } else if (tmpFocus > 3 && this.focusArea == FocusArea.ViewMode) {
+    } else if (tmpFocus > 4 && this.focusArea == FocusArea.ViewMode) {
       this.changeFocusArea(true);
     } else if (
       this.focusArea == FocusArea.Tiles &&
@@ -550,7 +588,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         ? this.shortFiltersMode()
           ? 1
           : 2
-        : 3;
+        : 4;
     let id = FocusAreaPrefix[this.focusArea] + this.focus;
     document.getElementById(id)?.focus();
   }
