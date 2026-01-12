@@ -29,6 +29,23 @@
   </categories>
   <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
   <releases>
+  <release version="1.9.0" date="2026-01-11">
+    <description>
+      <ul>
+        <li>Renamed app to Fred TV</li>
+        <li>Added a reload button next to the search bar</li>
+        <li>Added an option to hide categories and channels</li>
+        <li>Added an arrow to scroll back up</li>
+        <li>Improved channel tile UI to show if the channel is a favorite and from which source it comes from</li>
+        <li>Removing favorites and hiding channels will happen on next reload to avoid pagination issues</li>
+        <li>Massively improved database performance</li>
+        <li>Tray icon support removed for Linux due to bugs/crashes</li>
+        <li>Per-source stream limits</li>
+        <li>Download improvements</li>
+        <li>Updated all libs</li>
+      </ul>
+    </description>
+  </release>
   <release version="1.8.3" date="2025-07-22">
     <description>
       <ul>

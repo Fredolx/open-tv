@@ -1,6 +1,6 @@
 {
   "productName": "Fred TV",
-  "version": "1.8.3",
+  "version": "1.9.0",
   "identifier": "dev.fredol.open-tv",
   "build": {
     "frontendDist": "../dist/open-tv/browser",
