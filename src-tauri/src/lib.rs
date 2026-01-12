@@ -1,4 +1,6 @@
-use anyhow::{Context, Error};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use anyhow::Context;
+use anyhow::Error;
 
 use tauri::{AppHandle, Manager, State};
 use tokio::sync::Mutex;
