@@ -23,20 +23,25 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: powershell
         run: |
+          $nightlyPage = "https://nightly.link/mpv-player/mpv/workflows/build/master"
+          $response = Invoke-WebRequest -Uri $nightlyPage -UseBasicParsing
+          $latestUrl = $response.Links.Href | Where-Object { $_ -match "x86_64-pc-windows-msvc\.zip$" } | Select-Object -First 1
+
           $retryCount = 3
           $retryDelay = 5
+
           for ($i = 1; $i -le $retryCount; $i++) {
               try {
-                  Invoke-WebRequest -UserAgent "Wget" -Uri "https://nightly.link/mpv-player/mpv/workflows/build/master/mpv-v0.41.0-dev-g9483d6e12-20870813220-x86_64-pc-windows-msvc.zip" -OutFile .\mpv.zip
+                  Invoke-WebRequest -UserAgent "Wget" -Uri $latestUrl -OutFile .\mpv.zip
                   break
               }
               catch {
-                  Write-Host "Error occurred: $_. Retrying in $retryDelay seconds..."
                   Start-Sleep -Seconds $retryDelay
               }
           }
-          New-Item -Path 'C:\open-tv-deps' -ItemType Directory
-          7z e .\mpv.zip -oC:\open-tv-deps mpv.exe vulkan-1.dll
+
+          New-Item -Path 'C:\open-tv-deps' -ItemType Directory -Force
+          7z e .\mpv.zip -oC:\open-tv-deps mpv.exe vulkan-1.dll -y
 
       - name: Download ffmpeg
         if: matrix.os == 'windows-latest'
