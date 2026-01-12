@@ -27,10 +27,7 @@ jobs:
         run: |
           echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
-      - name: Lowercase Repo Owner
-        id: repo_owner
-        run: |
-          echo "REPO_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -45,7 +42,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ steps.repo_owner.outputs.REPO_OWNER }}/open-tv:latest
-            ghcr.io/${{ steps.repo_owner.outputs.REPO_OWNER }}/open-tv:${{ steps.version.outputs.version }}
+            ghcr.io/fredolx/open-tv:latest
+            ghcr.io/fredolx/open-tv:${{ steps.version.outputs.version }}
           build-args: |
              pkgver=${{ steps.version.outputs.version }}
