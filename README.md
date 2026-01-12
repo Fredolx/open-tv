@@ -1,6 +1,6 @@
-# Open TV
+# Fred TV (Formerly Open TV)
 
-Completely rewritten to accommodate new features and to be even speedier, Open TV has been carefully crafted to deliver the best IPTV experience.
+Completely rewritten to accommodate new features and to be even speedier, Fred TV has been carefully crafted to deliver the best IPTV experience.
 
 <a href="https://apps.microsoft.com/detail/9PBWX3RKR1QX?launch=true&mode=mini">
 	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="350"/>
@@ -73,7 +73,7 @@ Feel free to submit any kind of feedback by creating a new issue.
 * Arrow keys/Tab/Shift+Tab: Navigation
 
 If you have a tv remote or air mouse that has slightly different bindings for general nav (back, up, down, left, right),
-please open an issue and I will add them if it's feasible. Otherwise, you can still use hwdb to make them match OpenTV's bindings.
+please open an issue and I will add them if it's feasible. Otherwise, you can still use hwdb to make them match Fred TV's bindings.
 
 ## Settings explained
 
@@ -120,4 +120,4 @@ BNB:
 
 ## Disclaimer
 
-Open TV is an independent open-source project created to provide a fast and powerful IPTV experience. The name "Open TV" is used solely to represent this specific software and its purpose as described in the project documentation. Any other software, applications, or products bearing the same or similar name are unrelated to this project. Any resemblance to other software or applications is purely coincidental and unintended. We do not intend to cause confusion or imply affiliation with any other products or organizations that may share a similar name.
+Fred TV is an independent open-source project created to provide a fast and powerful IPTV experience. The name "Fred TV" is used solely to represent this specific software and its purpose as described in the project documentation. Any other software, applications, or products bearing the same or similar name are unrelated to this project. Any resemblance to other software or applications is purely coincidental and unintended. We do not intend to cause confusion or imply affiliation with any other products or organizations that may share a similar name.

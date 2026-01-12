@@ -1,84 +1,58 @@
 <div class="modal-header">
-  <h4 class="modal-title lbl">What's new in v{{ memory.AppVersion }} Fan Edition</h4>
+  <h4 class="modal-title lbl">What's new in v{{ memory.AppVersion }}</h4>
 </div>
 <div class="modal-body">
   <p>
-    Open TV is in crucial need of your help. Consider donating any amount (even 1$, it makes a big
+    Fred TV is in crucial need of your help. Consider donating any amount (even 1$, it makes a big
     difference!) to support future development.
-    <a href="https://github.com/Fredolx/open-tv/discussions/69" target="_blank"
-      >Click here for more information.</a
-    >
+    <a href="https://github.com/Fredolx/open-tv/discussions/69" target="_blank">Click here for more information.</a>
   </p>
   <br />
   <p>
-    1.8.X is the Fan Edition! It combines all the most hotly requested features from all of you and
-    bunch of crucial bugfixes. I always made Open TV mostly to my own taste, but this changes today
-    as this update celebrates your support by implementing every single popular feature request. I
-    hope you'll enjoy it.
+    If you'd like to follow updates about Fred TV and related projects, I made a bluesky!
+    <a href="https://bsky.app/profile/fredoldev.bsky.social" target="_blank">You can follow me here.</a>
   </p>
   <br />
   <p>
-    On a seperate note, Open TV Mobile has finally launched! It's a bit of an early release so
-    expect a few bugs. Every purchase directly contributes to the development.
-    <a href="https://github.com/fredolx/open-tv-mobile" target="_blank"
-      >You can find the repo here.</a
-    >
+    This is a late Christmas gifts for y'all! A lot of theses changes were popular requests.
+    Also big changes are coming to the mobile version! Sorry for the delay, but I'm planning a big update
+    that will improve the experience for both phones and TV.
   </p>
   <br />
-  <p>
-    I am currently looking for a job in Canada. I would really appreciate if one of you could refer
-    me. I'm also availaible if you'd like me to build you an app or a website.
-    <a href="https://www.linkedin.com/in/frederic-lachapelle/" target="_blank"
-      >You can find my Linked In here.</a
-    >
-  </p>
-  <br />
-  <p>
-    If you'd like to follow updates about Open TV and related projects, I made a bluesky!
-    <a href="https://bsky.app/profile/fredoldev.bsky.social" target="_blank"
-      >You can follow me here.</a
-    >
-  </p>
-  <br />
-  <p>
-    Stalker (mac address login) users! I haven't forgotten about you and an upcoming app is in the
-    works. It's mostly done and you can get updates about it on my BlueSky.
-  </p>
-  <br />
-  <p>To enjoy some of the features listed here, you will need to refresh your sources.</p>
-  <br />
-  <h3>Changes this version</h3>
+  <h3>Changes</h3>
   <ul>
-    <li>Added support for series without seasons</li>
-    <li>Added support for episodes without seasons</li>
-    <li>Fixed a bug where a different episode would play than the one selected</li>
-    <li>Fixed xtream bugs</li>
-    <li>Fixed a bug where the search bar would show 'undefined'</li>
+    <li>Added a reload button next to the search bar</li>
+    <li>Added an option to hide categories and channels</li>
+    <li>Added an arrow to scroll back up</li>
+    <li>Improved channel tile UI to show if the channel is a favorite and
+      from which source it comes from
+    </li>
+    <li>Removing favorites and hiding channels will happen on next reload to avoid pagination issues</li>
+    <li>Massively improved database performance</li>
+    <li>
+      Tray icon support removed for Linux due to bugs/crashes and incompatibility with DEs. It will
+      be re-added in the future when support from the framework is more stable.
+    </li>
+    <li>
+      Added a per-source limit of playing streams so you don't need to manually close open streams
+      when switching channels
+    </li>
+    <li>
+      Downloads respect the per-source limit. Starting a download will close the oldest open stream
+      when the limit is reached. Opening a stream will also abort the oldest download
+    </li>
+    <li>Downloads should be more reliable now as they now use the channel's http headers,
+      and will also use a default user agent if none is specified
+    </li>
+    <li>Fixed a bug where scrolling too many categories would cause an error</li>
+    <li>Added user-agent configuration for fetching m3u links</li>
+    <li>Renamed app to Fred TV (sorry! trademark dispute. I will try to claim this new name)</li>
+    <li>Updated all libs</li>
   </ul>
-  <h3>Changes since this major version:</h3>
+  <h3>Upcoming improvements</h3>
   <ul>
-    <li>
-      Vastly improved navigation. Keyboard navigation should be a lot smoother. Use Escape or
-      Backspace to go back in any view. Press F1 for more details. Please send feedback if you like
-      keyboard-centric apps.
-    </li>
-    <li>
-      Categories view now follows your media type filters. Only want to see categories of vods? It's
-      here.
-    </li>
-    <li>Series are now organized in seasons. This was probably the most requested feature.</li>
-    <li>Playback of channels can be cancelled by just clicking on them again. No more zombies.</li>
-    <li>Squashed a ton of xtream bugs</li>
-    <li>Open TV now remembers your last search before entering a category, series or season</li>
-    <li>Re-added the scrollbar.</li>
-    <li>All episodes of a season are added to the queue when playing an episode.</li>
-    <li>Fixed a bug where you couldn't use left or right arrow keys in the search bar.</li>
-    <li>
-      The linux flatpak package now uses mpv as base, which means it should be kept up-to-date with
-      the latest dependencies in a more consistent fashion. If you had problems with the flatpak
-      package, please try it now.
-    </li>
-    <li>Updated all dependencies</li>
+    <li>Recording scheduling</li>
+    <li>Your idea here!</li>
   </ul>
 </div>
 <div class="modal-footer">
