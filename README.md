@@ -57,6 +57,34 @@ scoop install mpv ffmpeg yt-dlp # Windows
 choco install mpv ffmpeg yt-dlp # Windows alternative
 ```
 
+## Docker
+You can install Fred TV using Docker. It wouldn't necessarily be the recommended way to install it, but it's now possible.
+You should always install Fred TV from either Releases or Flatpak on Linux.
+
+For Nvidia GPUs:
+```
+docker run --rm -it \
+  --net=host \
+  --env="DISPLAY" \
+  --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+  --volume="$HOME/.Xauthority:/root/.Xauthority:rw" \
+  --volume="$HOME/.local/share/open-tv:/root/.local/share/open-tv" \
+  --gpus all \
+  ghcr.io/fredolx/open-tv:latest
+```
+For everyone else (Intel, AMD):
+```
+docker run --rm -it \
+  --net=host \
+  --env="DISPLAY" \
+  --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+  --volume="$HOME/.Xauthority:/root/.Xauthority:rw" \
+  --volume="$HOME/.local/share/open-tv:/root/.local/share/open-tv" \
+  --device /dev/dri \
+  ghcr.io/fredolx/open-tv:latest
+```
+
+
 ## Feedback
 Feel free to submit any kind of feedback by creating a new issue.
 
