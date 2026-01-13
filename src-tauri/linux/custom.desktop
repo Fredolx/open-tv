@@ -3,6 +3,8 @@ Categories={{categories}}
 Comment={{comment}}
 Exec=env WEBKIT_DISABLE_DMABUF_RENDERER=1 open_tv
 Icon={{icon}}
+Keywords=open;tv;opentv;
 Name={{name}}
+StartupWMClass=open_tv
 Terminal=false
 Type=Application
