@@ -5,5 +5,6 @@ Exec=open_tv
 Icon=dev.fredol.open-tv
 Keywords=open;tv;opentv;
 Name=Fred TV
+StartupWMClass=open_tv
 Terminal=false
 Type=Application
