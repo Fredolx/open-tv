@@ -1438,8 +1438,8 @@ fn row_to_epg(row: &Row) -> Result<EPGNotify, rusqlite::Error> {
     })
 }
 
-pub fn get_channel_preserve(tx: &Transaction, source_id: i64) -> Result<Vec<ChannelPreserve>> {
-    Ok(tx
+pub fn get_preserve(tx: &Transaction, source_id: i64) -> Result<Vec<ChannelPreserve>> {
+    let mut channels: Vec<ChannelPreserve> = tx
         .prepare(
             r#"
               SELECT name, favorite, last_watched, hidden
@@ -1451,7 +1451,23 @@ pub fn get_channel_preserve(tx: &Transaction, source_id: i64) -> Result<Vec<Chan
         )?
         .query_map(params![source_id], row_to_channel_preserve)?
         .filter_map(Result::ok)
-        .collect())
+        .collect();
+
+    let groups: Vec<ChannelPreserve> = tx
+        .prepare(
+            r#"
+              SELECT name, hidden
+              FROM groups
+              WHERE hidden = 1
+              AND source_id = ?
+            "#,
+        )?
+        .query_map(params![source_id], row_to_group_preserve)?
+        .filter_map(Result::ok)
+        .collect();
+
+    channels.extend(groups);
+    Ok(channels)
 }
 
 fn row_to_channel_preserve(row: &Row) -> Result<ChannelPreserve, rusqlite::Error> {
@@ -1460,6 +1476,17 @@ fn row_to_channel_preserve(row: &Row) -> Result<ChannelPreserve, rusqlite::Error
         favorite: row.get("favorite")?,
         last_watched: row.get("last_watched")?,
         hidden: row.get("hidden")?,
+        is_group: false,
+    })
+}
+
+fn row_to_group_preserve(row: &Row) -> Result<ChannelPreserve, rusqlite::Error> {
+    Ok(ChannelPreserve {
+        name: row.get("name")?,
+        hidden: row.get("hidden")?,
+        favorite: false,
+        last_watched: None,
+        is_group: true,
     })
 }
 
@@ -1468,22 +1495,34 @@ pub fn restore_preserve(
     source_id: i64,
     preserve: Vec<ChannelPreserve>,
 ) -> Result<()> {
-    for channel in preserve {
-        tx.execute(
-            r#"
-              UPDATE channels
-              SET favorite = ?, last_watched = ?, hidden = ?
-              WHERE name = ?
-              AND source_id = ?
-            "#,
-            params![
-                channel.favorite,
-                channel.last_watched,
-                channel.hidden,
-                channel.name,
-                source_id
-            ],
-        )?;
+    for item in preserve {
+        if item.is_group {
+            tx.execute(
+                r#"
+                  UPDATE groups
+                  SET hidden = ?
+                  WHERE name = ?
+                  AND source_id = ?
+                "#,
+                params![item.hidden, item.name, source_id],
+            )?;
+        } else {
+            tx.execute(
+                r#"
+                  UPDATE channels
+                  SET favorite = ?, last_watched = ?, hidden = ?
+                  WHERE name = ?
+                  AND source_id = ?
+                "#,
+                params![
+                    item.favorite,
+                    item.last_watched,
+                    item.hidden,
+                    item.name,
+                    source_id
+                ],
+            )?;
+        }
     }
     Ok(())
 }

@@ -1,4 +1,4 @@
-use crate::types::{AppState, Channel};
+use crate::types::{AppState, Channel, ChannelPreserve};
 use crate::{
     log::log,
     m3u,
@@ -289,7 +289,7 @@ pub fn serialize_to_file<T: Serialize>(obj: T, path: String) -> Result<()> {
 
 pub fn backup_favs(source_id: i64, path: String) -> Result<()> {
     sql::do_tx(|tx| {
-        let preserve = sql::get_channel_preserve(tx, source_id)?;
+        let preserve = sql::get_preserve(tx, source_id)?;
         serialize_to_file(preserve, path)?;
         Ok(())
     })?;
@@ -298,7 +298,7 @@ pub fn backup_favs(source_id: i64, path: String) -> Result<()> {
 
 pub fn restore_favs(source_id: i64, path: String) -> Result<()> {
     let data = std::fs::read_to_string(path)?;
-    let preserve = serde_json::from_str(&data)?;
+    let preserve: Vec<ChannelPreserve> = serde_json::from_str(&data)?;
     sql::do_tx(|tx| {
         sql::restore_preserve(tx, source_id, preserve)?;
         Ok(())

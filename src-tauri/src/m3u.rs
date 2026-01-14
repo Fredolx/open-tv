@@ -60,8 +60,8 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     let mut channel_preserve: Vec<ChannelPreserve> = Vec::new();
     let tx = sql.transaction()?;
     if wipe {
-        channel_preserve = sql::get_channel_preserve(&tx, source.id.context("no source id")?)
-            .unwrap_or(Vec::new());
+        channel_preserve = sql::get_preserve(&tx, source.id.context("no source id")?)
+            .unwrap_or_default();
         sql::wipe(&tx, source.id.context("no source id")?)?;
     } else {
         source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);

@@ -195,4 +195,6 @@ pub struct ChannelPreserve {
     pub favorite: bool,
     pub last_watched: Option<usize>,
     pub hidden: bool,
+    #[serde(default)]
+    pub is_group: bool,
 }
