@@ -17,6 +17,7 @@ use {
     },
 };
 
+pub mod bulk_action_type;
 pub mod epg;
 pub mod log;
 pub mod m3u;
@@ -60,6 +61,7 @@ pub fn run() {
             get_settings,
             update_settings,
             search,
+            bulk_update,
             get_xtream,
             refresh_source,
             get_episodes,
@@ -232,6 +234,11 @@ fn update_settings(settings: Settings) -> Result<(), String> {
 #[tauri::command(async)]
 fn search(filters: Filters) -> Result<Vec<Channel>, String> {
     sql::search(filters).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn bulk_update(filters: Filters, action: u8) -> Result<(), String> {
+    sql::bulk_update(filters, action).map_err(map_err_frontend)
 }
 
 #[tauri::command]
