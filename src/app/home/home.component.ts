@@ -41,6 +41,8 @@ import { Node } from "../models/node";
 import { NodeType } from "../models/nodeType";
 import { Stack } from "../models/stack";
 
+import { BulkActionType } from '../models/bulkActionType';
+
 @Component({
   selector: "app-home",
   templateUrl: "./home.component.html",
@@ -77,6 +79,7 @@ import { Stack } from "../models/stack";
 export class HomeComponent implements AfterViewInit, OnDestroy {
   channels: Channel[] = [];
   readonly viewModeEnum = ViewMode;
+  bulkActionType = BulkActionType;
   readonly mediaTypeEnum = MediaType;
   @ViewChild("search") search!: ElementRef;
   shortcuts: ShortcutInput[] = [];
@@ -631,5 +634,21 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   async toggleKeywords() {
     this.filters!.use_keywords = !this.filters!.use_keywords;
     await this.load();
+  }
+
+  async bulkAction(action: BulkActionType) {
+    if (this.filters?.series_id && !this.filters?.season) {
+      return;
+    }
+    const actionName = BulkActionType[action].toLowerCase();
+    this.loading = true;
+    try {
+      await invoke("bulk_update", { filters: this.filters, action: action });
+      await this.load();
+      this.toast.success(`Successfully executed bulk update: ${actionName}`);
+    } catch (e) {
+      this.error.handleError(e);
+    }
+    this.loading = false;
   }
 }

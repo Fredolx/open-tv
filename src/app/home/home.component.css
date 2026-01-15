@@ -52,17 +52,22 @@
   height: 1.75rem;
   width: 1.75rem;
   position: absolute;
-  right: 0.5rem;
+  right: 3rem;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
+  transition: transform 0.5s ease;
+}
+
+.keyword-search-icon:hover {
+  transform: translateY(-50%) scale(1.1);
 }
 
 .reload-icon {
   height: 1.75rem;
   width: 1.75rem;
   position: absolute;
-  right: 5.5rem;
+  right: 8rem;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
@@ -70,7 +75,7 @@
 }
 
 .reload-icon:hover {
-  transform: translateY(-50%) rotate(360deg);
+  transform: translateY(-50%) rotate(360deg) scale(1.1);
 }
 
 .search-box {
@@ -115,4 +120,25 @@
   100% {
     transform: scale(1);
   }
+}
+
+.bulk-action-icon {
+  height: 1.75rem;
+  width: 1.75rem;
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: transform 0.5s ease;
+}
+
+.bulk-action-icon:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+
+.bulk-action-icon.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
