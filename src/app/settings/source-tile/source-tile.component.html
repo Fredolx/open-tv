@@ -1,5 +1,8 @@
 <div class="source">
     <h4>{{source?.name}}</h4>
+    <div class="last-updated" *ngIf="source?.last_updated">
+        Refreshed: {{source?.last_updated! * 1000 | timeAgo}}
+    </div>
     <div class="row align-items-baseline mt-3">
         <div class="col-3">Type:</div>
         <div class="col">
@@ -15,10 +18,11 @@
         <div class="col" *ngIf="editing && source?.source_type != sourceTypeEnum.M3U">
             <input class="form-control form-control-sm" name="url" [(ngModel)]="editableSource.url">
         </div>
-        <div class="col wrap-text selectable d-flex align-items-center" *ngIf="editing && source?.source_type == sourceTypeEnum.M3U">
+        <div class="col wrap-text selectable d-flex align-items-center"
+            *ngIf="editing && source?.source_type == sourceTypeEnum.M3U">
             {{editableSource.url}}
-            <button *ngIf="editing && source?.source_type == sourceTypeEnum.M3U" (click)="browse()" [disabled]="memory.Loading"
-                class="btn btn-primary btn-sm d-inline-flex align-items-center ms-2">
+            <button *ngIf="editing && source?.source_type == sourceTypeEnum.M3U" (click)="browse()"
+                [disabled]="memory.Loading" class="btn btn-primary btn-sm d-inline-flex align-items-center ms-2">
                 <span>Browse</span>
                 <svg fill="currentColor" class="ms-1 pen" viewBox="0 0 24 24">
                     <path
@@ -27,34 +31,38 @@
             </button>
         </div>
     </div>
-    <div *ngIf="source?.source_type != sourceTypeEnum.M3U && source?.source_type != sourceTypeEnum.Custom" class="row mt-2"
-        [ngClass]="{'align-items-center': editing, 'align-items-baseline': !editing}">
+    <div *ngIf="source?.source_type != sourceTypeEnum.M3U && source?.source_type != sourceTypeEnum.Custom"
+        class="row mt-2" [ngClass]="{'align-items-center': editing, 'align-items-baseline': !editing}">
         <div ngbTooltip="User agent to be used when fetching/refreshing playlists" class="col-3">User-agent:</div>
         <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
             {{source?.user_agent || defaultUserAgent}}
         </div>
         <div class="col" *ngIf="editing">
-            <input class="form-control form-control-sm" name="user_agent" [(ngModel)]="editableSource.user_agent" [placeholder]="defaultUserAgent">
+            <input class="form-control form-control-sm" name="user_agent" [(ngModel)]="editableSource.user_agent"
+                [placeholder]="defaultUserAgent">
         </div>
     </div>
-    <div class="row mt-2"
-        [ngClass]="{'align-items-center': editing, 'align-items-baseline': !editing}">
+    <div class="row mt-2" [ngClass]="{'align-items-center': editing, 'align-items-baseline': !editing}">
         <div ngbTooltip="User agent to be used when playing streams" class="col-3">Stream user-agent:</div>
         <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
             {{source?.stream_user_agent}}
         </div>
         <div class="col" *ngIf="editing">
-            <input class="form-control form-control-sm" name="stream_user_agent" [(ngModel)]="editableSource.stream_user_agent">
+            <input class="form-control form-control-sm" name="stream_user_agent"
+                [(ngModel)]="editableSource.stream_user_agent">
         </div>
     </div>
-    <div *ngIf="source?.source_type != sourceTypeEnum.Custom && source?.source_type != sourceTypeEnum.CustomImport" class="row mt-2"
-        [ngClass]="{'align-items-center': editing, 'align-items-baseline': !editing}">
-        <div class="col-3" ngbTooltip="Limits the number of concurrent streams. When the limit is reached and a new stream is opened, the oldest stream is closed">Max Streams:</div>
+    <div *ngIf="source?.source_type != sourceTypeEnum.Custom && source?.source_type != sourceTypeEnum.CustomImport"
+        class="row mt-2" [ngClass]="{'align-items-center': editing, 'align-items-baseline': !editing}">
+        <div class="col-3"
+            ngbTooltip="Limits the number of concurrent streams. When the limit is reached and a new stream is opened, the oldest stream is closed">
+            Max Streams:</div>
         <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
             {{source?.max_streams || '1'}}
         </div>
         <div class="col" *ngIf="editing">
-            <input class="form-control form-control-sm" type="number" name="streams" [(ngModel)]="editableSource.max_streams" [placeholder]="1">
+            <input class="form-control form-control-sm" type="number" name="streams"
+                [(ngModel)]="editableSource.max_streams" [placeholder]="1">
         </div>
     </div>
     <div class="row align-items-baseline mt-2" *ngIf="source?.source_type == 2">
