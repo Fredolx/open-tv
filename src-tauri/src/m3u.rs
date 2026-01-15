@@ -60,8 +60,8 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     let mut channel_preserve: Vec<ChannelPreserve> = Vec::new();
     let tx = sql.transaction()?;
     if wipe {
-        channel_preserve = sql::get_preserve(&tx, source.id.context("no source id")?)
-            .unwrap_or_default();
+        channel_preserve =
+            sql::get_preserve(&tx, source.id.context("no source id")?).unwrap_or_default();
         sql::wipe(&tx, source.id.context("no source id")?)?;
     } else {
         source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
@@ -323,53 +323,5 @@ mod test_m3u {
         assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="Name Of Channel" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(true)).unwrap().name == "Name Of Channel");
         assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(true)).unwrap().name == "Id Of Channel");
         assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(false)).unwrap().name == "Alt Name Of Channel");
-    }
-
-    #[test]
-    fn test_read_m3u8() {
-        crate::sql::drop_db().unwrap_or_default();
-        crate::sql::create_or_initialize_db().unwrap();
-        let now = Instant::now();
-        let source = Source {
-            url: Some("/home/fred/Downloads/get.php".to_string()),
-            name: "main".to_string(),
-            id: None,
-            password: None,
-            username: None,
-            url_origin: None,
-            source_type: crate::source_type::M3U,
-            enabled: true,
-            use_tvg_id: Some(true),
-            user_agent: None,
-            max_streams: Some(1),
-            stream_user_agent: None,
-        };
-        read_m3u8(source, false).unwrap();
-        std::fs::write("bench.txt", now.elapsed().as_millis().to_string()).unwrap();
-    }
-
-    #[tokio::test]
-    async fn test_get_m3u8_from_link() {
-        crate::sql::drop_db().unwrap_or_default();
-        crate::sql::create_or_initialize_db().unwrap();
-        let now = Instant::now();
-        let source = Source {
-            url: Some(env::var("OPEN_TV_TEST_LINK").unwrap()),
-            name: "m3ulink1".to_string(),
-            id: None,
-            password: None,
-            username: None,
-            url_origin: None,
-            source_type: crate::source_type::M3U_LINK,
-            enabled: true,
-            use_tvg_id: Some(true),
-            user_agent: Some("Fred TV".to_string()),
-            max_streams: Some(1),
-            stream_user_agent: None,
-        };
-        get_m3u8_from_link(source, false).await.unwrap();
-        let time = now.elapsed().as_millis().to_string();
-        println!("{time}");
-        std::fs::write("bench2.txt", time).unwrap();
     }
 }

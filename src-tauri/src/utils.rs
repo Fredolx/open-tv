@@ -41,12 +41,16 @@ static ILLEGAL_CHARS_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"[<>:"/\\|?*\x00-\x1F]"#).unwrap());
 
 pub async fn refresh_source(source: Source) -> Result<()> {
+    let id = source.id;
     match source.source_type {
         source_type::M3U => m3u::read_m3u8(source, true)?,
         source_type::M3U_LINK => m3u::get_m3u8_from_link(source, true).await?,
         source_type::XTREAM => xtream::get_xtream(source, true).await?,
         source_type::CUSTOM => {}
         _ => return Err(anyhow!("invalid source_type")),
+    }
+    if let Some(id) = id {
+        sql::update_source_last_updated(id)?;
     }
     Ok(())
 }

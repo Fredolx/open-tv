@@ -227,6 +227,12 @@ fn apply_migrations() -> Result<()> {
               ANALYZE;
             "#,
         ),
+        M::up(
+            r#"
+              ALTER TABLE sources ADD COLUMN last_updated integer;
+              ANALYZE;
+            "#,
+        ),
     ]);
     migrations.to_latest(&mut sql)?;
     Ok(())
@@ -252,8 +258,8 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
         return Ok(id);
     }
     tx.execute(
-    "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id, user_agent, max_streams) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id, source.user_agent, source.max_streams],
+    "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id, user_agent, max_streams, last_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id, source.user_agent, source.max_streams, chrono::Utc::now().timestamp()],
     )?;
     Ok(tx.last_insert_rowid())
 }
@@ -975,6 +981,7 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
         user_agent: row.get("user_agent")?,
         max_streams: row.get("max_streams")?,
         stream_user_agent: row.get("stream_user_agent")?,
+        last_updated: row.get("last_updated")?,
     })
 }
 
@@ -1034,6 +1041,7 @@ pub fn get_custom_source(name: String) -> Source {
         user_agent: None,
         max_streams: None,
         stream_user_agent: None,
+        last_updated: None,
     }
 }
 
@@ -1589,4 +1597,13 @@ pub fn find_all_episodes_after(channel: &Channel) -> Result<Vec<String>> {
         })?
         .filter_map(Result::ok)
         .collect())
+}
+
+pub fn update_source_last_updated(source_id: i64) -> Result<()> {
+    let sql = get_conn()?;
+    sql.execute(
+        "UPDATE sources SET last_updated = ? WHERE id = ?",
+        params![chrono::Utc::now().timestamp(), source_id],
+    )?;
+    Ok(())
 }

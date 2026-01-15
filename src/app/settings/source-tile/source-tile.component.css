@@ -93,3 +93,11 @@ button .pen {
 button:hover .pen {
     transform: scale(125%);
 }
+
+.last-updated {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    opacity: 0.5;
+    font-size: 0.8em;
+}

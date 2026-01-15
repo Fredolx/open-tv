@@ -12,4 +12,5 @@ export class Source {
   user_agent?: string;
   max_streams?: number;
   stream_user_agent?: string;
+  last_updated?: number;
 }

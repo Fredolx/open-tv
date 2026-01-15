@@ -32,9 +32,12 @@ import { SortButtonComponent } from './home/sort-button/sort-button.component';
 import { SortItemComponent } from './home/sort-button/sort-item/sort-item.component';
 import { DownloadManagerComponent } from './download-manager/download-manager.component';
 
+import { TimeAgoPipe } from "./pipes/time-ago.pipe";
+
 @NgModule({
   declarations: [
     AppComponent,
+    TimeAgoPipe,
     SetupComponent,
     LoadingComponent,
     SourceNameExistsValidator,
