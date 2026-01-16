@@ -600,7 +600,7 @@ fn season_row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Er
         tv_archive: None,
         url: None,
         episode_num: None,
-        hidden: false,
+        hidden: Some(false),
     })
 }
 
@@ -1305,7 +1305,7 @@ fn row_to_custom_channel(row: &Row) -> Result<CustomChannel, rusqlite::Error> {
             tv_archive: None,
             season_id: None,
             episode_num: None,
-            hidden: false,
+            hidden: Some(false),
         },
         headers: Some(ChannelHttpHeaders {
             http_origin: row.get("http_origin")?,
@@ -1344,7 +1344,7 @@ pub fn get_custom_groups(source_id: i64) -> Result<Vec<ExportedGroup>> {
                 image: group.image,
                 source_id: None,
                 id: None,
-                hidden: false,
+                hidden: Some(false),
             },
             channels: get_custom_channels(group.id, source_id)?,
         });
