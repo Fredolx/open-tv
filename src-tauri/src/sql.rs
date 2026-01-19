@@ -657,7 +657,10 @@ fn apply_bulk_categories(
     }
 
     let sql = get_conn()?;
-    let media_types = filters.media_types.as_ref().context("media types not found")?;
+    let media_types = filters
+        .media_types
+        .as_ref()
+        .context("media types not found")?;
 
     let mut sql_query = format!(
         r#"
@@ -686,16 +689,14 @@ fn apply_bulk_categories(
     Ok(())
 }
 
-fn apply_bulk_hidden(
-    filters: &Filters,
-    field: &str,
-    value: u8,
-    keywords: &[String],
-) -> Result<()> {
+fn apply_bulk_hidden(filters: &Filters, field: &str, value: u8, keywords: &[String]) -> Result<()> {
     let sql = get_conn()?;
     let media_types = match filters.series_id.is_some() {
         true => vec![1],
-        false => filters.media_types.clone().context("media types not found")?,
+        false => filters
+            .media_types
+            .clone()
+            .context("media types not found")?,
     };
 
     let mut params: Vec<&dyn rusqlite::ToSql> = Vec::new();
@@ -729,15 +730,18 @@ fn apply_bulk_hidden(
             SET {} = {}
             WHERE ({})
             AND source_id IN ({})
+            AND (media_type IS NULL OR media_type IN ({}))
             AND hidden = 1
             "#,
             field,
             value,
             get_keywords_sql(keywords.len()),
-            generate_placeholders(filters.source_ids.len())
+            generate_placeholders(filters.source_ids.len()),
+            generate_placeholders(media_types.len())
         );
         params_groups.extend(to_to_sql(keywords));
         params_groups.extend(to_to_sql(&filters.source_ids));
+        params_groups.extend(to_to_sql(&media_types));
         sql.execute(&sql_query_groups, params_from_iter(params_groups))?;
     }
     Ok(())
@@ -752,7 +756,10 @@ fn apply_bulk_channels(
     let sql = get_conn()?;
     let media_types = match filters.series_id.is_some() {
         true => vec![1],
-        false => filters.media_types.clone().context("media types not found")?,
+        false => filters
+            .media_types
+            .clone()
+            .context("media types not found")?,
     };
 
     let mut sql_query = format!(
@@ -788,9 +795,8 @@ fn apply_bulk_channels(
         sql_query += "\nAND last_watched IS NOT NULL";
     }
 
-    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(
-        media_types.len() + filters.source_ids.len() + keywords.len() + 3,
-    );
+    let mut params: Vec<&dyn rusqlite::ToSql> =
+        Vec::with_capacity(media_types.len() + filters.source_ids.len() + keywords.len() + 3);
     params.extend(to_to_sql(keywords));
     params.extend(to_to_sql(&media_types));
     params.extend(to_to_sql(&filters.source_ids));
@@ -842,11 +848,17 @@ fn search_hidden(filters: Filters) -> Result<Vec<Channel>> {
         FROM groups
         WHERE ({})
         AND source_id IN ({})
+        AND (media_type IS NULL OR media_type IN ({}))
         AND hidden = 1
         ORDER BY name ASC
         LIMIT ?, ?
         "#,
-        keywords_sql, media_placeholders, source_placeholders, keywords_sql, source_placeholders
+        keywords_sql,
+        media_placeholders,
+        source_placeholders,
+        keywords_sql,
+        source_placeholders,
+        media_placeholders
     );
 
     let mut params: Vec<&dyn rusqlite::ToSql> = Vec::new();
@@ -859,6 +871,7 @@ fn search_hidden(filters: Filters) -> Result<Vec<Channel>> {
     // Groups params
     params.extend(to_to_sql(&keywords));
     params.extend(to_to_sql(&filters.source_ids));
+    params.extend(to_to_sql(&media_types));
 
     params.push(&offset);
     params.push(&PAGE_SIZE);
