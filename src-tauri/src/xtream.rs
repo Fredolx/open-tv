@@ -151,8 +151,8 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
     let tx = sql.transaction()?;
     let mut channel_preserve: Vec<ChannelPreserve> = Vec::new();
     if wipe {
-        channel_preserve = sql::get_preserve(&tx, source.id.context("no source id")?)
-            .unwrap_or_default();
+        channel_preserve =
+            sql::get_preserve(&tx, source.id.context("no source id")?).unwrap_or_default();
         sql::wipe(&tx, source.id.context("Source should have id")?)?;
     } else {
         source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
@@ -278,7 +278,7 @@ fn convert_xtream_live_to_channel(
         tv_archive: get_serde_json_u64(&stream.tv_archive).map(|x| x == 1),
         season_id: None,
         episode_num: None,
-        hidden: false,
+        hidden: Some(false),
     })
 }
 
@@ -502,7 +502,7 @@ fn episode_to_channel(
         group_id: None,
         favorite: false,
         tv_archive: None,
-        hidden: false,
+        hidden: Some(false),
     })
 }
 

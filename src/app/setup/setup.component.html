@@ -23,16 +23,19 @@
         <form name="setupForm" #form="ngForm" (ngSubmit)="submit()">
             <div class="row mt-2 justify-content-center">
                 <div class="col-lg-6 col-md-8">
-                    <input tabindex="0" autocomplete="off" #name="ngModel" [emptyDisabled]="source.source_type == sourceTypeEnum.CustomImport" source-name-exists name="name" empty
-                        class="form-control" [(ngModel)]="source.name" placeholder="Nickname for this source">
+                    <input tabindex="0" autocomplete="off" #name="ngModel"
+                        [emptyDisabled]="source.source_type == sourceTypeEnum.CustomImport" source-name-exists
+                        name="name" empty class="form-control" [(ngModel)]="source.name"
+                        placeholder="Nickname for this source">
                 </div>
             </div>
-            <div class="row mt-1 ps-3">
-                <div *ngIf="name.errors?.['sourceNameExists']" class="col-lg-6 col-md-8 text-danger text-center">
+            <div *ngIf="name.errors?.['sourceNameExists']" class="row mt-1 ps-3">
+                <div class="col-lg-6 col-md-8 text-danger text-center">
                     This source name is already taken
                 </div>
             </div>
-            <div *ngIf="source.source_type != sourceTypeEnum.M3U && source.source_type != sourceTypeEnum.Custom && source.source_type != sourceTypeEnum.CustomImport">
+            <div
+                *ngIf="source.source_type != sourceTypeEnum.M3U && source.source_type != sourceTypeEnum.Custom && source.source_type != sourceTypeEnum.CustomImport">
                 <div class="row justify-content-center mt-2">
                     <div class="col-lg-6 col-md-8">
                         <input autocomplete="off" name="url" empty class="form-control" [(ngModel)]="source.url"
@@ -40,19 +43,22 @@
                     </div>
                 </div>
             </div>
-            <div *ngIf="source.source_type == sourceTypeEnum.M3ULink || source.source_type == sourceTypeEnum.Xtream" class="row mt-2 justify-content-center">
+            <div *ngIf="source.source_type == sourceTypeEnum.M3ULink || source.source_type == sourceTypeEnum.Xtream"
+                class="row mt-2 justify-content-center">
                 <div class="col-lg-6 col-md-8">
                     <input autocomplete="off" name="user-agent" class="form-control" [(ngModel)]="source.user_agent"
                         placeholder="User-Agent (optional)">
                 </div>
             </div>
 
-            <div *ngIf="source.source_type == sourceTypeEnum.M3U || source.source_type == sourceTypeEnum.M3ULink" class="row mt-2 justify-content-center">
+            <div *ngIf="source.source_type == sourceTypeEnum.M3U || source.source_type == sourceTypeEnum.M3ULink"
+                class="row mt-2 justify-content-center">
                 <div class="col-lg-6 col-md-8">
                     <div class="form-check form-switch">
                         <input name="use-tvg-id" [(ngModel)]="source.use_tvg_id" id="use-tvg-id"
                             class="form-check-input" type="checkbox">
-                        <label class="form-check-label" for="use-tvg-id">Use TVG-ID for names when TVG-NAME is unavailable</label>
+                        <label class="form-check-label" for="use-tvg-id">Use TVG-ID for names when TVG-NAME is
+                            unavailable</label>
                     </div>
                 </div>
             </div>

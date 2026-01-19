@@ -28,7 +28,7 @@ pub fn share_custom_group(group: Channel, path: String) -> Result<()> {
             image: group.image,
             name: group.name,
             source_id: None,
-            hidden: false,
+            hidden: Some(false),
         },
         channels: sql::get_custom_channels(group.id, group.source_id.context("no source id?")?)?,
     };

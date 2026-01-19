@@ -32,7 +32,7 @@ pub struct Channel {
     pub season_id: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub episode_num: Option<i64>,
-    pub hidden: bool,
+    pub hidden: Option<bool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize, Default)]
@@ -126,7 +126,7 @@ pub struct Group {
     pub image: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source_id: Option<i64>,
-    pub hidden: bool,
+    pub hidden: Option<bool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
