@@ -838,7 +838,7 @@ fn search_hidden(filters: Filters) -> Result<Vec<Channel>> {
 
     let sql_query = format!(
         r#"
-        SELECT id, image, name, series_id, source_id, stream_id, tv_archive, url, episode_num, hidden, media_type, NULL as group_id, NULL as season_id, 0 as favorite
+        SELECT id, image, name, series_id, source_id, stream_id, tv_archive, url, episode_num, hidden, media_type, NULL as group_id, NULL as season_id, favorite
         FROM channels
         WHERE ({})
         AND media_type IN ({})
