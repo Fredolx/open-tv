@@ -182,7 +182,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   async removeFromHistory() {
     try {
       await invoke("remove_from_history", { id: this.channel!.id });
-      this.memory.Refresh.next(true);
+      this.memory.Refresh.next(false);
       this.toastr.success(`Removed "${this.channel?.name}" from history`);
     } catch (e) {
       this.error.handleError(e, `Failed to remove "${this.channel?.name}" from history`);
@@ -349,7 +349,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
         id: this.channel?.id,
         doChannelsUpdate: false,
       });
-      this.memory.Refresh.next(false);
+      this.memory.Refresh.next(true);
       this.error.success("Successfully deleted category");
     } catch (e) {
       this.error.handleError(e);
@@ -382,7 +382,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     await this.memory.tryIPC("Successfully deleted channel", "Failed to delete channel", () =>
       invoke("delete_custom_channel", { id: this.channel?.id }),
     );
-    this.memory.Refresh.next(false);
+    this.memory.Refresh.next(true);
   }
 
   isDownloading() {

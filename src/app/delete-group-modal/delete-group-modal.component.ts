@@ -48,7 +48,7 @@ export class DeleteGroupModalComponent {
     try {
       await invoke("delete_custom_group", { id: this.group?.id, newId: this.new_group_id, doChannelsUpdate: true });
       this.error.success("Successfully deleted category");
-      this.memory.Refresh.next(false);
+      this.memory.Refresh.next(true);
       this.activeModal.close("close");
     }
     catch (e) {

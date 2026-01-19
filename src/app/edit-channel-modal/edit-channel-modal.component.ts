@@ -128,7 +128,7 @@ export class EditChannelModalComponent implements OnInit {
   async update_channel(channel: CustomChannel) {
     try {
       await invoke("edit_custom_channel", { channel: channel });
-      this.memory.Refresh.next(false);
+      this.memory.Refresh.next(true);
       this.error.success("Successfully updated channel");
       this.activeModal.close('close');
     }
@@ -161,4 +161,3 @@ export class EditChannelModalComponent implements OnInit {
     this.subscriptions.forEach(x => x.unsubscribe());
   }
 }
-

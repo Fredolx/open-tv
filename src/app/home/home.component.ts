@@ -236,8 +236,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       }),
     );
     this.subscriptions.push(
-      this.memory.Refresh.subscribe((favs) => {
+      this.memory.Refresh.subscribe((scroll) => {
         this.load();
+        if(scroll)
+          window.scrollTo({ top: 0, behavior: "instant" });
       }),
     );
     this.subscriptions.push(
