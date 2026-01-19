@@ -643,7 +643,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       return;
     }
     const actionName = BulkActionType[action].toLowerCase();
-    this.loading = true;
     try {
       await invoke("bulk_update", { filters: this.filters, action: action });
       await this.load();
@@ -651,6 +650,5 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     } catch (e) {
       this.error.handleError(e);
     }
-    this.loading = false;
   }
 }
