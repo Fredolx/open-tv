@@ -708,6 +708,7 @@ fn apply_bulk_hidden(filters: &Filters, field: &str, value: u8, keywords: &[Stri
         WHERE ({})
         AND media_type IN ({})
         AND source_id IN ({})
+        AND url IS NOT NULL
         AND hidden = 1
         "#,
         field,
