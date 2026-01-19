@@ -13,41 +13,15 @@
     <a href="https://bsky.app/profile/fredoldev.bsky.social" target="_blank">You can follow me here.</a>
   </p>
   <br />
-  <p>
-    This is a late Christmas gifts for y'all! A lot of theses changes were popular requests.
-    Also big changes are coming to the mobile version! Sorry for the delay, but I'm planning a big update
-    that will improve the experience for both phones and TV.
-  </p>
-  <br />
   <h3>Changes</h3>
   <ul>
-    <li>Added a reload button next to the search bar</li>
-    <li>Added an option to hide categories and channels</li>
-    <li>Added an arrow to scroll back up</li>
-    <li>Improved channel tile UI to show if the channel is a favorite and
-      from which source it comes from
-    </li>
-    <li>Removing favorites and hiding channels will happen on next reload to avoid pagination issues</li>
-    <li>Massively improved database performance</li>
-    <li>
-      Tray icon support removed for Linux due to bugs/crashes and incompatibility with DEs. It will
-      be re-added in the future when support from the framework is more stable.
-    </li>
-    <li>
-      Added a per-source limit of playing streams so you don't need to manually close open streams
-      when switching channels
-    </li>
-    <li>
-      Downloads respect the per-source limit. Starting a download will close the oldest open stream
-      when the limit is reached. Opening a stream will also abort the oldest download
-    </li>
-    <li>Downloads should be more reliable now as they now use the channel's http headers,
-      and will also use a default user agent if none is specified
-    </li>
-    <li>Fixed a bug where scrolling too many categories would cause an error</li>
-    <li>Added user-agent configuration for fetching m3u links</li>
-    <li>Renamed app to Fred TV (sorry! trademark dispute. I will try to claim this new name)</li>
-    <li>Updated all libs</li>
+    <li>Fixed catchup download/play erroring out</li>
+    <li>Fixed creating new custom channels erroring out</li>
+    <li>Fixed favorites not showing up in hidden view</li>
+    <li>Improved linux support</li>
+    <li>Fixed tag search icon</li>
+    <li>Fixed hidden categories not persisting on refresh</li>
+    <li>Added bulk operations in search bar</li>
   </ul>
   <h3>Upcoming improvements</h3>
   <ul>

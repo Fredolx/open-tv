@@ -29,6 +29,19 @@
   </categories>
   <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
   <releases>
+  <release version="1.9.1" date="2026-01-18">
+    <description>
+      <ul>
+        <li>Fixed catchup download/play erroring out</li>
+        <li>Fixed creating new custom channels erroring out</li>
+        <li>Fixed favorites not showing up in hidden view</li>
+        <li>Improved linux support</li>
+        <li>Fixed tag search icon</li>
+        <li>Fixed hidden categories not persisting on refresh</li>
+        <li>Added bulk operations in search bar</li>
+      </ul>
+    </description>
+  </release>
   <release version="1.9.0" date="2026-01-11">
     <description>
       <ul>
