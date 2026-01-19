@@ -604,6 +604,216 @@ fn season_row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Er
     })
 }
 
+use crate::bulk_action_type;
+
+fn get_action_params(action: u8) -> Result<(&'static str, u8)> {
+    match action {
+        bulk_action_type::HIDE => Ok((bulk_action_type::FIELD_HIDDEN, 1)),
+        bulk_action_type::UNHIDE => Ok((bulk_action_type::FIELD_HIDDEN, 0)),
+        bulk_action_type::FAVORITE => Ok((bulk_action_type::FIELD_FAVORITE, 1)),
+        bulk_action_type::UNFAVORITE => Ok((bulk_action_type::FIELD_FAVORITE, 0)),
+        _ => Err(anyhow!("Invalid action")),
+    }
+}
+
+pub fn bulk_update(filters: Filters, action: u8) -> Result<()> {
+    if filters.series_id.is_some() && filters.season.is_none() {
+        return Ok(());
+    }
+
+    let (field, value) = get_action_params(action)?;
+
+    let query = filters.query.as_deref().unwrap_or("");
+    let keywords: Vec<String> = match filters.use_keywords {
+        true => query
+            .split(" ")
+            .map(|f| format!("%{f}%").to_string())
+            .collect(),
+        false => vec![format!("%{query}%")],
+    };
+
+    if filters.view_type == view_type::CATEGORIES
+        && filters.group_id.is_none()
+        && filters.series_id.is_none()
+    {
+        return apply_bulk_categories(&filters, field, value, &keywords);
+    }
+
+    if filters.view_type == view_type::HIDDEN {
+        return apply_bulk_hidden(&filters, field, value, &keywords);
+    }
+
+    apply_bulk_channels(&filters, field, value, &keywords)
+}
+
+fn apply_bulk_categories(
+    filters: &Filters,
+    field: &str,
+    value: u8,
+    keywords: &[String],
+) -> Result<()> {
+    if field == bulk_action_type::FIELD_FAVORITE {
+        return Ok(());
+    }
+
+    let sql = get_conn()?;
+    let media_types = filters
+        .media_types
+        .as_ref()
+        .context("media types not found")?;
+
+    let mut sql_query = format!(
+        r#"
+        UPDATE groups
+        SET {} = {}
+        WHERE ({})
+        AND source_id in ({})
+        AND (media_type IS NULL OR media_type in ({}))
+        "#,
+        field,
+        value,
+        get_keywords_sql(keywords.len()),
+        generate_placeholders(filters.source_ids.len()),
+        generate_placeholders(media_types.len())
+    );
+
+    sql_query += "\nAND hidden = 0";
+
+    let mut params: Vec<&dyn rusqlite::ToSql> =
+        Vec::with_capacity(keywords.len() + filters.source_ids.len() + media_types.len());
+    params.extend(to_to_sql(keywords));
+    params.extend(to_to_sql(&filters.source_ids));
+    params.extend(to_to_sql(media_types));
+
+    sql.execute(&sql_query, params_from_iter(params))?;
+    Ok(())
+}
+
+fn apply_bulk_hidden(filters: &Filters, field: &str, value: u8, keywords: &[String]) -> Result<()> {
+    let sql = get_conn()?;
+    let media_types = match filters.series_id.is_some() {
+        true => vec![1],
+        false => filters
+            .media_types
+            .clone()
+            .context("media types not found")?,
+    };
+
+    let mut params: Vec<&dyn rusqlite::ToSql> = Vec::new();
+
+    let sql_query_channels = format!(
+        r#"
+        UPDATE channels
+        SET {} = {}
+        WHERE ({})
+        AND media_type IN ({})
+        AND source_id IN ({})
+        AND url IS NOT NULL
+        AND hidden = 1
+        "#,
+        field,
+        value,
+        get_keywords_sql(keywords.len()),
+        generate_placeholders(media_types.len()),
+        generate_placeholders(filters.source_ids.len())
+    );
+    params.extend(to_to_sql(keywords));
+    params.extend(to_to_sql(&media_types));
+    params.extend(to_to_sql(&filters.source_ids));
+
+    sql.execute(&sql_query_channels, params_from_iter(params))?;
+
+    if field != bulk_action_type::FIELD_FAVORITE {
+        let mut params_groups: Vec<&dyn rusqlite::ToSql> = Vec::new();
+        let sql_query_groups = format!(
+            r#"
+            UPDATE groups
+            SET {} = {}
+            WHERE ({})
+            AND source_id IN ({})
+            AND (media_type IS NULL OR media_type IN ({}))
+            AND hidden = 1
+            "#,
+            field,
+            value,
+            get_keywords_sql(keywords.len()),
+            generate_placeholders(filters.source_ids.len()),
+            generate_placeholders(media_types.len())
+        );
+        params_groups.extend(to_to_sql(keywords));
+        params_groups.extend(to_to_sql(&filters.source_ids));
+        params_groups.extend(to_to_sql(&media_types));
+        sql.execute(&sql_query_groups, params_from_iter(params_groups))?;
+    }
+    Ok(())
+}
+
+fn apply_bulk_channels(
+    filters: &Filters,
+    field: &str,
+    value: u8,
+    keywords: &[String],
+) -> Result<()> {
+    let sql = get_conn()?;
+    let media_types = match filters.series_id.is_some() {
+        true => vec![1],
+        false => filters
+            .media_types
+            .clone()
+            .context("media types not found")?,
+    };
+
+    let mut sql_query = format!(
+        r#"
+        UPDATE channels
+        SET {} = {}
+        WHERE ({})
+        AND media_type IN ({})
+        AND source_id IN ({})
+        AND url IS NOT NULL
+        AND hidden = 0"#,
+        field,
+        value,
+        get_keywords_sql(keywords.len()),
+        generate_placeholders(media_types.len()),
+        generate_placeholders(filters.source_ids.len()),
+    );
+
+    if filters.view_type == view_type::FAVORITES && filters.series_id.is_none() {
+        sql_query += "\nAND favorite = 1";
+    }
+
+    if filters.series_id.is_some() {
+        sql_query += "\nAND series_id = ?";
+    } else if filters.group_id.is_some() {
+        sql_query += "\nAND group_id = ?";
+    }
+    if filters.season.is_some() {
+        sql_query += "\nAND season_id = ?";
+    }
+
+    if filters.view_type == view_type::HISTORY {
+        sql_query += "\nAND last_watched IS NOT NULL";
+    }
+
+    let mut params: Vec<&dyn rusqlite::ToSql> =
+        Vec::with_capacity(media_types.len() + filters.source_ids.len() + keywords.len() + 3);
+    params.extend(to_to_sql(keywords));
+    params.extend(to_to_sql(&media_types));
+    params.extend(to_to_sql(&filters.source_ids));
+    if let Some(ref series_id) = filters.series_id {
+        params.push(series_id);
+    } else if let Some(ref group) = filters.group_id {
+        params.push(group);
+    }
+    if let Some(ref season) = filters.season {
+        params.push(season);
+    }
+
+    sql.execute(&sql_query, params_from_iter(params))?;
+    Ok(())
+}
+
 fn search_hidden(filters: Filters) -> Result<Vec<Channel>> {
     let sql = get_conn()?;
     let offset: u16 = filters.page as u16 * PAGE_SIZE as u16 - PAGE_SIZE as u16;
@@ -628,7 +838,7 @@ fn search_hidden(filters: Filters) -> Result<Vec<Channel>> {
 
     let sql_query = format!(
         r#"
-        SELECT id, image, name, series_id, source_id, stream_id, tv_archive, url, episode_num, hidden, media_type, NULL as group_id, NULL as season_id, 0 as favorite
+        SELECT id, image, name, series_id, source_id, stream_id, tv_archive, url, episode_num, hidden, media_type, NULL as group_id, NULL as season_id, favorite
         FROM channels
         WHERE ({})
         AND media_type IN ({})
@@ -639,11 +849,17 @@ fn search_hidden(filters: Filters) -> Result<Vec<Channel>> {
         FROM groups
         WHERE ({})
         AND source_id IN ({})
+        AND (media_type IS NULL OR media_type IN ({}))
         AND hidden = 1
         ORDER BY name ASC
         LIMIT ?, ?
         "#,
-        keywords_sql, media_placeholders, source_placeholders, keywords_sql, source_placeholders
+        keywords_sql,
+        media_placeholders,
+        source_placeholders,
+        keywords_sql,
+        source_placeholders,
+        media_placeholders
     );
 
     let mut params: Vec<&dyn rusqlite::ToSql> = Vec::new();
@@ -656,6 +872,7 @@ fn search_hidden(filters: Filters) -> Result<Vec<Channel>> {
     // Groups params
     params.extend(to_to_sql(&keywords));
     params.extend(to_to_sql(&filters.source_ids));
+    params.extend(to_to_sql(&media_types));
 
     params.push(&offset);
     params.push(&PAGE_SIZE);

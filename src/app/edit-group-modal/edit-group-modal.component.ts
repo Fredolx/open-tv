@@ -39,7 +39,7 @@ export class EditGroupModalComponent {
       this.sanitize();
       await invoke("edit_custom_group", { group: this.group });
       this.error.success("Successfully updated category");
-      this.memory.Refresh.next(false);
+      this.memory.Refresh.next(true);
       this.activeModal.close("close");
     }
     catch (e) {
