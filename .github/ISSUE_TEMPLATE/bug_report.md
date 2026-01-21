@@ -13,7 +13,7 @@ A clear and concise description of what the bug is. If it's a complex bug, pleas
 **Screenshots/Videos**
 If applicable, add screenshots/videos to help explain your problem.
 
-**Desktop (please complete the following information):**
+**Please provide the following information**
  - OS: [e.g. Windows 11 Enterprise IOT LTSC]
  - App Version [e.g. 1.9.0]
  - How the app was installed [e.g. Microsoft Store, Flathub..]
