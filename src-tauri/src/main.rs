@@ -21,7 +21,9 @@ fn main() -> Result<()> {
 pub fn apply_gpu_fixes() {
     if Path::new("/proc/driver/nvidia").exists() {
         eprintln!("NVIDIA GPU detected. Setting WEBKIT_DISABLE_DMABUF_RENDERER=1");
-        env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        unsafe {
+            env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        }
     }
 }
 
