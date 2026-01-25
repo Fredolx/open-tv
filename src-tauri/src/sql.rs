@@ -677,7 +677,10 @@ fn apply_bulk_categories(
         generate_placeholders(media_types.len())
     );
 
-    sql_query += "\nAND hidden = 0";
+    sql_query += &format!(
+        "\nAND hidden = {}",
+        if field == bulk_action_type::FIELD_HIDDEN && value == 0 { 1 } else { 0 }
+    );
 
     let mut params: Vec<&dyn rusqlite::ToSql> =
         Vec::with_capacity(keywords.len() + filters.source_ids.len() + media_types.len());
@@ -771,12 +774,13 @@ fn apply_bulk_channels(
         AND media_type IN ({})
         AND source_id IN ({})
         AND url IS NOT NULL
-        AND hidden = 0"#,
+        AND hidden = {}"#,
         field,
         value,
         get_keywords_sql(keywords.len()),
         generate_placeholders(media_types.len()),
         generate_placeholders(filters.source_ids.len()),
+        if field == bulk_action_type::FIELD_HIDDEN && value == 0 { 1 } else { 0 },
     );
 
     if filters.view_type == view_type::FAVORITES && filters.series_id.is_none() {

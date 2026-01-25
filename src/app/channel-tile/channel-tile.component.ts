@@ -2,39 +2,41 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  EventEmitter,
   Input,
   OnDestroy,
+  Output,
   Renderer2,
   ViewChild,
-} from "@angular/core";
-import { MatMenuTrigger } from "@angular/material/menu";
-import { Channel } from "../models/channel";
-import { MemoryService } from "../memory.service";
-import { MediaType } from "../models/mediaType";
-import { invoke } from "@tauri-apps/api/core";
-import { ToastrService } from "ngx-toastr";
-import { ErrorService } from "../error.service";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import { EditChannelModalComponent } from "../edit-channel-modal/edit-channel-modal.component";
-import { EditGroupModalComponent } from "../edit-group-modal/edit-group-modal.component";
-import { DeleteGroupModalComponent } from "../delete-group-modal/delete-group-modal.component";
-import { EpgModalComponent } from "../epg-modal/epg-modal.component";
-import { EPG } from "../models/epg";
-import { RestreamModalComponent } from "../restream-modal/restream-modal.component";
-import { DownloadService } from "../download.service";
-import { Download } from "../models/download";
-import { Subscription, take } from "rxjs";
-import { save } from "@tauri-apps/plugin-dialog";
-import { CHANNEL_EXTENSION, GROUP_EXTENSION, RECORD_EXTENSION } from "../models/extensions";
-import { getDateFormatted, getExtension, sanitizeFileName } from "../utils";
-import { NodeType, fromMediaType } from "../models/nodeType";
+} from '@angular/core';
+import { MatMenuTrigger } from '@angular/material/menu';
+import { Channel } from '../models/channel';
+import { MemoryService } from '../memory.service';
+import { MediaType } from '../models/mediaType';
+import { invoke } from '@tauri-apps/api/core';
+import { ToastrService } from 'ngx-toastr';
+import { ErrorService } from '../error.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { EditChannelModalComponent } from '../edit-channel-modal/edit-channel-modal.component';
+import { EditGroupModalComponent } from '../edit-group-modal/edit-group-modal.component';
+import { DeleteGroupModalComponent } from '../delete-group-modal/delete-group-modal.component';
+import { EpgModalComponent } from '../epg-modal/epg-modal.component';
+import { EPG } from '../models/epg';
+import { RestreamModalComponent } from '../restream-modal/restream-modal.component';
+import { DownloadService } from '../download.service';
+import { Download } from '../models/download';
+import { Subscription, take } from 'rxjs';
+import { save } from '@tauri-apps/plugin-dialog';
+import { CHANNEL_EXTENSION, GROUP_EXTENSION, RECORD_EXTENSION } from '../models/extensions';
+import { getDateFormatted, getExtension, sanitizeFileName } from '../utils';
+import { NodeType, fromMediaType } from '../models/nodeType';
 
-import { ViewMode } from "../models/viewMode";
+import { ViewMode } from '../models/viewMode';
 
 @Component({
-  selector: "app-channel-tile",
-  templateUrl: "./channel-tile.component.html",
-  styleUrl: "./channel-tile.component.css",
+  selector: 'app-channel-tile',
+  templateUrl: './channel-tile.component.html',
+  styleUrl: './channel-tile.component.css',
 })
 export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   constructor(
@@ -45,10 +47,17 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     private el: ElementRef,
     private renderer: Renderer2,
     private download: DownloadService,
-  ) { }
+  ) {}
   @Input() channel?: Channel;
   @Input() id!: number;
   @Input() viewMode: number = 0;
+  /** Controls whether the channel name displays up to 3 lines (true) or defaults to 2 (false). */
+  @Input() threeLines: boolean = false;
+  /** Controls compact mode display */
+  @Input() compact: boolean = false;
+  @Input() selectionMode: boolean = false;
+  @Input() selected: boolean = false;
+  @Output() selectionToggled = new EventEmitter<number>();
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
   menuTopLeftPosition = { x: 0, y: 0 };
   showImage: boolean = true;
@@ -68,19 +77,29 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   setDownloadGradient(progress: number) {
     let element = this.el.nativeElement.querySelector(`#tile-${this.id}`);
     let background = `linear-gradient(to right, green ${progress}%, #343a40 ${progress}%)`;
-    this.renderer.setStyle(element, "background", background);
+    this.renderer.setStyle(element, 'background', background);
   }
 
   clearDownloadGradient() {
     let element = this.el.nativeElement.querySelector(`#tile-${this.id}`);
-    let background = "#343a40";
-    this.renderer.setStyle(element, "background", background);
+    let background = '#343a40';
+    this.renderer.setStyle(element, 'background', background);
   }
 
   async click(record = false) {
+    if (this.selectionMode) {
+      if (this.channel?.id) {
+        this.selectionToggled.emit(this.channel.id);
+      }
+      return;
+    }
+
     if (this.starting === true) {
       try {
-        await invoke("cancel_play", { sourceId: this.channel?.source_id, channelId: this.channel?.id });
+        await invoke('cancel_play', {
+          sourceId: this.channel?.source_id,
+          channelId: this.channel?.id,
+        });
       } catch (e) {
         this.error.handleError(e);
       }
@@ -97,10 +116,10 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       ) {
         this.memory.HideChannels.next(false);
         try {
-          await invoke("get_episodes", { channel: this.channel });
+          await invoke('get_episodes', { channel: this.channel });
           this.memory.SeriesRefreshed.set(this.channel.id!, true);
         } catch (e) {
-          this.error.handleError(e, "Failed to fetch series");
+          this.error.handleError(e, 'Failed to fetch series');
         }
       }
       this.memory.SetNode.next({
@@ -118,7 +137,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     if (record && (this.memory.IsContainer || this.memory.AlwaysAskSave)) {
       file = await save({
         canCreateDirectories: true,
-        title: "Select where to save recording",
+        title: 'Select where to save recording',
         defaultPath: `${sanitizeFileName(this.channel?.name!)}_${getDateFormatted()}${RECORD_EXTENSION}`,
       });
       if (!file) return;
@@ -126,11 +145,11 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     this.starting = true;
     this.memory.SetFocus.next(this.id);
     try {
-      await invoke("play", { channel: this.channel, record: record, recordPath: file });
+      await invoke('play', { channel: this.channel, record: record, recordPath: file });
     } catch (e) {
       this.error.handleError(e);
     }
-    invoke("add_last_watched", { id: this.channel?.id }).catch((e) => {
+    invoke('add_last_watched', { id: this.channel?.id }).catch((e) => {
       console.error(e);
       this.error.handleError(e);
     });
@@ -155,23 +174,21 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   async favorite() {
-    let call = "favorite_channel";
+    let call = 'favorite_channel';
     const wasFavorite = this.channel!.favorite;
     let msg = `Added "${this.channel?.name}" to favorites`;
     if (wasFavorite) {
-      call = "unfavorite_channel";
+      call = 'unfavorite_channel';
       msg = `Removed "${this.channel?.name}" from favorites`;
     }
     try {
       await invoke(call, { channelId: this.channel!.id });
       this.channel!.favorite = !wasFavorite;
       if (wasFavorite) {
-        if (this.viewMode == ViewMode.Favorites)
-          this.fade = true;
+        if (this.viewMode == ViewMode.Favorites) this.fade = true;
         this.toastr.success(`${msg} (updates on reload)`);
       } else {
-        if (this.viewMode == ViewMode.Favorites)
-          this.fade = false;
+        if (this.viewMode == ViewMode.Favorites) this.fade = false;
         this.toastr.success(msg);
       }
     } catch (e) {
@@ -181,7 +198,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   async removeFromHistory() {
     try {
-      await invoke("remove_from_history", { id: this.channel!.id });
+      await invoke('remove_from_history', { id: this.channel!.id });
       this.memory.Refresh.next(false);
       this.toastr.success(`Removed "${this.channel?.name}" from history`);
     } catch (e) {
@@ -193,11 +210,11 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     const isGroup = this.channel?.media_type === MediaType.group;
     const hide = !this.channel!.hidden;
 
-    const command = isGroup ? "hide_group" : "hide_channel";
+    const command = isGroup ? 'hide_group' : 'hide_channel';
     const args = { id: this.channel!.id, hidden: hide };
 
-    const action = hide ? "Hidden" : "Unhidden";
-    const type = isGroup ? "group " : "";
+    const action = hide ? 'Hidden' : 'Unhidden';
+    const type = isGroup ? 'group ' : '';
     const msg = `${action} ${type}"${this.channel?.name}"`;
 
     try {
@@ -235,20 +252,20 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   getSourceName(): string {
-    if (!this.channel?.source_id) return "";
-    return this.memory.Sources.get(this.channel.source_id)?.name || "";
+    if (!this.channel?.source_id) return '';
+    return this.memory.Sources.get(this.channel.source_id)?.name || '';
   }
 
   async showEPGModal() {
     try {
-      let data: EPG[] = await invoke("get_epg", { channel: this.channel });
+      let data: EPG[] = await invoke('get_epg', { channel: this.channel });
       if (data.length == 0) {
-        this.toastr.info("No EPG data for this channel");
+        this.toastr.info('No EPG data for this channel');
         return;
       }
       this.memory.ModalRef = this.modal.open(EpgModalComponent, {
-        backdrop: "static",
-        size: "xl",
+        backdrop: 'static',
+        size: 'xl',
         keyboard: false,
       });
       this.memory.ModalRef.result.then((_) => (this.memory.ModalRef = undefined));
@@ -259,7 +276,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     } catch (e) {
       this.error.handleError(
         e,
-        "Missing stream id. Please refresh your sources (Settings -> Refresh All) to enable the EPG feature",
+        'Missing stream id. Please refresh your sources (Settings -> Refresh All) to enable the EPG feature',
       );
     }
   }
@@ -273,12 +290,12 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   edit_group() {
     this.memory.ModalRef = this.modal.open(EditGroupModalComponent, {
-      backdrop: "static",
-      size: "xl",
+      backdrop: 'static',
+      size: 'xl',
       keyboard: false,
     });
     this.memory.ModalRef.result.then((_) => (this.memory.ModalRef = undefined));
-    this.memory.ModalRef.componentInstance.name = "EditCustomGroupModal";
+    this.memory.ModalRef.componentInstance.name = 'EditCustomGroupModal';
     this.memory.ModalRef.componentInstance.editing = true;
     this.memory.ModalRef.componentInstance.group = {
       id: this.channel!.id,
@@ -291,18 +308,18 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   edit_channel() {
     this.memory.ModalRef = this.modal.open(EditChannelModalComponent, {
-      backdrop: "static",
-      size: "xl",
+      backdrop: 'static',
+      size: 'xl',
       keyboard: false,
     });
     this.memory.ModalRef.result.then((_) => (this.memory.ModalRef = undefined));
-    this.memory.ModalRef.componentInstance.name = "EditCustomChannelModal";
+    this.memory.ModalRef.componentInstance.name = 'EditCustomChannelModal';
     this.memory.ModalRef.componentInstance.editing = true;
     this.memory.ModalRef.componentInstance.channel.data = { ...this.channel };
   }
 
   async share() {
-    let entityName = this.channel?.media_type == MediaType.group ? "group" : "channel";
+    let entityName = this.channel?.media_type == MediaType.group ? 'group' : 'channel';
     let file = await save({
       canCreateDirectories: true,
       title: `Select where to export ${entityName}`,
@@ -316,14 +333,14 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     if (this.channel?.media_type == MediaType.group) {
       this.memory.tryIPC(
         `Successfully exported category to ${file}`,
-        "Failed to export channel",
-        () => invoke("share_custom_group", { group: this.channel, path: file }),
+        'Failed to export channel',
+        () => invoke('share_custom_group', { group: this.channel, path: file }),
       );
     } else {
       this.memory.tryIPC(
         `Successfully exported channel to ${file}`,
-        "Failed to export channel",
-        () => invoke("share_custom_channel", { channel: this.channel, path: file }),
+        'Failed to export channel',
+        () => invoke('share_custom_channel', { channel: this.channel, path: file }),
       );
     }
   }
@@ -335,7 +352,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   async deleteGroup() {
     try {
-      if (await invoke("group_not_empty", { id: this.channel?.id })) {
+      if (await invoke('group_not_empty', { id: this.channel?.id })) {
         this.openDeleteGroupModal();
       } else await this.deleteGroupNoReplace();
     } catch (e) {
@@ -345,12 +362,12 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   async deleteGroupNoReplace() {
     try {
-      await invoke("delete_custom_group", {
+      await invoke('delete_custom_group', {
         id: this.channel?.id,
         doChannelsUpdate: false,
       });
       this.memory.Refresh.next(true);
-      this.error.success("Successfully deleted category");
+      this.error.success('Successfully deleted category');
     } catch (e) {
       this.error.handleError(e);
     }
@@ -358,29 +375,29 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   openDeleteGroupModal() {
     this.memory.ModalRef = this.modal.open(DeleteGroupModalComponent, {
-      backdrop: "static",
-      size: "xl",
+      backdrop: 'static',
+      size: 'xl',
       keyboard: false,
     });
     this.memory.ModalRef.result.then((_) => (this.memory.ModalRef = undefined));
-    this.memory.ModalRef.componentInstance.name = "DeleteGroupModal";
+    this.memory.ModalRef.componentInstance.name = 'DeleteGroupModal';
     this.memory.ModalRef.componentInstance.group = { ...this.channel };
   }
 
   openRestreamModal() {
     this.memory.ModalRef = this.modal.open(RestreamModalComponent, {
-      backdrop: "static",
-      size: "xl",
+      backdrop: 'static',
+      size: 'xl',
       keyboard: false,
     });
     this.memory.ModalRef.componentInstance.channel = this.channel;
-    this.memory.ModalRef.componentInstance.name = "RestreamModalComponent";
+    this.memory.ModalRef.componentInstance.name = 'RestreamModalComponent';
     this.memory.ModalRef.result.then((_) => (this.memory.ModalRef = undefined));
   }
 
   async deleteChannel() {
-    await this.memory.tryIPC("Successfully deleted channel", "Failed to delete channel", () =>
-      invoke("delete_custom_channel", { id: this.channel?.id }),
+    await this.memory.tryIPC('Successfully deleted channel', 'Failed to delete channel', () =>
+      invoke('delete_custom_channel', { id: this.channel?.id }),
     );
     this.memory.Refresh.next(true);
   }
@@ -394,17 +411,14 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     if (this.memory.IsContainer || this.memory.AlwaysAskSave) {
       file = await save({
         canCreateDirectories: true,
-        title: "Select where to download movie",
+        title: 'Select where to download movie',
         defaultPath: `${sanitizeFileName(this.channel?.name!)}.${getExtension(this.channel?.url!)}`,
       });
       if (!file) {
         return;
       }
     }
-    let download = await this.download.addDownload(
-      this.channel!.id!.toString(),
-      this.channel!,
-    );
+    let download = await this.download.addDownload(this.channel!.id!.toString(), this.channel!);
     this.downloadSubscribe(download);
     await this.download.download(download.id, file);
   }

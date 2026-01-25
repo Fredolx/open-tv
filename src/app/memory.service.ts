@@ -1,24 +1,24 @@
-import { Injectable } from "@angular/core";
-import { Source } from "./models/source";
-import { BehaviorSubject, Subject } from "rxjs";
-import { MatMenuTrigger } from "@angular/material/menu";
-import { ToastrService } from "ngx-toastr";
-import { ErrorService } from "./error.service";
-import { NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
-import { invoke } from "@tauri-apps/api/core";
-import { SortType } from "./models/sortType";
-import { LAST_SEEN_VERSION } from "./models/localStorage";
-import { SetNodeDTO } from "./models/setNodeDTO";
+import { Injectable } from '@angular/core';
+import { Source } from './models/source';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { MatMenuTrigger } from '@angular/material/menu';
+import { ToastrService } from 'ngx-toastr';
+import { ErrorService } from './error.service';
+import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { invoke } from '@tauri-apps/api/core';
+import { SortType } from './models/sortType';
+import { LAST_SEEN_VERSION } from './models/localStorage';
+import { SetNodeDTO } from './models/setNodeDTO';
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class MemoryService {
   constructor(
     private toastr: ToastrService,
     private error: ErrorService,
   ) {
-    invoke("is_container").then((val) => (this.IsContainer = val as boolean));
+    invoke('is_container').then((val) => (this.IsContainer = val as boolean));
   }
   public SetNode: Subject<SetNodeDTO> = new Subject();
   public SetFocus: Subject<number> = new Subject();
@@ -44,6 +44,7 @@ export class MemoryService {
   public trayEnabled?: boolean;
   public IsContainer?: boolean;
   public AlwaysAskSave?: boolean;
+  public settings: any = {};
 
   async tryIPC<T>(
     successMessage: string,
@@ -64,7 +65,7 @@ export class MemoryService {
   }
 
   async get_epg_ids() {
-    let data = await invoke("get_epg_ids");
+    let data = await invoke('get_epg_ids');
     let set = new Set(data as Array<string>);
     this.Watched_epgs = set;
   }

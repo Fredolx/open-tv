@@ -18,6 +18,11 @@ pub const DEFAULT_SORT: &str = "defaultSort";
 pub const ENABLE_HWDEC: &str = "enableHWDEC";
 pub const ALWAYS_ASK_SAVE: &str = "alwaysAskSave";
 pub const ENABLE_GPU: &str = "enableGPU";
+pub const USE_SINGLE_COLUMN: &str = "useSingleColumn";
+pub const MAX_TEXT_LINES: &str = "maxTextLines";
+pub const COMPACT_MODE: &str = "compactMode";
+pub const REFRESH_INTERVAL: &str = "refreshInterval";
+pub const LAST_REFRESH: &str = "lastRefresh";
 
 pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
@@ -39,6 +44,11 @@ pub fn get_settings() -> Result<Settings> {
         enable_hwdec: map.get(ENABLE_HWDEC).and_then(|s| s.parse().ok()),
         always_ask_save: map.get(ALWAYS_ASK_SAVE).and_then(|s| s.parse().ok()),
         enable_gpu: map.get(ENABLE_GPU).and_then(|s| s.parse().ok()),
+        use_single_column: map.get(USE_SINGLE_COLUMN).and_then(|s| s.parse().ok()),
+        max_text_lines: map.get(MAX_TEXT_LINES).and_then(|s| s.parse().ok()),
+        compact_mode: map.get(COMPACT_MODE).and_then(|s| s.parse().ok()),
+        refresh_interval: map.get(REFRESH_INTERVAL).and_then(|s| s.parse().ok()),
+        last_refresh: map.get(LAST_REFRESH).and_then(|s| s.parse().ok()),
     };
     Ok(settings)
 }
@@ -86,6 +96,23 @@ pub fn update_settings(settings: Settings) -> Result<()> {
     }
     if let Some(gpu) = settings.enable_gpu {
         map.insert(ENABLE_GPU.to_string(), gpu.to_string());
+    }
+    if let Some(single_col) = settings.use_single_column {
+        map.insert(USE_SINGLE_COLUMN.to_string(), single_col.to_string());
+    }
+    if let Some(lines) = settings.max_text_lines {
+        map.insert(MAX_TEXT_LINES.to_string(), lines.to_string());
+    }
+    if let Some(compact) = settings.compact_mode {
+        map.insert(COMPACT_MODE.to_string(), compact.to_string());
+    }
+    // Update refresh interval setting
+    if let Some(interval) = settings.refresh_interval {
+        map.insert(REFRESH_INTERVAL.to_string(), interval.to_string());
+    }
+    // Update last refresh timestamp
+    if let Some(last) = settings.last_refresh {
+        map.insert(LAST_REFRESH.to_string(), last.to_string());
     }
     sql::update_settings(map)?;
     Ok(())

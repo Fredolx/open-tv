@@ -1,20 +1,20 @@
-import { Component, ElementRef, HostListener, ViewChild } from "@angular/core";
-import { debounceTime, distinctUntilChanged, fromEvent, map, Subscription } from "rxjs";
-import { Settings } from "../models/settings";
-import { invoke } from "@tauri-apps/api/core";
-import { Router } from "@angular/router";
-import { open } from "@tauri-apps/plugin-dialog";
-import { Source } from "../models/source";
-import { MemoryService } from "../memory.service";
-import { ViewMode } from "../models/viewMode";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import { ConfirmDeleteModalComponent } from "../confirm-delete-modal/confirm-delete-modal.component";
-import { SORT_TYPES, SortType, getSortTypeText } from "../models/sortType";
+import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { debounceTime, distinctUntilChanged, fromEvent, map, Subscription } from 'rxjs';
+import { Settings } from '../models/settings';
+import { invoke } from '@tauri-apps/api/core';
+import { Router } from '@angular/router';
+import { open } from '@tauri-apps/plugin-dialog';
+import { Source } from '../models/source';
+import { MemoryService } from '../memory.service';
+import { ViewMode } from '../models/viewMode';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ConfirmDeleteModalComponent } from '../confirm-delete-modal/confirm-delete-modal.component';
+import { SORT_TYPES, SortType, getSortTypeText } from '../models/sortType';
 
 @Component({
-  selector: "app-settings",
-  templateUrl: "./settings.component.html",
-  styleUrl: "./settings.component.css",
+  selector: 'app-settings',
+  templateUrl: './settings.component.html',
+  styleUrl: './settings.component.css',
 })
 export class SettingsComponent {
   subscriptions: Subscription[] = [];
@@ -33,7 +33,7 @@ export class SettingsComponent {
   viewModeEnum = ViewMode;
   sources: Source[] = [];
   sortTypes = SORT_TYPES;
-  @ViewChild("mpvParams") mpvParams!: ElementRef;
+  @ViewChild('mpvParams') mpvParams!: ElementRef;
 
   constructor(
     private router: Router,
@@ -55,15 +55,15 @@ export class SettingsComponent {
     );
   }
 
-  @HostListener("document:keydown", ["$event"])
+  @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
     if (
-      event.key == "Escape" ||
-      event.key == "BrowserBack" ||
-      (event.key == "Backspace" && !this.isInputFocused())
+      event.key == 'Escape' ||
+      event.key == 'BrowserBack' ||
+      (event.key == 'Backspace' && !this.isInputFocused())
     ) {
       if (this.memory.ModalRef) {
-        this.memory.ModalRef.close("close");
+        this.memory.ModalRef.close('close');
       } else {
         this.goBack();
       }
@@ -77,7 +77,7 @@ export class SettingsComponent {
   }
 
   getSettings() {
-    invoke("get_settings").then((x) => {
+    invoke('get_settings').then((x) => {
       this.settings = x as Settings;
       if (this.settings.use_stream_caching == undefined) this.settings.use_stream_caching = true;
       if (this.settings.default_view == undefined) this.settings.default_view = ViewMode.All;
@@ -89,22 +89,35 @@ export class SettingsComponent {
       if (this.settings.enable_hwdec == undefined) this.settings.enable_hwdec = true;
       if (this.settings.always_ask_save == undefined) this.settings.always_ask_save = false;
       if (this.settings.enable_gpu == undefined) this.settings.enable_gpu = false;
+      if (this.settings.use_single_column == undefined) this.settings.use_single_column = false;
+      if (this.settings.max_text_lines == undefined) this.settings.max_text_lines = 2; // Default to 2 lines
+      if (this.settings.compact_mode == undefined) this.settings.compact_mode = false;
+      if (this.settings.refresh_interval == undefined) this.settings.refresh_interval = 0;
     });
   }
 
+  refreshIntervals = [
+    { value: 0, label: 'Disabled' },
+    { value: 1, label: 'Hourly' },
+    { value: 3, label: 'Every 3 Hours' },
+    { value: 6, label: 'Every 6 Hours' },
+    { value: 12, label: 'Every 12 Hours' },
+    { value: 24, label: 'Every 24 Hours' },
+  ];
+
   getSources() {
-    invoke("get_sources").then((x) => {
+    invoke('get_sources').then((x) => {
       this.sources = x as Source[];
       if (this.sources.length == 0) {
         this.memory.AddingAdditionalSource = false;
-        this.nav.navigateByUrl("setup");
+        this.nav.navigateByUrl('setup');
       }
     });
   }
 
   ngAfterViewInit(): void {
     this.subscriptions.push(
-      fromEvent(this.mpvParams.nativeElement, "keyup")
+      fromEvent(this.mpvParams.nativeElement, 'keyup')
         .pipe(
           map((event: any) => {
             return event.target.value;
@@ -125,26 +138,25 @@ export class SettingsComponent {
 
   addSource() {
     this.memory.AddingAdditionalSource = true;
-    this.nav.navigateByUrl("setup");
+    this.nav.navigateByUrl('setup');
   }
 
   async refreshAll() {
     this.memory.SeriesRefreshed.clear();
-    await this.memory.tryIPC("Successfully updated all sources", "Failed to refresh sources", () =>
-      invoke("refresh_all"),
+    await this.memory.tryIPC('Successfully updated all sources', 'Failed to refresh sources', () =>
+      invoke('refresh_all'),
     );
   }
 
   async goBack() {
     await this.updateSettings();
-    this.router.navigateByUrl("");
+    this.router.navigateByUrl('');
   }
 
   async updateSettings() {
     this.settings.mpv_params = this.settings.mpv_params?.trim();
-    if (this.settings.mpv_params == "")
-      this.settings.mpv_params = undefined;
-    await invoke("update_settings", { settings: this.settings });
+    if (this.settings.mpv_params == '') this.settings.mpv_params = undefined;
+    await invoke('update_settings', { settings: this.settings });
   }
 
   async selectFolder() {
@@ -161,20 +173,20 @@ export class SettingsComponent {
 
   async nuke() {
     this.memory.ModalRef = this.modal.open(ConfirmDeleteModalComponent, {
-      backdrop: "static",
-      size: "xl",
+      backdrop: 'static',
+      size: 'xl',
       keyboard: false,
     });
     this.memory.ModalRef.result.then((_) => (this.memory.ModalRef = undefined));
-    this.memory.ModalRef.componentInstance.name = "ConfirmDeleteModal";
+    this.memory.ModalRef.componentInstance.name = 'ConfirmDeleteModal';
   }
 
   async clearHistory() {
     await this.memory.tryIPC(
-      "History cleared successfully",
-      "Failed to clear history",
+      'History cleared successfully',
+      'Failed to clear history',
       async () => {
-        await invoke("clear_history");
+        await invoke('clear_history');
       },
     );
   }

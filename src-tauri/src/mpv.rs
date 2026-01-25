@@ -6,6 +6,8 @@ use crate::{media_type, settings::get_settings, types::Channel};
 use anyhow::{Context, Result};
 use chrono::Local;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
 use std::sync::LazyLock;
 use std::{env::consts::OS, path::Path, process::Stdio};
 use tauri::State;
@@ -67,11 +69,18 @@ pub async fn play(
             .map_err(|e| log::log(format!("{:?}", e)));
     }
 
-    let mut cmd = Command::new(MPV_PATH.clone())
-        .args(args)
+    let mut cmd = Command::new(MPV_PATH.clone());
+    cmd.args(args)
         .stdout(Stdio::piped())
-        .kill_on_drop(true)
-        .spawn()?;
+        .kill_on_drop(true);
+
+    #[cfg(target_os = "windows")]
+    // 0x08000000 is the CREATE_NO_WINDOW flag.
+    // This is required to prevent MPV from opening a blank console window on Windows.
+    // See: https://learn.microsoft.com/en-us/windows/win32/procthread/process-creation-flags
+    cmd.creation_flags(0x08000000);
+
+    let mut cmd = cmd.spawn()?;
     let token = CancellationToken::new();
     let channel_id = channel.id.context("no channel id")?;
     if let Some(source_id) = source.as_ref().and_then(|s| s.id) {
@@ -168,7 +177,7 @@ fn get_play_args(
     }
     if settings.enable_gpu.unwrap_or(false) {
         args.push(ARG_GPU_NEXT.to_string());
-        args.push(ARG_GPU_PROFILE_HIGH_QUALITY.to_string());
+        // args.push(ARG_GPU_PROFILE_HIGH_QUALITY.to_string());
     }
     if record {
         let path = if let Some(p) = record_path {

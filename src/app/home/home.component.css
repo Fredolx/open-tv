@@ -97,7 +97,9 @@
   cursor: pointer;
   z-index: 1000;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s ease, background-color 0.2s;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s;
   animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -141,4 +143,29 @@
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+.selection-toggle-icon {
+  height: 1.75rem;
+  width: 1.75rem;
+  position: absolute;
+  right: 5.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: all 0.5s ease;
+  color: #adb5bd;
+}
+
+.selection-toggle-icon:hover,
+.selection-toggle-icon.active {
+  color: #0d6efd;
+  transform: translateY(-50%) scale(1.2);
+}
+
+.selection-actions {
+  background: #343a40;
+  padding: 10px;
+  border-radius: 8px;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }

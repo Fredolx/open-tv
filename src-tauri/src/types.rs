@@ -83,6 +83,11 @@ pub struct Settings {
     pub enable_hwdec: Option<bool>,
     pub always_ask_save: Option<bool>,
     pub enable_gpu: Option<bool>,
+    pub use_single_column: Option<bool>,
+    pub max_text_lines: Option<u8>,
+    pub compact_mode: Option<bool>,
+    pub refresh_interval: Option<u8>,
+    pub last_refresh: Option<i64>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

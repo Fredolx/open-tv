@@ -12,4 +12,9 @@ export class Settings {
   enable_hwdec?: boolean;
   always_ask_save?: boolean;
   enable_gpu?: boolean;
+  use_single_column?: boolean;
+  max_text_lines?: number;
+  compact_mode?: boolean;
+  refresh_interval?: number;
+  last_refresh?: number;
 }

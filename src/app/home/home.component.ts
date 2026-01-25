@@ -5,9 +5,9 @@ import {
   HostListener,
   OnDestroy,
   ViewChild,
-} from "@angular/core";
-import { Router } from "@angular/router";
-import { AllowIn, ShortcutInput } from "ng-keyboard-shortcuts";
+} from '@angular/core';
+import { Router } from '@angular/router';
+import { AllowIn, ShortcutInput } from 'ng-keyboard-shortcuts';
 import {
   Subscription,
   debounceTime,
@@ -16,63 +16,66 @@ import {
   fromEvent,
   map,
   skip,
-} from "rxjs";
-import { MemoryService } from "../memory.service";
-import { Channel } from "../models/channel";
-import { ViewMode } from "../models/viewMode";
-import { MediaType } from "../models/mediaType";
-import { ToastrService } from "ngx-toastr";
-import { FocusArea, FocusAreaPrefix } from "../models/focusArea";
-import { invoke } from "@tauri-apps/api/core";
-import { Source } from "../models/source";
-import { Filters } from "../models/filters";
-import { SourceType } from "../models/sourceType";
-import { animate, state, style, transition, trigger } from "@angular/animations";
-import { ErrorService } from "../error.service";
-import { Settings } from "../models/settings";
-import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { SortType } from "../models/sortType";
-import { getVersion } from "@tauri-apps/api/app";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import { WhatsNewModalComponent } from "../whats-new-modal/whats-new-modal.component";
-import { LAST_SEEN_VERSION } from "../models/localStorage";
-import { isInputFocused } from "../utils";
-import { Node } from "../models/node";
-import { NodeType } from "../models/nodeType";
-import { Stack } from "../models/stack";
+  lastValueFrom,
+  forkJoin,
+  from,
+} from 'rxjs';
+import { MemoryService } from '../memory.service';
+import { Channel } from '../models/channel';
+import { ViewMode } from '../models/viewMode';
+import { MediaType } from '../models/mediaType';
+import { ToastrService } from 'ngx-toastr';
+import { FocusArea, FocusAreaPrefix } from '../models/focusArea';
+import { invoke } from '@tauri-apps/api/core';
+import { Source } from '../models/source';
+import { Filters } from '../models/filters';
+import { SourceType } from '../models/sourceType';
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { ErrorService } from '../error.service';
+import { Settings } from '../models/settings';
+import { getCurrentWebview } from '@tauri-apps/api/webview';
+import { SortType } from '../models/sortType';
+import { getVersion } from '@tauri-apps/api/app';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { WhatsNewModalComponent } from '../whats-new-modal/whats-new-modal.component';
+import { LAST_SEEN_VERSION } from '../models/localStorage';
+import { isInputFocused } from '../utils';
+import { Node } from '../models/node';
+import { NodeType } from '../models/nodeType';
+import { Stack } from '../models/stack';
 
 import { BulkActionType } from '../models/bulkActionType';
 
 @Component({
-  selector: "app-home",
-  templateUrl: "./home.component.html",
-  styleUrl: "./home.component.css",
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.css',
   animations: [
-    trigger("fadeInOut", [
-      transition(":enter", [
-        style({ opacity: 0, height: 0, padding: "0", margin: "0" }),
-        animate("250ms", style({ opacity: 1, height: "*", padding: "*", margin: "*" })),
+    trigger('fadeInOut', [
+      transition(':enter', [
+        style({ opacity: 0, height: 0, padding: '0', margin: '0' }),
+        animate('250ms', style({ opacity: 1, height: '*', padding: '*', margin: '*' })),
       ]),
-      transition(":leave", [
-        style({ opacity: 1, height: "*", padding: "*", margin: "*" }),
-        animate("250ms", style({ opacity: 0, height: 0, padding: "0", margin: "0" })),
+      transition(':leave', [
+        style({ opacity: 1, height: '*', padding: '*', margin: '*' }),
+        animate('250ms', style({ opacity: 0, height: 0, padding: '0', margin: '0' })),
       ]),
     ]),
-    trigger("fade", [
+    trigger('fade', [
       state(
-        "visible",
+        'visible',
         style({
           opacity: 1,
         }),
       ),
       state(
-        "hidden",
+        'hidden',
         style({
           opacity: 0,
         }),
       ),
-      transition("visible => hidden", [animate("250ms ease-out")]),
-      transition("hidden => visible", [animate("250ms ease-in")]),
+      transition('visible => hidden', [animate('250ms ease-out')]),
+      transition('hidden => visible', [animate('250ms ease-in')]),
     ]),
   ],
 })
@@ -81,8 +84,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   readonly viewModeEnum = ViewMode;
   bulkActionType = BulkActionType;
   readonly mediaTypeEnum = MediaType;
-  @ViewChild("search") search!: ElementRef;
+  @ViewChild('search') search!: ElementRef;
   shortcuts: ShortcutInput[] = [];
+  selectionMode: boolean = false;
+  selectedChannels: Set<number> = new Set();
   focus: number = 0;
   focusArea = FocusArea.Tiles;
   viewType = ViewMode.All;
@@ -95,13 +100,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   reachedMax = false;
   readonly PAGE_SIZE = 36;
   channelsVisible = true;
-  prevSearchValue: String = "";
+  prevSearchValue: String = '';
   loading = false;
   nodeStack: Stack = new Stack();
   showScrollTop = false;
 
   scrollToTop() {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   constructor(
@@ -115,27 +120,28 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   getSources() {
-    let get_settings = invoke("get_settings");
-    let get_sources = invoke("get_sources");
+    let get_settings = invoke('get_settings');
+    let get_sources = invoke('get_sources');
     Promise.all([get_settings, get_sources])
       .then((data) => {
         let settings = data[0] as Settings;
         let sources = data[1] as Source[];
+        this.memory.settings = settings;
         if (settings.zoom) getCurrentWebview().setZoom(Math.trunc(settings.zoom! * 100) / 10000);
         this.memory.trayEnabled = settings.enable_tray_icon ?? true;
         this.memory.AlwaysAskSave = settings.always_ask_save ?? false;
-        this.memory.Sources = new Map(sources.filter((x) => x.enabled).map(s => [s.id!, s]));
+        this.memory.Sources = new Map(sources.filter((x) => x.enabled).map((s) => [s.id!, s]));
         if (sources.length == 0) this.reset();
         else {
           getVersion().then((version) => {
             if (localStorage.getItem(LAST_SEEN_VERSION) != version) {
               this.memory.AppVersion = version;
               this.memory.ModalRef = this.modal.open(WhatsNewModalComponent, {
-                backdrop: "static",
-                size: "xl",
+                backdrop: 'static',
+                size: 'xl',
                 keyboard: false,
               });
-              this.memory.ModalRef.componentInstance.name = "WhatsNewModal";
+              this.memory.ModalRef.componentInstance.name = 'WhatsNewModal';
             }
           });
           sources
@@ -148,10 +154,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             .forEach((x) => this.memory.XtreamSourceIds.add(x));
           if (
             this.memory.XtreamSourceIds.size > 0 &&
-            !sessionStorage.getItem("epgCheckedOnStart")
+            !sessionStorage.getItem('epgCheckedOnStart')
           ) {
-            sessionStorage.setItem("epgCheckedOnStart", "true");
-            invoke("on_start_check_epg");
+            sessionStorage.setItem('epgCheckedOnStart', 'true');
+            invoke('on_start_check_epg');
           }
           this.filters = {
             source_ids: Array.from(this.memory.Sources.keys()),
@@ -166,10 +172,31 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             this.filters.sort = settings.default_sort;
           }
           this.chkSerie = this.anyXtream();
-          if (settings.refresh_on_start === true && !sessionStorage.getItem("refreshedOnStart")) {
-            sessionStorage.setItem("refreshedOnStart", "true");
-            this.refreshOnStart().then((_) => _);
+
+          // Refresh on start logic
+          const refreshOnStart = settings.refresh_on_start === true;
+          // Refresh interval logic
+          const refreshInterval = settings.refresh_interval || 0;
+          const lastRefresh = settings.last_refresh || 0;
+          const now = Date.now();
+          const hoursSinceLastRefresh = (now - lastRefresh) / (1000 * 60 * 60);
+
+          let shouldRefresh = false;
+          let refreshReason = '';
+
+          if (refreshOnStart && !sessionStorage.getItem('refreshedOnStart')) {
+            shouldRefresh = true;
+            refreshReason = 'refresh on start enabled';
+          } else if (refreshInterval > 0 && hoursSinceLastRefresh >= refreshInterval) {
+            shouldRefresh = true;
+            refreshReason = `interval of ${refreshInterval} hours passed`;
           }
+
+          if (shouldRefresh) {
+            sessionStorage.setItem('refreshedOnStart', 'true');
+            this.refreshAll(refreshReason).then((_) => _);
+          }
+
           this.load().then((_) => _);
         }
       })
@@ -180,12 +207,18 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   async refreshOnStart() {
-    this.toast.info("Refreshing all sources... (refresh on start enabled)");
+    await this.refreshAll('refresh on start enabled');
+  }
+
+  async refreshAll(reason: string = 'user requested') {
+    this.toast.info(`Refreshing all sources... (${reason})`);
     await this.memory.tryIPC(
-      "Successfully refreshed all sources (refresh on start enabled)",
-      "Failed to refresh all sources (refresh on start enabled)",
+      `Successfully refreshed all sources (${reason})`,
+      `Failed to refresh all sources (${reason})`,
       async () => {
-        await invoke("refresh_all");
+        await invoke('refresh_all');
+        this.memory.settings.last_refresh = Date.now();
+        await invoke('update_settings', { settings: this.memory.settings });
       },
     );
   }
@@ -195,7 +228,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   reset() {
-    this.router.navigateByUrl("setup");
+    this.router.navigateByUrl('setup');
   }
 
   async addEvents() {
@@ -212,13 +245,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(
       this.memory.SetNode.subscribe(async (dto) => {
         this.nodeStack.add(
-          new Node(
-            dto.id,
-            dto.name,
-            dto.type,
-            this.filters?.query,
-            this.filters?.view_type,
-          ),
+          new Node(dto.id, dto.name, dto.type, this.filters?.query, this.filters?.view_type),
         );
         if (dto.type == NodeType.Category) this.filters!.group_id = dto.id;
         else if (dto.type == NodeType.Series) {
@@ -238,8 +265,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(
       this.memory.Refresh.subscribe((scroll) => {
         this.load();
-        if(scroll)
-          window.scrollTo({ top: 0, behavior: "instant" });
+        if (scroll) window.scrollTo({ top: 0, behavior: 'instant' });
       }),
     );
     this.subscriptions.push(
@@ -252,9 +278,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   clearSearch() {
-    this.search.nativeElement.value = "";
-    this.prevSearchValue = "";
-    this.filters!.query = "";
+    this.search.nativeElement.value = '';
+    this.prevSearchValue = '';
+    this.filters!.query = '';
   }
 
   async loadMore() {
@@ -269,7 +295,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.filters!.page = 1;
     }
     try {
-      let channels: Channel[] = await invoke("search", { filters: this.filters });
+      let channels: Channel[] = await invoke('search', { filters: this.filters });
       if (!more) {
         this.channels = channels;
         this.channelsVisible = true;
@@ -301,7 +327,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  @HostListener("window:scroll", ["$event"])
+  @HostListener('window:scroll', ['$event'])
   async scroll(event: any) {
     this.checkScrollTop();
     await this.checkScrollEnd();
@@ -310,9 +336,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.addEvents().then((_) => _);
     this.subscriptions.push(
-      fromEvent(this.search.nativeElement, "keyup")
+      fromEvent(this.search.nativeElement, 'keyup')
         .pipe(
-          filter((event: any) => event.key !== "Escape"),
+          filter((event: any) => event.key !== 'Escape'),
           map((event: any) => {
             this.focus = 0;
             this.focusArea = FocusArea.Tiles;
@@ -331,42 +357,42 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     this.shortcuts.push(
       {
-        key: ["ctrl + f", "ctrl + space", "cmd + f"],
-        label: "Search",
-        description: "Go to search",
+        key: ['ctrl + f', 'ctrl + space', 'cmd + f'],
+        label: 'Search',
+        description: 'Go to search',
         preventDefault: true,
         allowIn: [AllowIn.Input],
         command: (_) => this.focusSearch(),
       },
       {
-        key: ["ctrl + a", "cmd + a"],
-        label: "Switching modes",
-        description: "Selects the all channels view",
+        key: ['ctrl + a', 'cmd + a'],
+        label: 'Switching modes',
+        description: 'Selects the all channels view',
         preventDefault: true,
         command: async (_) => await this.switchMode(this.viewModeEnum.All),
       },
       {
-        key: ["ctrl + s", "cmd + s"],
-        label: "Switching modes",
-        description: "Selects the categories view",
+        key: ['ctrl + s', 'cmd + s'],
+        label: 'Switching modes',
+        description: 'Selects the categories view',
         command: async (_) => await this.switchMode(this.viewModeEnum.Categories),
       },
       {
-        key: ["ctrl + d", "cmd + d"],
-        label: "Switching modes",
-        description: "Selects the history view",
+        key: ['ctrl + d', 'cmd + d'],
+        label: 'Switching modes',
+        description: 'Selects the history view',
         command: async (_) => await this.switchMode(this.viewModeEnum.History),
       },
       {
-        key: ["ctrl + r", "cmd + r"],
-        label: "Switching modes",
-        description: "Selects the favorites view",
+        key: ['ctrl + r', 'cmd + r'],
+        label: 'Switching modes',
+        description: 'Selects the favorites view',
         command: async (_) => await this.switchMode(this.viewModeEnum.Favorites),
       },
       {
-        key: "ctrl + q",
-        label: "Media Type Filters",
-        description: "Enable/Disable livestreams",
+        key: 'ctrl + q',
+        label: 'Media Type Filters',
+        description: 'Enable/Disable livestreams',
         preventDefault: true,
         allowIn: [AllowIn.Input],
         command: async (_) => {
@@ -375,9 +401,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         },
       },
       {
-        key: "ctrl + w",
-        label: "Media Type Filters",
-        description: "Enable/Disable movies",
+        key: 'ctrl + w',
+        label: 'Media Type Filters',
+        description: 'Enable/Disable movies',
         preventDefault: true,
         allowIn: [AllowIn.Input],
         command: async (_) => {
@@ -386,9 +412,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         },
       },
       {
-        key: "ctrl + e",
-        label: "Media Type Filters",
-        description: "Enable/Disable series",
+        key: 'ctrl + e',
+        label: 'Media Type Filters',
+        description: 'Enable/Disable series',
         preventDefault: true,
         allowIn: [AllowIn.Input],
         command: async (_) => {
@@ -397,34 +423,34 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         },
       },
       {
-        key: "left",
-        label: "Navigation",
-        description: "Go left",
+        key: 'left',
+        label: 'Navigation',
+        description: 'Go left',
         allowIn: [AllowIn.Input],
-        command: async (_) => await this.nav("ArrowLeft"),
+        command: async (_) => await this.nav('ArrowLeft'),
       },
       {
-        key: "right",
-        label: "Navigation",
-        description: "Go right",
+        key: 'right',
+        label: 'Navigation',
+        description: 'Go right',
         allowIn: [AllowIn.Input],
-        command: async (_) => await this.nav("ArrowRight"),
+        command: async (_) => await this.nav('ArrowRight'),
       },
       {
-        key: "up",
-        label: "Navigation",
-        description: "Go up",
+        key: 'up',
+        label: 'Navigation',
+        description: 'Go up',
         allowIn: [AllowIn.Input],
         preventDefault: true,
-        command: async (_) => await this.nav("ArrowUp"),
+        command: async (_) => await this.nav('ArrowUp'),
       },
       {
-        key: "down",
-        label: "Navigation",
-        description: "Go down",
+        key: 'down',
+        label: 'Navigation',
+        description: 'Go down',
         allowIn: [AllowIn.Input],
         preventDefault: true,
-        command: async (_) => await this.nav("ArrowDown"),
+        command: async (_) => await this.nav('ArrowDown'),
       },
     );
   }
@@ -452,7 +478,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   searchFocused(): boolean {
-    return document.activeElement?.id == "search";
+    return document.activeElement?.id == 'search';
   }
 
   focusSearch() {
@@ -463,7 +489,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.focus = 0;
       this.focusArea = FocusArea.Tiles;
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     this.search.nativeElement.focus({
       preventScroll: true,
     });
@@ -472,10 +498,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   async goBackHotkey() {
     if (this.memory.ModalRef) {
       if (
-        this.memory.ModalRef.componentInstance.name != "RestreamModalComponent" ||
+        this.memory.ModalRef.componentInstance.name != 'RestreamModalComponent' ||
         !this.memory.ModalRef.componentInstance.started
       )
-        this.memory.ModalRef.close("close");
+        this.memory.ModalRef.close('close');
       return;
     } else if (this.memory.currentContextMenu?.menuOpen) {
       this.closeContextMenu();
@@ -519,7 +545,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   openSettings() {
-    this.router.navigateByUrl("settings");
+    this.router.navigateByUrl('settings');
   }
 
   async nav(key: string) {
@@ -530,18 +556,18 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
     let tmpFocus = 0;
     switch (key) {
-      case "ArrowUp":
+      case 'ArrowUp':
         tmpFocus -= 3;
         break;
-      case "ArrowDown":
+      case 'ArrowDown':
         tmpFocus += 3;
         break;
-      case "ShiftTab":
-      case "ArrowLeft":
+      case 'ShiftTab':
+      case 'ArrowLeft':
         tmpFocus -= 1;
         break;
-      case "Tab":
-      case "ArrowRight":
+      case 'Tab':
+      case 'ArrowRight':
         tmpFocus += 1;
         break;
     }
@@ -575,7 +601,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   anyXtream() {
-    return Array.from(this.memory.Sources.values()).findIndex((x) => x.source_type == SourceType.Xtream) != -1;
+    return (
+      Array.from(this.memory.Sources.values()).findIndex(
+        (x) => x.source_type == SourceType.Xtream,
+      ) != -1
+    );
   }
 
   changeFocusArea(down: boolean) {
@@ -584,6 +614,135 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (this.focusArea == FocusArea.Filters && !this.filtersVisible()) this.focusArea += increment;
     if (this.focusArea < 0) this.focusArea = 0;
     this.applyFocusArea(down);
+  }
+
+  /**
+   * Toggles the multi-select mode.
+   * When enabled, clicking channels selects them instead of playing.
+   * When disabled, clears the current selection.
+   */
+  toggleSelectionMode() {
+    this.selectionMode = !this.selectionMode;
+    if (!this.selectionMode) {
+      this.clearSelection();
+    }
+  }
+
+  /**
+   * Toggles the selection state of a specific channel.
+   * @param id The ID of the channel to toggle.
+   */
+  toggleChannelSelection(id: number) {
+    if (this.selectedChannels.has(id)) {
+      this.selectedChannels.delete(id);
+    } else {
+      this.selectedChannels.add(id);
+    }
+  }
+
+  /**
+   * Clears all currently selected channels.
+   */
+  clearSelection() {
+    this.selectedChannels.clear();
+  }
+
+  /**
+   * Selects all channels currently visible in the view.
+   */
+  selectAllView() {
+    this.channels.forEach((c) => {
+      if (c.id !== undefined) {
+        this.selectedChannels.add(c.id);
+      }
+    });
+  }
+
+  /**
+   * Unhides selected channels and hides all other channels in the currently active sources.
+   * This effectively "whitelists" the selection.
+   */
+  async whitelistSelected() {
+    if (this.selectedChannels.size === 0) return;
+
+    try {
+      this.memory.Loading = true;
+      const selectedIds = Array.from(this.selectedChannels);
+      const sourceIds = this.filters?.source_ids || [];
+
+      if (sourceIds.length === 0) return;
+
+      // 1. Unhide all selected
+      const unhidePromises = selectedIds.map((id) =>
+        from(invoke('hide_channel', { id, hidden: false })),
+      );
+
+      // 2. Hide everything else in these sources
+      // We'll create a special filter for 'everything else'
+      const hideOthersFilter: Filters = {
+        ...this.filters!,
+        query: '', // All channels
+        view_type: ViewMode.All,
+        page: 1, // We'll handle this differently if we need more, but bulk_update usually handles query-based
+      };
+
+      // Note: The current bulk_update in Rust uses filters to identify targets.
+      // To hide 'everything else', we'd ideally want a "NOT IN (selectedIds)" filter.
+      // Since the backend doesn't have it, we'll hide ALL in the source, then UNHIDE the selected.
+
+      // Step A: Hide all in sources matching general filters (Live/Movie/Serie)
+      await invoke('bulk_update', {
+        filters: { ...hideOthersFilter, query: undefined },
+        action: BulkActionType.Hide,
+      });
+
+      // Step B: Unhide the selected ones specifically
+      await lastValueFrom(forkJoin(unhidePromises));
+
+      this.toast.success(`Whitelisted ${selectedIds.length} channels. Others hidden.`);
+      this.clearSelection();
+      this.reload();
+    } catch (e) {
+      this.error.handleError(e);
+    } finally {
+      this.memory.Loading = false;
+    }
+  }
+
+  /**
+   * Executes a bulk action (Hide, Unhide, Favorite, Unfavorite) on the currently selected channels.
+   * @param action The type of action to perform.
+   */
+  async bulkActionOnSelected(action: BulkActionType) {
+    if (this.selectedChannels.size === 0) return;
+
+    try {
+      this.memory.Loading = true;
+      const ids = Array.from(this.selectedChannels);
+
+      const promises = [];
+      for (const id of ids) {
+        if (action === BulkActionType.Hide) {
+          promises.push(from(invoke('hide_channel', { id, hidden: true })));
+        } else if (action === BulkActionType.Unhide) {
+          promises.push(from(invoke('hide_channel', { id, hidden: false })));
+        } else if (action === BulkActionType.Favorite) {
+          promises.push(from(invoke('favorite_channel', { channelId: id })));
+        } else if (action === BulkActionType.Unfavorite) {
+          promises.push(from(invoke('unfavorite_channel', { channelId: id })));
+        }
+      }
+
+      await lastValueFrom(forkJoin(promises));
+
+      this.toast.success(`Updated ${ids.length} channels`);
+      this.clearSelection();
+      this.reload();
+    } catch (e) {
+      this.error.handleError(e);
+    } finally {
+      this.memory.Loading = false;
+    }
   }
 
   applyFocusArea(down: boolean) {
@@ -599,28 +758,28 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   //Temporary solution because the ng-keyboard-shortcuts library doesn't seem to support ESC
-  @HostListener("document:keydown", ["$event"])
+  @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
     if (
-      event.key == "Escape" ||
-      event.key == "BrowserBack" ||
-      (event.key == "Backspace" && !isInputFocused())
+      event.key == 'Escape' ||
+      event.key == 'BrowserBack' ||
+      (event.key == 'Backspace' && !isInputFocused())
     ) {
       this.goBackHotkey();
       event.preventDefault();
     }
-    if (event.key == "Tab" && !this.memory.ModalRef) {
+    if (event.key == 'Tab' && !this.memory.ModalRef) {
       event.preventDefault();
-      this.nav(event.shiftKey ? "ShiftTab" : "Tab");
+      this.nav(event.shiftKey ? 'ShiftTab' : 'Tab');
     }
-    if (event.key == "Enter" && this.focusArea == FocusArea.Filters)
+    if (event.key == 'Enter' && this.focusArea == FocusArea.Filters)
       (document.activeElement as any).click();
   }
 
   selectFirstChannel() {
     this.focusArea = FocusArea.Tiles;
     this.focus = 0;
-    (document.getElementById("first")?.firstChild as HTMLElement)?.focus();
+    (document.getElementById('first')?.firstChild as HTMLElement)?.focus();
   }
 
   closeContextMenu() {
@@ -644,7 +803,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
     const actionName = BulkActionType[action].toLowerCase();
     try {
-      await invoke("bulk_update", { filters: this.filters, action: action });
+      await invoke('bulk_update', { filters: this.filters, action: action });
       await this.load();
       this.toast.success(`Successfully executed bulk update: ${actionName}`);
     } catch (e) {

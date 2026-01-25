@@ -1,12 +1,28 @@
 .channel {
   border-radius: 0.25rem;
-  height: 4.5em;
+  height: 4.5em; /* default 2 lines */
   width: 100%;
   background: #343a40;
   overflow-y: hidden;
   overflow-x: hidden;
   user-select: none;
   transition: width 0.5s ease-out;
+}
+
+.selected {
+  border: 2px solid #007bff;
+  background: rgba(0, 123, 255, 0.2);
+}
+
+.selection-checkbox {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 10;
+}
+
+.channel.three-lines {
+  height: 6em;
 }
 
 .channel-title-container {
@@ -18,9 +34,15 @@
 
 .channel-title {
   font-size: 0.9rem;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  white-space: nowrap;
+}
+
+.channel.three-lines .channel-title {
+  -webkit-line-clamp: 2;
+  white-space: normal;
 }
 
 .channel-source {
@@ -99,4 +121,22 @@
   width: 1.25rem;
   height: 1.25rem;
   color: #ffc107;
+}
+
+/* Compact Mode Styles */
+.channel.compact {
+  height: 3.5rem;
+}
+
+.channel.compact .channel-title {
+  font-size: 0.8rem;
+}
+
+.channel.compact .channel-source {
+  font-size: 0.7rem;
+}
+
+.channel.compact .image-container {
+  width: 40px;
+  min-width: 40px;
 }

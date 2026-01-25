@@ -1,47 +1,90 @@
-<div id="tile-{{ id }}" placement="top" tabindex="0" (keyup.enter)="click()" [ngClass]="{ 
-    playing: starting, 
-    faded: fade
-}" [ngbTooltip]="channel?.name" triggers="hover" (click)="click()" class="channel d-inline-flex p-2 align-items-center"
-  (contextmenu)="onRightClick($event)">
+<div
+  id="tile-{{ id }}"
+  placement="top"
+  tabindex="0"
+  (keyup.enter)="click()"
+  [ngClass]="{
+    playing: starting,
+    faded: fade,
+    'three-lines': threeLines,
+    compact: compact,
+  }"
+  [ngbTooltip]="channel?.name"
+  triggers="hover"
+  (click)="click()"
+  class="channel d-inline-flex p-2 align-items-center"
+  (contextmenu)="onRightClick($event)"
+>
   <div class="image-container me-2">
-    <img (error)="showImage = false" class="channel-image" *ngIf="channel?.image && showImage"
-      src="{{ channel?.image }}" />
+    <img
+      (error)="showImage = false"
+      class="channel-image"
+      *ngIf="channel?.image && showImage"
+      src="{{ channel?.image }}"
+    />
   </div>
   <div class="channel-title-container d-flex flex-column justify-content-center">
     <div class="channel-title">{{ channel?.name }}</div>
     <div class="channel-source">{{ getSourceName() }}</div>
   </div>
   <div class="ms-auto d-flex flex-column justify-content-center align-items-center h-100">
-    <svg *ngIf="channel?.tv_archive === true" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      class="archive-icon">
+    <svg
+      *ngIf="channel?.tv_archive === true"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      class="archive-icon"
+    >
       <title>archive-clock</title>
       <path
-        d="M20 6H2V2H20V6M16.5 12H15V17L18.61 19.16L19.36 17.94L16.5 16.25V12M23 16C23 19.87 19.87 23 16 23C13.62 23 11.53 21.81 10.26 20H3V7H19V9.68C21.36 10.81 23 13.21 23 16M8 12H10.26C10.83 11.19 11.56 10.5 12.41 10H8.5C8.22 10 8 10.22 8 10.5V12M21 16C21 13.24 18.76 11 16 11S11 13.24 11 16 13.24 21 16 21 21 18.76 21 16Z" />
+        d="M20 6H2V2H20V6M16.5 12H15V17L18.61 19.16L19.36 17.94L16.5 16.25V12M23 16C23 19.87 19.87 23 16 23C13.62 23 11.53 21.81 10.26 20H3V7H19V9.68C21.36 10.81 23 13.21 23 16M8 12H10.26C10.83 11.19 11.56 10.5 12.41 10H8.5C8.22 10 8 10.22 8 10.5V12M21 16C21 13.24 18.76 11 16 11S11 13.24 11 16 13.24 21 16 21 21 18.76 21 16Z"
+      />
     </svg>
-    <svg *ngIf="channel?.favorite" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      class="favorite-icon">
+    <svg
+      *ngIf="channel?.favorite"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      class="favorite-icon"
+    >
       <title>star</title>
-      <path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z" />
+      <path
+        d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+      />
     </svg>
   </div>
 </div>
 
-<div style="visibility: hidden; position: fixed" [style.left.px]="menuTopLeftPosition.x"
-  [style.top.px]="menuTopLeftPosition.y" [matMenuTriggerFor]="rightMenu"></div>
+<div
+  style="visibility: hidden; position: fixed"
+  [style.left.px]="menuTopLeftPosition.x"
+  [style.top.px]="menuTopLeftPosition.y"
+  [matMenuTriggerFor]="rightMenu"
+></div>
 
 <mat-menu #rightMenu="matMenu">
   <ng-template matMenuContent let-item="item">
     <button [hidden]="viewMode != viewModeEnum.History" mat-menu-item (click)="removeFromHistory()">
       Remove
     </button>
-    <button [hidden]="
-        channel?.media_type == mediaTypeEnum.group || channel?.media_type == mediaTypeEnum.season || viewMode == viewModeEnum.History
-      " mat-menu-item (click)="favorite()">
+    <button
+      [hidden]="
+        channel?.media_type == mediaTypeEnum.group ||
+        channel?.media_type == mediaTypeEnum.season ||
+        viewMode == viewModeEnum.History
+      "
+      mat-menu-item
+      (click)="favorite()"
+    >
       <ng-container *ngIf="alreadyExistsInFav">Unfavorite</ng-container>
       <ng-container *ngIf="!alreadyExistsInFav">Favorite</ng-container>
     </button>
-    <button [hidden]="isCustom() || viewMode == viewModeEnum.History" mat-menu-item (click)="hide()"> <ng-container
-        *ngIf="alreadyHidden">Unhide</ng-container>
+    <button
+      [hidden]="isCustom() || viewMode == viewModeEnum.History"
+      mat-menu-item
+      (click)="hide()"
+    >
+      <ng-container *ngIf="alreadyHidden">Unhide</ng-container>
       <ng-container *ngIf="!alreadyHidden">Hide</ng-container>
     </button>
     <button [hidden]="!isLivestream()" mat-menu-item (click)="record()">Record</button>
