@@ -3,7 +3,7 @@
   <id>dev.fredol.open-tv</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0</project_license>
-  <name>Fred TV</name>
+  <name>Beats TV</name>
   <summary>Fast And Powerful IPTV App</summary>
   <content_rating type="oars-1.1" />
   <branding>
@@ -11,7 +11,7 @@
     <color type="primary" scheme_preference="dark">#4549cc</color>
   </branding>
   <description>
-    <p>Completely rewritten to accomodate new features and to be even speedier, Fred TV has been carefully crafted to deliver the best IPTV experience</p>
+    <p>Completely rewritten to accomodate new features and to be even speedier, Beats TV has been carefully crafted to deliver the best IPTV experience</p>
     <p>Features:</p>
     <ul>
       <li>Import your IPTV channels from any source (M3U File, M3U link, Xtream) 🗃️</li>
@@ -29,6 +29,16 @@
   </categories>
   <launchable type="desktop-id">dev.fredol.open-tv.desktop</launchable>
   <releases>
+  <release version="1.9.3" date="2026-01-27">
+    <description>
+      <ul>
+        <li>Renamed application to Beats TV</li>
+        <li>Improved application settings and UX</li>
+        <li>Fixed various UI and accessibility issues</li>
+        <li>Consolidated GitHub releases for all platforms</li>
+      </ul>
+    </description>
+  </release>
   <release version="1.9.1" date="2026-01-18">
     <description>
       <ul>
@@ -45,7 +55,7 @@
   <release version="1.9.0" date="2026-01-11">
     <description>
       <ul>
-        <li>Renamed app to Fred TV</li>
+        <li>Renamed app to Beats TV</li>
         <li>Added a reload button next to the search bar</li>
         <li>Added an option to hide categories and channels</li>
         <li>Added an arrow to scroll back up</li>
@@ -105,7 +115,7 @@
             <li>Series are now organized in seasons. This was probably the most requested feature.</li>
             <li>Playback of channels can be cancelled by just clicking on them again. No more zombies.</li>
             <li>Squashed a ton of xtream bugs</li>
-            <li>Fred TV now remembers your last search before entering a category, series or season</li>
+            <li>Beats TV now remembers your last search before entering a category, series or season</li>
             <li>
               Re-added the scrollbar.
             </li>
@@ -135,7 +145,7 @@
               </li>
               <li>Added an option in settings to clear history</li>
               <li>
-                Reduced permissions of flatpak package to the bare minimum. Using Fred TV in a containerized
+                Reduced permissions of flatpak package to the bare minimum. Using Beats TV in a containerized
                 environment like flatpak/distrobox/podman/appImage will act as if "Always ask where to save
                 file" is on.
               </li>
@@ -253,11 +263,11 @@
  <screenshots>
   <screenshot type="default">
    <image>https://raw.githubusercontent.com/Fredolx/open-tv/867720dc3476ac85963f28965ef6f15cb353adf8/screenshots/demo1_linux.png</image>
-   <caption>Fred TV's Main Window</caption>
+   <caption>Beats TV's Main Window</caption>
   </screenshot>
   <screenshot>
     <image>https://raw.githubusercontent.com/Fredolx/open-tv/867720dc3476ac85963f28965ef6f15cb353adf8/screenshots/demo2_linux.png</image>
-    <caption>Fred TV's Settings Window</caption>
+    <caption>Beats TV's Settings Window</caption>
    </screenshot>
  </screenshots>
  <developer_name>Frédéric Lachapelle</developer_name>

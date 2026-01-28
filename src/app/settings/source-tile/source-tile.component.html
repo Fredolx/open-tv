@@ -1,221 +1,440 @@
 <div class="source">
-    <h4>{{source?.name}}</h4>
-    <div class="last-updated" *ngIf="source?.last_updated">
-        Refreshed: {{source?.last_updated! * 1000 | timeAgo}}
+  <h4>{{ source?.name }}</h4>
+  <div class="last-updated" *ngIf="source?.last_updated">
+    Refreshed: {{ source?.last_updated! * 1000 | timeAgo }}
+  </div>
+  <div class="row align-items-baseline mt-3">
+    <div class="col-3">Type:</div>
+    <div class="col">
+      {{ get_source_type_name() }}
     </div>
-    <div class="row align-items-baseline mt-3">
-        <div class="col-3">Type:</div>
-        <div class="col">
-            {{get_source_type_name()}}
-        </div>
+  </div>
+  <div
+    *ngIf="source?.source_type != sourceTypeEnum.Custom"
+    class="row mt-2"
+    [ngClass]="{ 'align-items-center': editing, 'align-items-baseline': !editing }"
+  >
+    <div class="col-3">Url:</div>
+    <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
+      {{ source?.url }}
     </div>
-    <div *ngIf="source?.source_type != sourceTypeEnum.Custom" class="row mt-2"
-        [ngClass]="{'align-items-center': editing, 'align-items-baseline': !editing}">
-        <div class="col-3">Url:</div>
-        <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
-            {{source?.url}}
-        </div>
-        <div class="col" *ngIf="editing && source?.source_type != sourceTypeEnum.M3U">
-            <input class="form-control form-control-sm" name="url" [(ngModel)]="editableSource.url">
-        </div>
-        <div class="col wrap-text selectable d-flex align-items-center"
-            *ngIf="editing && source?.source_type == sourceTypeEnum.M3U">
-            {{editableSource.url}}
-            <button *ngIf="editing && source?.source_type == sourceTypeEnum.M3U" (click)="browse()"
-                [disabled]="memory.Loading" class="btn btn-primary btn-sm d-inline-flex align-items-center ms-2">
-                <span>Browse</span>
-                <svg fill="currentColor" class="ms-1 pen" viewBox="0 0 24 24">
-                    <path
-                        d="M19,20H4C2.89,20 2,19.1 2,18V6C2,4.89 2.89,4 4,4H10L12,6H19A2,2 0 0,1 21,8H21L4,8V18L6.14,10H23.21L20.93,18.5C20.7,19.37 19.92,20 19,20Z" />
-                </svg>
-            </button>
-        </div>
+    <div class="col" *ngIf="editing && source?.source_type != sourceTypeEnum.Xtream">
+      <input
+        class="form-control form-control-sm"
+        name="url"
+        [(ngModel)]="editableSource.url"
+        title="Playlist URL"
+        aria-label="Playlist URL"
+      />
     </div>
-    <div *ngIf="source?.source_type != sourceTypeEnum.M3U && source?.source_type != sourceTypeEnum.Custom"
-        class="row mt-2" [ngClass]="{'align-items-center': editing, 'align-items-baseline': !editing}">
-        <div ngbTooltip="User agent to be used when fetching/refreshing playlists" class="col-3">User-agent:</div>
-        <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
-            {{source?.user_agent || defaultUserAgent}}
-        </div>
-        <div class="col" *ngIf="editing">
-            <input class="form-control form-control-sm" name="user_agent" [(ngModel)]="editableSource.user_agent"
-                [placeholder]="defaultUserAgent">
-        </div>
+    <div
+      class="col wrap-text selectable d-flex align-items-center"
+      *ngIf="editing && source?.source_type == sourceTypeEnum.M3U"
+    >
+      {{ editableSource.url }}
+      <button
+        *ngIf="editing && source?.source_type == sourceTypeEnum.M3U"
+        (click)="browse()"
+        [disabled]="memory.Loading"
+        class="btn btn-primary btn-sm d-inline-flex align-items-center ms-2"
+        title="Browse for M3U file"
+        aria-label="Browse for M3U file"
+      >
+        <span>Browse</span>
+        <svg fill="currentColor" class="ms-1 pen" viewBox="0 0 24 24">
+          <path
+            d="M19,20H4C2.89,20 2,19.1 2,18V6C2,4.89 2.89,4 4,4H10L12,6H19A2,2 0 0,1 21,8H21L4,8V18L6.14,10H23.21L20.93,18.5C20.7,19.37 19.92,20 19,20Z"
+          />
+        </svg>
+      </button>
     </div>
-    <div class="row mt-2" [ngClass]="{'align-items-center': editing, 'align-items-baseline': !editing}">
-        <div ngbTooltip="User agent to be used when playing streams" class="col-3">Stream user-agent:</div>
-        <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
-            {{source?.stream_user_agent}}
-        </div>
-        <div class="col" *ngIf="editing">
-            <input class="form-control form-control-sm" name="stream_user_agent"
-                [(ngModel)]="editableSource.stream_user_agent">
-        </div>
+  </div>
+  <div
+    *ngIf="
+      source?.source_type != sourceTypeEnum.M3U && source?.source_type != sourceTypeEnum.Custom
+    "
+    class="row mt-2"
+    [ngClass]="{ 'align-items-center': editing, 'align-items-baseline': !editing }"
+  >
+    <div ngbTooltip="User agent to be used when fetching/refreshing playlists" class="col-3">
+      User-agent:
     </div>
-    <div *ngIf="source?.source_type != sourceTypeEnum.Custom && source?.source_type != sourceTypeEnum.CustomImport"
-        class="row mt-2" [ngClass]="{'align-items-center': editing, 'align-items-baseline': !editing}">
-        <div class="col-3"
-            ngbTooltip="Limits the number of concurrent streams. When the limit is reached and a new stream is opened, the oldest stream is closed">
-            Max Streams:</div>
-        <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
-            {{source?.max_streams || '1'}}
-        </div>
-        <div class="col" *ngIf="editing">
-            <input class="form-control form-control-sm" type="number" name="streams"
-                [(ngModel)]="editableSource.max_streams" [placeholder]="1">
-        </div>
+    <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
+      {{ source?.user_agent || defaultUserAgent }}
     </div>
-    <div class="row align-items-baseline mt-2" *ngIf="source?.source_type == 2">
-        <div class="col-3">Username:</div>
-        <div class="col" *ngIf="!editing">
-            <div class="field" *ngIf="!showUsername">******</div>
-            <div class="field selectable" *ngIf="showUsername">{{source?.username}}</div>
-            <span (click)="showUsername = !showUsername">
-                <svg *ngIf="!showUsername" class="eye" fill="currentColor" viewBox="0 0 24 24">
-                    <path
-                        d="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" />
-                </svg>
-                <svg fill="currentColor" *ngIf="showUsername" class="eye" viewBox="0 0 24 24">
-                    <path
-                        d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z" />
-                </svg>
-            </span>
-        </div>
-        <div class="col" *ngIf="editing">
-            <input class="form-control form-control-sm" name="username" [(ngModel)]="editableSource.username">
-        </div>
+    <div class="col" *ngIf="editing">
+      <input
+        class="form-control form-control-sm"
+        name="user_agent"
+        [(ngModel)]="editableSource.user_agent"
+        [placeholder]="defaultUserAgent"
+        title="Playlist User Agent"
+        aria-label="Playlist User Agent"
+      />
     </div>
-    <div class="row align-items-baseline mt-2" *ngIf="source?.source_type == 2">
-        <div class="col-3">Password:</div>
-        <div class="col" *ngIf="!editing">
-            <div class="field" *ngIf="!showPassword">******</div>
-            <div class="field selectable" *ngIf="showPassword">{{source?.password}}</div>
-            <span (click)="showPassword = !showPassword">
-                <svg *ngIf="!showPassword" class="eye" fill="currentColor" viewBox="0 0 24 24">
-                    <path
-                        d="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" />
-                </svg>
-                <svg fill="currentColor" *ngIf="showPassword" class="eye" viewBox="0 0 24 24">
-                    <path
-                        d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z" />
-                </svg>
-            </span>
-        </div>
-        <div class="col" *ngIf="editing">
-            <input class="form-control form-control-sm" name="password" [(ngModel)]="editableSource.password">
-        </div>
+  </div>
+  <div
+    class="row mt-2"
+    [ngClass]="{ 'align-items-center': editing, 'align-items-baseline': !editing }"
+  >
+    <div ngbTooltip="User agent to be used when playing streams" class="col-3">
+      Stream user-agent:
     </div>
-    <div class="row mt-2"
-        *ngIf="editing && (source?.source_type == sourceTypeEnum.M3U || source?.source_type == sourceTypeEnum.M3ULink)">
-        <div class="col">
-            <div class="form-check form-switch">
-                <input name="use-tvg-id" [(ngModel)]="editableSource.use_tvg_id" id="use-tvg-id"
-                    class="form-check-input" type="checkbox">
-                <label class="form-check-label" for="use-tvg-id">Use TVG-ID for names when TVG-NAME is
-                    unavailable</label>
-            </div>
-        </div>
+    <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
+      {{ source?.stream_user_agent }}
     </div>
-    <div class="mt-3 d-flex flex-wrap gap-3 w-75">
-        <button (click)="edit()" class="btn btn-primary d-inline-flex align-items-center" [disabled]="memory.Loading"
-            *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing">
-            <span>Edit</span>
-            <svg fill="currentColor" class="pen ms-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path
-                    d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
-            </svg>
-        </button>
-        <button (click)="save()" class="btn btn-success d-inline-flex align-items-center" [disabled]="memory.Loading"
-            *ngIf="source?.source_type != sourceTypeEnum.Custom && editing">
-            <span>Save</span>
-            <svg class="ms-1 pen" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path
-                    d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z" />
-            </svg>
-        </button>
-        <button (click)="cancel()" class="btn btn-danger d-inline-flex align-items-center" [disabled]="memory.Loading"
-            *ngIf="source?.source_type != sourceTypeEnum.Custom && editing">
-            <span>Cancel</span>
-            <svg fill="currentColor" class="ms-1 pen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path
-                    d="M12 2C17.5 2 22 6.5 22 12S17.5 22 12 22 2 17.5 2 12 6.5 2 12 2M12 4C10.1 4 8.4 4.6 7.1 5.7L18.3 16.9C19.3 15.5 20 13.8 20 12C20 7.6 16.4 4 12 4M16.9 18.3L5.7 7.1C4.6 8.4 4 10.1 4 12C4 16.4 7.6 20 12 20C13.9 20 15.6 19.4 16.9 18.3Z" />
-            </svg>
-        </button>
-        <button [disabled]="memory.Loading" *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing"
-            (click)="refresh()" class="btn btn-primary d-inline-flex align-items-center">
-            <span>Refresh</span>
-            <svg class="refresh ms-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path fill="currentColor"
-                    d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" />
-            </svg>
-        </button>
-        <button [disabled]="memory.Loading" *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing"
-            (click)="backupFavs()" class="btn btn-primary d-inline-flex align-items-center">
-            <span>Backup favs</span>
-            <svg class="pen ms-1" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                    d="M17,7V3H7V7H17M14,17A3,3 0 0,0 17,14A3,3 0 0,0 14,11A3,3 0 0,0 11,14A3,3 0 0,0 14,17M19,1L23,5V17A2,2 0 0,1 21,19H7C5.89,19 5,18.1 5,17V3A2,2 0 0,1 7,1H19M1,7H3V21H17V23H3A2,2 0 0,1 1,21V7Z" />
-            </svg>
-        </button>
-        <button [disabled]="memory.Loading" *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing"
-            (click)="restoreFavs()" class="btn btn-primary d-inline-flex align-items-center">
-            <span>Restore favs</span>
-            <svg class="pen ms-1" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                    d="M12,3A9,9 0 0,0 3,12H0L4,16L8,12H5A7,7 0 0,1 12,5A7,7 0 0,1 19,12A7,7 0 0,1 12,19C10.5,19 9.09,18.5 7.94,17.7L6.5,19.14C8.04,20.3 9.94,21 12,21A9,9 0 0,0 21,12A9,9 0 0,0 12,3M14,12A2,2 0 0,0 12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12Z" />
-            </svg>
-        </button>
-        <button [disabled]="memory.Loading" *ngIf="source?.source_type == sourceTypeEnum.Custom"
-            (click)="addCustomChannel()" class="btn btn-success d-inline-flex align-items-center">
-            <span>Add channel</span>
-            <svg class="pen ms-1" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                    d="M20.7,7C20.4,7.4 20,7.7 20,8C20,8.3 20.3,8.6 20.6,9C21.1,9.5 21.6,9.9 21.5,10.4C21.5,10.9 21,11.4 20.5,11.9L16.4,16L15,14.7L19.2,10.5L18.2,9.5L16.8,10.9L13,7.1L17,3.3C17.4,2.9 18,2.9 18.4,3.3L20.7,5.6C21.1,6 21.1,6.7 20.7,7M3,17.2L12.6,7.6L16.3,11.4L6.8,21H3V17.2M7,2V5H10V7H7V10H5V7H2V5H5V2H7Z" />
-            </svg>
-        </button>
-        <button [disabled]="memory.Loading" *ngIf="source?.source_type == sourceTypeEnum.Custom"
-            (click)="addCustomGroup()" class="btn btn-success d-inline-flex align-items-center">
-            <span>Add group</span>
-            <svg class="pen ms-1" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path
-                    d="M17 14V17H14V19H17V22H19V19H22V17H19V14M20 11V12.3C19.4 12.1 18.7 12 18 12C16.8 12 15.6 12.4 14.7 13H7V11H20M12.1 17H7V15H12.8C12.5 15.6 12.2 16.3 12.1 17M7 7H20V9H7V7M5 19H7V21H3V3H7V5H5V19Z" />
-            </svg>
-        </button>
-        <button [disabled]="memory.Loading" *ngIf="source?.source_type == sourceTypeEnum.Custom" (click)="share()"
-            class="btn btn-primary d-inline-flex align-items-center">
-            <span>Share</span>
-            <svg class="pen ms-1" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path
-                    d="M12,1L8,5H11V14H13V5H16M18,23H6C4.89,23 4,22.1 4,21V9A2,2 0 0,1 6,7H9V9H6V21H18V9H15V7H18A2,2 0 0,1 20,9V21A2,2 0 0,1 18,23Z" />
-            </svg>
-        </button>
-        <button [disabled]="memory.Loading" *ngIf="source?.source_type == sourceTypeEnum.Custom" (click)="import()"
-            class="btn btn-primary d-inline-flex align-items-center">
-            <span>Import channel/group</span>
-            <svg fill="currentColor" class="pen ms-1" viewBox="0 0 24 24">
-                <path
-                    d="M6,2C4.89,2 4,2.9 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13M10.05,11.22L12.88,14.05L15,11.93V19H7.93L10.05,16.88L7.22,14.05" />
-            </svg>
-        </button>
-        <button [disabled]="memory.Loading" (click)="delete()" *ngIf="!editing"
-            class="btn btn-danger d-inline-flex align-items-center">Delete
-            <svg class="trash ms-1" viewBox="0 0 24 24" fill="currentColor">
-                <path
-                    d="M 9,4 H 4 v 2 h 1 v 13 c 0,1.105 0.895,2 2,2 h 10 c 1.105,0 2,-0.895 2,-2 V 6 h 1 V 4 H 15 M 7,6 H 17 V 19 H 7 V 6 m 2,2 v 9 h 2 V 8 H 9 m 4,0 v 9 h 2 V 8 Z"
-                    id="path1" />
-                <path class="trash-lid" id="rect2" d="m 7.4391144,0.7970474 h 9.1808116 v 2.538746 H 7.4391144 Z" />
-            </svg>
-        </button>
-
+    <div class="col" *ngIf="editing">
+      <input
+        class="form-control form-control-sm"
+        name="stream_user_agent"
+        [(ngModel)]="editableSource.stream_user_agent"
+        title="Stream User Agent"
+        aria-label="Stream User Agent"
+      />
     </div>
-    <svg (click)="toggleEnabled()" class="check" *ngIf="source?.enabled && !editing" fill="currentColor"
-        viewBox="0 0 24 24">
+  </div>
+  <div
+    *ngIf="
+      source?.source_type != sourceTypeEnum.Custom &&
+      source?.source_type != sourceTypeEnum.CustomImport
+    "
+    class="row mt-2"
+    [ngClass]="{ 'align-items-center': editing, 'align-items-baseline': !editing }"
+  >
+    <div
+      class="col-3"
+      ngbTooltip="Limits the number of concurrent streams. When the limit is reached and a new stream is opened, the oldest stream is closed"
+    >
+      Max Streams:
+    </div>
+    <div *ngIf="!editing" class="col-xl-9 col-lg-9 col-md-8 col-sm-6 col-4 wrap-text selectable">
+      {{ source?.max_streams || "1" }}
+    </div>
+    <div class="col" *ngIf="editing">
+      <input
+        class="form-control form-control-sm"
+        type="number"
+        name="streams"
+        [(ngModel)]="editableSource.max_streams"
+        [placeholder]="1"
+        title="Max Concurrent Streams"
+        aria-label="Max Concurrent Streams"
+      />
+    </div>
+  </div>
+  <div class="row align-items-baseline mt-2" *ngIf="source?.source_type == 2">
+    <div class="col-3">Username:</div>
+    <div class="col" *ngIf="!editing">
+      <div class="field" *ngIf="!showUsername">******</div>
+      <div class="field selectable" *ngIf="showUsername">{{ source?.username }}</div>
+      <span
+        (click)="showUsername = !showUsername"
+        class="clickable"
+        [title]="showUsername ? 'Hide username' : 'Show username'"
+        [attr.aria-label]="showUsername ? 'Hide username' : 'Show username'"
+      >
+        <svg *ngIf="!showUsername" class="eye" fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z"
+          />
+        </svg>
+        <svg fill="currentColor" *ngIf="showUsername" class="eye" viewBox="0 0 24 24">
+          <path
+            d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"
+          />
+        </svg>
+      </span>
+    </div>
+    <div class="col" *ngIf="editing">
+      <input
+        class="form-control form-control-sm"
+        name="username"
+        [(ngModel)]="editableSource.username"
+        title="Username"
+        aria-label="Username"
+      />
+    </div>
+  </div>
+  <div class="row align-items-baseline mt-2" *ngIf="source?.source_type == 2">
+    <div class="col-3">Password:</div>
+    <div class="col" *ngIf="!editing">
+      <div class="field" *ngIf="!showPassword">******</div>
+      <div class="field selectable" *ngIf="showPassword">{{ source?.password }}</div>
+      <span
+        (click)="showPassword = !showPassword"
+        class="clickable"
+        [title]="showPassword ? 'Hide password' : 'Show password'"
+        [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+      >
+        <svg *ngIf="!showPassword" class="eye" fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z"
+          />
+        </svg>
+        <svg fill="currentColor" *ngIf="showPassword" class="eye" viewBox="0 0 24 24">
+          <path
+            d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"
+          />
+        </svg>
+      </span>
+    </div>
+    <div class="col" *ngIf="editing">
+      <input
+        class="form-control form-control-sm"
+        name="password"
+        [(ngModel)]="editableSource.password"
+        title="Password"
+        aria-label="Password"
+      />
+    </div>
+  </div>
+  <div
+    class="row mt-2"
+    *ngIf="
+      editing &&
+      (source?.source_type == sourceTypeEnum.M3U || source?.source_type == sourceTypeEnum.M3ULink)
+    "
+  >
+    <div class="col">
+      <div class="form-check form-switch">
+        <input
+          name="use-tvg-id"
+          [(ngModel)]="editableSource.use_tvg_id"
+          id="use-tvg-id"
+          class="form-check-input"
+          type="checkbox"
+          title="Use TVG-ID"
+          aria-label="Use TVG-ID"
+        />
+        <label class="form-check-label" for="use-tvg-id"
+          >Use TVG-ID for names when TVG-NAME is unavailable</label
+        >
+      </div>
+    </div>
+  </div>
+  <div class="mt-3 d-flex flex-wrap gap-3 w-75">
+    <button
+      (click)="edit()"
+      class="btn btn-primary d-inline-flex align-items-center"
+      [disabled]="memory.Loading"
+      *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing"
+      title="Edit source"
+      aria-label="Edit source"
+    >
+      <span>Edit</span>
+      <svg
+        fill="currentColor"
+        class="pen ms-1"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
         <path
-            d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" />
-    </svg>
-    <svg (click)="toggleEnabled()" *ngIf="!source?.enabled && !editing" class="check" fill="currentColor"
-        viewBox="0 0 24 24">
+          d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"
+        />
+      </svg>
+    </button>
+    <button
+      (click)="save()"
+      class="btn btn-success d-inline-flex align-items-center"
+      [disabled]="memory.Loading"
+      *ngIf="source?.source_type != sourceTypeEnum.Custom && editing"
+      title="Save changes"
+      aria-label="Save changes"
+    >
+      <span>Save</span>
+      <svg
+        class="ms-1 pen"
+        fill="currentColor"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
         <path
-            d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z" />
-    </svg>
+          d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"
+        />
+      </svg>
+    </button>
+    <button
+      (click)="cancel()"
+      class="btn btn-danger d-inline-flex align-items-center"
+      [disabled]="memory.Loading"
+      *ngIf="source?.source_type != sourceTypeEnum.Custom && editing"
+      title="Cancel editing"
+      aria-label="Cancel editing"
+    >
+      <span>Cancel</span>
+      <svg
+        fill="currentColor"
+        class="ms-1 pen"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 2C17.5 2 22 6.5 22 12S17.5 22 12 22 2 17.5 2 12 6.5 2 12 2M12 4C10.1 4 8.4 4.6 7.1 5.7L18.3 16.9C19.3 15.5 20 13.8 20 12C20 7.6 16.4 4 12 4M16.9 18.3L5.7 7.1C4.6 8.4 4 10.1 4 12C4 16.4 7.6 20 12 20C13.9 20 15.6 19.4 16.9 18.3Z"
+        />
+      </svg>
+    </button>
+    <button
+      [disabled]="memory.Loading"
+      *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing"
+      (click)="refresh()"
+      class="btn btn-primary d-inline-flex align-items-center"
+      title="Refresh source"
+      aria-label="Refresh source"
+    >
+      <span>Refresh</span>
+      <svg class="refresh ms-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path
+          fill="currentColor"
+          d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
+        />
+      </svg>
+    </button>
+    <button
+      [disabled]="memory.Loading"
+      *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing"
+      (click)="backupFavs()"
+      class="btn btn-primary d-inline-flex align-items-center"
+      title="Backup favorites"
+      aria-label="Backup favorites"
+    >
+      <span>Backup favs</span>
+      <svg class="pen ms-1" fill="currentColor" viewBox="0 0 24 24">
+        <path
+          d="M17,7V3H7V7H17M14,17A3,3 0 0,0 17,14A3,3 0 0,0 14,11A3,3 0 0,0 11,14A3,3 0 0,0 14,17M19,1L23,5V17A2,2 0 0,1 21,19H7C5.89,19 5,18.1 5,17V3A2,2 0 0,1 7,1H19M1,7H3V21H17V23H3A2,2 0 0,1 1,21V7Z"
+        />
+      </svg>
+    </button>
+    <button
+      [disabled]="memory.Loading"
+      *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing"
+      (click)="restoreFavs()"
+      class="btn btn-primary d-inline-flex align-items-center"
+      title="Restore favorites"
+      aria-label="Restore favorites"
+    >
+      <span>Restore favs</span>
+      <svg class="pen ms-1" fill="currentColor" viewBox="0 0 24 24">
+        <path
+          d="M12,3A9,9 0 0,0 3,12H0L4,16L8,12H5A7,7 0 0,1 12,5A7,7 0 0,1 19,12A7,7 0 0,1 12,19C10.5,19 9.09,18.5 7.94,17.7L6.5,19.14C8.04,20.3 9.94,21 12,21A9,9 0 0,0 21,12A9,9 0 0,0 12,3M14,12A2,2 0 0,0 12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12Z"
+        />
+      </svg>
+    </button>
+    <button
+      [disabled]="memory.Loading"
+      *ngIf="source?.source_type == sourceTypeEnum.Custom"
+      (click)="addCustomChannel()"
+      class="btn btn-success d-inline-flex align-items-center"
+      title="Add custom channel"
+      aria-label="Add custom channel"
+    >
+      <span>Add channel</span>
+      <svg class="pen ms-1" fill="currentColor" viewBox="0 0 24 24">
+        <path
+          d="M20.7,7C20.4,7.4 20,7.7 20,8C20,8.3 20.3,8.6 20.6,9C21.1,9.5 21.6,9.9 21.5,10.4C21.5,10.9 21,11.4 20.5,11.9L16.4,16L15,14.7L19.2,10.5L18.2,9.5L16.8,10.9L13,7.1L17,3.3C17.4,2.9 18,2.9 18.4,3.3L20.7,5.6C21.1,6 21.1,6.7 20.7,7M3,17.2L12.6,7.6L16.3,11.4L6.8,21H3V17.2M7,2V5H10V7H7V10H5V7H2V5H5V2H7Z"
+        />
+      </svg>
+    </button>
+    <button
+      [disabled]="memory.Loading"
+      *ngIf="source?.source_type == sourceTypeEnum.Custom"
+      (click)="addCustomGroup()"
+      class="btn btn-success d-inline-flex align-items-center"
+      title="Add custom group"
+      aria-label="Add custom group"
+    >
+      <span>Add group</span>
+      <svg
+        class="pen ms-1"
+        fill="currentColor"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M17 14V17H14V19H17V22H19V19H22V17H19V14M20 11V12.3C19.4 12.1 18.7 12 18 12C16.8 12 15.6 12.4 14.7 13H7V11H20M12.1 17H7V15H12.8C12.5 15.6 12.2 16.3 12.1 17M7 7H20V9H7V7M5 19H7V21H3V3H7V5H5V19Z"
+        />
+      </svg>
+    </button>
+    <button
+      [disabled]="memory.Loading"
+      *ngIf="source?.source_type == sourceTypeEnum.Custom"
+      (click)="share()"
+      class="btn btn-primary d-inline-flex align-items-center"
+      title="Share custom source"
+      aria-label="Share custom source"
+    >
+      <span>Share</span>
+      <svg
+        class="pen ms-1"
+        fill="currentColor"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12,1L8,5H11V14H13V5H16M18,23H6C4.89,23 4,22.1 4,21V9A2,2 0 0,1 6,7H9V9H6V21H18V9H15V7H18A2,2 0 0,1 20,9V21A2,2 0 0,1 18,23Z"
+        />
+      </svg>
+    </button>
+    <button
+      [disabled]="memory.Loading"
+      *ngIf="source?.source_type == sourceTypeEnum.Custom"
+      (click)="import()"
+      class="btn btn-primary d-inline-flex align-items-center"
+      title="Import channel or group"
+      aria-label="Import channel or group"
+    >
+      <span>Import channel/group</span>
+      <svg fill="currentColor" class="pen ms-1" viewBox="0 0 24 24">
+        <path
+          d="M6,2C4.89,2 4,2.9 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13M10.05,11.22L12.88,14.05L15,11.93V19H7.93L10.05,16.88L7.22,14.05"
+        />
+      </svg>
+    </button>
+    <button
+      [disabled]="memory.Loading"
+      (click)="delete()"
+      *ngIf="!editing"
+      class="btn btn-danger d-inline-flex align-items-center"
+      title="Delete source"
+      aria-label="Delete source"
+    >
+      Delete
+      <svg class="trash ms-1" viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M 9,4 H 4 v 2 h 1 v 13 c 0,1.105 0.895,2 2,2 h 10 c 1.105,0 2,-0.895 2,-2 V 6 h 1 V 4 H 15 M 7,6 H 17 V 19 H 7 V 6 m 2,2 v 9 h 2 V 8 H 9 m 4,0 v 9 h 2 V 8 Z"
+          id="path1"
+        />
+        <path
+          class="trash-lid"
+          id="rect2"
+          d="m 7.4391144,0.7970474 h 9.1808116 v 2.538746 H 7.4391144 Z"
+        />
+      </svg>
+    </button>
+  </div>
+  <svg
+    (click)="toggleEnabled()"
+    class="check clickable"
+    *ngIf="source?.enabled && !editing"
+    fill="currentColor"
+    viewBox="0 0 24 24"
+    title="Disable source"
+    aria-label="Disable source"
+  >
+    <path
+      d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"
+    />
+  </svg>
+  <svg
+    (click)="toggleEnabled()"
+    *ngIf="!source?.enabled && !editing"
+    class="check clickable"
+    fill="currentColor"
+    viewBox="0 0 24 24"
+    title="Enable source"
+    aria-label="Enable source"
+  >
+    <path
+      d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z"
+    />
+  </svg>
 </div>

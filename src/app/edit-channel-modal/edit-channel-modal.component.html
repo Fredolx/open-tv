@@ -1,137 +1,212 @@
 <div class="modal-header">
-    <h4 class="modal-title lbl">
-        <ng-container *ngIf="!editing">
-            Creating a custom channel
-        </ng-container>
-        <ng-container *ngIf="editing">
-            Editing {{channel.data.name}}
-        </ng-container>
-    </h4>
-    <button type="button" class="btn-close btn-close-white" aria-label="Close"
-        (click)="activeModal.close('Cross click')"></button>
+  <h4 class="modal-title lbl">
+    <ng-container *ngIf="!editing"> Creating a custom channel </ng-container>
+    <ng-container *ngIf="editing"> Editing {{ channel.data.name }} </ng-container>
+  </h4>
+  <button
+    type="button"
+    class="btn-close btn-close-white"
+    aria-label="Close"
+    (click)="activeModal.close('Cross click')"
+  ></button>
 </div>
 <form #form="ngForm" (ngSubmit)="save()">
-    <div class="modal-body">
-        <div class="row mt-3 align-items-center">
-            <div class="col-4">
-                <span>Name <span class="text-danger">*</span></span>
-            </div>
-            <div class="col">
-                <input #name="ngModel" (ngModelChange)="onNameChange($event)" name="name" required class="form-control" [(ngModel)]="channel.data.name"
-                    placeholder="My cool channel" />
-            </div>
-        </div>
-        <div class="row mt-1 ps-3 align-items-center">
-            <div class="col-4"></div>
-            <div *ngIf="name.errors?.['required'] && name.dirty" class="col text-danger error">
-                This field is required
-            </div>
-        </div>
-        <div class="row mt-3 align-items-center">
-            <div class="col-4">
-                <span>Image (link)</span>
-            </div>
-            <div class="col">
-                <input class="form-control" name="image" [(ngModel)]="channel.data.image"
-                    placeholder="http://mycoolsite.com/image.png" />
-            </div>
-        </div>
-        <div class="row mt-3 align-items-center">
-            <div class="col-4">
-                <span>Url <span class="text-danger">*</span></span>
-            </div>
-            <div class="col">
-                <input #url="ngModel" name="url" (ngModelChange)="onUrlChange($event)" required class="form-control" [(ngModel)]="channel.data.url"
-                    placeholder="Youtube, Twitch, anything" />
-            </div>
-        </div>
-        <div class="row mt-1 ps-3 align-items-center">
-            <div class="col-4"></div>
-            <div *ngIf="url.errors?.['required'] && url.dirty" class="col text-danger error">
-                This field is required
-            </div>
-        </div>
-        <div class="row mt-3 align-items-center">
-            <div class="col-4">
-                <span>Media type <span class="text-danger">*</span></span>
-            </div>
-            <div class="col">
-                <select #mediaType="ngModel" name="mediaType" required [(ngModel)]="channel.data.media_type"
-                    class="form-control">
-                    <option [ngValue]="mediaTypeEnum.livestream">Livestream</option>
-                    <option [ngValue]="mediaTypeEnum.movie">Movie</option>
-                </select>
-            </div>
-        </div>
-        <div class="row mt-3 align-items-center">
-            <div class="col-4">
-                <span>Category</span>
-            </div>
-            <div class="col">
-                <input id="typeahead-basic" placeholder="Start typing to show results..." (ngModelChange)="checkEmpty($event)"
-                    name="group" type="text" class="form-control" [(ngModel)]="group" [ngbTypeahead]="search"
-                    (selectItem)="selectGroup($event)" [resultFormatter]="formatter" [inputFormatter]="formatter" />
-            </div>
-        </div>
-        <div class="row mt-1 ps-3 align-items-center">
-            <div class="col-4"></div>
-            <div *ngIf="mediaType.errors?.['required'] && mediaType.dirty" class="col error text-danger">
-                This field is required
-            </div>
-        </div>
-        <div class="row mt-3 align-items-center">
-            <div class="col-4">
-                <span>HTTP User agent</span>
-            </div>
-            <div class="col">
-                <input name="httpUserAgent" class="form-control"
-                    placeholder="Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
-                    [(ngModel)]="channel.headers!.user_agent" />
-            </div>
-        </div>
-        <div class="row mt-3 align-items-center">
-            <div class="col-4">
-                <span>HTTP Origin</span>
-            </div>
-            <div class="col">
-                <input name="httpOrigin" class="form-control" placeholder="http://mycoolsite.com"
-                    [(ngModel)]="channel.headers!.http_origin" />
-            </div>
-        </div>
-        <div class="row mt-3 align-items-center">
-            <div class="col-4">
-                <span>HTTP Referrer</span>
-            </div>
-            <div class="col">
-                <div class="col">
-                    <input name="httpReferrer" class="form-control" placeholder="http://mycoolsite.com"
-                        [(ngModel)]="channel.headers!.referrer" />
-                </div>
-            </div>
-        </div>
-        <div class="row mt-3 align-items-center">
-            <div class="col-4">
-                <span>Ignore SSL</span>
-            </div>
-            <div class="col">
-                <div class="form-check form-switch">
-                    <input name="ignoreSSL" [(ngModel)]="channel.headers!.ignore_ssl" class="form-check-input"
-                        type="checkbox">
-                </div>
-            </div>
-        </div>
+  <div class="modal-body">
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Name <span class="text-danger">*</span></span>
+      </div>
+      <div class="col">
+        <input
+          #name="ngModel"
+          (ngModelChange)="onNameChange($event)"
+          name="name"
+          id="channel-name"
+          required
+          class="form-control"
+          [(ngModel)]="channel.data.name"
+          placeholder="My cool channel"
+          title="Channel Name"
+        />
+      </div>
     </div>
-    <p *ngIf="channelExists" class="text-danger error mb-2 bs-col-padding">
-        Channel already exists (name, url)
-    </p>
-    <div class="modal-footer">
-        <button [disabled]="!form.valid || loading || channelExists" class="btn btn-primary d-inline-flex align-items-center"
-            type="submit">
-            <span>Save</span>
-            <svg class="ms-1 save-floppy" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path
-                    d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z" />
-            </svg>
-        </button>
+    <div class="row mt-1 ps-3 align-items-center">
+      <div class="col-4"></div>
+      <div *ngIf="name.errors?.['required'] && name.dirty" class="col text-danger error">
+        This field is required
+      </div>
     </div>
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Image (link)</span>
+      </div>
+      <div class="col">
+        <input
+          class="form-control"
+          name="image"
+          id="channel-image"
+          [(ngModel)]="channel.data.image"
+          placeholder="http://mycoolsite.com/image.png"
+          title="Image URL"
+        />
+      </div>
+    </div>
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Url <span class="text-danger">*</span></span>
+      </div>
+      <div class="col">
+        <input
+          #url="ngModel"
+          name="url"
+          id="channel-url"
+          (ngModelChange)="onUrlChange($event)"
+          required
+          class="form-control"
+          [(ngModel)]="channel.data.url"
+          placeholder="Youtube, Twitch, anything"
+          title="Stream URL"
+        />
+      </div>
+    </div>
+    <div class="row mt-1 ps-3 align-items-center">
+      <div class="col-4"></div>
+      <div *ngIf="url.errors?.['required'] && url.dirty" class="col text-danger error">
+        This field is required
+      </div>
+    </div>
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Media type <span class="text-danger">*</span></span>
+      </div>
+      <div class="col">
+        <select
+          #mediaType="ngModel"
+          name="mediaType"
+          id="channel-media-type"
+          required
+          [(ngModel)]="channel.data.media_type"
+          class="form-control"
+          title="Media Type"
+        >
+          <option [ngValue]="mediaTypeEnum.livestream">Livestream</option>
+          <option [ngValue]="mediaTypeEnum.movie">Movie</option>
+        </select>
+      </div>
+    </div>
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Category</span>
+      </div>
+      <div class="col">
+        <input
+          id="typeahead-basic"
+          placeholder="Start typing to show results..."
+          (ngModelChange)="checkEmpty($event)"
+          name="group"
+          type="text"
+          class="form-control"
+          [(ngModel)]="group"
+          [ngbTypeahead]="search"
+          (selectItem)="selectGroup($event)"
+          [resultFormatter]="formatter"
+          [inputFormatter]="formatter"
+          title="Category"
+        />
+      </div>
+    </div>
+    <div class="row mt-1 ps-3 align-items-center">
+      <div class="col-4"></div>
+      <div *ngIf="mediaType.errors?.['required'] && mediaType.dirty" class="col error text-danger">
+        This field is required
+      </div>
+    </div>
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>HTTP User agent</span>
+      </div>
+      <div class="col">
+        <input
+          name="httpUserAgent"
+          id="channel-user-agent"
+          class="form-control"
+          placeholder="Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
+          [(ngModel)]="channel.headers!.user_agent"
+          title="HTTP User Agent"
+        />
+      </div>
+    </div>
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>HTTP Origin</span>
+      </div>
+      <div class="col">
+        <input
+          name="httpOrigin"
+          id="channel-origin"
+          class="form-control"
+          placeholder="http://mycoolsite.com"
+          [(ngModel)]="channel.headers!.http_origin"
+          title="HTTP Origin"
+        />
+      </div>
+    </div>
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>HTTP Referrer</span>
+      </div>
+      <div class="col">
+        <div class="col">
+          <input
+            name="httpReferrer"
+            id="channel-referrer"
+            class="form-control"
+            placeholder="http://mycoolsite.com"
+            [(ngModel)]="channel.headers!.referrer"
+            title="HTTP Referrer"
+          />
+        </div>
+      </div>
+    </div>
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Ignore SSL</span>
+      </div>
+      <div class="col">
+        <div class="form-check form-switch">
+          <input
+            name="ignoreSSL"
+            id="channel-ignore-ssl"
+            [(ngModel)]="channel.headers!.ignore_ssl"
+            class="form-check-input"
+            type="checkbox"
+            title="Ignore SSL"
+            aria-label="Ignore SSL"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <p *ngIf="channelExists" class="text-danger error mb-2 bs-col-padding">
+    Channel already exists (name, url)
+  </p>
+  <div class="modal-footer">
+    <button
+      [disabled]="!form.valid || loading || channelExists"
+      class="btn btn-primary d-inline-flex align-items-center"
+      type="submit"
+    >
+      <span>Save</span>
+      <svg
+        class="ms-1 save-floppy"
+        fill="currentColor"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"
+        />
+      </svg>
+    </button>
+  </div>
 </form>

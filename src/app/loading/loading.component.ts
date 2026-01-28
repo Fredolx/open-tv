@@ -1,17 +1,17 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: "app-loading",
-  templateUrl: "./loading.component.html",
-  styleUrl: "./loading.component.css",
+  selector: 'app-loading',
+  templateUrl: './loading.component.html',
+  styleUrl: './loading.component.css',
 })
 export class LoadingComponent {
   @Input()
   center: boolean = false;
   count = 0;
-  texts: string[] = ["Consider donating to Fred TV", "Loading your channels..."];
+  texts: string[] = ['Consider donating to Beats TV', 'Loading your channels...'];
 
-  currentText: string = "";
+  currentText: string = '';
 
   ngOnInit() {
     this.displayRandomText();

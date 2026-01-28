@@ -6,8 +6,7 @@ use crate::{media_type, settings::get_settings, types::Channel};
 use anyhow::{Context, Result};
 use chrono::Local;
 
-#[cfg(target_os = "windows")]
-use std::os::windows::process::CommandExt;
+
 use std::sync::LazyLock;
 use std::{env::consts::OS, path::Path, process::Stdio};
 use tauri::State;

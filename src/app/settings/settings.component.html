@@ -76,16 +76,17 @@
       </div>
     </div>
 
-    <!-- View Mode -->
     <div class="row mt-3 align-items-center">
       <div class="col-4">
-        <span>Default view</span>
+        <span id="label-default-view">Default view</span>
       </div>
       <div class="col">
         <select
           (ngModelChange)="updateSettings()"
           [(ngModel)]="settings.default_view"
           class="form-control"
+          aria-labelledby="label-default-view"
+          title="Default view"
         >
           <option [ngValue]="viewModeEnum.All">All</option>
           <option [ngValue]="viewModeEnum.Categories">Categories</option>
@@ -96,13 +97,15 @@
 
     <div class="row mt-3 align-items-center">
       <div class="col-4">
-        <span>Default sort</span>
+        <span id="label-default-sort">Default sort</span>
       </div>
       <div class="col">
         <select
           (ngModelChange)="updateSettings()"
           [(ngModel)]="settings.default_sort"
           class="form-control"
+          aria-labelledby="label-default-sort"
+          title="Default sort"
         >
           <ng-container *ngFor="let sort of sortTypes">
             <option [ngValue]="sort">{{ _getSortTypeText(sort) }}</option>
@@ -113,43 +116,45 @@
 
     <div class="row mt-3 align-items-center">
       <div class="col-4">
-        <span>Volume on start</span>
+        <span id="label-volume">Volume on start</span>
       </div>
       <div class="col d-inline-flex">
         <input
           type="range"
-          style="flex-grow: 10; width: auto"
           step="1"
-          class="form-range"
+          class="form-range volume-range"
           min="0"
           max="100"
           [(ngModel)]="settings.volume"
           (ngModelChange)="updateSettings()"
+          aria-labelledby="label-volume"
+          title="Volume on start"
         />
-        <span style="flex-grow: 0.5" class="text-end">{{ settings.volume }}</span>
+        <span class="text-end flex-grow-0-5">{{ settings.volume }}</span>
       </div>
     </div>
 
     <div class="row mt-3 align-items-center">
       <div class="col-4">
-        <span>Re-stream port</span>
+        <span id="label-restream-port">Re-stream port</span>
       </div>
       <div class="col">
         <input
-          class="form-control"
-          style="width: 10rem"
+          class="form-control w-10rem"
           type="number"
           [(ngModel)]="settings.restream_port"
+          aria-labelledby="label-restream-port"
+          title="Re-stream port"
         />
       </div>
     </div>
 
     <div class="row mt-3 align-items-center">
       <div class="col-4">
-        <span>UI Zoom</span>
+        <span id="label-zoom">UI Zoom</span>
       </div>
       <div class="col">
-        <div class="input-group" style="width: 10rem">
+        <div class="input-group w-10rem">
           <input
             class="form-control"
             step="10"
@@ -157,6 +162,8 @@
             max="1000"
             type="number"
             [(ngModel)]="settings.zoom"
+            aria-labelledby="label-zoom"
+            title="UI Zoom"
           />
           <span class="input-group-text">%</span>
         </div>
@@ -166,6 +173,7 @@
     <div class="row mt-3 align-items-center">
       <div class="col-4">
         <span
+          id="label-stream-caching"
           [ngbTooltip]="
             'Depending on your provider/internet connection, using no caching would give you a lower latency and a more stable experience'
           "
@@ -179,6 +187,8 @@
             (ngModelChange)="updateSettings()"
             class="form-check-input"
             type="checkbox"
+            aria-labelledby="label-stream-caching"
+            title="Use stream caching"
           />
         </div>
       </div>
@@ -187,6 +197,7 @@
     <div class="row mt-3 align-items-center">
       <div class="col-4">
         <span
+          id="label-hwdec"
           [ngbTooltip]="
             'Uses your gpu instead of your cpu to decode livestreams and movies. Concretely, this option adds hwdec=auto to the mpv config'
           "
@@ -200,6 +211,8 @@
             (ngModelChange)="updateSettings()"
             class="form-check-input"
             type="checkbox"
+            aria-labelledby="label-hwdec"
+            title="Enable hardware acceleration"
           />
         </div>
       </div>
@@ -208,6 +221,7 @@
     <div class="row mt-3 align-items-center">
       <div class="col-4">
         <span
+          id="label-gpu"
           [ngbTooltip]="
             'Applies modern hardware settings for mpv. Concretely adds --vo=gpu-next --gpu-api=vulkan to the mpv config.'
           "
@@ -221,6 +235,8 @@
             (ngModelChange)="updateSettings()"
             class="form-check-input"
             type="checkbox"
+            aria-labelledby="label-gpu"
+            title="Use modern hardware player optimizations"
           />
         </div>
       </div>
@@ -228,7 +244,7 @@
 
     <div class="row mt-3 align-items-center">
       <div class="col-4">
-        <span>Single column layout</span>
+        <span id="label-single-column">Single column layout</span>
       </div>
       <div class="col">
         <div class="form-check form-switch">
@@ -237,6 +253,8 @@
             (ngModelChange)="updateSettings()"
             class="form-check-input"
             type="checkbox"
+            aria-labelledby="label-single-column"
+            title="Single column layout"
           />
         </div>
       </div>
@@ -244,13 +262,15 @@
 
     <div class="row mt-3 align-items-center">
       <div class="col-4">
-        <span>Text lines per tile</span>
+        <span id="label-max-text-lines">Text lines per tile</span>
       </div>
       <div class="col">
         <select
           (ngModelChange)="updateSettings()"
           [(ngModel)]="settings.max_text_lines"
           class="form-control"
+          aria-labelledby="label-max-text-lines"
+          title="Text lines per tile"
         >
           <option [ngValue]="undefined">Default (2 lines)</option>
           <option [ngValue]="2">2 lines</option>
@@ -261,7 +281,10 @@
 
     <div class="row mt-3 align-items-center">
       <div class="col-4">
-        <span [ngbTooltip]="'Reduces padding and tile size to fit more content on screen'">
+        <span
+          id="label-compact-mode"
+          [ngbTooltip]="'Reduces padding and tile size to fit more content on screen'"
+        >
           Compact tile mode
         </span>
       </div>
@@ -272,6 +295,8 @@
             (ngModelChange)="updateSettings()"
             class="form-check-input"
             type="checkbox"
+            aria-labelledby="label-compact-mode"
+            title="Compact tile mode"
           />
         </div>
       </div>
@@ -280,6 +305,7 @@
     <div class="row mt-3 align-items-center">
       <div class="col-4">
         <span
+          id="label-always-ask-save"
           [ngbTooltip]="
             'Opens the file dialog for all downloads and recordings. Overrides recording path. '
           "
@@ -293,6 +319,8 @@
             (ngModelChange)="this.updateSettings()"
             class="form-check-input"
             type="checkbox"
+            aria-labelledby="label-always-ask-save"
+            title="Always ask where to save downloads"
           />
         </div>
       </div>
@@ -300,7 +328,7 @@
 
     <div class="row mt-3 align-items-center">
       <div class="col-4">
-        <span>Refresh all sources on start</span>
+        <span id="label-refresh-on-start">Refresh all sources on start</span>
       </div>
       <div class="col">
         <div class="form-check form-switch">
@@ -309,6 +337,8 @@
             (ngModelChange)="updateSettings()"
             class="form-check-input"
             type="checkbox"
+            aria-labelledby="label-refresh-on-start"
+            title="Refresh all sources on start"
           />
         </div>
       </div>
@@ -316,7 +346,10 @@
 
     <div class="row mt-3 align-items-center">
       <div class="col-4">
-        <span [ngbTooltip]="'Automatically refresh playlists at this interval'">
+        <span
+          id="label-refresh-interval"
+          [ngbTooltip]="'Automatically refresh playlists at this interval'"
+        >
           Playlist Refresh Interval
         </span>
       </div>
@@ -325,6 +358,8 @@
           (ngModelChange)="updateSettings()"
           [(ngModel)]="settings.refresh_interval"
           class="form-control"
+          aria-labelledby="label-refresh-interval"
+          title="Playlist Refresh Interval"
         >
           <ng-container *ngFor="let interval of refreshIntervals">
             <option [ngValue]="interval.value">{{ interval.label }}</option>
@@ -335,7 +370,9 @@
 
     <div class="row mt-3 align-items-center">
       <div class="col-4">
-        <span ngbTooltip="Disabling the tray icon also disables EPG notifications"
+        <span
+          id="label-tray-icon"
+          ngbTooltip="Disabling the tray icon also disables EPG notifications"
           >Enable tray icon</span
         >
       </div>
@@ -346,6 +383,8 @@
             (ngModelChange)="updateSettings()"
             class="form-check-input"
             type="checkbox"
+            aria-labelledby="label-tray-icon"
+            title="Enable tray icon"
           />
         </div>
       </div>
@@ -382,6 +421,7 @@
                     type="checkbox"
                     [checked]="tag.hidden_count < tag.count"
                     (change)="toggleTag(tag, $event)"
+                    title="Toggle visibility for channels with tag {{ tag.name }}"
                   />
                 </div>
               </td>
@@ -460,9 +500,9 @@
 
 <div class="author mt-5 mb-4">
   <p>
-    <a href="https://github.com/Fredolx/open-tv/discussions/69" target="_blank">
+    <a href="https://github.com/Fredolx/open-tv/discussions/69" target="_blank" rel="noopener">
       Made by Frédéric Lachapelle with ❤️
-      <br />Please consider donating to support future updates <br />Fred TV is currently not
+      <br />Please consider donating to support future updates <br />Beats TV is currently not
       sustainable and needs your support
     </a>
   </p>

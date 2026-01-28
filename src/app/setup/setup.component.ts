@@ -1,20 +1,20 @@
-import { Component, HostListener } from "@angular/core";
-import { Router } from "@angular/router";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import { ToastrService } from "ngx-toastr";
-import { invoke } from "@tauri-apps/api/core";
-import { SourceType } from "../models/sourceType";
-import { Source } from "../models/source";
-import { open } from "@tauri-apps/plugin-dialog";
-import { ConfirmModalComponent } from "./confirm-modal/confirm-modal.component";
-import { MemoryService } from "../memory.service";
-import { ErrorService } from "../error.service";
-import { ConfirmDeleteModalComponent } from "../confirm-delete-modal/confirm-delete-modal.component";
+import { Component, HostListener } from '@angular/core';
+import { Router } from '@angular/router';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ToastrService } from 'ngx-toastr';
+import { invoke } from '@tauri-apps/api/core';
+import { SourceType } from '../models/sourceType';
+import { Source } from '../models/source';
+import { open } from '@tauri-apps/plugin-dialog';
+import { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
+import { MemoryService } from '../memory.service';
+import { ErrorService } from '../error.service';
+import { ConfirmDeleteModalComponent } from '../confirm-delete-modal/confirm-delete-modal.component';
 
 @Component({
-  selector: "app-setup",
-  templateUrl: "./setup.component.html",
-  styleUrl: "./setup.component.css",
+  selector: 'app-setup',
+  templateUrl: './setup.component.html',
+  styleUrl: './setup.component.css',
 })
 export class SetupComponent {
   constructor(
@@ -24,7 +24,7 @@ export class SetupComponent {
     public memory: MemoryService,
     private error: ErrorService,
     private modal: NgbModal,
-  ) { }
+  ) {}
   loading = false;
   sourceTypeEnum = SourceType;
   source: Source = {
@@ -33,10 +33,10 @@ export class SetupComponent {
     use_tvg_id: false,
   };
 
-  @HostListener("document:keydown", ["$event"])
+  @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
     if (
-      (event.key == "Escape" || event.key == "Backspace") &&
+      (event.key == 'Escape' || event.key == 'Backspace') &&
       this.memory.AddingAdditionalSource &&
       !this.isInputFocused()
     ) {
@@ -54,14 +54,14 @@ export class SetupComponent {
     );
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {}
 
   switchMode(sourceType: SourceType) {
     this.source.source_type = sourceType;
   }
 
   goBack() {
-    this.nav.navigateByUrl("settings");
+    this.nav.navigateByUrl('settings');
   }
 
   async getM3U() {
@@ -69,7 +69,7 @@ export class SetupComponent {
     const file = await open({
       multiple: false,
       directory: false,
-      filters: [{ name: "extension", extensions: ["m3u", "m3u8"] }],
+      filters: [{ name: 'extension', extensions: ['m3u', 'm3u8'] }],
     });
     if (file == null) {
       return;
@@ -77,17 +77,17 @@ export class SetupComponent {
     this.loading = true;
     this.source.url = file;
     try {
-      await invoke("get_m3u8", { source: this.source });
+      await invoke('get_m3u8', { source: this.source });
       this.success();
     } catch (e) {
-      this.error.handleError(e, "Could not parse selected file");
+      this.error.handleError(e, 'Could not parse selected file');
     }
     this.loading = false;
   }
 
   success() {
     this.toastr.success(`"${this.source.name}" successfully added`);
-    this.nav.navigateByUrl("");
+    this.nav.navigateByUrl('');
   }
 
   removeUnusedFieldsFromSource() {
@@ -121,29 +121,29 @@ export class SetupComponent {
       multiple: false,
       directory: false,
       canCreateDirectories: false,
-      title: "Select Fred TV export file (.otvp)",
-      filters: [{ name: "extension", extensions: ["otvp"] }],
+      title: 'Select Beats TV export file (.otvp)',
+      filters: [{ name: 'extension', extensions: ['otvp'] }],
     });
     if (file == null) {
       return;
     }
     let nameOverride = this.source.name?.trim();
-    if (nameOverride == "") nameOverride = undefined;
+    if (nameOverride == '') nameOverride = undefined;
     try {
-      await invoke("import", { path: file, nameOverride: nameOverride });
+      await invoke('import', { path: file, nameOverride: nameOverride });
       this.success();
     } catch (e) {
-      this.error.handleError(e, "Invalid URL or credentials. Please try again");
+      this.error.handleError(e, 'Invalid URL or credentials. Please try again');
     }
   }
 
   async custom() {
     this.loading = true;
     try {
-      await invoke("add_custom_source", { name: this.source.name });
+      await invoke('add_custom_source', { name: this.source.name });
       this.success();
     } catch (e) {
-      this.error.handleError(e, "Invalid URL or credentials. Please try again");
+      this.error.handleError(e, 'Invalid URL or credentials. Please try again');
     }
     this.loading = false;
   }
@@ -153,10 +153,10 @@ export class SetupComponent {
     this.source.url = this.source.url?.trim();
     this.loading = true;
     try {
-      await invoke("get_m3u8_from_link", { source: this.source });
+      await invoke('get_m3u8_from_link', { source: this.source });
       this.success();
     } catch (e) {
-      this.error.handleError(e, "Invalid URL or credentials. Please try again");
+      this.error.handleError(e, 'Invalid URL or credentials. Please try again');
     }
     this.loading = false;
   }
@@ -167,35 +167,35 @@ export class SetupComponent {
     this.source.url = this.source.url?.trim();
     this.source.username = this.source.username?.trim();
     this.source.password = this.source.password?.trim();
-    if (!this.source?.url?.startsWith("http://") && !this.source?.url?.startsWith("https://")) {
+    if (!this.source?.url?.startsWith('http://') && !this.source?.url?.startsWith('https://')) {
       this.source.url = `http://${this.source.url}`;
-      this.toastr.info("Since the given URL lacked a protocol, http was assumed");
+      this.toastr.info('Since the given URL lacked a protocol, http was assumed');
     }
     let url = new URL(this.source.url);
-    if (url.pathname == "/") {
+    if (url.pathname == '/') {
       let result = await this.modalService.open(ConfirmModalComponent, {
         keyboard: false,
-        backdrop: "static",
+        backdrop: 'static',
       }).result;
-      if (result == "correct") {
-        url.pathname = "/player_api.php";
+      if (result == 'correct') {
+        url.pathname = '/player_api.php';
         this.source.url = url.toString();
       }
     }
     try {
-      await invoke("get_xtream", { source: this.source });
+      await invoke('get_xtream', { source: this.source });
       this.success();
     } catch (e) {
-      this.error.handleError(e, "Invalid URL or credentials. Please try again");
+      this.error.handleError(e, 'Invalid URL or credentials. Please try again');
     }
     this.loading = false;
   }
 
   async nuke() {
     const modalRef = this.modal.open(ConfirmDeleteModalComponent, {
-      backdrop: "static",
-      size: "xl",
+      backdrop: 'static',
+      size: 'xl',
     });
-    modalRef.componentInstance.name = "ConfirmDeleteModal";
+    modalRef.componentInstance.name = 'ConfirmDeleteModal';
   }
 }
