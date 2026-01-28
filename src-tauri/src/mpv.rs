@@ -33,7 +33,7 @@ const ARG_PREFETCH_PLAYLIST: &str = "--prefetch-playlist=yes";
 const ARG_LOOP_PLAYLIST: &str = "--loop-playlist=inf";
 const ARG_HWDEC: &str = "--hwdec=auto";
 const ARG_GPU_NEXT: &str = "--vo=gpu-next";
-const ARG_GPU_PROFILE_HIGH_QUALITY: &str = "--profile=high-quality";
+
 const ARG_NO_RESUME_PLAYBACK: &str = "--no-resume-playback";
 const MPV_BIN_NAME: &str = "mpv";
 const YTDLP_BIN_NAME: &str = "yt-dlp";
