@@ -1,6 +1,6 @@
 {
   "productName": "Fred TV",
-  "version": "1.9.2",
+  "version": "1.9.3",
 
   "identifier": "dev.fredol.open-tv",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Fred TV (v1.9.2)",
+        "title": "Fred TV (v1.9.3)",
 
         "width": 800,
         "height": 600,
