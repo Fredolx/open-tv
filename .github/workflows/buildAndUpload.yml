@@ -7,6 +7,7 @@ on:
     branches: ["main"]
   release:
     types: [created]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -161,7 +162,7 @@ jobs:
           retention-days: 60
 
       - name: Publish MSI to Release
-        if: github.event_name == 'release' && matrix.os == 'windows-latest'
+        if: (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && matrix.os == 'windows-latest'
         uses: softprops/action-gh-release@v1
         with:
           files: src-tauri/target/release/bundle/msi/*.msi
