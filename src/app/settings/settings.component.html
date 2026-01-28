@@ -5,323 +5,394 @@
 </svg>
 <div class="container px-5">
   <h2 class="mt-4 mb-4 text-center">Settings</h2>
-  <div class="row align-items-center">
-    <div class="col-4">
-      <label [ngbTooltip]="'Where recorded livestreams will be saved'">Recording path</label>
-    </div>
-    <div class="col">
-      <div class="d-flex align-items-center">
-        <span class="selectable" *ngIf="!settings.recording_path" id="default-path"
-          >~/Home/Videos</span
-        >
-        <span class="selectable" *ngIf="settings.recording_path">{{
-          settings.recording_path
-        }}</span>
-        <button
-          (click)="selectFolder()"
-          class="btn btn-primary btn-sm ms-4 d-inline-flex align-items-center"
-        >
-          <span>Change</span>
-          <svg fill="currentColor" class="ms-2 folder" viewBox="0 0 24 24">
-            <path
-              d="M19,20H4C2.89,20 2,19.1 2,18V6C2,4.89 2.89,4 4,4H10L12,6H19A2,2 0 0,1 21,8H21L4,8V18L6.14,10H23.21L20.93,18.5C20.7,19.37 19.92,20 19,20Z"
-            />
-          </svg>
-        </button>
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <a
+        class="nav-link"
+        [class.active]="activeTab === 'general'"
+        (click)="activeTab = 'general'"
+        role="button"
+        >General</a
+      >
+    </li>
+    <li class="nav-item">
+      <a
+        class="nav-link"
+        [class.active]="activeTab === 'filters'"
+        (click)="activeTab = 'filters'"
+        role="button"
+        >Content Filters</a
+      >
+    </li>
+  </ul>
+
+  <!-- GENERAL TAB -->
+  <div *ngIf="activeTab === 'general'">
+    <div class="row align-items-center">
+      <div class="col-4">
+        <label [ngbTooltip]="'Where recorded livestreams will be saved'">Recording path</label>
+      </div>
+      <div class="col">
+        <div class="d-flex align-items-center">
+          <span class="selectable" *ngIf="!settings.recording_path" id="default-path"
+            >~/Home/Videos</span
+          >
+          <span class="selectable" *ngIf="settings.recording_path">{{
+            settings.recording_path
+          }}</span>
+          <button
+            (click)="selectFolder()"
+            class="btn btn-primary btn-sm ms-4 d-inline-flex align-items-center"
+          >
+            <span>Change</span>
+            <svg fill="currentColor" class="ms-2 folder" viewBox="0 0 24 24">
+              <path
+                d="M19,20H4C2.89,20 2,19.1 2,18V6C2,4.89 2.89,4 4,4H10L12,6H19A2,2 0 0,1 21,8H21L4,8V18L6.14,10H23.21L20.93,18.5C20.7,19.37 19.92,20 19,20Z"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span
-        [ngbTooltip]="
-          'Launch parameters applied to all channels. Leave as-is if you don\'t know what this is'
-        "
-        >Global MPV Parameters</span
-      >
+    <!-- ... (Original Settings Content) ... -->
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span
+          [ngbTooltip]="
+            'Launch parameters applied to all channels. Leave as-is if you don\'t know what this is'
+          "
+          >Global MPV Parameters</span
+        >
+      </div>
+      <div class="col">
+        <textarea
+          #mpvParams
+          id="mpvParams"
+          [(ngModel)]="settings.mpv_params"
+          placeholder="mpv params like: --hwdec auto. Don't touch this unless you know what you're doing!"
+          class="form-control"
+        ></textarea>
+      </div>
     </div>
-    <div class="col">
-      <textarea
-        #mpvParams
-        id="mpvParams"
-        [(ngModel)]="settings.mpv_params"
-        placeholder="mpv params like: --hwdec auto. Don't touch this unless you know what you're doing!"
-        class="form-control"
-      ></textarea>
-    </div>
-  </div>
 
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span>Default view</span>
+    <!-- View Mode -->
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Default view</span>
+      </div>
+      <div class="col">
+        <select
+          (ngModelChange)="updateSettings()"
+          [(ngModel)]="settings.default_view"
+          class="form-control"
+        >
+          <option [ngValue]="viewModeEnum.All">All</option>
+          <option [ngValue]="viewModeEnum.Categories">Categories</option>
+          <option [ngValue]="viewModeEnum.Favorites">Favorites</option>
+        </select>
+      </div>
     </div>
-    <div class="col">
-      <select
-        (ngModelChange)="updateSettings()"
-        [(ngModel)]="settings.default_view"
-        class="form-control"
-      >
-        <option [ngValue]="viewModeEnum.All">All</option>
-        <option [ngValue]="viewModeEnum.Categories">Categories</option>
-        <option [ngValue]="viewModeEnum.Favorites">Favorites</option>
-      </select>
-    </div>
-  </div>
 
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span>Default sort</span>
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Default sort</span>
+      </div>
+      <div class="col">
+        <select
+          (ngModelChange)="updateSettings()"
+          [(ngModel)]="settings.default_sort"
+          class="form-control"
+        >
+          <ng-container *ngFor="let sort of sortTypes">
+            <option [ngValue]="sort">{{ _getSortTypeText(sort) }}</option>
+          </ng-container>
+        </select>
+      </div>
     </div>
-    <div class="col">
-      <select
-        (ngModelChange)="updateSettings()"
-        [(ngModel)]="settings.default_sort"
-        class="form-control"
-      >
-        <ng-container *ngFor="let sort of sortTypes">
-          <option [ngValue]="sort">{{ _getSortTypeText(sort) }}</option>
-        </ng-container>
-      </select>
-    </div>
-  </div>
 
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span>Volume on start</span>
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Volume on start</span>
+      </div>
+      <div class="col d-inline-flex">
+        <input
+          type="range"
+          style="flex-grow: 10; width: auto"
+          step="1"
+          class="form-range"
+          min="0"
+          max="100"
+          [(ngModel)]="settings.volume"
+          (ngModelChange)="updateSettings()"
+        />
+        <span style="flex-grow: 0.5" class="text-end">{{ settings.volume }}</span>
+      </div>
     </div>
-    <div class="col d-inline-flex">
-      <input
-        type="range"
-        style="flex-grow: 10; width: auto"
-        step="1"
-        class="form-range"
-        min="0"
-        max="100"
-        [(ngModel)]="settings.volume"
-        (ngModelChange)="updateSettings()"
-      />
-      <span style="flex-grow: 0.5" class="text-end">{{ settings.volume }}</span>
-    </div>
-  </div>
 
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span>Re-stream port</span>
-    </div>
-    <div class="col">
-      <input
-        class="form-control"
-        style="width: 10rem"
-        type="number"
-        [(ngModel)]="settings.restream_port"
-      />
-    </div>
-  </div>
-
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span>UI Zoom</span>
-    </div>
-    <div class="col">
-      <div class="input-group" style="width: 10rem">
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Re-stream port</span>
+      </div>
+      <div class="col">
         <input
           class="form-control"
-          step="10"
-          min="10"
-          max="1000"
+          style="width: 10rem"
           type="number"
-          [(ngModel)]="settings.zoom"
+          [(ngModel)]="settings.restream_port"
         />
-        <span class="input-group-text">%</span>
       </div>
     </div>
-  </div>
 
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span
-        [ngbTooltip]="
-          'Depending on your provider/internet connection, using no caching would give you a lower latency and a more stable experience'
-        "
-        >Use stream caching</span
-      >
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>UI Zoom</span>
+      </div>
+      <div class="col">
+        <div class="input-group" style="width: 10rem">
+          <input
+            class="form-control"
+            step="10"
+            min="10"
+            max="1000"
+            type="number"
+            [(ngModel)]="settings.zoom"
+          />
+          <span class="input-group-text">%</span>
+        </div>
+      </div>
     </div>
-    <div class="col">
-      <div class="form-check form-switch">
-        <input
-          [(ngModel)]="settings.use_stream_caching"
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span
+          [ngbTooltip]="
+            'Depending on your provider/internet connection, using no caching would give you a lower latency and a more stable experience'
+          "
+          >Use stream caching</span
+        >
+      </div>
+      <div class="col">
+        <div class="form-check form-switch">
+          <input
+            [(ngModel)]="settings.use_stream_caching"
+            (ngModelChange)="updateSettings()"
+            class="form-check-input"
+            type="checkbox"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span
+          [ngbTooltip]="
+            'Uses your gpu instead of your cpu to decode livestreams and movies. Concretely, this option adds hwdec=auto to the mpv config'
+          "
+          >Enable hardware acceleration</span
+        >
+      </div>
+      <div class="col">
+        <div class="form-check form-switch">
+          <input
+            [(ngModel)]="settings.enable_hwdec"
+            (ngModelChange)="updateSettings()"
+            class="form-check-input"
+            type="checkbox"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span
+          [ngbTooltip]="
+            'Applies modern hardware settings for mpv. Concretely adds --vo=gpu-next --gpu-api=vulkan to the mpv config.'
+          "
+          >Use modern hardware player optimizations (HDR, gpu playback, etc)</span
+        >
+      </div>
+      <div class="col">
+        <div class="form-check form-switch">
+          <input
+            [(ngModel)]="settings.enable_gpu"
+            (ngModelChange)="updateSettings()"
+            class="form-check-input"
+            type="checkbox"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Single column layout</span>
+      </div>
+      <div class="col">
+        <div class="form-check form-switch">
+          <input
+            [(ngModel)]="settings.use_single_column"
+            (ngModelChange)="updateSettings()"
+            class="form-check-input"
+            type="checkbox"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Text lines per tile</span>
+      </div>
+      <div class="col">
+        <select
           (ngModelChange)="updateSettings()"
-          class="form-check-input"
-          type="checkbox"
-        />
+          [(ngModel)]="settings.max_text_lines"
+          class="form-control"
+        >
+          <option [ngValue]="undefined">Default (2 lines)</option>
+          <option [ngValue]="2">2 lines</option>
+          <option [ngValue]="3">3 lines</option>
+        </select>
       </div>
     </div>
-  </div>
 
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span
-        [ngbTooltip]="
-          'Uses your gpu instead of your cpu to decode livestreams and movies. Concretely, this option adds hwdec=auto to the mpv config'
-        "
-        >Enable hardware acceleration</span
-      >
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span [ngbTooltip]="'Reduces padding and tile size to fit more content on screen'">
+          Compact tile mode
+        </span>
+      </div>
+      <div class="col">
+        <div class="form-check form-switch">
+          <input
+            [(ngModel)]="settings.compact_mode"
+            (ngModelChange)="updateSettings()"
+            class="form-check-input"
+            type="checkbox"
+          />
+        </div>
+      </div>
     </div>
-    <div class="col">
-      <div class="form-check form-switch">
-        <input
-          [(ngModel)]="settings.enable_hwdec"
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span
+          [ngbTooltip]="
+            'Opens the file dialog for all downloads and recordings. Overrides recording path. '
+          "
+          >Always ask where to save downloads</span
+        >
+      </div>
+      <div class="col">
+        <div class="form-check form-switch">
+          <input
+            [(ngModel)]="settings.always_ask_save"
+            (ngModelChange)="this.updateSettings()"
+            class="form-check-input"
+            type="checkbox"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span>Refresh all sources on start</span>
+      </div>
+      <div class="col">
+        <div class="form-check form-switch">
+          <input
+            [(ngModel)]="settings.refresh_on_start"
+            (ngModelChange)="updateSettings()"
+            class="form-check-input"
+            type="checkbox"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span [ngbTooltip]="'Automatically refresh playlists at this interval'">
+          Playlist Refresh Interval
+        </span>
+      </div>
+      <div class="col">
+        <select
           (ngModelChange)="updateSettings()"
-          class="form-check-input"
-          type="checkbox"
-        />
+          [(ngModel)]="settings.refresh_interval"
+          class="form-control"
+        >
+          <ng-container *ngFor="let interval of refreshIntervals">
+            <option [ngValue]="interval.value">{{ interval.label }}</option>
+          </ng-container>
+        </select>
+      </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span ngbTooltip="Disabling the tray icon also disables EPG notifications"
+          >Enable tray icon</span
+        >
+      </div>
+      <div class="col">
+        <div class="form-check form-switch">
+          <input
+            [(ngModel)]="settings.enable_tray_icon"
+            (ngModelChange)="updateSettings()"
+            class="form-check-input"
+            type="checkbox"
+          />
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span
-        [ngbTooltip]="
-          'Applies modern hardware settings for mpv. Concretely adds --vo=gpu-next --gpu-api=vulkan to the mpv config.'
-        "
-        >Use modern hardware player optimizations (HDR, gpu playback, etc)</span
-      >
+  <!-- CONTENT FILTERS TAB -->
+  <div *ngIf="activeTab === 'filters'">
+    <div class="alert alert-info">
+      Detected <strong>{{ tags.length }}</strong> common tags in your channels. Unchecking a tag
+      will hide all channels containing that tag.
     </div>
-    <div class="col">
-      <div class="form-check form-switch">
-        <input
-          [(ngModel)]="settings.enable_gpu"
-          (ngModelChange)="updateSettings()"
-          class="form-check-input"
-          type="checkbox"
-        />
-      </div>
-    </div>
-  </div>
 
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span>Single column layout</span>
-    </div>
-    <div class="col">
-      <div class="form-check form-switch">
-        <input
-          [(ngModel)]="settings.use_single_column"
-          (ngModelChange)="updateSettings()"
-          class="form-check-input"
-          type="checkbox"
-        />
-      </div>
-    </div>
-  </div>
-
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span>Text lines per tile</span>
-    </div>
-    <div class="col">
-      <select
-        (ngModelChange)="updateSettings()"
-        [(ngModel)]="settings.max_text_lines"
-        class="form-control"
-      >
-        <option [ngValue]="undefined">Default (2 lines)</option>
-        <option [ngValue]="2">2 lines</option>
-        <option [ngValue]="3">3 lines</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span [ngbTooltip]="'Reduces padding and tile size to fit more content on screen'">
-        Compact tile mode
-      </span>
-    </div>
-    <div class="col">
-      <div class="form-check form-switch">
-        <input
-          [(ngModel)]="settings.compact_mode"
-          (ngModelChange)="updateSettings()"
-          class="form-check-input"
-          type="checkbox"
-        />
-      </div>
-    </div>
-  </div>
-
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span
-        [ngbTooltip]="
-          'Opens the file dialog for all downloads and recordings. Overrides recording path. '
-        "
-        >Always ask where to save downloads</span
-      >
-    </div>
-    <div class="col">
-      <div class="form-check form-switch">
-        <input
-          [(ngModel)]="settings.always_ask_save"
-          (ngModelChange)="this.updateSettings()"
-          class="form-check-input"
-          type="checkbox"
-        />
-      </div>
-    </div>
-  </div>
-
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span>Refresh all sources on start</span>
-    </div>
-    <div class="col">
-      <div class="form-check form-switch">
-        <input
-          [(ngModel)]="settings.refresh_on_start"
-          (ngModelChange)="updateSettings()"
-          class="form-check-input"
-          type="checkbox"
-        />
-      </div>
-    </div>
-  </div>
-
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span [ngbTooltip]="'Automatically refresh playlists at this interval'">
-        Playlist Refresh Interval
-      </span>
-    </div>
-    <div class="col">
-      <select
-        (ngModelChange)="updateSettings()"
-        [(ngModel)]="settings.refresh_interval"
-        class="form-control"
-      >
-        <ng-container *ngFor="let interval of refreshIntervals">
-          <option [ngValue]="interval.value">{{ interval.label }}</option>
-        </ng-container>
-      </select>
-    </div>
-  </div>
-
-  <div class="row mt-3 align-items-center">
-    <div class="col-4">
-      <span ngbTooltip="Disabling the tray icon also disables EPG notifications"
-        >Enable tray icon</span
-      >
-    </div>
-    <div class="col">
-      <div class="form-check form-switch">
-        <input
-          [(ngModel)]="settings.enable_tray_icon"
-          (ngModelChange)="updateSettings()"
-          class="form-check-input"
-          type="checkbox"
-        />
+    <div class="row">
+      <div class="col-12">
+        <table class="table table-dark table-hover">
+          <thead>
+            <tr>
+              <th>Tag Name</th>
+              <th>Channel Count</th>
+              <th>Visible</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tag of tags">
+              <td>
+                <span class="badge bg-secondary">{{ tag.name }}</span>
+              </td>
+              <td>{{ tag.count }}</td>
+              <td>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    [checked]="tag.hidden_count < tag.count"
+                    (change)="toggleTag(tag, $event)"
+                  />
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="tags.length === 0">
+              <td colspan="3" class="text-center text-muted">
+                No common tags detected. Try refreshing your sources.
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

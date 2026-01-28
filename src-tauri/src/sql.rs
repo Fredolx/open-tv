@@ -26,6 +26,14 @@ pub fn get_conn() -> Result<PooledConnection<SqliteConnectionManager>> {
     CONN.try_get().context("No sqlite conns available")
 }
 
+pub fn do_with_conn<F, T>(f: F) -> Result<T>
+where
+    F: FnOnce(&rusqlite::Connection) -> Result<T>,
+{
+    let conn = get_conn()?;
+    f(&conn)
+}
+
 fn create_connection_pool() -> Pool<SqliteConnectionManager> {
     let manager = SqliteConnectionManager::file(get_and_create_sqlite_db_path());
     r2d2::Pool::builder().max_size(20).build(manager).unwrap()

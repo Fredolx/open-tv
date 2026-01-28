@@ -205,3 +205,10 @@ pub struct ChannelPreserve {
     #[serde(default)]
     pub is_group: bool,
 }
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct Tag {
+    pub name: String,
+    pub count: usize,
+    pub hidden_count: usize,
+}

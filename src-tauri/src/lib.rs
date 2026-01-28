@@ -29,6 +29,7 @@ pub mod share;
 pub mod sort_type;
 pub mod source_type;
 pub mod sql;
+pub mod tags;
 pub mod types;
 pub mod utils;
 pub mod view_type;
@@ -113,6 +114,8 @@ pub fn run() {
             hide_channel,
             hide_group,
             remove_from_history,
+            detect_tags,
+            set_tag_visibility,
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -560,4 +563,14 @@ async fn cancel_play(
     mpv::cancel_play(source_id, channel_id.to_string(), state)
         .await
         .map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn detect_tags() -> Result<Vec<types::Tag>, String> {
+    sql::do_with_conn(|conn| tags::detect_tags(conn)).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn set_tag_visibility(tag: String, visible: bool) -> Result<usize, String> {
+    sql::do_with_conn(|conn| tags::set_tag_visibility(conn, &tag, visible)).map_err(map_err_frontend)
 }

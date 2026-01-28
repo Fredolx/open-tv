@@ -9,7 +9,10 @@ import { MemoryService } from '../memory.service';
 import { ViewMode } from '../models/viewMode';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ConfirmDeleteModalComponent } from '../confirm-delete-modal/confirm-delete-modal.component';
+import { ToastrService } from 'ngx-toastr';
+import { MatDialog } from '@angular/material/dialog';
 import { SORT_TYPES, SortType, getSortTypeText } from '../models/sortType';
+import { Tag } from '../models/tag';
 
 @Component({
   selector: 'app-settings',
@@ -18,6 +21,8 @@ import { SORT_TYPES, SortType, getSortTypeText } from '../models/sortType';
 })
 export class SettingsComponent {
   subscriptions: Subscription[] = [];
+  activeTab = 'general';
+  tags: Tag[] = [];
   settings: Settings = {
     use_stream_caching: true,
     default_view: ViewMode.All,
@@ -40,6 +45,8 @@ export class SettingsComponent {
     public memory: MemoryService,
     private nav: Router,
     private modal: NgbModal,
+    private toastr: ToastrService,
+    public dialog: MatDialog,
   ) {}
 
   _getSortTypeText(sortType: SortType) {
@@ -93,6 +100,28 @@ export class SettingsComponent {
       if (this.settings.max_text_lines == undefined) this.settings.max_text_lines = 2; // Default to 2 lines
       if (this.settings.compact_mode == undefined) this.settings.compact_mode = false;
       if (this.settings.refresh_interval == undefined) this.settings.refresh_interval = 0;
+    });
+    this.getSources();
+    this.getTags();
+  }
+
+  getTags() {
+    invoke('detect_tags').then((tags) => {
+      this.tags = tags as Tag[];
+    });
+  }
+
+  toggleTag(tag: Tag, event: any) {
+    // If checked (event.target.checked is true), it implies we want it VISIBLE.
+    // So 'visible' = true.
+    const visible = event.target.checked;
+
+    // Optimistic update
+    tag.hidden_count = visible ? 0 : tag.count;
+
+    invoke('set_tag_visibility', { tag: tag.name, visible: visible }).then((count) => {
+      this.toastr.success(`Updated visibility for ${count} channels`);
+      this.getTags(); // Refresh to get accurate counts
     });
   }
 
