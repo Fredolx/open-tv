@@ -5,6 +5,8 @@ on:
     branches: ["**"]
   pull_request:
     branches: ["main"]
+  release:
+    types: [created]
 
 jobs:
   build:
@@ -117,7 +119,7 @@ jobs:
         if: matrix.os == 'ubuntu-22.04'
         run: |
           npm run tauri build -- --bundles deb,rpm
-          
+
       - name: Upload MSI
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
@@ -157,3 +159,11 @@ jobs:
           name: open-tv-mac-AMD64
           path: src-tauri/target/release/bundle/dmg/*.dmg
           retention-days: 60
+
+      - name: Publish MSI to Release
+        if: github.event_name == 'release' && matrix.os == 'windows-latest'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: src-tauri/target/release/bundle/msi/*.msi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
