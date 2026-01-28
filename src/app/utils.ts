@@ -1,7 +1,8 @@
-export const isInputFocused = () => {
-  var activeElement = document.activeElement;
-  var inputs = ["input", "select", "button", "textarea"];
-  return activeElement && inputs.indexOf(activeElement.tagName?.toLowerCase()) !== -1;
+export const isInputFocused = (): boolean => {
+  const activeElement = document.activeElement;
+  if (!activeElement) return false;
+  const inputs = ["input", "select", "button", "textarea"];
+  return inputs.indexOf(activeElement.tagName?.toLowerCase()) !== -1;
 };
 
 export const sanitizeFileName = (fileName: string) => {

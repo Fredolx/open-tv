@@ -1,6 +1,7 @@
 {
   "productName": "Fred TV",
-  "version": "1.9.1",
+  "version": "1.9.2",
+
   "identifier": "dev.fredol.open-tv",
   "build": {
     "frontendDist": "../dist/open-tv/browser",
@@ -11,7 +12,8 @@
   "app": {
     "windows": [
       {
-        "title": "Fred TV (v1.9.1)",
+        "title": "Fred TV (v1.9.2)",
+
         "width": 800,
         "height": 600,
         "resizable": true,
@@ -36,34 +38,18 @@
     "windows": {
       "wix": {
         "language": "en-US",
-        "fragmentPaths": [
-          "./windows/fragments/deps.wxs"
-        ],
-        "componentGroupRefs": [
-          "DependencyComponents"
-        ],
-        "componentRefs": [
-          "MpvComponent",
-          "FfmpegComponent",
-          "YtDlpComponent"
-        ]
+        "fragmentPaths": ["./windows/fragments/deps.wxs"],
+        "componentGroupRefs": ["DependencyComponents"],
+        "componentRefs": ["MpvComponent", "FfmpegComponent", "YtDlpComponent"]
       }
     },
     "linux": {
       "deb": {
-        "depends": [
-          "mpv",
-          "ffmpeg",
-          "yt-dlp"
-        ],
+        "depends": ["mpv", "ffmpeg", "yt-dlp"],
         "desktopTemplate": "linux/custom.desktop"
       },
       "rpm": {
-        "depends": [
-          "mpv",
-          "ffmpeg",
-          "yt-dlp"
-        ],
+        "depends": ["mpv", "ffmpeg", "yt-dlp"],
         "desktopTemplate": "linux/custom.desktop"
       }
     }

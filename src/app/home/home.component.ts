@@ -39,7 +39,7 @@ import { getVersion } from '@tauri-apps/api/app';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { WhatsNewModalComponent } from '../whats-new-modal/whats-new-modal.component';
 import { LAST_SEEN_VERSION } from '../models/localStorage';
-import { isInputFocused } from '../utils';
+
 import { Node } from '../models/node';
 import { NodeType } from '../models/nodeType';
 import { Stack } from '../models/stack';
@@ -212,15 +212,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   async refreshAll(reason: string = 'user requested') {
     this.toast.info(`Refreshing all sources... (${reason})`);
-    await this.memory.tryIPC(
-      `Successfully refreshed all sources (${reason})`,
-      `Failed to refresh all sources (${reason})`,
-      async () => {
-        await invoke('refresh_all');
-        this.memory.settings.last_refresh = Date.now();
-        await invoke('update_settings', { settings: this.memory.settings });
-      },
-    );
+    try {
+      await invoke('refresh_all');
+      this.memory.settings.last_refresh = Date.now();
+      await invoke('update_settings', { settings: this.memory.settings });
+      this.toast.success(`Successfully refreshed all sources (${reason})`);
+    } catch (e) {
+      this.error.handleError(e, `Failed to refresh all sources (${reason})`);
+    }
   }
 
   async reload() {
@@ -757,17 +756,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     document.getElementById(id)?.focus();
   }
 
-  //Temporary solution because the ng-keyboard-shortcuts library doesn't seem to support ESC
+  // Remove temporary ESC workaround - use proper keyboard shortcut handling
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    if (
-      event.key == 'Escape' ||
-      event.key == 'BrowserBack' ||
-      (event.key == 'Backspace' && !isInputFocused())
-    ) {
-      this.goBackHotkey();
-      event.preventDefault();
-    }
     if (event.key == 'Tab' && !this.memory.ModalRef) {
       event.preventDefault();
       this.nav(event.shiftKey ? 'ShiftTab' : 'Tab');

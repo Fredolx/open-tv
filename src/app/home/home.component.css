@@ -13,21 +13,24 @@
 }
 
 .reserve-settings-space {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 0.5rem;
 }
 
 @media screen and (max-width: 767px) {
   .reserve-settings-space {
-    margin-top: 5rem;
+    margin-top: 4rem;
+    padding-top: 0.5rem;
   }
 }
 
 .filterBox {
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 8px;
+  padding: 8px 12px;
   background-color: #343a40;
   display: block;
   width: fit-content;
+  margin-bottom: 0.75rem;
 }
 
 .form-check {
@@ -165,7 +168,8 @@
 
 .selection-actions {
   background: #343a40;
-  padding: 10px;
+  padding: 8px;
   border-radius: 8px;
   animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  gap: 0.5rem;
 }

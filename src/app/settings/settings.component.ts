@@ -13,6 +13,7 @@ import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
 import { SORT_TYPES, SortType, getSortTypeText } from '../models/sortType';
 import { Tag } from '../models/tag';
+import { ErrorService } from '../error.service';
 
 @Component({
   selector: 'app-settings',
@@ -47,6 +48,7 @@ export class SettingsComponent {
     private modal: NgbModal,
     private toastr: ToastrService,
     public dialog: MatDialog,
+    public error: ErrorService,
   ) {}
 
   _getSortTypeText(sortType: SortType) {
@@ -172,9 +174,12 @@ export class SettingsComponent {
 
   async refreshAll() {
     this.memory.SeriesRefreshed.clear();
-    await this.memory.tryIPC('Successfully updated all sources', 'Failed to refresh sources', () =>
-      invoke('refresh_all'),
-    );
+    try {
+      await invoke('refresh_all');
+      this.toastr.success('Successfully updated all sources');
+    } catch (e) {
+      this.error.handleError(e, 'Failed to refresh sources');
+    }
   }
 
   async goBack() {

@@ -52,7 +52,11 @@ export class DownloadService {
   }
 
   async download(id: String, path?: string) {
-    let download = this.Downloads.get(id)!;
+    const download = this.Downloads.get(id);
+    if (!download) {
+      this.error.handleError(new Error("Download not found"), "Download not found");
+      return;
+    }
     try {
       await invoke("download", {
         downloadId: download.id,
