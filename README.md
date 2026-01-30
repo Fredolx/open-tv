@@ -1,99 +1,57 @@
 # Beats TV
 
-Completely rewritten to accommodate new features and to be even speedier, Beats TV has been carefully crafted to deliver the best IPTV experience.
+<p align="center">
+  <img src="readme_imgs/beats_tv_logo.png" alt="Beats TV Logo" width="200"/>
+</p>
 
-<a href="https://apps.microsoft.com/detail/9PBWX3RKR1QX?launch=true&mode=mini">
-	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="350"/>
-</a>
-<a href="https://flathub.org/apps/dev.fredol.open-tv">
-  <img src="https://dl.flathub.org/assets/badges/flathub-badge-en.svg" width="300"/>
-</a>
-<a href="https://aur.archlinux.org/packages/open-tv-bin">
-  <img src="https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/readme_imgs/aur-open-tv.svg" width="350" />
-</a>
-<a href="https://apps.apple.com/ca/app/open-tv-open-source-iptv/id6742751800">
-  <img src="https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/readme_imgs/app-store.svg" width=300 />
-</a>
-<a href="https://play.google.com/store/apps/details?id=dev.fredol.open_tv">
-  <img src="https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/readme_imgs/gplay.png">
-</a>
+Beats TV is a high-performance IPTV experience, carefully crafted to be even speedier and more feature-rich.
 
-# This project NEEDS your help. Please consider donating on [Github](https://github.com/sponsors/Fredolx), [Paypal](https://paypal.me/fredolx) or directly by [crypto](#donate-crypto-thank-you)
+## Credits & Inspiration
 
-I've been developing and maintaining this project alone and for entirely for free over the past 2 years. I am in dire need of support to continue developing this project. I've never added annoying donation pop-ups or anything of the sort to make sure you have the fastest and cleanest IPTV experience and I'm committed to keep this project FREE & OPEN-SOURCE. To keep that commitment, I need your support!
+This project is a fork of the excellent [Open TV](https://github.com/Fredolx/open-tv) project. We give full credit to the original developers of Open TV for their incredible foundation.
 
-![Image of the app](https://github.com/Fredolx/open-tv/blob/main/screenshots/demo1.png)
+**Why this fork exists:**
+While Open TV is fantastic, the original maintainers explicitly refuse to accept AI-generated code or contributions assisted by AI. In the spirit of the modern "Vibe Coding" era, we believe that AI is a powerful tool for rapid development and optimization. Beats TV was created to push the boundaries of what's possible using AI-assisted coding to build the ultimate IPTV experience for the Beats PM community and beyond.
+
+## Download & Installation
+
+You can download the latest pre-compiled binaries for Windows, macOS, and Linux directly from the [Releases](https://github.com/Fredolx/open-tv/releases) page.
+
+![Beats TV Black & Red Theme](screenshots/beats_tv_demo.png)
 
 ## Features:
 
-- Import your IPTV channels from any source (M3U File, M3U link, Xtream) 🗃️
-- Record while watching 🎥
-- Multi IPTV sources 🎊
-- Control the UI from a TV remote 📺
-- Super low RAM usage, crazy speeds, and instant search 🚅
-- Refresh your sources when you need it 🔄
-- Add channels to favorites 🌟
-- Make your own custom channels
-- Share your custom channels with friends
-- Re-stream channels to friends or other devices (phone, tv)
+- **AI-Optimized Performance:** Leveraging AI for the fastest possible UI and stream handling.
+- **Import Flexible Sources:** M3U File, M3U link, Xtream 🗃️
+- **Recording:** Record while watching 🎥
+- **Multi-Source Management:** Manage multiple IPTV providers with ease.
+- **TV Remote Optimized:** Full control from your couch 📺
+- **Ultra-Low Resource Usage:** Minimal RAM usage and instant search 🚅
+- **Custom Channels:** Create and share your own channel lists.
+- **Re-streaming:** Share your streams to other devices (phone, TV).
 
-## Prerequisites
+## Dependencies
 
-If you are on Windows or use the flatpak on Linux; SKIP THIS PART.
+Beats TV requires `mpv`, `ffmpeg`, and `yt-dlp` to function. **Most users don't need to do anything manually:**
 
-The app depends on mpv, ffmpeg and yt-dlp.
-If you are on MacOS, you must use Brew or MacPorts to install those dependencies.
+| Platform              | Dependency Handling                                              |
+| --------------------- | ---------------------------------------------------------------- |
+| **Windows (.msi)**    | ✅**Automatic** – All dependencies are bundled in the installer. |
+| **Linux (.deb/.rpm)** | ✅**Automatic** – Package managers install dependencies for you. |
+| **Flatpak**           | ✅**Automatic** – Sandboxed with all dependencies included.      |
+| **macOS**             | ⚠️**Manual** – See below.                                        |
 
-On Fedora, you must add rpmfusion to install those packages.
+### macOS Users Only
 
-On Debian or LTS distro, I would strongly suggest using a backport for yt-dlp.
+macOS users must install dependencies via [Homebrew](https://brew.sh/) or [MacPorts](https://www.macports.org/):
 
-The Windows build **comes with mpv included** (.msi), but you can still install mpv from a package manager of your choice to always have the latest version installed
+```bash
+# Using Homebrew (recommended)
+brew install mpv ffmpeg yt-dlp
 
+# Using MacPorts
+sudo port install mpv ffmpeg yt-dlp
 ```
-brew install mpv ffmpeg yt-dlp #MacOS
-sudo dnf install mpv ffmpeg yt-dlp #Fedora
-sudo zypper install mpv ffmpeg yt-dlp #OpenSUSE
-sudo pacman -Syu mpv ffmpeg yt-dlp #Arch
-sudo apt install mpv ffmpeg yt-dlp #Debian/Ubuntu
-scoop install mpv ffmpeg yt-dlp # Windows
-choco install mpv ffmpeg yt-dlp # Windows alternative
-```
-
-## Docker
-
-You can install Beats TV using Docker. It wouldn't necessarily be the recommended way to install it, but it's now possible.
-You should always install Beats TV from either Releases or Flatpak on Linux.
-
-For Nvidia GPUs:
-
-```
-docker run --rm -it \
-  --net=host \
-  --env="DISPLAY" \
-  --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-  --volume="$HOME/.Xauthority:/root/.Xauthority:rw" \
-  --volume="$HOME/.local/share/open-tv:/root/.local/share/open-tv" \
-  --gpus all \
-  ghcr.io/fredolx/open-tv:latest
-```
-
-For everyone else (Intel, AMD):
-
-```
-docker run --rm -it \
-  --net=host \
-  --env="DISPLAY" \
-  --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-  --volume="$HOME/.Xauthority:/root/.Xauthority:rw" \
-  --volume="$HOME/.local/share/open-tv:/root/.local/share/open-tv" \
-  --device /dev/dri \
-  ghcr.io/fredolx/open-tv:latest
-```
-
-## Feedback
-
-Feel free to submit any kind of feedback by creating a new issue.
 
 ## Hotkeys
 
@@ -108,61 +66,6 @@ Feel free to submit any kind of feedback by creating a new issue.
 - Backspace/Esc: Go back
 - Arrow keys/Tab/Shift+Tab: Navigation
 
-If you have a tv remote or air mouse that has slightly different bindings for general nav (back, up, down, left, right),
-please open an issue and I will add them if it's feasible. Otherwise, you can still use hwdb to make them match Beats TV's bindings.
-
-## Settings explained
-
-**Stream Caching**
-
-Why enabling:
-
-- If you have a slow internet connection/IPTV provider causing the stream to pause often
-
-Why disabling:
-
-- If the stream often drops completely. It will prevent the stream from jumping too far ahead/behind
-- If you have a good internet/provider and want lower latency
-- Can prevent some weird bugs/slowdowns
-
-## Donate Crypto (Thank you!)
-
-BTC:
-
-```
-bc1q7v27u4mrxhtqzl97pcp4vl52npss760epsheu3
-```
-
-ETH:
-
-```
-0x171D5B628eff75c98c141aD5584FffA209274365
-```
-
-LTC:
-
-```
-ltc1qzxgp2grt9ayvpv0dur7lgzgf88yp09h2ytmga0
-```
-
-BCH:
-
-```
-bitcoincash:qz4mauqyytkvhp9yze0qhgn2nnlv4z5glckyysxg2n
-```
-
-SOL:
-
-```
-AM7roSrxBKrS5mG7q6aXnQHZKh3ArtBxvG3x1B1VjKhj
-```
-
-BNB:
-
-```
-0x0C8C5217a8044b3736aD82CCFB9f099597b65253
-```
-
 ## Disclaimer
 
-Beats TV is an independent open-source project created to provide a fast and powerful IPTV experience. The name "Beats TV" is used solely to represent this specific software and its purpose as described in the project documentation. Any other software, applications, or products bearing the same or similar name are unrelated to this project. Any resemblance to other software or applications is purely coincidental and unintended. We do not intend to cause confusion or imply affiliation with any other products or organizations that may share a similar name.
+Beats TV is an independent project. While it inherits the core brilliance of Open TV, it is a separate branch designed to embrace AI-driven development. Any resemblance to other products is coincidental. We are not affiliated with the original Open TV team.

@@ -6,10 +6,12 @@
   width: 2.5rem;
   cursor: pointer;
   transition: transform 0.3s ease;
+  color: var(--beats-text-gray);
 }
 
 .settings:hover {
   transform: scale(125%) rotate(360deg);
+  color: var(--beats-red);
 }
 
 .reserve-settings-space {
@@ -27,7 +29,8 @@
 .filterBox {
   border-radius: 8px;
   padding: 8px 12px;
-  background-color: #343a40;
+  background-color: var(--beats-charcoal);
+  border: 1px solid #333;
   display: block;
   width: fit-content;
   margin-bottom: 0.75rem;
@@ -45,10 +48,12 @@
   height: 2.5rem;
   width: 2.5rem;
   transition: transform 0.3s ease;
+  color: var(--beats-red);
 }
 
 .go-back-arrow:hover {
   transform: scale(125%);
+  filter: drop-shadow(0 0 5px var(--beats-red));
 }
 
 .keyword-search-icon {
@@ -60,10 +65,12 @@
   transform: translateY(-50%);
   cursor: pointer;
   transition: transform 0.5s ease;
+  color: var(--beats-text-gray);
 }
 
 .keyword-search-icon:hover {
   transform: translateY(-50%) scale(1.1);
+  color: var(--beats-text-white);
 }
 
 .reload-icon {
@@ -75,10 +82,12 @@
   transform: translateY(-50%);
   cursor: pointer;
   transition: transform 0.5s ease;
+  color: var(--beats-text-gray);
 }
 
 .reload-icon:hover {
   transform: translateY(-50%) rotate(360deg) scale(1.1);
+  color: var(--beats-text-white);
 }
 
 .search-box {
@@ -92,14 +101,14 @@
   right: 2rem;
   width: 3rem;
   height: 3rem;
-  background-color: #0d6efd;
+  background-color: var(--beats-red);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   z-index: 1000;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 0, 51, 0.4);
   transition:
     transform 0.2s ease,
     background-color 0.2s;
@@ -108,7 +117,8 @@
 
 .scroll-to-top:hover {
   transform: scale(1.1);
-  background-color: #0b5ed7;
+  background-color: #d6002b;
+  box-shadow: 0 6px 20px rgba(255, 0, 51, 0.6);
 }
 
 .scroll-to-top svg {
@@ -136,10 +146,12 @@
   transform: translateY(-50%);
   cursor: pointer;
   transition: transform 0.5s ease;
+  color: var(--beats-text-gray);
 }
 
 .bulk-action-icon:hover {
   transform: translateY(-50%) scale(1.1);
+  color: var(--beats-text-white);
 }
 
 .bulk-action-icon.disabled {
@@ -162,14 +174,15 @@
 
 .selection-toggle-icon:hover,
 .selection-toggle-icon.active {
-  color: #0d6efd;
+  color: var(--beats-red);
   transform: translateY(-50%) scale(1.2);
 }
 
 .selection-actions {
-  background: #343a40;
+  background: var(--beats-charcoal);
   padding: 8px;
   border-radius: 8px;
   animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   gap: 0.5rem;
+  border: 1px solid #333;
 }

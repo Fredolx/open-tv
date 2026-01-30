@@ -6,10 +6,12 @@
   height: 2.5rem;
   cursor: pointer;
   transition: transform 0.3s ease;
+  color: var(--beats-red);
 }
 
 .arrow:hover {
   transform: scale(125%);
+  filter: drop-shadow(0 0 5px var(--beats-red));
 }
 
 .author {
@@ -88,4 +90,13 @@ button:hover .history {
 .selectable {
   -webkit-user-select: text;
   user-select: text;
+}
+
+/* Content Filter Tags */
+.badge.bg-secondary {
+    background-color: #4a4a4a !important; /* Darker grey */
+    color: #ffffff !important;           /* Bright white text */
+    font-size: 0.9rem;
+    padding: 0.5em 0.8em;
+    border: 1px solid #666;              /* Subtle border for definition */
 }

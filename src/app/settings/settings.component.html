@@ -223,7 +223,7 @@
         <span
           id="label-gpu"
           [ngbTooltip]="
-            'Applies modern hardware settings for mpv. Concretely adds --vo=gpu-next --gpu-api=vulkan to the mpv config.'
+            'Applies modern hardware settings for mpv. Concretely adds --vo=gpu-next --gpu-api=d3d11 (Win) / opengl (Mac) to the mpv config.'
           "
           >Use modern hardware player optimizations (HDR, gpu playback, etc)</span
         >
@@ -237,6 +237,30 @@
             type="checkbox"
             aria-labelledby="label-gpu"
             title="Use modern hardware player optimizations"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span
+          id="label-enhanced-video"
+          [ngbTooltip]="
+            'Enables a suite of MPV optimizations for IPTV: interpolation, deinterlacing, caching, high-quality scaling, and reconnection improvements.'
+          "
+          >Enhanced Video Mode (IPTV Optimized)</span
+        >
+      </div>
+      <div class="col">
+        <div class="form-check form-switch">
+          <input
+            [(ngModel)]="settings.enhanced_video"
+            (ngModelChange)="updateSettings()"
+            class="form-check-input"
+            type="checkbox"
+            aria-labelledby="label-enhanced-video"
+            title="Enable Enhanced Video Mode"
           />
         </div>
       </div>
@@ -398,6 +422,51 @@
       will hide all channels containing that tag.
     </div>
 
+    <!-- Content Type Filters & Bulk Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="btn-group" role="group">
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          [class.active]="contentTypeFilter === 'all'"
+          (click)="updateContentTypeFilter('all')"
+        >
+          All
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          [class.active]="contentTypeFilter === 'live'"
+          (click)="updateContentTypeFilter('live')"
+        >
+          Live
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          [class.active]="contentTypeFilter === 'vod'"
+          (click)="updateContentTypeFilter('vod')"
+        >
+          Movies
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          [class.active]="contentTypeFilter === 'series'"
+          (click)="updateContentTypeFilter('series')"
+        >
+          Series
+        </button>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-sm btn-outline-success" (click)="selectAllTags()">Select All</button>
+        <button class="btn btn-sm btn-outline-danger" (click)="deselectAllTags()">
+          Deselect All
+        </button>
+      </div>
+    </div>
+
     <div class="row">
       <div class="col-12">
         <table class="table table-dark table-hover">
@@ -409,7 +478,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let tag of tags">
+            <tr *ngFor="let tag of filteredTags">
               <td>
                 <span class="badge bg-secondary">{{ tag.name }}</span>
               </td>
@@ -423,10 +492,22 @@
                     (change)="toggleTag(tag, $event)"
                     title="Toggle visibility for channels with tag {{ tag.name }}"
                   />
+                  <span
+                    class="ms-2"
+                    *ngIf="tag.hidden_count < tag.count"
+                    style="color: grey; font-size: 0.8em"
+                    >(Visible)</span
+                  >
+                  <span
+                    class="ms-2"
+                    *ngIf="tag.hidden_count >= tag.count"
+                    style="color: grey; font-size: 0.8em"
+                    >(Hidden)</span
+                  >
                 </div>
               </td>
             </tr>
-            <tr *ngIf="tags.length === 0">
+            <tr *ngIf="filteredTags.length === 0">
               <td colspan="3" class="text-center text-muted">
                 No common tags detected. Try refreshing your sources.
               </td>

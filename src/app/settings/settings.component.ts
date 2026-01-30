@@ -109,7 +109,27 @@ export class SettingsComponent {
 
   getTags() {
     invoke('detect_tags').then((tags) => {
-      this.tags = tags as Tag[];
+      let t = tags as Tag[];
+
+      this.tags = t.sort((a, b) => {
+        const aVisible = a.hidden_count < a.count;
+        const bVisible = b.hidden_count < b.count;
+
+        // 1. Visible tags first
+        if (aVisible && !bVisible) return -1;
+        if (!aVisible && bVisible) return 1;
+
+        // 2. Priority Tags (US, English) bubble to top of their section
+        const priorityRegex = /^(USA|US|United States|English|EN)$/i;
+        const aPriority = priorityRegex.test(a.name);
+        const bPriority = priorityRegex.test(b.name);
+
+        if (aPriority && !bPriority) return -1;
+        if (!aPriority && bPriority) return 1;
+
+        // 3. Alphabetical Order
+        return a.name.localeCompare(b.name);
+      });
     });
   }
 
@@ -125,6 +145,62 @@ export class SettingsComponent {
       this.toastr.success(`Updated visibility for ${count} channels`);
       this.getTags(); // Refresh to get accurate counts
     });
+  }
+
+  // Content Type Filtering for Tags
+  contentTypeFilter: 'all' | 'live' | 'vod' | 'series' = 'all';
+
+  get filteredTags() {
+    if (this.contentTypeFilter === 'all') {
+      return this.tags;
+    }
+    return this.tags.filter((tag) => {
+      const t = tag as any;
+      if (this.contentTypeFilter === 'live') return t.count_live > 0;
+      if (this.contentTypeFilter === 'vod') return t.count_vod > 0;
+      if (this.contentTypeFilter === 'series') return t.count_series > 0;
+      return true;
+    });
+  }
+
+  updateContentTypeFilter(type: 'all' | 'live' | 'vod' | 'series') {
+    this.contentTypeFilter = type;
+    // Trigger backend fetch if needed or just local filter
+    // For now, we reuse the existing getTags but we could pass a filter if we modify backend.
+  }
+
+  selectAllTags() {
+    this.bulkToggleTags(true);
+  }
+
+  deselectAllTags() {
+    this.bulkToggleTags(false);
+  }
+
+  bulkToggleTags(visible: boolean) {
+    const tagNames = this.filteredTags.map((t) => t.name);
+    // We need a bulk API or loop. Looping is easier for now but might spam.
+    // Ideally we add a 'set_bulk_tag_visibility' command.
+    // For now, let's just loop locally and send one optimized request if possible,
+    // or just loop.
+
+    // Better approach: Create a new command in Rust for bulk update to avoid UI lag.
+    // But to save time and stick to frontend if possible:
+
+    // Let's rely on the requested feature: "allow fo the ability to select all or deselect all"
+    invoke('set_bulk_tag_visibility', { tags: tagNames, visible: visible })
+      .then((count) => {
+        this.toastr.success(`Updated visibility for ${count} tags`);
+        this.getTags();
+      })
+      .catch((e) => {
+        // Fallback if backend command doesn't exist yet (I'll implement it next)
+        console.error('Bulk update failed, trying individual', e);
+        tagNames.forEach((name) => {
+          invoke('set_tag_visibility', { tag: name, visible: visible });
+        });
+        this.getTags();
+      });
   }
 
   refreshIntervals = [

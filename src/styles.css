@@ -3,32 +3,231 @@
 @import "@angular/material/prebuilt-themes/pink-bluegrey.css";
 @import "./assets/css/roboto.css";
 
-body {
-  background-color: #202124;
-  color: white;
+/* Beats TV Core Theme Variables - Claymorphism Edition */
+:root {
+  --beats-black: #0a0a0a;
+  --beats-dark-gray: #141414;
+  --beats-charcoal: #1a1a1a;
+  --beats-surface: #1e1e1e;
+  --beats-surface-light: #252525;
+  --beats-red: #ff0033;
+  --beats-red-soft: #cc0029;
+  --beats-red-glow: rgba(255, 0, 51, 0.35);
+  --beats-text-white: #f5f5f5;
+  --beats-text-gray: #a0a0a0;
+
+  /* Claymorphism Shadows */
+  --clay-shadow-dark: rgba(0, 0, 0, 0.6);
+  --clay-shadow-light: rgba(50, 50, 50, 0.15);
+  --clay-shadow-red: rgba(255, 0, 51, 0.15);
+
+  /* Claymorphism border radius */
+  --clay-radius-sm: 12px;
+  --clay-radius-md: 18px;
+  --clay-radius-lg: 24px;
+  --clay-radius-xl: 32px;
 }
 
-.help-modal__container {
-  .help-modal {
-    background-color: #202124 !important;
+body {
+  background-color: var(--beats-black);
+  color: var(--beats-text-white);
+}
 
-    .item {
-      background-color: #202124 !important;
+/* --- Bootstrap Overrides for Claymorphism Red Theme --- */
 
-      .key {
-        background-color: #202124 !important;
-      }
+/* Primary Button - Claymorphism Style */
+.btn-primary {
+  background: linear-gradient(145deg, var(--beats-red), var(--beats-red-soft)) !important;
+  border: none !important;
+  border-radius: var(--clay-radius-md) !important;
+  color: white !important;
+  box-shadow:
+    6px 6px 12px var(--clay-shadow-dark),
+    -3px -3px 8px var(--clay-shadow-light),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.1),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.25s ease !important;
+}
 
-      .description {
-        color: white !important;
-      }
-    }
-  }
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background: linear-gradient(145deg, #ff1a47, var(--beats-red)) !important;
+  transform: translateY(-2px);
+  box-shadow:
+    8px 8px 16px var(--clay-shadow-dark),
+    -4px -4px 10px var(--clay-shadow-light),
+    0 0 20px var(--beats-red-glow),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Outline Primary Button - Claymorphism Style */
+.btn-outline-primary {
+  color: var(--beats-red) !important;
+  border: 2px solid var(--beats-red) !important;
+  border-radius: var(--clay-radius-md) !important;
+  background: var(--beats-surface) !important;
+  box-shadow:
+    4px 4px 10px var(--clay-shadow-dark),
+    -2px -2px 6px var(--clay-shadow-light),
+    inset 0 0 0 transparent !important;
+  transition: all 0.25s ease !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:active,
+.btn-outline-primary.active {
+  background: linear-gradient(145deg, var(--beats-red), var(--beats-red-soft)) !important;
+  border-color: var(--beats-red) !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow:
+    6px 6px 14px var(--clay-shadow-dark),
+    -3px -3px 8px var(--clay-shadow-light),
+    0 0 15px var(--beats-red-glow) !important;
+}
+
+/* Form Check / Switches (Blue -> Red) */
+.form-check-input:checked {
+  background-color: var(--beats-red) !important;
+  border-color: var(--beats-red) !important;
+}
+
+.form-check-input:focus {
+  border-color: var(--beats-red-glow) !important;
+  box-shadow: 0 0 0 0.25rem var(--beats-red-glow) !important;
+}
+
+/* Range Input (Volume Slider) */
+input[type="range"]::-webkit-slider-thumb {
+  background: var(--beats-red) !important;
+}
+
+input[type="range"]::-moz-range-thumb {
+  background: var(--beats-red) !important;
+}
+
+input[type="range"]::-ms-thumb {
+  background: var(--beats-red) !important;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 1px #fff,
+    0 0 0 0.25rem var(--beats-red-glow);
+}
+
+input[type="range"]:focus::-moz-range-thumb {
+  box-shadow:
+    0 0 0 1px #fff,
+    0 0 0 0.25rem var(--beats-red-glow);
+}
+
+input[type="range"]:focus::-ms-thumb {
+  box-shadow:
+    0 0 0 1px #fff,
+    0 0 0 0.25rem var(--beats-red-glow);
+}
+
+/* Nav Tabs (Settings Tabs) - Claymorphism */
+.nav-tabs {
+  border-bottom: none !important;
+  gap: 8px;
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--beats-red) !important;
+  background: linear-gradient(145deg, var(--beats-surface-light), var(--beats-charcoal)) !important;
+  border: none !important;
+  border-radius: var(--clay-radius-md) !important;
+  box-shadow:
+    6px 6px 12px var(--clay-shadow-dark),
+    -3px -3px 8px var(--clay-shadow-light),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.05),
+    0 0 10px var(--beats-red-glow) !important;
+}
+
+.nav-tabs .nav-link {
+  color: var(--beats-text-gray) !important;
+  border: none !important;
+  border-radius: var(--clay-radius-md) !important;
+  background: var(--beats-surface) !important;
+  box-shadow:
+    4px 4px 8px var(--clay-shadow-dark),
+    -2px -2px 6px var(--clay-shadow-light) !important;
+  transition: all 0.25s ease !important;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--beats-text-white) !important;
+  transform: translateY(-2px);
+  box-shadow:
+    5px 5px 10px var(--clay-shadow-dark),
+    -3px -3px 7px var(--clay-shadow-light),
+    0 0 8px var(--beats-red-glow) !important;
+}
+
+/* Modal Styling - Claymorphism */
+.help-modal__container .help-modal {
+  background: linear-gradient(145deg, var(--beats-surface-light), var(--beats-charcoal)) !important;
+  border: 1px solid rgba(255, 0, 51, 0.3);
+  border-radius: var(--clay-radius-lg) !important;
+  box-shadow:
+    12px 12px 24px var(--clay-shadow-dark),
+    -6px -6px 16px var(--clay-shadow-light),
+    0 0 20px var(--beats-red-glow) !important;
+}
+
+.help-modal__container .help-modal .item {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(60, 60, 60, 0.4);
+}
+
+.help-modal__container .help-modal .item .key {
+  background: linear-gradient(145deg, var(--beats-surface), var(--beats-black)) !important;
+  color: var(--beats-red) !important;
+  border: 1px solid var(--beats-red);
+  border-radius: var(--clay-radius-sm) !important;
+  box-shadow:
+    3px 3px 6px var(--clay-shadow-dark),
+    -1px -1px 3px var(--clay-shadow-light) !important;
+}
+
+.help-modal__container .help-modal .item .description {
+  color: var(--beats-text-white) !important;
 }
 
 .modal-content {
-  border-radius: 22px !important;
-  background-color: #292b2c;
+  border-radius: var(--clay-radius-lg) !important;
+  background: linear-gradient(145deg, var(--beats-surface-light), var(--beats-charcoal)) !important;
+  border: 1px solid rgba(60, 60, 60, 0.3);
+  box-shadow:
+    10px 10px 20px var(--clay-shadow-dark),
+    -5px -5px 12px var(--clay-shadow-light),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Selection & Scrollbar */
+::selection {
+  background: var(--beats-red);
+  color: white;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--beats-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--beats-red);
 }
 
 .selectable {

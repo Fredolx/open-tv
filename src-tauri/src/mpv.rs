@@ -178,6 +178,51 @@ fn get_play_args(
         args.push(ARG_GPU_NEXT.to_string());
         // args.push(ARG_GPU_PROFILE_HIGH_QUALITY.to_string());
     }
+    // Enhanced Video Mode - optimized for IPTV streaming
+    if settings.enhanced_video.unwrap_or(false) {
+        // Video sync and interpolation
+        args.push("--video-sync=display-resample".to_string());
+        args.push("--interpolation=yes".to_string());
+        args.push("--tscale=linear".to_string());
+        args.push("--tscale-clamp=0.0".to_string());
+        
+        // Caching for smooth playback
+        args.push("--cache=yes".to_string());
+        args.push("--demuxer-max-bytes=512MiB".to_string());
+        args.push("--demuxer-max-back-bytes=128MiB".to_string());
+        args.push("--demuxer-readahead-secs=60".to_string());
+        args.push("--stream-buffer-size=2MiB".to_string());
+        
+        // Performance optimizations
+        args.push("--framedrop=vo".to_string());
+        args.push("--vd-lavc-fast".to_string());
+        args.push("--vd-lavc-skiploopfilter=all".to_string());
+        args.push("--vd-lavc-threads=0".to_string());
+        
+        // High-quality scaling
+        args.push("--scale=catmull_rom".to_string());
+        args.push("--cscale=catmull_rom".to_string());
+        args.push("--dscale=catmull_rom".to_string());
+        args.push("--scale-antiring=0.7".to_string());
+        args.push("--cscale-antiring=0.7".to_string());
+        
+        // Hardware decoding (auto-copy for compatibility)
+        args.push("--hwdec=auto-copy".to_string());
+        
+        // Stream reconnection (via FFmpeg/lavf options)
+        args.push("--stream-lavf-o=reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=5".to_string());
+        
+        // User agent for compatibility
+        args.push("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36".to_string());
+        
+        // Platform-specific GPU API
+        if OS == "windows" {
+            args.push("--d3d11-flip=yes".to_string());
+            args.push("--gpu-api=d3d11".to_string());
+        } else if OS == "macos" {
+            args.push("--gpu-api=opengl".to_string());
+        }
+    }
     if record {
         let path = if let Some(p) = record_path {
             p

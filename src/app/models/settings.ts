@@ -17,4 +17,5 @@ export class Settings {
   compact_mode?: boolean;
   refresh_interval?: number;
   last_refresh?: number;
+  enhanced_video?: boolean;
 }

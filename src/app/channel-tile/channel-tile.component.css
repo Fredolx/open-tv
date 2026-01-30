@@ -1,17 +1,46 @@
 .channel {
-  border-radius: 0.25rem;
-  height: 4.5em; /* default 2 lines */
+  border-radius: var(--clay-radius-md, 18px);
+  height: 4.5em;
   width: 100%;
-  background: #343a40;
+  background: linear-gradient(
+    145deg,
+    var(--beats-surface-light, #252525),
+    var(--beats-charcoal, #1a1a1a)
+  );
   overflow: hidden;
   user-select: none;
-  transition: all 0.2s ease-out;
-  will-change: transform;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  will-change: transform, box-shadow;
+  border: 1px solid rgba(255, 0, 51, 0.2);
+  box-shadow:
+    8px 8px 16px rgba(0, 0, 0, 0.5),
+    -4px -4px 12px rgba(50, 50, 50, 0.08),
+    0 0 20px rgba(255, 0, 51, 0.15),
+    0 0 40px rgba(255, 0, 51, 0.075),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.05),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.channel:hover {
+  background: linear-gradient(145deg, #2a2a2a, var(--beats-surface-light, #252525));
+  cursor: pointer;
+  border-color: var(--beats-red);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow:
+    10px 10px 20px rgba(0, 0, 0, 0.6),
+    -5px -5px 15px rgba(50, 50, 50, 0.1),
+    0 0 25px var(--beats-red-glow, rgba(255, 0, 51, 0.35)),
+    inset 1px 1px 3px rgba(255, 255, 255, 0.08);
+  z-index: 10;
 }
 
 .selected {
-  border: 2px solid #007bff;
-  background: rgba(0, 123, 255, 0.2);
+  border: 2px solid var(--beats-red);
+  background: linear-gradient(145deg, rgba(255, 0, 51, 0.12), rgba(255, 0, 51, 0.05));
+  box-shadow:
+    6px 6px 14px rgba(0, 0, 0, 0.5),
+    -3px -3px 10px rgba(50, 50, 50, 0.08),
+    0 0 15px var(--beats-red-glow);
 }
 
 .selection-checkbox {
@@ -19,6 +48,7 @@
   top: 5px;
   right: 5px;
   z-index: 10;
+  accent-color: var(--beats-red);
 }
 
 .channel.three-lines {
@@ -41,6 +71,7 @@
   text-overflow: ellipsis;
   word-break: break-word;
   line-height: 1.3;
+  color: var(--beats-text-white);
 }
 
 .channel.three-lines .channel-title {
@@ -50,7 +81,7 @@
 
 .channel-source {
   font-size: 0.75rem;
-  color: #adb5bd;
+  color: var(--beats-text-gray);
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -73,8 +104,9 @@
 }
 
 .channel:hover {
-  background: #007bff;
+  background: #2a2a2a;
   cursor: pointer;
+  border-color: #444;
 }
 
 .faded {
@@ -83,11 +115,13 @@
 
 .channel:focus {
   outline: none;
-  box-shadow: 0 0 0 0.25rem rgba(13, 109, 253, 0.7);
+  border-color: var(--beats-red);
+  box-shadow: 0 0 0 0.25rem var(--beats-red-glow);
 }
 
 .playing {
-  background: #0048ff;
+  background: rgba(255, 0, 51, 0.15);
+  border: 1px solid var(--beats-red);
   animation-name: pulse;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
@@ -95,20 +129,20 @@
 }
 
 .playing:hover {
-  background: red;
+  background: rgba(255, 0, 51, 0.25);
 }
 
 @keyframes pulse {
   from {
-    transform: scale3d(1, 1, 1);
+    box-shadow: 0 0 0 0 var(--beats-red-glow);
   }
 
   50% {
-    transform: scale3d(1.05, 1.05, 1.05);
+    box-shadow: 0 0 10px 2px var(--beats-red-glow);
   }
 
   to {
-    transform: scale3d(1, 1, 1);
+    box-shadow: 0 0 0 0 var(--beats-red-glow);
   }
 }
 
@@ -124,7 +158,7 @@
 .favorite-icon {
   width: 1.25rem;
   height: 1.25rem;
-  color: #ffc107;
+  color: #ffc107; /* Keep gold for favorites as it contrasts well with black/red */
 }
 
 /* Compact Mode Styles */

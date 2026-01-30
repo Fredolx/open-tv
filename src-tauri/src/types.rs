@@ -88,6 +88,7 @@ pub struct Settings {
     pub compact_mode: Option<bool>,
     pub refresh_interval: Option<u8>,
     pub last_refresh: Option<i64>,
+    pub enhanced_video: Option<bool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -211,4 +212,7 @@ pub struct Tag {
     pub name: String,
     pub count: usize,
     pub hidden_count: usize,
+    pub count_live: usize,
+    pub count_vod: usize,
+    pub count_series: usize,
 }

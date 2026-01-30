@@ -36,8 +36,7 @@ import { Settings } from '../models/settings';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { SortType } from '../models/sortType';
 import { getVersion } from '@tauri-apps/api/app';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { WhatsNewModalComponent } from '../whats-new-modal/whats-new-modal.component';
+
 import { LAST_SEEN_VERSION } from '../models/localStorage';
 
 import { Node } from '../models/node';
@@ -114,7 +113,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     public memory: MemoryService,
     public toast: ToastrService,
     private error: ErrorService,
-    private modal: NgbModal,
   ) {
     this.getSources();
   }
@@ -136,12 +134,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           getVersion().then((version) => {
             if (localStorage.getItem(LAST_SEEN_VERSION) != version) {
               this.memory.AppVersion = version;
-              this.memory.ModalRef = this.modal.open(WhatsNewModalComponent, {
-                backdrop: 'static',
-                size: 'xl',
-                keyboard: false,
-              });
-              this.memory.ModalRef.componentInstance.name = 'WhatsNewModal';
+              this.memory.updateVersion();
             }
           });
           sources

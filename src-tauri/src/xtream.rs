@@ -131,22 +131,34 @@ fn build_xtream_url(source: &mut Source) -> Result<Url> {
 pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
     let url = build_xtream_url(&mut source)?;
     let user_agent = get_user_agent_from_source(&source)?;
-    let (live, live_cats, vods, vods_cats, series, series_cats) = join!(
-        get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_LIVE_STREAMS, &user_agent),
+    let client = Client::builder().user_agent(&user_agent).build()?;
+
+    // Fetch Live Streams & Categories (Batch 1)
+    let (live, live_cats) = join!(
+        get_xtream_http_data::<Vec<XtreamStream>>(&client, url.clone(), GET_LIVE_STREAMS),
         get_xtream_http_data::<Vec<XtreamCategory>>(
+            &client,
             url.clone(),
-            GET_LIVE_STREAM_CATEGORIES,
-            &user_agent
-        ),
-        get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_VODS, &user_agent),
-        get_xtream_http_data::<Vec<XtreamCategory>>(url.clone(), GET_VOD_CATEGORIES, &user_agent),
-        get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_SERIES, &user_agent),
-        get_xtream_http_data::<Vec<XtreamCategory>>(
-            url.clone(),
-            GET_SERIES_CATEGORIES,
-            &user_agent
+            GET_LIVE_STREAM_CATEGORIES
         ),
     );
+
+    // Fetch VODs & Categories (Batch 2)
+    let (vods, vods_cats) = join!(
+        get_xtream_http_data::<Vec<XtreamStream>>(&client, url.clone(), GET_VODS),
+        get_xtream_http_data::<Vec<XtreamCategory>>(&client, url.clone(), GET_VOD_CATEGORIES),
+    );
+
+    // Fetch Series & Categories (Batch 3)
+    let (series, series_cats) = join!(
+        get_xtream_http_data::<Vec<XtreamStream>>(&client, url.clone(), GET_SERIES),
+        get_xtream_http_data::<Vec<XtreamCategory>>(
+            &client,
+            url.clone(),
+            GET_SERIES_CATEGORIES
+        ),
+    );
+
     let mut sql = sql::get_conn()?;
     let tx = sql.transaction()?;
     let mut channel_preserve: Vec<ChannelPreserve> = Vec::new();
@@ -158,32 +170,46 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
         source.id = Some(sql::create_or_find_source_by_name(&tx, &source)?);
     }
     let mut fail_count = 0;
+    let mut last_error = String::from("Too many Xtream requests failed");
+
     live.and_then(|live| process_xtream(&tx, live, live_cats?, &source, media_type::LIVESTREAM))
         .unwrap_or_else(|e| {
-            log::log(format!("{:?}", e.context("Failed to process live")));
+            let error_string = e.to_string();
+            let context = format!("{:?}", e.context("Failed to process live"));
+            log::log(context);
+            last_error = error_string;
             fail_count += 1;
         });
+
     vods.and_then(|vods: Vec<XtreamStream>| {
         process_xtream(&tx, vods, vods_cats?, &source, media_type::MOVIE)
     })
     .unwrap_or_else(|e| {
-        log::log(format!("{:?}", e.context("Failed to process vods")));
+        let error_string = e.to_string();
+        let context = format!("{:?}", e.context("Failed to process vods"));
+        log::log(context);
+        if fail_count == 1 { last_error = error_string; }
         fail_count += 1;
     });
+
     series
         .and_then(|series: Vec<XtreamStream>| {
             process_xtream(&tx, series, series_cats?, &source, media_type::SERIE)
         })
         .unwrap_or_else(|e| {
-            log::log(format!("{:?}", e.context("Failed to process series")));
+            let error_string = e.to_string();
+            let context = format!("{:?}", e.context("Failed to process series"));
+            log::log(context);
+             if fail_count == 2 { last_error = error_string; }
             fail_count += 1;
         });
+
     if fail_count > 2 {
         match tx.rollback() {
             Ok(_) => {}
             Err(e) => log::log(format!("Failed to rollback tx: {:?}", e)),
         }
-        return Err(anyhow::anyhow!("Too many Xtream requests failed"));
+        return Err(anyhow::anyhow!(last_error));
     }
     if wipe {
         sql::restore_preserve(&tx, source.id.context("no source id")?, channel_preserve)?;
@@ -193,11 +219,10 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
     Ok(())
 }
 
-async fn get_xtream_http_data<T>(mut url: Url, action: &str, user_agent: &String) -> Result<T>
+async fn get_xtream_http_data<T>(client: &Client, mut url: Url, action: &str) -> Result<T>
 where
     T: serde::de::DeserializeOwned,
 {
-    let client = Client::builder().user_agent(user_agent).build()?;
     url.query_pairs_mut().append_pair("action", action);
     let data = client.get(url).send().await?.json::<T>().await?;
     Ok(data)
@@ -321,10 +346,11 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
     let mut source = sql::get_source_from_id(channel.source_id.context("no source id")?)?;
     let mut url = build_xtream_url(&mut source)?;
     let user_agent = get_user_agent_from_source(&source)?;
+    let client = Client::builder().user_agent(&user_agent).build()?;
     url.query_pairs_mut()
         .append_pair("series_id", &series_id.to_string());
     let mut series =
-        get_xtream_http_data::<XtreamSeries>(url, GET_SERIES_INFO, &user_agent).await?;
+        get_xtream_http_data::<XtreamSeries>(&client, url, GET_SERIES_INFO).await?;
     let mut episodes: Vec<XtreamEpisode> = series
         .episodes
         .into_values()
@@ -510,9 +536,10 @@ pub async fn get_epg(channel: Channel) -> Result<Vec<EPG>> {
     let mut source = sql::get_source_from_id(channel.source_id.context("no source id")?)?;
     let mut url = build_xtream_url(&mut source)?;
     let user_agent = get_user_agent_from_source(&source)?;
+    let client = Client::builder().user_agent(user_agent).build()?;
     let stream_id = channel.stream_id.context("No stream id")?.to_string();
     url.query_pairs_mut().append_pair("stream_id", &stream_id);
-    let epg: XtreamEPG = get_xtream_http_data(url, GET_EPG, &user_agent).await?;
+    let epg: XtreamEPG = get_xtream_http_data(&client, url, GET_EPG).await?;
     let url = get_timeshift_url_base(&source)?;
     let current_time = Local::now();
     let mut otv_epgs = Vec::new();

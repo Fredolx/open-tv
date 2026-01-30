@@ -18,6 +18,7 @@ use {
 };
 
 pub mod bulk_action_type;
+pub mod deps;
 pub mod epg;
 pub mod log;
 pub mod m3u;
@@ -116,6 +117,8 @@ pub fn run() {
             remove_from_history,
             detect_tags,
             set_tag_visibility,
+            set_bulk_tag_visibility,
+            check_dependencies,
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -573,4 +576,14 @@ fn detect_tags() -> Result<Vec<types::Tag>, String> {
 #[tauri::command(async)]
 fn set_tag_visibility(tag: String, visible: bool) -> Result<usize, String> {
     sql::do_with_conn(|conn| tags::set_tag_visibility(conn, &tag, visible)).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn check_dependencies() -> deps::DependencyCheckResult {
+    deps::check_dependencies()
+}
+
+#[tauri::command(async)]
+fn set_bulk_tag_visibility(tags: Vec<String>, visible: bool) -> Result<usize, String> {
+    sql::do_tx(|tx| tags::set_bulk_tag_visibility(tx, &tags, visible)).map_err(map_err_frontend)
 }

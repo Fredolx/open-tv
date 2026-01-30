@@ -23,6 +23,7 @@ pub const MAX_TEXT_LINES: &str = "maxTextLines";
 pub const COMPACT_MODE: &str = "compactMode";
 pub const REFRESH_INTERVAL: &str = "refreshInterval";
 pub const LAST_REFRESH: &str = "lastRefresh";
+pub const ENHANCED_VIDEO: &str = "enhancedVideo";
 
 pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
@@ -49,6 +50,7 @@ pub fn get_settings() -> Result<Settings> {
         compact_mode: map.get(COMPACT_MODE).and_then(|s| s.parse().ok()),
         refresh_interval: map.get(REFRESH_INTERVAL).and_then(|s| s.parse().ok()),
         last_refresh: map.get(LAST_REFRESH).and_then(|s| s.parse().ok()),
+        enhanced_video: map.get(ENHANCED_VIDEO).and_then(|s| s.parse().ok()),
     };
     Ok(settings)
 }
@@ -113,6 +115,10 @@ pub fn update_settings(settings: Settings) -> Result<()> {
     // Update last refresh timestamp
     if let Some(last) = settings.last_refresh {
         map.insert(LAST_REFRESH.to_string(), last.to_string());
+    }
+    // Enhanced video mode
+    if let Some(enhanced) = settings.enhanced_video {
+        map.insert(ENHANCED_VIDEO.to_string(), enhanced.to_string());
     }
     sql::update_settings(map)?;
     Ok(())

@@ -964,6 +964,7 @@ pub fn search_group(filters: Filters) -> Result<Vec<Channel>> {
         generate_placeholders(media_types.len())
     );
     sql_query += "\nAND hidden = 0";
+    sql_query += "\nAND EXISTS (SELECT 1 FROM channels WHERE channels.group_id = groups.id AND channels.hidden = 0)";
     if filters.sort != sort_type::PROVIDER {
         let order = match filters.sort {
             sort_type::ALPHABETICAL_ASC => "ASC",
