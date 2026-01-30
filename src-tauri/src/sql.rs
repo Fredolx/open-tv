@@ -433,7 +433,7 @@ pub fn get_settings() -> Result<HashMap<String, String>> {
     Ok(map)
 }
 
-pub fn update_settings(map: HashMap<String, String>) -> Result<()> {
+pub fn update_settings(map: HashMap<String, Option<String>>) -> Result<()> {
     let mut sql: PooledConnection<SqliteConnectionManager> = get_conn()?;
     let tx = sql.transaction()?;
     for (key, value) in map {

@@ -44,48 +44,51 @@ pub fn get_settings() -> Result<Settings> {
 }
 
 pub fn update_settings(settings: Settings) -> Result<()> {
-    let mut map: HashMap<String, String> = HashMap::with_capacity(3);
-    if let Some(mpv_params) = settings.mpv_params {
-        map.insert(MPV_PARAMS.to_string(), mpv_params);
-    }
+    let mut map: HashMap<String, Option<String>> = HashMap::with_capacity(13);
+
+    map.insert(MPV_PARAMS.to_string(), settings.mpv_params);
+
     if let Some(recording_path) = settings.recording_path {
-        map.insert(RECORDING_PATH.to_string(), recording_path);
+        map.insert(RECORDING_PATH.to_string(), Some(recording_path));
     }
     if let Some(use_stream_caching) = settings.use_stream_caching {
         map.insert(
             USE_STREAM_CACHING.to_string(),
-            use_stream_caching.to_string(),
+            Some(use_stream_caching.to_string()),
         );
     }
     if let Some(default_view) = settings.default_view {
-        map.insert(DEFAULT_VIEW.to_string(), default_view.to_string());
+        map.insert(DEFAULT_VIEW.to_string(), Some(default_view.to_string()));
     }
     if let Some(volume) = settings.volume {
-        map.insert(VOLUME.to_string(), volume.to_string());
+        map.insert(VOLUME.to_string(), Some(volume.to_string()));
     }
     if let Some(refresh_on_start) = settings.refresh_on_start {
-        map.insert(REFRESH_ON_START.to_string(), refresh_on_start.to_string());
+        map.insert(
+            REFRESH_ON_START.to_string(),
+            Some(refresh_on_start.to_string()),
+        );
     }
     if let Some(port) = settings.restream_port {
-        map.insert(RESTREAM_PORT.to_string(), port.to_string());
+        map.insert(RESTREAM_PORT.to_string(), Some(port.to_string()));
     }
     if let Some(enable_tray) = settings.enable_tray_icon {
-        map.insert(ENABLE_TRAY_ICON.to_string(), enable_tray.to_string());
+        map.insert(ENABLE_TRAY_ICON.to_string(), Some(enable_tray.to_string()));
     }
     if let Some(zoom) = settings.zoom {
-        map.insert(ZOOM.to_string(), zoom.to_string());
+        map.insert(ZOOM.to_string(), Some(zoom.to_string()));
     }
     if let Some(sort) = settings.default_sort {
-        map.insert(DEFAULT_SORT.to_string(), sort.to_string());
+        map.insert(DEFAULT_SORT.to_string(), Some(sort.to_string()));
     }
     if let Some(hwdec) = settings.enable_hwdec {
-        map.insert(ENABLE_HWDEC.to_string(), hwdec.to_string());
+        map.insert(ENABLE_HWDEC.to_string(), Some(hwdec.to_string()));
     }
     if let Some(save) = settings.always_ask_save {
-        map.insert(ALWAYS_ASK_SAVE.to_string(), save.to_string());
+        map.insert(ALWAYS_ASK_SAVE.to_string(), Some(save.to_string()));
     }
     if let Some(gpu) = settings.enable_gpu {
-        map.insert(ENABLE_GPU.to_string(), gpu.to_string());
+        map.insert(ENABLE_GPU.to_string(), Some(gpu.to_string()));
     }
     sql::update_settings(map)?;
     Ok(())
