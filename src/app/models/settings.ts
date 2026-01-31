@@ -18,4 +18,5 @@ export class Settings {
   refresh_interval?: number;
   last_refresh?: number;
   enhanced_video?: boolean;
+  theme?: number; // 0=Clay-Mation, 1=Smooth Glass, 2=Matrix Terminal
 }

@@ -39,6 +39,11 @@ export class SettingsComponent {
   viewModeEnum = ViewMode;
   sources: Source[] = [];
   sortTypes = SORT_TYPES;
+  themeOptions = [
+    { value: 0, label: 'Clay-Mation' },
+    { value: 1, label: 'Smooth Glass' },
+    { value: 2, label: 'Matrix Terminal' },
+  ];
   @ViewChild('mpvParams') mpvParams!: ElementRef;
 
   constructor(
@@ -99,12 +104,27 @@ export class SettingsComponent {
       if (this.settings.always_ask_save == undefined) this.settings.always_ask_save = false;
       if (this.settings.enable_gpu == undefined) this.settings.enable_gpu = false;
       if (this.settings.use_single_column == undefined) this.settings.use_single_column = false;
-      if (this.settings.max_text_lines == undefined) this.settings.max_text_lines = 2; // Default to 2 lines
+      if (this.settings.max_text_lines == undefined) this.settings.max_text_lines = 2;
       if (this.settings.compact_mode == undefined) this.settings.compact_mode = false;
       if (this.settings.refresh_interval == undefined) this.settings.refresh_interval = 0;
+      if (this.settings.theme == undefined) this.settings.theme = 0;
+      this.applyTheme(this.settings.theme);
     });
     this.getSources();
     this.getTags();
+  }
+
+  applyTheme(themeId: number) {
+    const themeClasses = ['theme-clay-mation', 'theme-smooth-glass', 'theme-matrix-terminal'];
+    document.body.classList.remove(...themeClasses);
+    if (themeId >= 0 && themeId < themeClasses.length) {
+      document.body.classList.add(themeClasses[themeId]);
+    }
+  }
+
+  onThemeChange() {
+    this.applyTheme(this.settings.theme ?? 0);
+    this.updateSettings();
   }
 
   getTags() {

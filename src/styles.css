@@ -256,3 +256,163 @@ body {
   margin: 0;
   font-family: "Roboto", sans-serif;
 }
+
+/* ============================================
+   THEME DEFINITIONS
+   ============================================ */
+
+/* Theme 0: Clay-Mation (Default - Red Claymorphism) */
+body.theme-clay-mation {
+  --beats-red: #ff0033;
+  --beats-red-soft: #cc0029;
+  --beats-red-glow: rgba(255, 0, 51, 0.35);
+}
+
+/* Theme 1: Smooth Glass (Glassmorphism) */
+body.theme-smooth-glass {
+  --beats-black: #0d1117;
+  --beats-dark-gray: #161b22;
+  --beats-charcoal: #21262d;
+  --beats-surface: rgba(33, 38, 45, 0.7);
+  --beats-surface-light: rgba(48, 54, 61, 0.6);
+  --beats-red: #58a6ff;
+  --beats-red-soft: #388bfd;
+  --beats-red-glow: rgba(88, 166, 255, 0.3);
+  --beats-text-white: #f0f6fc;
+  --beats-text-gray: #8b949e;
+
+  /* Glassmorphism Shadows */
+  --clay-shadow-dark: rgba(0, 0, 0, 0.4);
+  --clay-shadow-light: rgba(255, 255, 255, 0.05);
+  --clay-shadow-red: rgba(88, 166, 255, 0.1);
+
+  /* Softer radius for glass */
+  --clay-radius-sm: 16px;
+  --clay-radius-md: 20px;
+  --clay-radius-lg: 28px;
+  --clay-radius-xl: 36px;
+}
+
+body.theme-smooth-glass .channel,
+body.theme-smooth-glass .modal-content,
+body.theme-smooth-glass .nav-tabs .nav-link,
+body.theme-smooth-glass .btn-outline-primary {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(33, 38, 45, 0.6) !important;
+  border: 1px solid rgba(88, 166, 255, 0.2);
+}
+
+body.theme-smooth-glass .channel:hover {
+  background: rgba(48, 54, 61, 0.8) !important;
+  border-color: var(--beats-red);
+  box-shadow: 0 8px 32px rgba(88, 166, 255, 0.25);
+}
+
+body.theme-smooth-glass .btn-primary {
+  background: linear-gradient(145deg, #58a6ff, #388bfd) !important;
+  box-shadow: 0 4px 20px rgba(88, 166, 255, 0.3) !important;
+}
+
+body.theme-smooth-glass ::selection {
+  background: #58a6ff;
+}
+
+body.theme-smooth-glass ::-webkit-scrollbar-thumb:hover {
+  background: #58a6ff;
+}
+
+/* Theme 2: Matrix Terminal */
+body.theme-matrix-terminal {
+  --beats-black: #0a0a0a;
+  --beats-dark-gray: #0d0d0d;
+  --beats-charcoal: #111111;
+  --beats-surface: #0f0f0f;
+  --beats-surface-light: #1a1a1a;
+  --beats-red: #00ff41;
+  --beats-red-soft: #00cc33;
+  --beats-red-glow: rgba(0, 255, 65, 0.4);
+  --beats-text-white: #00ff41;
+  --beats-text-gray: #00aa2a;
+
+  /* Matrix Shadows */
+  --clay-shadow-dark: rgba(0, 0, 0, 0.8);
+  --clay-shadow-light: rgba(0, 255, 65, 0.05);
+  --clay-shadow-red: rgba(0, 255, 65, 0.2);
+
+  /* Sharp edges for terminal feel */
+  --clay-radius-sm: 4px;
+  --clay-radius-md: 6px;
+  --clay-radius-lg: 8px;
+  --clay-radius-xl: 10px;
+}
+
+body.theme-matrix-terminal {
+  font-family: "Consolas", "Monaco", "Courier New", monospace !important;
+  text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+body.theme-matrix-terminal * {
+  font-family: inherit;
+}
+
+body.theme-matrix-terminal .channel {
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  background: linear-gradient(180deg, #0f0f0f, #0a0a0a) !important;
+  box-shadow:
+    0 0 10px rgba(0, 255, 65, 0.1),
+    inset 0 1px 0 rgba(0, 255, 65, 0.1);
+}
+
+body.theme-matrix-terminal .channel:hover {
+  border-color: #00ff41;
+  box-shadow:
+    0 0 20px rgba(0, 255, 65, 0.3),
+    0 0 40px rgba(0, 255, 65, 0.1),
+    inset 0 1px 0 rgba(0, 255, 65, 0.2);
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+}
+
+body.theme-matrix-terminal .btn-primary {
+  background: transparent !important;
+  border: 2px solid #00ff41 !important;
+  color: #00ff41 !important;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+  box-shadow:
+    0 0 10px rgba(0, 255, 65, 0.3),
+    inset 0 0 20px rgba(0, 255, 65, 0.1) !important;
+}
+
+body.theme-matrix-terminal .btn-primary:hover {
+  background: rgba(0, 255, 65, 0.1) !important;
+  box-shadow:
+    0 0 20px rgba(0, 255, 65, 0.5),
+    inset 0 0 30px rgba(0, 255, 65, 0.2) !important;
+}
+
+body.theme-matrix-terminal .nav-tabs .nav-link.active {
+  background: transparent !important;
+  border: 1px solid #00ff41 !important;
+  color: #00ff41 !important;
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+}
+
+body.theme-matrix-terminal ::selection {
+  background: #00ff41;
+  color: #000;
+}
+
+body.theme-matrix-terminal ::-webkit-scrollbar-thumb {
+  background: #00aa2a;
+}
+
+body.theme-matrix-terminal ::-webkit-scrollbar-thumb:hover {
+  background: #00ff41;
+}
+
+body.theme-matrix-terminal h1,
+body.theme-matrix-terminal h2,
+body.theme-matrix-terminal h3 {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}

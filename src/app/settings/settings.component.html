@@ -268,6 +268,31 @@
 
     <div class="row mt-3 align-items-center">
       <div class="col-4">
+        <span
+          id="label-theme"
+          [ngbTooltip]="
+            'Choose the visual theme for the application: Clay-Mation (soft 3D), Smooth Glass (frosted transparency), or Matrix Terminal (hacker aesthetic).'
+          "
+          >Theme</span
+        >
+      </div>
+      <div class="col">
+        <select
+          [(ngModel)]="settings.theme"
+          (ngModelChange)="onThemeChange()"
+          class="form-select"
+          aria-labelledby="label-theme"
+          title="Application Theme"
+        >
+          <option *ngFor="let theme of themeOptions" [ngValue]="theme.value">
+            {{ theme.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
         <span id="label-single-column">Single column layout</span>
       </div>
       <div class="col">

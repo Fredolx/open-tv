@@ -24,6 +24,7 @@ pub const COMPACT_MODE: &str = "compactMode";
 pub const REFRESH_INTERVAL: &str = "refreshInterval";
 pub const LAST_REFRESH: &str = "lastRefresh";
 pub const ENHANCED_VIDEO: &str = "enhancedVideo";
+pub const THEME: &str = "theme";
 
 pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
@@ -51,6 +52,7 @@ pub fn get_settings() -> Result<Settings> {
         refresh_interval: map.get(REFRESH_INTERVAL).and_then(|s| s.parse().ok()),
         last_refresh: map.get(LAST_REFRESH).and_then(|s| s.parse().ok()),
         enhanced_video: map.get(ENHANCED_VIDEO).and_then(|s| s.parse().ok()),
+        theme: map.get(THEME).and_then(|s| s.parse().ok()),
     };
     Ok(settings)
 }
@@ -119,6 +121,10 @@ pub fn update_settings(settings: Settings) -> Result<()> {
     // Enhanced video mode
     if let Some(enhanced) = settings.enhanced_video {
         map.insert(ENHANCED_VIDEO.to_string(), enhanced.to_string());
+    }
+    // Theme
+    if let Some(theme) = settings.theme {
+        map.insert(THEME.to_string(), theme.to_string());
     }
     sql::update_settings(map)?;
     Ok(())

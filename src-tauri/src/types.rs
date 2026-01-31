@@ -89,6 +89,7 @@ pub struct Settings {
     pub refresh_interval: Option<u8>,
     pub last_refresh: Option<i64>,
     pub enhanced_video: Option<bool>,
+    pub theme: Option<u8>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
