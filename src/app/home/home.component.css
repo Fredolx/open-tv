@@ -1,8 +1,28 @@
 /* App Container */
 .app-container {
   min-height: 100vh;
-  background: var(--beats-black, #0a0a0a);
+  /* Default Desktop / Shared Layout */
+  background: var(--app-bg, #0a0a0a);
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   padding-bottom: 2rem;
+  position: relative;
+}
+
+/* Subtle machined noise overlay - Only for default theme */
+body:not(.theme-smooth-glass) .app-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: radial-gradient(#fff 0.5px, transparent 0.5px);
+  background-size: 4px 4px;
 }
 
 /* Header */
@@ -15,6 +35,15 @@
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+/* Toolbar Stack - Centralized & Condensed */
+.toolbar-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem; /* Reduced from 1.5rem for compactness */
+  width: 100%;
 }
 
 .header-content {
@@ -60,10 +89,22 @@
   gap: 0.5rem;
 }
 
+.search-input:focus {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--beats-red, #ff0033);
+  box-shadow: 0 0 0 3px var(--beats-red-glow);
+}
+
+.icon-btn:hover,
+.icon-btn.active {
+  color: var(--beats-red, #ff0033);
+  background: var(--beats-red-glow);
+}
+
 .app-title {
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #ff0033 0%, #ff3366 100%);
+  background: linear-gradient(135deg, var(--beats-red) 0%, var(--beats-red-soft) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -71,30 +112,40 @@
   letter-spacing: -0.5px;
 }
 
-.app-subtitle {
-  font-size: 0.75rem;
-  color: var(--beats-text-gray, #888);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.settings-btn:hover {
+  color: var(--beats-red, #ff0033);
+  background: var(--beats-red-glow);
+  transform: rotate(90deg);
 }
 
-.settings-btn {
-  background: transparent;
-  border: none;
-  color: var(--beats-text-gray, #888);
-  cursor: pointer;
-  padding: 0.5rem;
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-actions .icon-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #aaa;
+  transition: all 0.2s;
 }
 
-.settings-btn:hover {
-  color: var(--beats-red, #ff0033);
-  background: rgba(255, 0, 51, 0.1);
-  transform: rotate(90deg);
+.header-actions .icon-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.header-actions .icon-btn.active {
+  color: var(--beats-red);
+  background: var(--beats-red-glow);
 }
 
 .settings-btn svg {
@@ -102,21 +153,28 @@
   height: 24px;
 }
 
-/* Controls Section */
+/* Controls Section - Ultra Slim */
 .controls-section {
   max-width: 1800px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0.5rem 1rem; /* Reduce padding */
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  flex-direction: row; /* Horizontal layout by default */
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
-/* Search Container */
+.controls-section app-filter-chips {
+  flex: 1; /* Allow chips to take available space */
+  overflow: hidden;
+}
+
+/* Search Container - Condensed */
 .search-container {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+  width: auto;
+  min-width: 300px;
+  margin: 0;
 }
 
 .search-box {
@@ -196,8 +254,8 @@
 }
 
 .icon-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 /* Sticky Bulk Actions Bar */
@@ -339,44 +397,160 @@
   background: rgba(150, 150, 150, 0.2);
 }
 
-/* View Tabs */
-.view-tabs {
+/* Glass Toolbar (visionOS Style - Reference Match) */
+.glass-toolbar {
+  padding: 0.75rem 0; /* Reduced from 2rem */
+  margin-bottom: 0.5rem;
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  padding: 0.5rem 0;
 }
 
-.tab-btn {
+/* 1. Integrated Search Bar */
+.search-container {
+  width: 100%;
+  max-width: 550px;
+}
+
+.premium-glass-input {
+  background: rgba(255, 255, 255, 0.85) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.premium-glass-input .search-input {
+  color: #111 !important; /* Serious contrast */
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+}
+
+.premium-glass-input .search-input::placeholder {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.premium-glass-input .search-actions {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.6rem 1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--beats-text-gray, #888);
+  gap: 0.25rem;
+  margin-right: 0.5rem;
+}
+
+.premium-glass-input .icon-btn,
+.premium-glass-input app-sort-button ::ng-deep .sort-icon {
+  color: #007aff !important; /* Vivid System Blue for visibility */
+  opacity: 1 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: static !important; /* Centering in flex-stack */
+  width: 24px !important;
+  height: 24px !important;
+  transform: none !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.premium-glass-input .icon-btn:hover,
+.premium-glass-input app-sort-button ::ng-deep .sort-icon:hover {
+  transform: scale(1.15) !important;
+  background: rgba(0, 122, 255, 0.1);
+  border-radius: 6px;
+}
+
+/* 2. Apple Style Segmented Control - FIXED CONTRAST */
+.apple-segmented {
+  background: rgba(0, 0, 0, 0.75) !important; /* Deep dark track */
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  display: inline-flex;
+}
+
+.apple-segmented .segment-btn {
+  background: transparent !important; /* Force transparent for inactive */
+  border: none !important;
+  padding: 0.5rem 1.8rem;
+  border-radius: 8px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6) !important; /* Readable inactive text */
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-size: 0.85rem;
+}
+
+.apple-segmented .segment-btn:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+}
+
+.apple-segmented .segment-btn.active {
+  background: #007aff !important; /* System Blue */
+  color: #fff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4) !important;
+}
+
+/* 3. Media Switch Pill */
+.media-switch-pill {
+  display: flex;
+  background: rgba(30, 30, 30, 0.8);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  gap: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.switch-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  color: #999;
   font-size: 0.85rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
-.tab-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--beats-text-white, #f5f5f5);
+.switch-item:hover {
+  color: #fff;
 }
 
-.tab-btn.active {
-  background: linear-gradient(135deg, rgba(255, 0, 51, 0.2), rgba(255, 0, 51, 0.1));
-  border-color: rgba(255, 0, 51, 0.4);
-  color: var(--beats-red, #ff0033);
+.switch-item.active {
+  color: #fff;
 }
 
-.tab-btn svg {
-  width: 16px;
-  height: 16px;
+.switch-item input {
+  display: none;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s;
+}
+
+.switch-item.active .dot.live {
+  background: #ff3b30; /* Apple Red */
+  box-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+  border-color: transparent;
+}
+
+.switch-item.active .dot.movie {
+  background: #007aff; /* Apple Blue */
+  box-shadow: 0 0 10px rgba(0, 122, 255, 0.5);
+  border-color: transparent;
+}
+
+.switch-item.active .dot.series {
+  background: #af52de; /* Apple Purple */
+  box-shadow: 0 0 10px rgba(175, 82, 222, 0.5);
+  border-color: transparent;
 }
 
 /* Filter Bar */
@@ -400,6 +574,7 @@
   font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -437,12 +612,16 @@
   box-shadow: 0 0 8px currentColor;
 }
 
-/* Breadcrumb */
+/* Breadcrumb Navigation */
 .breadcrumb {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0;
+  gap: 1rem;
+  padding: 0.8rem 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .back-btn {
@@ -481,20 +660,64 @@
   max-width: 1800px;
   margin: 0 auto;
   padding: 0 1rem;
+  /* Reveal the global wallpaper through the grid */
+  background: transparent !important;
+  /* Higher contrast dot grid overlay for depth */
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: 32px 32px;
+  min-height: 100vh;
 }
 
 .channels-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 0.75rem;
+  gap: 2.5rem 1.5rem; /* Large vertical gap for shelves */
+  width: 100%;
+  padding: 1.5rem 0;
+  perspective: 1200px;
 }
 
-.channels-container.single-column {
-  grid-template-columns: 1fr;
+.channels-container.list-view {
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); /* Responsive multi-column */
+  gap: 0.5rem; /* Small gap between grid items */
+  padding-top: 0.5rem;
+}
+
+/* Remove Zebra Striping for grid - use borders instead */
+.channels-container.list-view .channel-item ::ng-deep .channel.compact {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .channel-item {
   min-width: 0;
+  position: relative;
+  padding-bottom: 8px;
+}
+
+/* Metallic Shelf Ledge Effect */
+.channel-item::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -5%;
+  width: 110%;
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 15%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.3) 85%,
+    transparent 100%
+  );
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(0, 122, 255, 0.1);
+  border-radius: 50%;
+  transform: scaleY(0.5);
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 /* Load More Button */

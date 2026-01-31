@@ -51,8 +51,8 @@ pub const VPN_MODE: &str = "vpnMode";
 
 pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
-    let settings = Settings {
-        mpv_params: map.get(MPV_PARAMS).map(|s| s.to_string()),
+    let mut settings = Settings {
+        mpv_params: map.get(MPV_PARAMS).map(|s| s.to_string()).or_else(|| Some(crate::mpv::get_stable_params())),
         recording_path: map.get(RECORDING_PATH).map(|s| s.to_string()),
         use_stream_caching: map.get(USE_STREAM_CACHING).and_then(|s| s.parse().ok()),
         default_view: map.get(DEFAULT_VIEW).and_then(|s| s.parse().ok()),
@@ -80,6 +80,17 @@ pub fn get_settings() -> Result<Settings> {
         // VPN mode enabled by default for unstable connections
         vpn_mode: map.get(VPN_MODE).and_then(|s| s.parse().ok()).or(Some(true)),
     };
+
+    // Safety: Filter out incompatible or buggy parameters from previous sessions
+    if let Some(ref mut params) = settings.mpv_params {
+        if params.contains("--dns-cache-timeout") {
+            *params = params.split_whitespace()
+                .filter(|arg| !arg.contains("dns-cache-timeout"))
+                .collect::<Vec<_>>()
+                .join(" ");
+        }
+    }
+
     Ok(settings)
 }
 

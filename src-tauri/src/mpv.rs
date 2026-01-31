@@ -226,10 +226,26 @@ fn get_play_args(
         set_headers(headers, &mut args, source);
     }
     if let Some(mpv_params) = settings.mpv_params {
+        eprintln!("Raw User MPV Params: {}", mpv_params);
+        
         #[cfg(not(target_os = "windows"))]
         let mut params = shell_words::split(&mpv_params)?;
+        
         #[cfg(target_os = "windows")]
         let mut params = winsplit::split(&mpv_params);
+
+        eprintln!("Params before filter: {:?}", params);
+        
+        // Filter out unsupported options that might be saved in legacy settings
+        params.retain(|arg| {
+            let keep = !arg.contains("color-levels") && !arg.contains("protocol_whitelist");
+            if !keep {
+                eprintln!("Filtering out incompatible arg: {}", arg);
+            }
+            keep
+        });
+        
+        eprintln!("Params after filter: {:?}", params);
         args.append(&mut params);
     }
     Ok(args)
@@ -277,55 +293,44 @@ fn get_file_name() -> String {
     format!("{formatted_time}.mp4")
 }
 
-pub fn get_enhanced_params() -> String {
+pub fn get_stable_params() -> String {
     let mut args = Vec::new();
     
-    // Video sync and interpolation
-    args.push("--video-sync=display-resample");
-    args.push("--interpolation=yes");
-    args.push("--tscale=linear");
-    args.push("--tscale-clamp=0.0");
-    
-    // VPN-Optimized Caching for unstable connections
+    // Aggressive Caching for Slow/VPN connections
     args.push("--cache=yes");
-    args.push("--demuxer-max-bytes=1GiB");  // Increased from 512MiB for more buffering
-    args.push("--demuxer-max-back-bytes=512MiB");  // Increased from 128MiB
-    args.push("--demuxer-readahead-secs=120");  // Increased from 60 for longer buffer
-    args.push("--stream-buffer-size=4MiB");  // Increased from 2MiB
-    args.push("--cache-secs=120");  // Cache 120 seconds of content
+    args.push("--demuxer-max-bytes=1GiB");  
+    args.push("--demuxer-max-back-bytes=0"); // DISABLING BACK-BUFFER (Stops the 3s repeat loop)
+    args.push("--demuxer-readahead-secs=300");  
+    args.push("--stream-buffer-size=16MiB");  
+    args.push("--cache-secs=300");
+    args.push("--cache-pause=yes");
+    args.push("--cache-pause-wait=10"); // Massive 10s buffer lead after a drop
     
-    // Performance optimizations for VPN
+    // Performance optimizations
     args.push("--framedrop=vo");
     args.push("--vd-lavc-fast");
     args.push("--vd-lavc-skiploopfilter=all");
-    args.push("--vd-lavc-threads=4");  // Limited threads to reduce CPU under VPN
+    args.push("--vd-lavc-threads=4"); 
+    args.push("--demuxer-thread=yes");
+    args.push("--hr-seek=no"); // Disable high-res seeking to prevent frame jitter
     
-    // High-quality scaling
-    args.push("--scale=catmull_rom");
-    args.push("--cscale=catmull_rom");
-    args.push("--dscale=catmull_rom");
-    args.push("--scale-antiring=0.7");
-    args.push("--cscale-antiring=0.7");
+    // VPN-Optimized Reconnection & Network Tuning
+    args.push("--stream-lavf-o-add=reconnect_streamed=1");
+    args.push("--stream-lavf-o-add=reconnect_delay_max=5");
+    args.push("--stream-lavf-o-add=reconnect_on_network_error=1");
+    args.push("--stream-lavf-o-add=timeout=120000000");
+    args.push("--stream-lavf-o-add=tcp_fastopen=1");
+    args.push("--tls-verify=no"); 
+    args.push("--cache-on-disk=no");
     
-    // Hardware decoding - use copy mode for better stability
-    args.push("--hwdec=auto-copy");
+    // Efficiency
+    args.push("--stream-lavf-o-add=protocol_whitelist=file,http,https,tcp,tls,crypto,rtp,udp");
+    args.push("--demuxer-lavf-o-add=fflags=+nobuffer+discardcorrupt");
     
-    // VPN-Optimized Stream Reconnection Settings
-    args.push("--stream-lavf-o=reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=30,reconnect_on_network_error=1");
-    args.push("--timeout=60");  // Increase timeout for VPN latency
-    
-    // HTTP options for VPN compatibility
-    args.push("--http-persistent=no");  // Disable persistent connections for VPN
-    args.push("--http-keep-alive=no");  // Disable keep-alive for VPN
-    
-    // User Agent
     args.push("--user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\"");
     
-    // Buffering for slow connections
-    args.push("--initial-byte-stream-pos=yes");
     args.push("--prefetch-playlist=yes");
     
-    // Platform-specific
     if OS == "windows" {
         args.push("--d3d11-flip=yes");
         args.push("--gpu-api=d3d11");
@@ -333,5 +338,103 @@ pub fn get_enhanced_params() -> String {
         args.push("--gpu-api=opengl");
     }
 
-    args.join("\n")
+    args.push("--msg-level=all=v");
+    args.push("--log-file=\"C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log\"");
+
+    args.join(" ")
+}
+
+pub fn get_enhanced_params() -> String {
+    let mut args = Vec::new();
+    
+    // Pro-Level Rendering Engine
+    args.push("--vo=gpu-next");
+    args.push("--gpu-api=d3d11");
+    args.push("--hwdec=d3d11va"); // Zero-copy hardware decoding for lower GPU load
+    
+    // High-Fidelity Scaling Shaders
+    args.push("--scale=ewa_lanczossharp");
+    args.push("--cscale=ewa_lanczossharp");
+    args.push("--dscale=mitchell");
+    args.push("--scale-antiring=0.7");
+    args.push("--cscale-antiring=0.7");
+
+    // Real-time De-banding (Anti-Banding)
+    args.push("--deband=yes");
+    args.push("--deband-iterations=4");
+    args.push("--deband-threshold=48");
+    args.push("--deband-range=16");
+    args.push("--deband-grain=48");
+
+    // Motion & Sync
+    args.push("--video-sync=display-resample");
+    args.push("--interpolation=yes");
+    args.push("--tscale=linear");
+    
+    // Color Management
+    args.push("--target-colorspace-hint=yes");
+    // args.push("--color-levels=auto"); // Removed causing fatal error
+    
+    // Premium Caching (Higher readahead for 4K)
+    args.push("--cache=yes");
+    args.push("--demuxer-max-bytes=1GiB");
+    args.push("--demuxer-readahead-secs=120"); 
+    
+    // Pro-Level Connection Tuning
+    args.push("--stream-lavf-o-add=reconnect_streamed=1");
+    args.push("--stream-lavf-o-add=reconnect_on_network_error=1");
+    args.push("--stream-lavf-o-add=timeout=60000000");
+    args.push("--stream-lavf-o-add=tcp_fastopen=1");
+    // args.push("--stream-lavf-o-add=protocol_whitelist=file,http,https,tcp,tls,crypto,rtp,udp");
+    
+    args.push("--user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\"");
+    
+    if OS == "windows" {
+        args.push("--d3d11-flip=yes");
+        args.push("--gpu-api=d3d11");
+    }
+
+    args.push("--msg-level=all=v");
+    args.push("--log-file=\"C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log\"");
+
+    args.join(" ")
+}
+
+pub fn get_performance_params() -> String {
+    let mut args = Vec::new();
+
+    // Standard high-speed engine (GPU mode for compatibility)
+    args.push("--vo=gpu");
+    args.push("--gpu-api=d3d11");
+    args.push("--hwdec=d3d11va"); 
+
+    // Low-Cost Upscaling (Perceptually Crisp)
+    args.push("--scale=spline36"); // Good balance, significantly lighter than Lanczos
+    args.push("--cscale=bilinear");
+    args.push("--dscale=mitchell");
+
+    // Low-Cost Frame Smoothing (The "Soap Opera" effect on a budget)
+    args.push("--video-sync=display-resample");
+    args.push("--interpolation=yes");
+    args.push("--tscale=oversample"); // Temporal oversampling is very cheap on GPU
+    
+    // Performance Hacks
+    args.push("--opengl-pbo=yes"); // Faster texture uploads
+    args.push("--sws-scaler=fast-bilinear");
+    
+    // Network Optimization
+    args.push("--stream-lavf-o-add=reconnect_streamed=1");
+    args.push("--stream-lavf-o-add=reconnect_delay_max=2");
+    args.push("--stream-lavf-o-add=reconnect_on_network_error=1");
+    args.push("--stream-lavf-o-add=timeout=30000000");
+    args.push("--stream-lavf-o-add=tcp_fastopen=1");
+    args.push("--cache=yes");
+    args.push("--demuxer-max-bytes=256MiB");
+    
+    args.push("--user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\"");
+
+    args.push("--msg-level=all=v");
+    args.push("--log-file=\"C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log\"");
+
+    args.join(" ")
 }

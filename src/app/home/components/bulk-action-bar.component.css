@@ -1,0 +1,72 @@
+.bulk-sticky-bar {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: auto;
+  min-width: 400px;
+}
+
+.bulk-bar-content {
+  background: rgba(30, 30, 30, 0.9);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.bulk-btn {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+}
+
+.bulk-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.bulk-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.btn-fav:hover {
+  color: #ffcc00;
+}
+
+.btn-hide:hover {
+  color: #ff3b30;
+}
+
+.btn-whitelist:hover {
+  color: #007aff;
+}
+
+.btn-cancel {
+  color: #888;
+}
+
+.btn-cancel:hover {
+  color: #fff;
+}
+
+.spacer {
+  flex: 1;
+  width: 20px;
+}

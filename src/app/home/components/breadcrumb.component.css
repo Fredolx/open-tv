@@ -1,0 +1,44 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.back-btn {
+  background: transparent;
+  border: none;
+  color: var(--beats-red, #ff0033);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: var(--beats-red-glow);
+  transform: scale(1.1);
+}
+
+.back-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.breadcrumb-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

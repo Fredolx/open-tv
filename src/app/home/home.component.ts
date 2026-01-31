@@ -1,3 +1,4 @@
+import { FilterChip } from './filter-chips/filter-chips.component';
 import {
   AfterViewInit,
   Component,
@@ -26,7 +27,6 @@ import { ViewMode } from '../models/viewMode';
 import { MediaType } from '../models/mediaType';
 import { ToastrService } from 'ngx-toastr';
 import { FocusArea, FocusAreaPrefix } from '../models/focusArea';
-import { invoke } from '@tauri-apps/api/core';
 import { Source } from '../models/source';
 import { Filters } from '../models/filters';
 import { SourceType } from '../models/sourceType';
@@ -42,8 +42,11 @@ import { LAST_SEEN_VERSION } from '../models/localStorage';
 import { Node } from '../models/node';
 import { NodeType } from '../models/nodeType';
 import { Stack } from '../models/stack';
-
 import { BulkActionType } from '../models/bulkActionType';
+import { TauriService } from '../services/tauri.service';
+import { SettingsService } from '../services/settings.service';
+import { PlaylistService } from '../services/playlist.service';
+import { PlayerService } from '../services/player.service';
 
 @Component({
   selector: 'app-home',
@@ -104,6 +107,18 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   nodeStack: Stack = new Stack();
   showScrollTop = false;
 
+  // New UI Properties
+  // New UI Properties
+  filterChips: FilterChip[] = [
+    { id: 'live', label: 'Live TV', active: true, type: 'media', value: MediaType.livestream },
+    { id: 'movies', label: 'Movies', active: false, type: 'media', value: MediaType.movie },
+    { id: 'series', label: 'Series', active: false, type: 'media', value: MediaType.serie },
+  ];
+  genreInput: string = '';
+  minRating: number = 0;
+  selectedChannelForModal: Channel | null = null;
+  isLoadingDetails: boolean = false;
+
   scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -113,13 +128,32 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     public memory: MemoryService,
     public toast: ToastrService,
     private error: ErrorService,
+    private tauri: TauriService,
+    private settingsService: SettingsService,
+    private playlistService: PlaylistService,
+    private playerService: PlayerService,
   ) {
     this.getSources();
   }
 
+  bulkActionFromBar(action: string) {
+    switch (action) {
+      case 'Favorite':
+        this.bulkActionOnSelected(this.bulkActionType.Favorite);
+        break;
+      case 'Hide':
+        this.bulkActionOnSelected(this.bulkActionType.Hide);
+        break;
+      case 'Whitelist':
+        this.whitelistSelected();
+        break;
+    }
+  }
+
   getSources() {
-    let get_settings = invoke('get_settings');
-    let get_sources = invoke('get_sources');
+    console.log('[HomeComponent] getSources - Fetching sources and settings...');
+    let get_settings = this.tauri.call('get_settings');
+    let get_sources = this.tauri.call('get_sources');
     Promise.all([get_settings, get_sources])
       .then((data) => {
         let settings = data[0] as Settings;
@@ -129,8 +163,16 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         this.memory.trayEnabled = settings.enable_tray_icon ?? true;
         this.memory.AlwaysAskSave = settings.always_ask_save ?? false;
         this.memory.Sources = new Map(sources.filter((x) => x.enabled).map((s) => [s.id!, s]));
-        if (sources.length == 0) this.reset();
-        else {
+        console.log(
+          '[HomeComponent] Sources received:',
+          sources.length,
+          'Enabled:',
+          this.memory.Sources.size,
+        );
+        if (sources.length == 0) {
+          console.warn('[HomeComponent] No sources found! Redirecting to setup (FTUE)...');
+          this.reset();
+        } else {
           getVersion().then((version) => {
             if (localStorage.getItem(LAST_SEEN_VERSION) != version) {
               this.memory.AppVersion = version;
@@ -150,12 +192,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             !sessionStorage.getItem('epgCheckedOnStart')
           ) {
             sessionStorage.setItem('epgCheckedOnStart', 'true');
-            invoke('on_start_check_epg');
+            this.playlistService.checkEpgOnStart();
           }
           this.filters = {
             source_ids: Array.from(this.memory.Sources.keys()),
             view_type: settings.default_view ?? ViewMode.All,
-            media_types: [MediaType.livestream, MediaType.movie, MediaType.serie],
+            media_types: [MediaType.livestream], // Default to Live TV only
             page: 1,
             use_keywords: false,
             sort: SortType.provider,
@@ -164,7 +206,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             this.memory.Sort.next([settings.default_sort, false]);
             this.filters.sort = settings.default_sort;
           }
-          this.chkSerie = this.anyXtream();
+
+          // Default selection state
+          this.chkLiveStream = true;
+          this.chkMovie = false;
+          this.chkSerie = false;
 
           // Refresh on start logic
           const refreshOnStart = settings.refresh_on_start === true;
@@ -206,9 +252,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   async refreshAll(reason: string = 'user requested') {
     this.toast.info(`Refreshing all sources... (${reason})`);
     try {
-      await invoke('refresh_all');
+      await this.playlistService.refreshAll();
       this.memory.settings.last_refresh = Date.now();
-      await invoke('update_settings', { settings: this.memory.settings });
+      await this.settingsService.updateSettings(this.memory.settings);
       this.toast.success(`Successfully refreshed all sources (${reason})`);
     } catch (e) {
       this.error.handleError(e, `Failed to refresh all sources (${reason})`);
@@ -287,7 +333,28 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.filters!.page = 1;
     }
     try {
-      let channels: Channel[] = await invoke('search', { filters: this.filters });
+      let channels: Channel[] = await this.tauri.call<Channel[]>('search', {
+        filters: this.filters,
+      });
+
+      // Fallback search logic: if no results and filter is active, try searching across all categories
+      if (
+        !more &&
+        channels.length === 0 &&
+        this.filters!.query &&
+        this.filters!.media_types.length < 3
+      ) {
+        // Expand search to all types
+        this.chkLiveStream = true;
+        this.chkMovie = true;
+        this.chkSerie = true;
+        this.filters!.media_types = [MediaType.livestream, MediaType.movie, MediaType.serie];
+        channels = await this.tauri.call<Channel[]>('search', { filters: this.filters });
+        if (channels.length > 0) {
+          this.toast.info('No results in current category. Found matches in other areas!');
+        }
+      }
+
       if (!more) {
         this.channels = channels;
         this.channelsVisible = true;
@@ -666,7 +733,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
       // 1. Unhide all selected
       const unhidePromises = selectedIds.map((id) =>
-        from(invoke('hide_channel', { id, hidden: false })),
+        from(this.playlistService.hideChannel(id, false)),
       );
 
       // 2. Hide everything else in these sources
@@ -683,10 +750,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       // Since the backend doesn't have it, we'll hide ALL in the source, then UNHIDE the selected.
 
       // Step A: Hide all in sources matching general filters (Live/Movie/Serie)
-      await invoke('bulk_update', {
-        filters: { ...hideOthersFilter, query: undefined },
-        action: BulkActionType.Hide,
-      });
+      await this.playlistService.bulkUpdate(
+        { ...hideOthersFilter, query: undefined },
+        BulkActionType.Hide,
+      );
 
       // Step B: Unhide the selected ones specifically
       await lastValueFrom(forkJoin(unhidePromises));
@@ -715,13 +782,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       const promises = [];
       for (const id of ids) {
         if (action === BulkActionType.Hide) {
-          promises.push(from(invoke('hide_channel', { id, hidden: true })));
+          promises.push(from(this.playlistService.hideChannel(id, true)));
         } else if (action === BulkActionType.Unhide) {
-          promises.push(from(invoke('hide_channel', { id, hidden: false })));
+          promises.push(from(this.playlistService.hideChannel(id, false)));
         } else if (action === BulkActionType.Favorite) {
-          promises.push(from(invoke('favorite_channel', { channelId: id })));
+          promises.push(from(this.playlistService.favoriteChannel(id)));
         } else if (action === BulkActionType.Unfavorite) {
-          promises.push(from(invoke('unfavorite_channel', { channelId: id })));
+          promises.push(from(this.playlistService.unfavoriteChannel(id)));
         }
       }
 
@@ -773,7 +840,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.subscriptions.forEach((x) => x.unsubscribe());
+    this.subscriptions.forEach((x) => x?.unsubscribe());
   }
 
   async toggleKeywords() {
@@ -787,11 +854,95 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
     const actionName = BulkActionType[action].toLowerCase();
     try {
-      await invoke('bulk_update', { filters: this.filters, action: action });
+      await this.playlistService.bulkUpdate(this.filters, action);
       await this.load();
       this.toast.success(`Successfully executed bulk update: ${actionName}`);
     } catch (e) {
       this.error.handleError(e);
     }
+  }
+
+  // New UI Methods
+
+  onFilterChipChanged(chip: FilterChip) {
+    chip.active = !chip.active;
+    if (chip.type === 'media') {
+      this.updateMediaTypes(chip.value);
+      // Sync legacy properties
+      if (chip.value === MediaType.livestream) this.chkLiveStream = chip.active;
+      if (chip.value === MediaType.movie) this.chkMovie = chip.active;
+      if (chip.value === MediaType.serie) this.chkSerie = chip.active;
+    }
+  }
+
+  async toggleVods(state: boolean) {
+    this.chkMovie = state;
+    this.chkSerie = state;
+    if (this.filters) {
+      if (state) {
+        this.filters.media_types = Array.from(
+          new Set([...(this.filters.media_types || []), MediaType.movie, MediaType.serie]),
+        );
+      } else {
+        this.filters.media_types = this.filters.media_types?.filter(
+          (t) => t !== MediaType.movie && t !== MediaType.serie,
+        );
+      }
+      await this.load();
+    }
+  }
+
+  async updateGenre(value: string) {
+    this.genreInput = value;
+    if (this.filters) {
+      this.filters.genre = value || undefined;
+      await this.load();
+    }
+  }
+
+  async updateRating(value: number) {
+    this.minRating = value;
+    if (this.filters) {
+      this.filters.rating_min = value > 0 ? value : undefined;
+      await this.load();
+    }
+  }
+
+  async openDetails(channel: Channel) {
+    this.selectedChannelForModal = channel;
+    this.isLoadingDetails = true;
+    try {
+      // Simulate loading details if needed, or invoke backend
+      // this.selectedChannelForModal = await invoke('get_channel_details', { id: channel.id });
+    } catch (e) {
+      console.error('Error opening details', e);
+    } finally {
+      this.isLoadingDetails = false;
+    }
+  }
+
+  onModalClose() {
+    this.selectedChannelForModal = null;
+  }
+
+  async onModalPlay() {
+    if (this.selectedChannelForModal) {
+      const channel = this.selectedChannelForModal;
+      this.onModalClose();
+      try {
+        await this.playerService.play(channel);
+        this.playerService.addLastWatched(channel.id!).catch(console.error);
+      } catch (e) {
+        this.error.handleError(e);
+      }
+    }
+  }
+
+  bulkHide(hide: boolean) {
+    this.bulkActionOnSelected(hide ? BulkActionType.Hide : BulkActionType.Unhide);
+  }
+
+  bulkFavorite(fav: boolean) {
+    this.bulkActionOnSelected(fav ? BulkActionType.Favorite : BulkActionType.Unfavorite);
   }
 }

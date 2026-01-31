@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { ToastrModule } from 'ngx-toastr';
 import { ErrorModalComponent } from './error-modal.component';
 
 describe('ErrorModalComponent', () => {
@@ -8,10 +9,11 @@ describe('ErrorModalComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ErrorModalComponent]
-    })
-    .compileComponents();
-    
+      declarations: [ErrorModalComponent],
+      imports: [ToastrModule.forRoot()],
+      providers: [NgbActiveModal],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(ErrorModalComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

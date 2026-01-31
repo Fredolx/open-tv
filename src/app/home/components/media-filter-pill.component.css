@@ -1,0 +1,59 @@
+.media-switch-pill {
+  display: flex;
+  background: rgba(30, 30, 30, 0.8);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  gap: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.switch-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  color: #999;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.switch-item:hover {
+  color: #fff;
+}
+
+.switch-item.active {
+  color: #fff;
+}
+
+.switch-item input {
+  display: none;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s;
+}
+
+.switch-item.active .dot.live {
+  background: #ff3b30; /* Apple Red */
+  box-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+  border-color: transparent;
+}
+
+.switch-item.active .dot.movie {
+  background: #007aff; /* Apple Blue */
+  box-shadow: 0 0 10px rgba(0, 122, 255, 0.5);
+  border-color: transparent;
+}
+
+.switch-item.active .dot.series {
+  background: #af52de; /* Apple Purple */
+  box-shadow: 0 0 10px rgba(175, 82, 222, 0.5);
+  border-color: transparent;
+}

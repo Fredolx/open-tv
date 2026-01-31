@@ -1,7 +1,20 @@
-<mat-progress-bar
-  mode="indeterminate"
-  *ngIf="memory.IsRefreshing"
-  class="global-progress"
-></mat-progress-bar>
+<!-- Refresh Progress Bar Module -->
+<div class="refresh-progress-container" *ngIf="memory.IsRefreshing">
+  <div class="refresh-status">
+    <div class="refresh-line playlist-name">{{ memory.RefreshPlaylist || "Updating..." }}</div>
+    <div class="refresh-line activity-text">{{ memory.RefreshActivity }}</div>
+
+    <div class="progress-wrapper">
+      <mat-progress-bar
+        class="custom-progress-bar"
+        mode="determinate"
+        [value]="memory.RefreshPercent"
+        color="accent"
+      >
+      </mat-progress-bar>
+      <span class="percentage-text">{{ memory.RefreshPercent }}%</span>
+    </div>
+  </div>
+</div>
 <router-outlet></router-outlet>
 <app-download-manager *ngIf="showDownloadManager()"></app-download-manager>

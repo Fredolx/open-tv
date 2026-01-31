@@ -1,0 +1,1581 @@
+[   0.000][d][global] user path: 'C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log' -> 'C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log'
+[   0.005][v][cplayer] mpv 0.36.0 Copyright © 2000-2023 mpv/MPlayer/mplayer2 projects
+[   0.005][v][cplayer]  built on Tue Aug 01 10:56:31 2023
+[   0.005][v][cplayer] libplacebo version: v6.292.0-78-gabf34ba-dirty
+[   0.005][v][cplayer] FFmpeg version: N-111661-g567e78b28
+[   0.005][v][cplayer] FFmpeg library versions:
+[   0.005][v][cplayer]    libavutil       58.14.100
+[   0.005][v][cplayer]    libavcodec      60.22.100
+[   0.005][v][cplayer]    libavformat     60.10.100
+[   0.005][v][cplayer]    libswscale      7.3.100
+[   0.005][v][cplayer]    libavfilter     9.10.100
+[   0.005][v][cplayer]    libswresample   4.11.100
+[   0.005][v][cplayer] 
+[   0.005][v][cplayer] Configuration: -Db_lto=true -Db_ndebug=true -Dlibmpv=true -Dpdf-build=enabled -Dlua=enabled -Djavascript=enabled -Dsdl2=enabled -Dlibarchive=enabled -Dlibbluray=enabled -Ddvdnav=enabled -Duchardet=enabled -Drubberband=enabled -Dlcms2=enabled -Dopenal=enabled -Dspirv-cross=enabled -Dvulkan=enabled -Dlibplacebo=enabled -Dvapoursynth=enabled -Degl-angle=enabled -Dprefix=/__w/mpv-winbuild-cmake/mpv-winbuild-cmake/build64/install/mingw -Dlibdir=/__w/mpv-winbuild-cmake/mpv-winbuild-cmake/build64/install/mingw/lib -Dbuildtype=release -Ddefault_library=shared -Dprefer_static=True --cross-file=/__w/mpv-winbuild-cmake/mpv-winbuild-cmake/build64/meson_cross.txt
+[   0.005][v][cplayer] List of enabled features: av-channel-layout avif_muxer build-date cuda-hwaccel cuda-interop d3d-hwaccel d3d11 d3d9-hwaccel direct3d dos-paths dvdnav egl-angle egl-angle-win32 egl-helpers ffmpeg ffnvcodec gl gl-dxinterop gl-dxinterop-d3d9 gl-win32 glob glob-win32 gpl iconv javascript jpeg jpegxl lcms2 libarchive libass libavdevice libbluray libm libplacebo libplacebo-next luajit manpage-build noexecstack openal pdf-build rubberband rubberband-3 sdl2 sdl2-audio sdl2-gamepad sdl2-video shaderc spirv-cross stdatomic threads uchardet vapoursynth vector vk_khr_display vulkan vulkan-interop wasapi win32 win32-desktop win32-executable win32-internal-pthreads zimg zimg-st428 zlib
+[   0.005][v][cplayer] Built with NDEBUG.
+[   0.005][v][cplayer] Command line options: 'http://zfruvync.duperab.xyz/live/PE1S9S8U/11EZZUMW/32215.ts' '--hwdec=auto' '--vo=gpu-next' '--title=US| MSNBC HD' '--msg-level=all=error' '--prefetch-playlist=yes' '--loop-playlist=inf' '--volume=100' '--vo=gpu' '--gpu-api=d3d11' '--hwdec=d3d11va' '--scale=spline36' '--cscale=bilinear' '--dscale=mitchell' '--video-sync=display-resample' '--interpolation=yes' '--tscale=oversample' '--opengl-pbo=yes' '--sws-scaler=fast-bilinear' '--stream-lavf-o-add=reconnect_streamed=1' '--stream-lavf-o-add=reconnect_delay_max=2' '--stream-lavf-o-add=reconnect_on_network_error=1' '--stream-lavf-o-add=timeout=30000000' '--stream-lavf-o-add=tcp_fastopen=1' '--cache=yes' '--demuxer-max-bytes=256MiB' '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' '--msg-level=all=v' '--log-file=C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log'
+[   0.005][v][cplayer] mpv 0.36.0 Copyright © 2000-2023 mpv/MPlayer/mplayer2 projects
+[   0.005][v][cplayer]  built on Tue Aug 01 10:56:31 2023
+[   0.005][v][cplayer] libplacebo version: v6.292.0-78-gabf34ba-dirty
+[   0.005][v][cplayer] FFmpeg version: N-111661-g567e78b28
+[   0.005][v][cplayer] FFmpeg library versions:
+[   0.005][v][cplayer]    libavutil       58.14.100
+[   0.005][v][cplayer]    libavcodec      60.22.100
+[   0.005][v][cplayer]    libavformat     60.10.100
+[   0.005][v][cplayer]    libswscale      7.3.100
+[   0.005][v][cplayer]    libavfilter     9.10.100
+[   0.005][v][cplayer]    libswresample   4.11.100
+[   0.005][v][cplayer] 
+[   0.005][v][cplayer] Configuration: -Db_lto=true -Db_ndebug=true -Dlibmpv=true -Dpdf-build=enabled -Dlua=enabled -Djavascript=enabled -Dsdl2=enabled -Dlibarchive=enabled -Dlibbluray=enabled -Ddvdnav=enabled -Duchardet=enabled -Drubberband=enabled -Dlcms2=enabled -Dopenal=enabled -Dspirv-cross=enabled -Dvulkan=enabled -Dlibplacebo=enabled -Dvapoursynth=enabled -Degl-angle=enabled -Dprefix=/__w/mpv-winbuild-cmake/mpv-winbuild-cmake/build64/install/mingw -Dlibdir=/__w/mpv-winbuild-cmake/mpv-winbuild-cmake/build64/install/mingw/lib -Dbuildtype=release -Ddefault_library=shared -Dprefer_static=True --cross-file=/__w/mpv-winbuild-cmake/mpv-winbuild-cmake/build64/meson_cross.txt
+[   0.005][v][cplayer] List of enabled features: av-channel-layout avif_muxer build-date cuda-hwaccel cuda-interop d3d-hwaccel d3d11 d3d9-hwaccel direct3d dos-paths dvdnav egl-angle egl-angle-win32 egl-helpers ffmpeg ffnvcodec gl gl-dxinterop gl-dxinterop-d3d9 gl-win32 glob glob-win32 gpl iconv javascript jpeg jpegxl lcms2 libarchive libass libavdevice libbluray libm libplacebo libplacebo-next luajit manpage-build noexecstack openal pdf-build rubberband rubberband-3 sdl2 sdl2-audio sdl2-gamepad sdl2-video shaderc spirv-cross stdatomic threads uchardet vapoursynth vector vk_khr_display vulkan vulkan-interop wasapi win32 win32-desktop win32-executable win32-internal-pthreads zimg zimg-st428 zlib
+[   0.005][v][cplayer] Built with NDEBUG.
+[   0.008][d][global] home path: '' -> 'C:\Users\admin-beats\AppData\Roaming/mpv'
+[   0.008][d][global] user path: '~~home/' -> 'C:\Users\admin-beats\AppData\Roaming/mpv'
+[   0.008][d][global] user path: '~~old_home/' -> ''
+[   0.009][d][global] config path: 'encoding-profiles.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/encoding-profiles.conf'
+[   0.009][d][global] config path: 'encoding-profiles.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/encoding-profiles.conf'
+[   0.009][d][global] config path: 'encoding-profiles.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/encoding-profiles.conf'
+[   0.009][d][global] config path: 'mpv.conf' -> 'C:\Users\admin-beats\AppData\Roaming/mpv/mpv.conf'
+[   0.009][d][global] config path: 'config' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/config'
+[   0.009][d][global] config path: 'mpv.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv.conf'
+[   0.010][d][global] config path: 'config' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/config'
+[   0.010][d][global] config path: 'mpv.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/mpv.conf'
+[   0.010][d][global] config path: 'config' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/config'
+[   0.010][v][cplayer] Reading config file C:\Users\admin-beats\AppData\Roaming/mpv/mpv.conf
+[   0.010][v][ifo_dvdnav] Opening C:\Users\admin-beats\AppData\Roaming/mpv/mpv.conf
+[   0.010][v][bdmv/bluray] Opening C:\Users\admin-beats\AppData\Roaming/mpv/mpv.conf
+[   0.010][v][file] Opening C:\Users\admin-beats\AppData\Roaming/mpv/mpv.conf
+[   0.010][d][file] resize stream to 131072 bytes, drop 0 bytes
+[   0.010][d][file] Stream opened successfully.
+[   0.010][v][cplayer] Applying profile 'default'...
+[   0.010][v][cplayer] Setting option 'hwdec' = 'auto' (flags = 8)
+[   0.010][v][cplayer] Setting option 'vo' = 'gpu-next' (flags = 8)
+[   0.010][v][cplayer] Setting option 'title' = 'US| MSNBC HD' (flags = 8)
+[   0.010][v][cplayer] Setting option 'msg-level' = 'all=error' (flags = 8)
+[   0.010][v][cplayer] Setting option 'prefetch-playlist' = 'yes' (flags = 8)
+[   0.010][v][cplayer] Setting option 'loop-playlist' = 'inf' (flags = 8)
+[   0.010][v][cplayer] Setting option 'volume' = '100' (flags = 8)
+[   0.010][v][cplayer] Setting option 'vo' = 'gpu' (flags = 8)
+[   0.010][v][cplayer] Setting option 'gpu-api' = 'd3d11' (flags = 8)
+[   0.010][v][cplayer] Setting option 'hwdec' = 'd3d11va' (flags = 8)
+[   0.010][v][cplayer] Setting option 'scale' = 'spline36' (flags = 8)
+[   0.010][v][cplayer] Setting option 'cscale' = 'bilinear' (flags = 8)
+[   0.010][v][cplayer] Setting option 'dscale' = 'mitchell' (flags = 8)
+[   0.010][v][cplayer] Setting option 'video-sync' = 'display-resample' (flags = 8)
+[   0.010][v][cplayer] Setting option 'interpolation' = 'yes' (flags = 8)
+[   0.010][v][cplayer] Setting option 'tscale' = 'oversample' (flags = 8)
+[   0.010][v][cplayer] Setting option 'opengl-pbo' = 'yes' (flags = 8)
+[   0.010][v][cplayer] Setting option 'sws-scaler' = 'fast-bilinear' (flags = 8)
+[   0.010][v][cplayer] Setting option 'stream-lavf-o-add' = 'reconnect_streamed=1' (flags = 8)
+[   0.011][v][cplayer] Setting option 'stream-lavf-o-add' = 'reconnect_delay_max=2' (flags = 8)
+[   0.011][v][cplayer] Setting option 'stream-lavf-o-add' = 'reconnect_on_network_error=1' (flags = 8)
+[   0.011][v][cplayer] Setting option 'stream-lavf-o-add' = 'timeout=30000000' (flags = 8)
+[   0.011][v][cplayer] Setting option 'stream-lavf-o-add' = 'tcp_fastopen=1' (flags = 8)
+[   0.011][v][cplayer] Setting option 'cache' = 'yes' (flags = 8)
+[   0.011][v][cplayer] Setting option 'demuxer-max-bytes' = '256MiB' (flags = 8)
+[   0.011][v][cplayer] Setting option 'user-agent' = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' (flags = 8)
+[   0.011][v][cplayer] Setting option 'msg-level' = 'all=v' (flags = 8)
+[   0.011][v][cplayer] Setting option 'log-file' = 'C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log' (flags = 8)
+[   0.013][d][global] config path: 'input.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/input.conf'
+[   0.013][d][global] config path: 'input.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/input.conf'
+[   0.013][d][global] config path: 'input.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/input.conf'
+[   0.013][d][global] user path: 'C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log' -> 'C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log'
+[   0.013][d][osc] Loading lua script @osc.lua...
+[   0.013][d][ytdl_hook] Loading lua script @ytdl_hook.lua...
+[   0.013][d][stats] Loading lua script @stats.lua...
+[   0.013][d][console] Loading lua script @console.lua...
+[   0.013][d][auto_profiles] Loading lua script @auto_profiles.lua...
+[   0.013][d][stats] loading mp.defaults
+[   0.013][d][ytdl_hook] loading mp.defaults
+[   0.013][d][console] loading mp.defaults
+[   0.013][d][osc] loading mp.defaults
+[   0.013][d][auto_profiles] loading mp.defaults
+[   0.013][d][global] config path: 'scripts' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/scripts'
+[   0.014][d][global] config path: 'scripts' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/scripts'
+[   0.014][d][global] config path: 'scripts' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/scripts'
+[   0.014][v][cplayer] Waiting for scripts...
+[   0.014][d][stats] loading @stats.lua
+[   0.014][d][ytdl_hook] loading @ytdl_hook.lua
+[   0.014][d][console] loading @console.lua
+[   0.014][d][osc] loading @osc.lua
+[   0.014][d][auto_profiles] loading @auto_profiles.lua
+[   0.014][d][ytdl_hook] reading options for ytdl_hook 
+[   0.014][d][console] reading options for console 
+[   0.014][d][stats] reading options for stats 
+[   0.015][d][global] config path: 'script-opts/ytdl_hook.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/script-opts/ytdl_hook.conf'
+[   0.015][d][global] config path: 'script-opts/console.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/script-opts/console.conf'
+[   0.015][d][global] config path: 'script-opts/ytdl_hook.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/script-opts/ytdl_hook.conf'
+[   0.015][d][global] config path: 'script-opts/console.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/script-opts/console.conf'
+[   0.015][d][global] config path: 'script-opts/ytdl_hook.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/script-opts/ytdl_hook.conf'
+[   0.015][d][ytdl_hook] script-opts/ytdl_hook.conf not found. 
+[   0.015][d][global] config path: 'script-opts/console.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/script-opts/console.conf'
+[   0.015][d][console] script-opts/console.conf not found. 
+[   0.015][d][auto_profiles] Exiting...
+[   0.015][d][global] config path: 'script-opts/stats.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/script-opts/stats.conf'
+[   0.015][d][global] config path: 'script-opts/stats.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/script-opts/stats.conf'
+[   0.015][d][global] config path: 'script-opts/stats.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/script-opts/stats.conf'
+[   0.015][d][stats] script-opts/stats.conf not found. 
+[   0.015][d][global] config path: 'lua-settings/ytdl_hook.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/lua-settings/ytdl_hook.conf'
+[   0.015][d][global] config path: 'lua-settings/ytdl_hook.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/lua-settings/ytdl_hook.conf'
+[   0.015][d][global] config path: 'lua-settings/ytdl_hook.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/lua-settings/ytdl_hook.conf'
+[   0.015][d][ytdl_hook] lua-settings/ytdl_hook.conf not found. 
+[   0.015][d][global] config path: 'lua-settings/console.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/lua-settings/console.conf'
+[   0.015][d][global] config path: 'lua-settings/console.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/lua-settings/console.conf'
+[   0.015][d][global] config path: 'lua-settings/console.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/lua-settings/console.conf'
+[   0.015][d][console] lua-settings/console.conf not found. 
+[   0.015][d][global] config path: 'lua-settings/stats.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/lua-settings/stats.conf'
+[   0.015][d][global] config path: 'lua-settings/stats.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/lua-settings/stats.conf'
+[   0.016][d][global] config path: 'lua-settings/stats.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/lua-settings/stats.conf'
+[   0.016][d][stats] lua-settings/stats.conf not found. 
+[   0.016][d][osc] reading options for osc 
+[   0.016][d][global] config path: 'fonts' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/fonts'
+[   0.016][d][global] config path: 'fonts' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/fonts'
+[   0.016][d][global] config path: 'fonts' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/fonts'
+[   0.016][d][osd/libass] ASS library version: 0x1701000 (runtime 0x1701000)
+[   0.016][v][osd/libass] libass API version: 0x1701000
+[   0.016][v][osd/libass] libass source: commit: 0.17.0-51-g91422bdb9497e8484b3248f5ae7eb50d41e2555d
+[   0.016][v][osd/libass] Shaper: FriBidi 1.0.13 (SIMPLE) HarfBuzz-ng 8.1.0 (COMPLEX)
+[   0.016][d][global] config path: 'script-opts/osc.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/script-opts/osc.conf'
+[   0.016][d][global] config path: 'script-opts/osc.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/script-opts/osc.conf'
+[   0.016][d][global] config path: 'script-opts/osc.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/script-opts/osc.conf'
+[   0.016][d][osc] script-opts/osc.conf not found. 
+[   0.016][d][global] config path: 'lua-settings/osc.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/lua-settings/osc.conf'
+[   0.017][d][global] config path: 'subfont.ttf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/subfont.ttf'
+[   0.017][d][global] config path: 'lua-settings/osc.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/lua-settings/osc.conf'
+[   0.017][d][global] config path: 'subfont.ttf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/subfont.ttf'
+[   0.017][d][global] config path: 'subfont.ttf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/subfont.ttf'
+[   0.017][d][global] config path: 'lua-settings/osc.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/lua-settings/osc.conf'
+[   0.017][d][osc] lua-settings/osc.conf not found. 
+[   0.017][d][global] config path: 'fonts.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/fonts.conf'
+[   0.017][d][global] config path: 'fonts.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/fonts.conf'
+[   0.017][d][global] config path: 'fonts.conf' -> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/fonts.conf'
+[   0.017][v][osd/libass] Setting up fonts...
+[   0.018][v][osd/libass] Using font provider directwrite (with GDI)
+[   0.018][v][osd/libass] Done.
+[   0.019][d][cplayer] Run command: define-section, flags=64, args=[name="input_console", contents="", flags="default"]
+[   0.019][d][cplayer] Run command: enable-section, flags=64, args=[name="input_console", flags="allow-hide-cursor+allow-vo-dragging"]
+[   0.019][d][cplayer] Run command: define-section, flags=64, args=[name="input_forced_console", contents="", flags="force"]
+[   0.019][d][cplayer] Run command: enable-section, flags=64, args=[name="input_forced_console", flags="allow-hide-cursor+allow-vo-dragging"]
+[   0.019][d][cplayer] Run command: define-section, flags=64, args=[name="input_stats", contents="", flags="default"]
+[   0.019][d][cplayer] Run command: enable-section, flags=64, args=[name="input_stats", flags="allow-hide-cursor+allow-vo-dragging"]
+[   0.019][d][cplayer] Run command: define-section, flags=64, args=[name="input_forced_stats", contents="", flags="force"]
+[   0.019][d][cplayer] Run command: enable-section, flags=64, args=[name="input_forced_stats", flags="allow-hide-cursor+allow-vo-dragging"]
+[   0.019][d][cplayer] Run command: define-section, flags=64, args=[name="showhide", contents="mouse_move script-binding osc/__keybinding1\nmouse_leave script-binding osc/__keybinding2\n", flags="force"]
+[   0.020][d][cplayer] Run command: define-section, flags=64, args=[name="showhide_wc", contents="mouse_move script-binding osc/__keybinding3\nmouse_leave script-binding osc/__keybinding4\n", flags="force"]
+[   0.020][d][cplayer] Run command: enable-section, flags=64, args=[name="showhide", flags="allow-hide-cursor+allow-vo-dragging"]
+[   0.020][d][cplayer] Run command: enable-section, flags=64, args=[name="showhide_wc", flags="allow-hide-cursor+allow-vo-dragging"]
+[   0.020][d][cplayer] Run command: define-section, flags=64, args=[name="input", contents="mbtn_left script-binding osc/__keybinding5\nshift+mbtn_left script-binding osc/__keybinding6\nmbtn_right script-binding osc/__keybinding7\nmbtn_mid script-binding osc/__keybinding8\nwheel_up script-binding osc/__keybinding9\nwheel_down script-binding osc/__keybinding10\nmbtn_left_dbl ignore\nshift+mbtn_left_dbl ignore\nmbtn_right_dbl ignore\n", flags="force"]
+[   0.020][d][cplayer] Run command: enable-section, flags=64, args=[name="input", flags=""]
+[   0.020][d][cplayer] Run command: define-section, flags=64, args=[name="window-controls", contents="mbtn_left script-binding osc/__keybinding11\n", flags="force"]
+[   0.020][d][cplayer] Run command: enable-section, flags=64, args=[name="window-controls", flags=""]
+[   0.020][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-visibility=auto"]
+[   0.020][v][cplayer] Set property: shared-script-properties -> 1
+[   0.020][v][cplayer] Set property: user-data/osc/visibility="auto" -> 1
+[   0.020][d][cplayer] Run command: disable-section, flags=64, args=[name="input"]
+[   0.020][d][cplayer] Run command: disable-section, flags=64, args=[name="window-controls"]
+[   0.020][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[   0.020][v][cplayer] Set property: shared-script-properties -> 1
+[   0.020][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[   0.020][v][cplayer] Done loading scripts.
+[   0.020][d][global] state path: 'watch_later' -> 'C:\Users\admin-beats\AppData\Roaming/mpv/watch_later'
+[   0.020][d][global] state path: 'watch_later' -> 'C:\Users\admin-beats\AppData\Roaming/mpv/watch_later'
+[   0.021][v][cplayer] Running hook: ytdl_hook/on_load
+[   0.021][v][ytdl_hook] ytdl:// hook 
+[   0.021][v][ytdl_hook] not a ytdl:// url 
+[   0.021][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[   0.021][v][cplayer] Set property: shared-script-properties -> 1
+[   0.021][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[   0.021][d][osc] osc_init 
+[   0.021][v][ffmpeg] Opening http://zfruvync.duperab.xyz/live/PE1S9S8U/11EZZUMW/32215.ts
+[   0.021][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[   0.021][v][cplayer] Set property: shared-script-properties -> 1
+[   0.021][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[   0.022][d][global] config path: 'fonts' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/fonts'
+[   0.022][d][global] config path: 'fonts' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/fonts'
+[   0.022][d][global] config path: 'fonts' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/fonts'
+[   0.022][d][osd/libass] ASS library version: 0x1701000 (runtime 0x1701000)
+[   0.022][v][osd/libass] libass API version: 0x1701000
+[   0.022][v][osd/libass] libass source: commit: 0.17.0-51-g91422bdb9497e8484b3248f5ae7eb50d41e2555d
+[   0.022][v][osd/libass] Shaper: FriBidi 1.0.13 (SIMPLE) HarfBuzz-ng 8.1.0 (COMPLEX)
+[   0.023][d][global] config path: 'subfont.ttf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/subfont.ttf'
+[   0.023][d][global] config path: 'subfont.ttf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/subfont.ttf'
+[   0.023][d][global] config path: 'subfont.ttf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/subfont.ttf'
+[   0.023][d][global] config path: 'fonts.conf' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/fonts.conf'
+[   0.023][d][global] config path: 'fonts.conf' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/fonts.conf'
+[   0.023][d][global] config path: 'fonts.conf' -> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/fonts.conf'
+[   0.023][v][osd/libass] Setting up fonts...
+[   0.024][v][osd/libass] Using font provider directwrite (with GDI)
+[   0.024][v][osd/libass] Done.
+[   0.024][d][cplayer] Run command: define-section, flags=64, args=[name="input_osc", contents="", flags="default"]
+[   0.024][d][cplayer] Run command: enable-section, flags=64, args=[name="input_osc", flags="allow-hide-cursor+allow-vo-dragging"]
+[   0.024][d][cplayer] Run command: define-section, flags=64, args=[name="input_forced_osc", contents="", flags="force"]
+[   0.024][d][cplayer] Run command: enable-section, flags=64, args=[name="input_forced_osc", flags="allow-hide-cursor+allow-vo-dragging"]
+[   0.029][d][ffmpeg] tcp: Starting connection attempt to 149.18.45.192 port 80
+[   0.279][d][ffmpeg] tcp: Successfully connected to 149.18.45.192 port 80
+[   0.617][d][ffmpeg] tcp: Starting connection attempt to 149.18.76.8 port 80
+[   1.404][d][ffmpeg] tcp: Successfully connected to 149.18.76.8 port 80
+[   2.235][v][ffmpeg] Could not set AVOption tls_verify='0'
+[   2.235][v][ffmpeg] Could not set AVOption tcp_fastopen='1'
+[   2.235][d][ffmpeg] resize stream to 131072 bytes, drop 0 bytes
+[   2.235][v][ffmpeg] Mime-type: 'video/mp2t'
+[   2.235][d][ffmpeg] Stream opened successfully.
+[   2.235][v][demux] Trying demuxers for level=normal.
+[   2.235][d][demux] Trying demuxer: disc (force-level: normal)
+[   2.235][d][demux] Trying demuxer: edl (force-level: normal)
+[   2.235][d][demux] Trying demuxer: cue (force-level: normal)
+[   2.235][d][demux] Trying demuxer: rawaudio (force-level: normal)
+[   2.235][d][demux] Trying demuxer: rawvideo (force-level: normal)
+[   2.235][d][demux] Trying demuxer: mkv (force-level: normal)
+[   2.235][d][demux] Trying demuxer: libarchive (force-level: normal)
+[   2.235][d][demux] Trying demuxer: lavf (force-level: normal)
+[   2.237][v][lavf] Found 'mpegts' at score=50 size=2048.
+[   4.759][e][ffmpeg/video] h264: non-existing SPS 0 referenced in buffering period
+[   4.759][e][ffmpeg/video] h264: non-existing SPS 0 referenced in buffering period
+[   4.759][d][ffmpeg/video] h264: Reinit context to 960x544, pix_fmt: yuv420p
+[   4.765][d][ffmpeg/video] h264: Increasing reorder buffer to 1
+[   4.769][w][ffmpeg/video] h264: Increasing reorder buffer to 2
+[   5.808][v][lavf] avformat_find_stream_info() finished after 145827 bytes.
+[   5.809][v][demux] Detected file format: mpegts (libavformat)
+[   5.809][v][demux] Stream is not seekable.
+[   5.809][v][cplayer] Opening done: http://zfruvync.duperab.xyz/live/PE1S9S8U/11EZZUMW/32215.ts
+[   5.809][d][osc] osc_init 
+[   5.809][d][global] config path: 'sub' -/-> 'C:\Users\admin-beats\AppData\Roaming/mpv/sub'
+[   5.809][d][global] config path: 'sub' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/sub'
+[   5.809][d][global] config path: 'sub' -/-> 'C:/Program Files/WindowsApps/519Ezhik.mpvUnofficial_0.36.0.0_x64__xfkyq1j2kc7zp/mpv/mpv/sub'
+[   5.809][v][cplayer] Running hook: ytdl_hook/on_preloaded
+[   5.809][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[   5.809][v][cplayer] Set property: shared-script-properties -> 1
+[   5.809][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[   5.809][v][lavf] select track 0
+[   5.809][v][lavf] select track 1
+[   5.810][i][cplayer]  (+) Video --vid=1 (h264 960x540 29.970fps)
+[   5.810][i][cplayer]  (+) Audio --aid=1 (aac 2ch 48000Hz)
+[   5.810][v][vo/gpu] Probing for best GPU context.
+[   5.810][v][vo/gpu/d3d11] Initializing GPU context 'd3d11'
+[   6.001][v][vo/gpu/d3d11] Using Direct3D 11 feature level 12_1
+[   6.001][v][vo/gpu/d3d11] Device Name: NVIDIA GeForce RTX 3060
+[   6.001][v][vo/gpu/d3d11] Device ID: 10de:2503 (rev a1)
+[   6.001][v][vo/gpu/d3d11] Subsystem ID: 3842:3657
+[   6.001][v][vo/gpu/d3d11] LUID: 0000000000011427
+[   6.001][v][vo/gpu/d3d11] Initializing SPIR-V compiler 'shaderc'
+[   6.001][v][vo/gpu/d3d11] Using Direct3D 11.1 runtime
+[   6.001][v][vo/gpu/d3d11] Maximum Texture2D size: 16384x16384
+[   6.002][v][vo/gpu/d3d11] D3DCompiler version: 10.0.26100.7705
+[   6.028][v][vo/gpu/d3d11] Using DXGI 1.2+
+[   6.028][v][vo/gpu/d3d11] Queried output: \\.\DISPLAY21, 3440x1440 @ 8 bits, colorspace: RGB_FULL_G22_NONE_P709 (0)
+[   6.028][v][vo/gpu/d3d11] Selected swapchain format R8G8B8A8_UNORM (28), attempting to utilize it.
+[   6.030][v][vo/gpu/d3d11] Selected swapchain color space RGB_FULL_G22_NONE_P709 (0), attempting to utilize it.
+[   6.030][v][vo/gpu/d3d11] Swapchain capabilities for color space RGB_FULL_G22_NONE_P709 (0): normal: yes, overlay: no
+[   6.030][v][vo/gpu/d3d11] Swapchain successfully configured to color space RGB_FULL_G22_NONE_P709 (0)!
+[   6.030][v][vo/gpu/d3d11] Using flip-model presentation
+[   6.030][d][vo/gpu/d3d11] Texture formats:
+[   6.030][d][vo/gpu/d3d11]   NAME       COMP*TYPE SIZE           DEPTH PER COMP.
+[   6.030][d][vo/gpu/d3d11]   r8         1*unorm   1B    LF CR ST {8}
+[   6.030][d][vo/gpu/d3d11]   rg8        2*unorm   2B    LF CR ST {8 8}
+[   6.030][d][vo/gpu/d3d11]   rgba8      4*unorm   4B    LF CR ST {8 8 8 8}
+[   6.030][d][vo/gpu/d3d11]   r16        1*unorm   2B    LF CR ST {16}
+[   6.030][d][vo/gpu/d3d11]   rg16       2*unorm   4B    LF CR ST {16 16}
+[   6.030][d][vo/gpu/d3d11]   rgba16     4*unorm   8B    LF CR ST {16 16 16 16}
+[   6.030][d][vo/gpu/d3d11]   r32ui      1*uint    4B          ST {32}
+[   6.030][d][vo/gpu/d3d11]   rg32ui     2*uint    8B          ST {32 32}
+[   6.030][d][vo/gpu/d3d11]   rgb32ui    3*uint   12B             {32 32 32}
+[   6.030][d][vo/gpu/d3d11]   rgba32ui   4*uint   16B          ST {32 32 32 32}
+[   6.030][d][vo/gpu/d3d11]   r16hf      1*float   2B    LF CR ST {16}
+[   6.030][d][vo/gpu/d3d11]   rg16hf     2*float   4B    LF CR ST {16 16}
+[   6.030][d][vo/gpu/d3d11]   rgba16hf   4*float   8B    LF CR ST {16 16 16 16}
+[   6.030][d][vo/gpu/d3d11]   r32f       1*float   4B    LF CR ST {32}
+[   6.030][d][vo/gpu/d3d11]   rg32f      2*float   8B    LF CR ST {32 32}
+[   6.030][d][vo/gpu/d3d11]   rgb32f     3*float  12B             {32 32 32}
+[   6.030][d][vo/gpu/d3d11]   rgba32f    4*float  16B    LF CR ST {32 32 32 32}
+[   6.030][d][vo/gpu/d3d11]   rgb10_a2   4*unorm   4B    LF CR ST {10 10 10 2}
+[   6.030][d][vo/gpu/d3d11]   bgra8      4*unorm   4B    LF CR ST {8 8 8 8}
+[   6.030][d][vo/gpu/d3d11]   bgrx8      3*unorm   4B    LF CR    {8 8 8}
+[   6.030][d][vo/gpu/d3d11]  LA = LUMINANCE_ALPHA hack format
+[   6.030][d][vo/gpu/d3d11]  LF = linear filterable
+[   6.030][d][vo/gpu/d3d11]  CR = can be used for render targets
+[   6.030][d][vo/gpu/d3d11]  ST = can be used for storable images
+[   6.030][d][vo/gpu/d3d11] Image formats:
+[   6.030][d][vo/gpu/d3d11]   yuv444p => 3 planes 1x1 8/0 [r8/r8/r8] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   yuv420p => 3 planes 2x2 8/0 [r8/r8/r8] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   gray => 1 planes 1x1 8/0 [r8] (r) [unorm]
+[   6.030][d][vo/gpu/d3d11]   gray16 => 1 planes 1x1 16/0 [r16] (r) [unorm]
+[   6.030][d][vo/gpu/d3d11]   uyvy422
+[   6.030][d][vo/gpu/d3d11]   nv12 => 2 planes 2x2 8/0 [r8/rg8] (r/gb) [unorm]
+[   6.030][d][vo/gpu/d3d11]   p010 => 2 planes 2x2 16/6 [r16/rg16] (r/gb) [unorm]
+[   6.030][d][vo/gpu/d3d11]   argb => 1 planes 1x1 8/0 [rgba8] (argb) [unorm]
+[   6.030][d][vo/gpu/d3d11]   bgra => 1 planes 1x1 8/0 [rgba8] (bgra) [unorm]
+[   6.030][d][vo/gpu/d3d11]   abgr => 1 planes 1x1 8/0 [rgba8] (abgr) [unorm]
+[   6.030][d][vo/gpu/d3d11]   rgba => 1 planes 1x1 8/0 [rgba8] (rgba) [unorm]
+[   6.030][d][vo/gpu/d3d11]   bgr24
+[   6.030][d][vo/gpu/d3d11]   rgb24
+[   6.030][d][vo/gpu/d3d11]   0rgb => 1 planes 1x1 8/0 [rgba8] (_rgb) [unorm]
+[   6.030][d][vo/gpu/d3d11]   bgr0 => 1 planes 1x1 8/0 [rgba8] (bgr) [unorm]
+[   6.030][d][vo/gpu/d3d11]   0bgr => 1 planes 1x1 8/0 [rgba8] (_bgr) [unorm]
+[   6.030][d][vo/gpu/d3d11]   rgb0 => 1 planes 1x1 8/0 [rgba8] (rgb) [unorm]
+[   6.030][d][vo/gpu/d3d11]   rgba64 => 1 planes 1x1 16/0 [rgba16] (rgba) [unorm]
+[   6.030][d][vo/gpu/d3d11]   rgb565
+[   6.030][d][vo/gpu/d3d11]   pal8
+[   6.030][d][vo/gpu/d3d11]   vdpau
+[   6.030][d][vo/gpu/d3d11]   d3d11
+[   6.030][d][vo/gpu/d3d11]   dxva2_vld
+[   6.030][d][vo/gpu/d3d11]   mmal
+[   6.030][d][vo/gpu/d3d11]   mediacodec
+[   6.030][d][vo/gpu/d3d11]   cuda
+[   6.030][d][vo/gpu/d3d11]   yap8 => 2 planes 1x1 8/0 [r8/r8] (r/a) [unorm]
+[   6.030][d][vo/gpu/d3d11]   yap16 => 2 planes 1x1 16/0 [r16/r16] (r/a) [unorm]
+[   6.030][d][vo/gpu/d3d11]   grayaf32 => 2 planes 1x1 32/0 [r32f/r32f] (r/a) [float]
+[   6.030][d][vo/gpu/d3d11]   yuv444pf => 3 planes 1x1 32/0 [r32f/r32f/r32f] (r/g/b) [float]
+[   6.030][d][vo/gpu/d3d11]   yuva444pf => 4 planes 1x1 32/0 [r32f/r32f/r32f/r32f] (r/g/b/a) [float]
+[   6.030][d][vo/gpu/d3d11]   yuv420pf => 3 planes 2x2 32/0 [r32f/r32f/r32f] (r/g/b) [float]
+[   6.030][d][vo/gpu/d3d11]   yuva420pf => 4 planes 2x2 32/0 [r32f/r32f/r32f/r32f] (r/g/b/a) [float]
+[   6.030][d][vo/gpu/d3d11]   yuv422pf => 3 planes 2x1 32/0 [r32f/r32f/r32f] (r/g/b) [float]
+[   6.030][d][vo/gpu/d3d11]   yuva422pf => 4 planes 2x1 32/0 [r32f/r32f/r32f/r32f] (r/g/b/a) [float]
+[   6.030][d][vo/gpu/d3d11]   yuv440pf => 3 planes 1x2 32/0 [r32f/r32f/r32f] (r/g/b) [float]
+[   6.030][d][vo/gpu/d3d11]   yuva440pf => 4 planes 1x2 32/0 [r32f/r32f/r32f/r32f] (r/g/b/a) [float]
+[   6.030][d][vo/gpu/d3d11]   yuv410pf => 3 planes 4x4 32/0 [r32f/r32f/r32f] (r/g/b) [float]
+[   6.030][d][vo/gpu/d3d11]   yuva410pf => 4 planes 4x4 32/0 [r32f/r32f/r32f/r32f] (r/g/b/a) [float]
+[   6.030][d][vo/gpu/d3d11]   yuv411pf => 3 planes 4x1 32/0 [r32f/r32f/r32f] (r/g/b) [float]
+[   6.030][d][vo/gpu/d3d11]   yuva411pf => 4 planes 4x1 32/0 [r32f/r32f/r32f/r32f] (r/g/b/a) [float]
+[   6.030][d][vo/gpu/d3d11]   rgb30
+[   6.030][d][vo/gpu/d3d11]   y1 => 1 planes 1x1 8/-7 [r8] (r) [unorm]
+[   6.030][d][vo/gpu/d3d11]   gbrp1 => 3 planes 1x1 8/-7 [r8/r8/r8] (g/b/r) [unorm]
+[   6.030][d][vo/gpu/d3d11]   gbrp2 => 3 planes 1x1 8/-6 [r8/r8/r8] (g/b/r) [unorm]
+[   6.030][d][vo/gpu/d3d11]   gbrp3 => 3 planes 1x1 8/-5 [r8/r8/r8] (g/b/r) [unorm]
+[   6.030][d][vo/gpu/d3d11]   gbrp4 => 3 planes 1x1 8/-4 [r8/r8/r8] (g/b/r) [unorm]
+[   6.030][d][vo/gpu/d3d11]   gbrp5 => 3 planes 1x1 8/-3 [r8/r8/r8] (g/b/r) [unorm]
+[   6.030][d][vo/gpu/d3d11]   gbrp6 => 3 planes 1x1 8/-2 [r8/r8/r8] (g/b/r) [unorm]
+[   6.030][d][vo/gpu/d3d11]   vdpau_output
+[   6.030][d][vo/gpu/d3d11]   vaapi
+[   6.030][d][vo/gpu/d3d11]   videotoolbox
+[   6.030][d][vo/gpu/d3d11]   vulkan
+[   6.030][d][vo/gpu/d3d11]   drm_prime
+[   6.030][d][vo/gpu/d3d11]   yuyv422
+[   6.030][d][vo/gpu/d3d11]   yuv422p => 3 planes 2x1 8/0 [r8/r8/r8] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   yuv410p => 3 planes 4x4 8/0 [r8/r8/r8] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   yuv411p => 3 planes 4x1 8/0 [r8/r8/r8] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   monow
+[   6.030][d][vo/gpu/d3d11]   monob
+[   6.030][d][vo/gpu/d3d11]   yuvj422p => 3 planes 2x1 8/0 [r8/r8/r8] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   uyyvyy411
+[   6.030][d][vo/gpu/d3d11]   bgr8
+[   6.030][d][vo/gpu/d3d11]   bgr4
+[   6.030][d][vo/gpu/d3d11]   bgr4_byte
+[   6.030][d][vo/gpu/d3d11]   rgb8
+[   6.030][d][vo/gpu/d3d11]   rgb4
+[   6.030][d][vo/gpu/d3d11]   rgb4_byte
+[   6.030][d][vo/gpu/d3d11]   nv21 => 2 planes 2x2 8/0 [r8/rg8] (r/bg) [unorm]
+[   6.030][d][vo/gpu/d3d11]   gray16be
+[   6.030][d][vo/gpu/d3d11]   yuv440p => 3 planes 1x2 8/0 [r8/r8/r8] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   yuvj440p => 3 planes 1x2 8/0 [r8/r8/r8] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   yuva420p => 4 planes 2x2 8/0 [r8/r8/r8/r8] (r/g/b/a) [unorm]
+[   6.030][d][vo/gpu/d3d11]   rgb48be
+[   6.030][d][vo/gpu/d3d11]   rgb48
+[   6.030][d][vo/gpu/d3d11]   rgb565be
+[   6.030][d][vo/gpu/d3d11]   rgb555be
+[   6.030][d][vo/gpu/d3d11]   rgb555
+[   6.030][d][vo/gpu/d3d11]   bgr565be
+[   6.030][d][vo/gpu/d3d11]   bgr565
+[   6.030][d][vo/gpu/d3d11]   bgr555be
+[   6.030][d][vo/gpu/d3d11]   bgr555
+[   6.030][d][vo/gpu/d3d11]   yuv420p16 => 3 planes 2x2 16/0 [r16/r16/r16] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   yuv420p16be
+[   6.030][d][vo/gpu/d3d11]   yuv422p16 => 3 planes 2x1 16/0 [r16/r16/r16] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   yuv422p16be
+[   6.030][d][vo/gpu/d3d11]   yuv444p16 => 3 planes 1x1 16/0 [r16/r16/r16] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   yuv444p16be
+[   6.030][d][vo/gpu/d3d11]   rgb444
+[   6.030][d][vo/gpu/d3d11]   rgb444be
+[   6.030][d][vo/gpu/d3d11]   bgr444
+[   6.030][d][vo/gpu/d3d11]   bgr444be
+[   6.030][d][vo/gpu/d3d11]   ya8 => 1 planes 1x1 8/0 [rg8] (ra) [unorm]
+[   6.030][d][vo/gpu/d3d11]   bgr48be
+[   6.030][d][vo/gpu/d3d11]   bgr48
+[   6.030][d][vo/gpu/d3d11]   yuv420p9be
+[   6.030][d][vo/gpu/d3d11]   yuv420p9 => 3 planes 2x2 16/-7 [r16/r16/r16] (r/g/b) [unorm]
+[   6.030][d][vo/gpu/d3d11]   yuv420p10be
+[   6.031][d][vo/gpu/d3d11]   yuv420p10 => 3 planes 2x2 16/-6 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuv422p10be
+[   6.031][d][vo/gpu/d3d11]   yuv422p10 => 3 planes 2x1 16/-6 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuv444p9be
+[   6.031][d][vo/gpu/d3d11]   yuv444p9 => 3 planes 1x1 16/-7 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuv444p10be
+[   6.031][d][vo/gpu/d3d11]   yuv444p10 => 3 planes 1x1 16/-6 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuv422p9be
+[   6.031][d][vo/gpu/d3d11]   yuv422p9 => 3 planes 2x1 16/-7 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gbrp => 3 planes 1x1 8/0 [r8/r8/r8] (g/b/r) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gbrp9be
+[   6.031][d][vo/gpu/d3d11]   gbrp9 => 3 planes 1x1 16/-7 [r16/r16/r16] (g/b/r) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gbrp10be
+[   6.031][d][vo/gpu/d3d11]   gbrp10 => 3 planes 1x1 16/-6 [r16/r16/r16] (g/b/r) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gbrp16be
+[   6.031][d][vo/gpu/d3d11]   gbrp16 => 3 planes 1x1 16/0 [r16/r16/r16] (g/b/r) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva422p => 4 planes 2x1 8/0 [r8/r8/r8/r8] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva444p => 4 planes 1x1 8/0 [r8/r8/r8/r8] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva420p9be
+[   6.031][d][vo/gpu/d3d11]   yuva420p9 => 4 planes 2x2 16/-7 [r16/r16/r16/r16] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva422p9be
+[   6.031][d][vo/gpu/d3d11]   yuva422p9 => 4 planes 2x1 16/-7 [r16/r16/r16/r16] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva444p9be
+[   6.031][d][vo/gpu/d3d11]   yuva444p9 => 4 planes 1x1 16/-7 [r16/r16/r16/r16] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva420p10be
+[   6.031][d][vo/gpu/d3d11]   yuva420p10 => 4 planes 2x2 16/-6 [r16/r16/r16/r16] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva422p10be
+[   6.031][d][vo/gpu/d3d11]   yuva422p10 => 4 planes 2x1 16/-6 [r16/r16/r16/r16] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva444p10be
+[   6.031][d][vo/gpu/d3d11]   yuva444p10 => 4 planes 1x1 16/-6 [r16/r16/r16/r16] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva420p16be
+[   6.031][d][vo/gpu/d3d11]   yuva420p16 => 4 planes 2x2 16/0 [r16/r16/r16/r16] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva422p16be
+[   6.031][d][vo/gpu/d3d11]   yuva422p16 => 4 planes 2x1 16/0 [r16/r16/r16/r16] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva444p16be
+[   6.031][d][vo/gpu/d3d11]   yuva444p16 => 4 planes 1x1 16/0 [r16/r16/r16/r16] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   xyz12
+[   6.031][d][vo/gpu/d3d11]   xyz12be
+[   6.031][d][vo/gpu/d3d11]   nv16 => 2 planes 2x1 8/0 [r8/rg8] (r/gb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   nv20 => 2 planes 2x1 16/-6 [r16/rg16] (r/gb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   nv20be
+[   6.031][d][vo/gpu/d3d11]   rgba64be
+[   6.031][d][vo/gpu/d3d11]   bgra64be
+[   6.031][d][vo/gpu/d3d11]   bgra64 => 1 planes 1x1 16/0 [rgba16] (bgra) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yvyu422
+[   6.031][d][vo/gpu/d3d11]   ya16be
+[   6.031][d][vo/gpu/d3d11]   ya16 => 1 planes 1x1 16/0 [rg16] (ra) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gbrap => 4 planes 1x1 8/0 [r8/r8/r8/r8] (g/b/r/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gbrap16be
+[   6.031][d][vo/gpu/d3d11]   gbrap16 => 4 planes 1x1 16/0 [r16/r16/r16/r16] (g/b/r/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   qsv
+[   6.031][d][vo/gpu/d3d11]   d3d11va_vld
+[   6.031][d][vo/gpu/d3d11]   yuv420p12be
+[   6.031][d][vo/gpu/d3d11]   yuv420p12 => 3 planes 2x2 16/-4 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuv420p14be
+[   6.031][d][vo/gpu/d3d11]   yuv420p14 => 3 planes 2x2 16/-2 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuv422p12be
+[   6.031][d][vo/gpu/d3d11]   yuv422p12 => 3 planes 2x1 16/-4 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuv422p14be
+[   6.031][d][vo/gpu/d3d11]   yuv422p14 => 3 planes 2x1 16/-2 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuv444p12be
+[   6.031][d][vo/gpu/d3d11]   yuv444p12 => 3 planes 1x1 16/-4 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuv444p14be
+[   6.031][d][vo/gpu/d3d11]   yuv444p14 => 3 planes 1x1 16/-2 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gbrp12be
+[   6.031][d][vo/gpu/d3d11]   gbrp12 => 3 planes 1x1 16/-4 [r16/r16/r16] (g/b/r) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gbrp14be
+[   6.031][d][vo/gpu/d3d11]   gbrp14 => 3 planes 1x1 16/-2 [r16/r16/r16] (g/b/r) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuvj411p => 3 planes 4x1 8/0 [r8/r8/r8] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   bayer_bggr8
+[   6.031][d][vo/gpu/d3d11]   bayer_rggb8
+[   6.031][d][vo/gpu/d3d11]   bayer_gbrg8
+[   6.031][d][vo/gpu/d3d11]   bayer_grbg8
+[   6.031][d][vo/gpu/d3d11]   bayer_bggr16
+[   6.031][d][vo/gpu/d3d11]   bayer_bggr16be
+[   6.031][d][vo/gpu/d3d11]   bayer_rggb16
+[   6.031][d][vo/gpu/d3d11]   bayer_rggb16be
+[   6.031][d][vo/gpu/d3d11]   bayer_gbrg16
+[   6.031][d][vo/gpu/d3d11]   bayer_gbrg16be
+[   6.031][d][vo/gpu/d3d11]   bayer_grbg16
+[   6.031][d][vo/gpu/d3d11]   bayer_grbg16be
+[   6.031][d][vo/gpu/d3d11]   xvmc
+[   6.031][d][vo/gpu/d3d11]   yuv440p10 => 3 planes 1x2 16/-6 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuv440p10be
+[   6.031][d][vo/gpu/d3d11]   yuv440p12 => 3 planes 1x2 16/-4 [r16/r16/r16] (r/g/b) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuv440p12be
+[   6.031][d][vo/gpu/d3d11]   ayuv64 => 1 planes 1x1 16/0 [rgba16] (argb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   ayuv64be
+[   6.031][d][vo/gpu/d3d11]   p010be
+[   6.031][d][vo/gpu/d3d11]   gbrap12be
+[   6.031][d][vo/gpu/d3d11]   gbrap12 => 4 planes 1x1 16/-4 [r16/r16/r16/r16] (g/b/r/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gbrap10be
+[   6.031][d][vo/gpu/d3d11]   gbrap10 => 4 planes 1x1 16/-6 [r16/r16/r16/r16] (g/b/r/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gray12be
+[   6.031][d][vo/gpu/d3d11]   gray12 => 1 planes 1x1 16/-4 [r16] (r) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gray10be
+[   6.031][d][vo/gpu/d3d11]   gray10 => 1 planes 1x1 16/-6 [r16] (r) [unorm]
+[   6.031][d][vo/gpu/d3d11]   p016 => 2 planes 2x2 16/0 [r16/rg16] (r/gb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   p016be
+[   6.031][d][vo/gpu/d3d11]   gray9be
+[   6.031][d][vo/gpu/d3d11]   gray9 => 1 planes 1x1 16/-7 [r16] (r) [unorm]
+[   6.031][d][vo/gpu/d3d11]   gbrpf32be
+[   6.031][d][vo/gpu/d3d11]   gbrpf32 => 3 planes 1x1 32/0 [r32f/r32f/r32f] (g/b/r) [float]
+[   6.031][d][vo/gpu/d3d11]   gbrapf32be
+[   6.031][d][vo/gpu/d3d11]   gbrapf32 => 4 planes 1x1 32/0 [r32f/r32f/r32f/r32f] (g/b/r/a) [float]
+[   6.031][d][vo/gpu/d3d11]   opencl
+[   6.031][d][vo/gpu/d3d11]   gray14be
+[   6.031][d][vo/gpu/d3d11]   gray14 => 1 planes 1x1 16/-2 [r16] (r) [unorm]
+[   6.031][d][vo/gpu/d3d11]   grayf32be
+[   6.031][d][vo/gpu/d3d11]   grayf32 => 1 planes 1x1 32/0 [r32f] (r) [float]
+[   6.031][d][vo/gpu/d3d11]   yuva422p12be
+[   6.031][d][vo/gpu/d3d11]   yuva422p12 => 4 planes 2x1 16/-4 [r16/r16/r16/r16] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   yuva444p12be
+[   6.031][d][vo/gpu/d3d11]   yuva444p12 => 4 planes 1x1 16/-4 [r16/r16/r16/r16] (r/g/b/a) [unorm]
+[   6.031][d][vo/gpu/d3d11]   nv24 => 2 planes 1x1 8/0 [r8/rg8] (r/gb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   nv42 => 2 planes 1x1 8/0 [r8/rg8] (r/bg) [unorm]
+[   6.031][d][vo/gpu/d3d11]   y210be
+[   6.031][d][vo/gpu/d3d11]   y210
+[   6.031][d][vo/gpu/d3d11]   x2rgb10be
+[   6.031][d][vo/gpu/d3d11]   x2bgr10
+[   6.031][d][vo/gpu/d3d11]   x2bgr10be
+[   6.031][d][vo/gpu/d3d11]   p210be
+[   6.031][d][vo/gpu/d3d11]   p210 => 2 planes 2x1 16/6 [r16/rg16] (r/gb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   p410be
+[   6.031][d][vo/gpu/d3d11]   p410 => 2 planes 1x1 16/6 [r16/rg16] (r/gb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   p216be
+[   6.031][d][vo/gpu/d3d11]   p216 => 2 planes 2x1 16/0 [r16/rg16] (r/gb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   p416be
+[   6.031][d][vo/gpu/d3d11]   p416 => 2 planes 1x1 16/0 [r16/rg16] (r/gb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   vuya => 1 planes 1x1 8/0 [rgba8] (bgra) [unorm]
+[   6.031][d][vo/gpu/d3d11]   rgbaf16be
+[   6.031][d][vo/gpu/d3d11]   rgbaf16 => 1 planes 1x1 16/0 [rgba16hf] (rgba) [float]
+[   6.031][d][vo/gpu/d3d11]   vuyx => 1 planes 1x1 8/0 [rgba8] (bgr) [unorm]
+[   6.031][d][vo/gpu/d3d11]   p012 => 2 planes 2x2 16/4 [r16/rg16] (r/gb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   p012be
+[   6.031][d][vo/gpu/d3d11]   y212be
+[   6.031][d][vo/gpu/d3d11]   y212
+[   6.031][d][vo/gpu/d3d11]   xv30be
+[   6.031][d][vo/gpu/d3d11]   xv30
+[   6.031][d][vo/gpu/d3d11]   xv36be
+[   6.031][d][vo/gpu/d3d11]   xv36 => 1 planes 1x1 16/4 [rgba16] (grb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   rgbf32be
+[   6.031][d][vo/gpu/d3d11]   rgbf32
+[   6.031][d][vo/gpu/d3d11]   rgbaf32be
+[   6.031][d][vo/gpu/d3d11]   rgbaf32
+[   6.031][d][vo/gpu/d3d11]   p212be
+[   6.031][d][vo/gpu/d3d11]   p212 => 2 planes 2x1 16/4 [r16/rg16] (r/gb) [unorm]
+[   6.031][d][vo/gpu/d3d11]   p412be
+[   6.031][d][vo/gpu/d3d11]   p412 => 2 planes 1x1 16/4 [r16/rg16] (r/gb) [unorm]
+[   6.031][v][vo/gpu] Testing FBO format rgba16hf
+[   6.031][d][vo/gpu] Resizing texture: 16x16
+[   6.031][v][vo/gpu] Using FBO format rgba16hf.
+[   6.031][d][global] cache path: '' -> 'C:\Users\admin-beats\AppData\Local/mpv'
+[   6.031][v][vo/gpu/win32] DPI detected from the new API: 96
+[   6.031][v][vo/gpu/win32] display-fps: 90.000000
+[   6.034][v][vo/gpu/win32] color-profile: C:\WINDOWS\system32\spool\drivers\color\sRGB Color Space Profile.icm
+[   6.034][v][vo/gpu] Assuming 90.000000 FPS for display sync.
+[   6.035][v][vd] Container reported FPS: 29.970030
+[   6.035][v][vd] Codec list:
+[   6.035][v][vd]     h264 - H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10
+[   6.035][v][vd]     h264_qsv (h264) - H264 video (Intel Quick Sync Video acceleration)
+[   6.035][v][vd]     h264_cuvid (h264) - Nvidia CUVID H264 decoder
+[   6.035][v][vd] Opening decoder h264
+[   6.035][v][vd] Looking at hwdec h264-d3d11va...
+[   6.035][v][vo/gpu] Loading hwdec drivers for format: 'd3d11'
+[   6.035][v][vo/gpu] Loading hwdec driver 'd3d11-egl'
+[   6.035][v][vo/gpu] Loading failed.
+[   6.035][v][vo/gpu] Loading hwdec driver 'd3d11va'
+[   6.036][v][vd] Trying hardware decoding via h264-d3d11va.
+[   6.036][v][vd] Selected codec: h264 (H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10)
+[   6.036][v][vf] User filter list:
+[   6.036][v][vf]   (empty)
+[   6.036][v][ad] Codec list:
+[   6.036][v][ad]     aac - AAC (Advanced Audio Coding)
+[   6.036][v][ad]     aac_fixed (aac) - AAC (Advanced Audio Coding)
+[   6.036][v][ad] Opening decoder aac
+[   6.036][v][ad] Requesting 1 threads for decoding.
+[   6.037][v][ad] Selected codec: aac (AAC (Advanced Audio Coding))
+[   6.037][v][af] User filter list:
+[   6.037][v][af]   (empty)
+[   6.037][v][cplayer] Starting playback...
+[   6.037][d][lavf] stream 1: resize index to 128
+[   6.037][v][af] [in] 48000Hz stereo 2ch floatp
+[   6.037][v][af] [userspeed] 48000Hz stereo 2ch floatp
+[   6.037][v][af] [userspeed] (disabled)
+[   6.037][v][af] [convert] 48000Hz stereo 2ch floatp
+[   6.037][v][vd] Pixel formats supported by decoder: vulkan cuda dxva2_vld d3d11va_vld d3d11 yuv420p
+[   6.037][v][vd] Codec profile: Main (0x4d)
+[   6.038][v][vd] Requesting pixfmt 'd3d11' from decoder.
+[   6.038][d][ffmpeg/video] h264: Decoder GUIDs reported as supported:
+[   6.038][d][ffmpeg/video] h264: {86695f12-340e-4f04-9fd3-9253dd327460} 103 106
+[   6.038][d][ffmpeg/video] h264: {ee27417f-5e28-4e65-beea-1d26b508adc9} 103 106
+[   6.038][d][ffmpeg/video] h264: {6f3ec719-3735-42cc-8063-65cc3cb36616} 103 106
+[   6.038][d][ffmpeg/video] h264: {1b81bea4-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[   6.038][d][ffmpeg/video] h264: {1b81bea3-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[   6.039][d][ffmpeg/video] h264: {32fcfe3f-de46-4a49-861b-ac71110649d5} 103 106
+[   6.039][d][ffmpeg/video] h264: {d79be8da-0cf1-4c81-b82a-69a4e236f43d} 103 106
+[   6.039][d][ffmpeg/video] h264: {f9aaccbb-c2b6-4cfc-8779-5707b1760552} 103 106
+[   6.040][d][ffmpeg/video] h264: {1b81be68-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[   6.040][d][ffmpeg/video] h264: {5b11d51b-2f4c-4452-bcc3-09f2a1160cc0} 103 106
+[   6.040][d][ffmpeg/video] h264: {107af0e0-ef1a-4d19-aba8-67a163073d13} 104 106
+[   6.040][d][ffmpeg/video] h264: {1a72925f-0c2c-4f15-96fb-b17d1473603f} 104 106
+[   6.040][d][ffmpeg/video] h264: {15df9b21-06c4-47f1-841e-a67c97d7f312} 103 106
+[   6.041][d][ffmpeg/video] h264: {4008018f-f537-4b36-98cf-61af8a2c1a33} 100 106
+[   6.041][d][ffmpeg/video] h264: {0dabeffa-4458-4602-bc03-0795659d617c} 101 106
+[   6.041][d][ffmpeg/video] h264: {9798634d-fe9d-48e5-b4da-dbec45b3df01} 102 106
+[   6.041][d][ffmpeg/video] h264: {efd64d74-c9e8-41d7-a5e9-e9b0e39fa319} 103 106
+[   6.041][d][ffmpeg/video] h264: {ed418a9f-010d-4eda-9ae3-9a65358d8d2e} 103 106
+[   6.041][d][ffmpeg/video] h264: {9947ec6f-689b-11dc-a320-0019dbbc4184} 103 106
+[   6.041][d][ffmpeg/video] h264: {33fcfe41-de46-4a49-861b-ac71110649d5} 103 106 107
+[   6.042][d][ffmpeg/video] h264: {463707f8-a1d0-4585-876d-83aa6d60b89e} 103 106
+[   6.042][d][ffmpeg/video] h264: {a4c749ef-6ecf-48aa-8448-50a7a1165ff7} 104 106
+[   6.042][d][ffmpeg/video] h264: {dda19dc7-93b5-49f5-a9b3-2bda28a2ce6e} 104 106
+[   6.042][d][ffmpeg/video] h264: {b8be4ccb-cf53-46ba-8d59-d6b8a6da5d2a} 103 104 106
+[   6.042][d][ffmpeg/video] h264: {6affd11e-1d96-42b1-a215-93a31f09a53d} 103 106
+[   6.042][d][ffmpeg/video] h264: {914c84a3-4078-4fa9-984c-e2f262cb5c9c} 103 106
+[   6.042][d][ffmpeg/video] h264: {8a1a1031-29bc-46d0-a007-e9b092ca6767} 103 106
+[   6.046][d][ffmpeg/video] h264: Reinit context to 960x544, pix_fmt: d3d11
+[   6.062][i][vd] Using hardware decoding (d3d11va).
+[   6.062][v][vd] Decoder format: 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/auto CL=mpeg2/4/h264
+[   6.062][v][vf] [in] 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/display SP=1.000000 CL=mpeg2/4/h264
+[   6.062][v][vf] [userdeint] 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/display SP=1.000000 CL=mpeg2/4/h264
+[   6.062][v][vf] [userdeint] (disabled)
+[   6.062][v][vf] [autorotate] 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/display SP=1.000000 CL=mpeg2/4/h264
+[   6.062][v][vf] [autorotate] (disabled)
+[   6.062][v][vf] [convert] 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/display SP=1.000000 CL=mpeg2/4/h264
+[   6.062][v][vf] [convert] (disabled)
+[   6.062][v][vf] [out] 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/display SP=1.000000 CL=mpeg2/4/h264
+[   6.063][i][cplayer]  (+) Video --vid=1 (h264 960x540 29.970fps)
+[   6.063][d][osc] osc_init 
+[   6.063][i][cplayer]  (+) Audio --aid=1 (aac 2ch 48000Hz)
+[   6.063][i][cplayer]      Subs  --sid=1 (*) (eia_608)
+[   6.063][v][ao] Trying audio driver 'wasapi'
+[   6.063][v][ao/wasapi] requested format: 48000 Hz, stereo channels, floatp
+[   6.063][d][ao/wasapi] Init wasapi
+[   6.063][d][ao/wasapi] Find device ''
+[   6.066][v][ao/wasapi] No device specified. Selecting default.
+[   6.069][v][ao/wasapi] Selecting device '{73eaf1af-2e60-49d8-96b2-5c05b5c7ab44}' (Speakers (Bigscreen Audio Stream 1.2))
+[   6.069][v][ao/wasapi] Monitoring changes in device {0.0.0.00000000}.{73eaf1af-2e60-49d8-96b2-5c05b5c7ab44}
+[   6.072][d][ao/wasapi] Init wasapi thread
+[   6.072][d][ao/wasapi] Activating pAudioClient interface
+[   6.075][d][ao/wasapi] Probing formats
+[   6.080][v][ao/wasapi] Trying stereo float (32/32 bits) @ 48000hz (shared) -> ok
+[   6.080][v][ao/wasapi] Accepted as stereo float @ 48000hz -> stereo float (32/32 bits) @ 48000hz (shared)
+[   6.080][d][ao/wasapi] Fixing format
+[   6.080][d][ao/wasapi] IAudioClient::GetDevicePeriod
+[   6.081][v][ao/wasapi] Device period: 10 ms
+[   6.081][d][ao/wasapi] IAudioClient::Initialize
+[   6.086][d][ao/wasapi] IAudioClient::Initialize pRenderClient
+[   6.086][d][ao/wasapi] IAudioClient::Initialize IAudioClient_SetEventHandle
+[   6.087][d][ao/wasapi] IAudioClient::Initialize IAudioClient_GetBufferSize
+[   6.087][v][ao/wasapi] Buffer frame count: 2400 (50 ms)
+[   6.087][v][ao/wasapi] IAudioClock::GetFrequency gave a frequency of 384000.
+[   6.087][d][ao/wasapi] IAudioClient::Initialize pAudioVolume
+[   6.087][d][ao/wasapi] Entering dispatch loop
+[   6.087][d][ao/wasapi] Init wasapi done
+[   6.087][v][ao/wasapi] device buffer: 2400 samples.
+[   6.087][v][ao/wasapi] using soft-buffer of 9600 samples.
+[   6.087][i][cplayer] AO: [wasapi] 48000Hz stereo 2ch float
+[   6.087][v][cplayer] AO: Description: Windows WASAPI audio output (event mode)
+[   6.088][v][autoconvert] inserting resampler
+[   6.088][v][swresample] format change, reinitializing resampler
+[   6.088][v][swresample] 48000Hz stereo floatp -> 48000Hz stereo float
+[   6.088][v][af] [out] 48000Hz stereo 2ch float
+[   6.088][i][cplayer] VO: [gpu] 960x540 d3d11[nv12]
+[   6.088][v][cplayer] VO: Description: Shader-based GPU Renderer
+[   6.088][v][vo/gpu] reconfig to 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/display SP=1.000000 CL=mpeg2/4/h264
+[   6.088][d][vo/gpu] max content size: 3424x1371
+[   6.088][d][vo/gpu] monitor size: 3440x1440
+[   6.088][v][vo/gpu/win32] reset window bounds: 1240:446:960:540
+[   6.089][d][vo/gpu/win32] move window: 1240:446
+[   6.089][v][vo/gpu/win32] resize window: 960:540
+[   6.097][v][vo/gpu/win32] resize window: 960:540
+[   6.098][d][vo/gpu/win32] move window: 1240:446
+[   6.102][v][vo/gpu] Resize: 960x540
+[   6.102][v][vo/gpu] Window size: 960x540 (Borders: l=0 t=0 r=0 b=0)
+[   6.102][v][vo/gpu] Video source: 960x540 (1:1)
+[   6.102][v][vo/gpu] Video display: (0, 0) 960x540 -> (0, 0) 960x540
+[   6.102][v][vo/gpu] Video scale: 1.000000/1.000000
+[   6.102][v][vo/gpu] OSD borders: l=0 t=0 r=0 b=0
+[   6.102][v][vo/gpu] Video borders: l=0 t=0 r=0 b=0
+[   6.102][v][vo/gpu] Reported display depth: 8
+[   6.102][v][vo/gpu] Testing FBO format rgba16hf
+[   6.102][d][vo/gpu] Resizing texture: 16x16
+[   6.102][v][vo/gpu] Using FBO format rgba16hf.
+[   6.105][v][vo/gpu] Resize: 960x540
+[   6.105][v][vo/gpu] Window size: 960x540 (Borders: l=0 t=0 r=0 b=0)
+[   6.105][v][vo/gpu] Video source: 960x540 (1:1)
+[   6.105][v][vo/gpu] Video display: (0, 0) 960x540 -> (0, 0) 960x540
+[   6.105][v][vo/gpu] Video scale: 1.000000/1.000000
+[   6.105][v][vo/gpu] OSD borders: l=0 t=0 r=0 b=0
+[   6.105][v][vo/gpu] Video borders: l=0 t=0 r=0 b=0
+[   6.105][v][vo/gpu] Reported display depth: 8
+[   6.105][d][vo/gpu] Resizing texture: 960x540
+[   6.105][d][global] user path: 'C:\Users\admin-beats\AppData\Local/mpv' -> 'C:\Users\admin-beats\AppData\Local/mpv'
+[   6.106][d][vo/gpu] Trying to load shader from disk...
+[   6.106][v][vo/gpu/d3d11] Using cached vertex shader
+[   6.106][v][vo/gpu/d3d11] Using cached fragment shader
+[   6.106][d][vo/gpu] Resizing texture: 960x540
+[   6.106][d][global] user path: 'C:\Users\admin-beats\AppData\Local/mpv' -> 'C:\Users\admin-beats\AppData\Local/mpv'
+[   6.106][d][vo/gpu] Trying to load shader from disk...
+[   6.107][v][vo/gpu/d3d11] Using cached vertex shader
+[   6.107][v][vo/gpu/d3d11] Using cached fragment shader
+[   6.107][d][vo/gpu] Resizing texture: 960x540
+[   6.107][d][global] user path: 'C:\Users\admin-beats\AppData\Local/mpv' -> 'C:\Users\admin-beats\AppData\Local/mpv'
+[   6.107][d][vo/gpu] Trying to load shader from disk...
+[   6.107][v][vo/gpu/d3d11] Using cached vertex shader
+[   6.107][v][vo/gpu/d3d11] Using cached fragment shader
+[   6.109][v][cplayer] first video frame after restart shown
+[   6.110][v][cplayer] audio ready
+[   6.110][d][cplayer] starting video playback
+[   6.110][v][cplayer] delaying audio start 0.026128 vs. 0.026111, diff=0.000017
+[   6.110][v][cplayer] playback restart complete @ 0.026111, audio=ready, video=playing
+[   6.112][v][cplayer] starting audio playback
+[   6.112][d][ao/wasapi] Thread Resume
+[   6.112][d][ao/wasapi] Thread Reset
+[   6.112][d][vo/gpu] Resizing texture: 960x540
+[   6.113][d][vo/gpu] Resizing texture: 960x540
+[   6.113][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[   6.113][v][cplayer] Set property: shared-script-properties -> 1
+[   6.113][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[   6.114][d][osc] osc_init 
+[   6.114][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[   6.114][v][cplayer] Set property: shared-script-properties -> 1
+[   6.114][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[   6.123][v][cplayer] Change display sync audio drift: -1
+[   6.133][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[   6.133][d][vo/gpu] Resizing texture: 960x540
+[   6.133][v][cplayer] Set property: shared-script-properties -> 1
+[   6.133][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[   6.144][d][cplayer] Run command: enable-section, flags=64, args=[name="input", flags=""]
+[   6.157][v][osd/libass] fontselect: (sans-serif, 400, 0) -> ArialMT, 0, ArialMT
+[   6.158][v][osd/libass] fontselect: (mpv-osd-symbols, 400, 0) -> mpv-osd-symbols-Regular, 0, mpv-osd-symbols-Regular
+[   6.159][v][vo/gpu] Reallocating OSD texture to 1024x128.
+[   6.159][d][global] user path: 'C:\Users\admin-beats\AppData\Local/mpv' -> 'C:\Users\admin-beats\AppData\Local/mpv'
+[   6.160][d][vo/gpu] Trying to load shader from disk...
+[   6.160][v][vo/gpu/d3d11] Using cached vertex shader
+[   6.160][v][vo/gpu/d3d11] Using cached fragment shader
+[   6.170][d][vo/gpu] Resizing texture: 960x540
+[   6.256][d][vo/gpu] Resizing texture: 960x540
+[   6.311][d][vo/gpu] Resizing texture: 960x540
+[   6.345][d][vo/gpu] Resizing texture: 960x540
+[   6.378][d][vo/gpu] Resizing texture: 960x540
+[   6.849][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[   6.849][v][cplayer] Set property: shared-script-properties -> 1
+[   6.849][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[   6.849][d][cplayer] Run command: disable-section, flags=64, args=[name="input"]
+[   7.112][w][cplayer] Audio device underrun detected.
+[   7.112][v][cplayer] Enter buffering (buffer went from 100% -> 3%) [0.033367s].
+[   7.112][d][ao/wasapi] Thread Reset
+[   7.112][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[   7.112][v][cplayer] Set property: shared-script-properties -> 1
+[   7.112][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[   7.112][d][cplayer] Run command: enable-section, flags=64, args=[name="input", flags=""]
+[   7.123][d][global] user path: 'C:\Users\admin-beats\AppData\Local/mpv' -> 'C:\Users\admin-beats\AppData\Local/mpv'
+[   7.123][d][vo/gpu] Trying to load shader from disk...
+[   7.124][v][vo/gpu/d3d11] Using cached vertex shader
+[   7.124][v][vo/gpu/d3d11] Using cached fragment shader
+[   7.427][d][cplayer] Run command: script-binding, flags=73, args=[name="osc/__keybinding2"]
+[   7.481][d][cplayer] Run command: script-binding, flags=73, args=[name="osc/__keybinding4"]
+[   7.516][v][cplayer] Still buffering (buffer went from 3% -> 14%) [0.143489s].
+[   7.516][v][cplayer] Still buffering (buffer went from 14% -> 30%) [0.300300s].
+[   7.516][v][cplayer] Still buffering (buffer went from 30% -> 29%) [0.290278s].
+[   7.527][v][cplayer] Still buffering (buffer went from 29% -> 42%) [0.426667s].
+[   7.547][v][cplayer] Still buffering (buffer went from 42% -> 65%) [0.657311s].
+[   7.655][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[   7.655][v][cplayer] Set property: shared-script-properties -> 1
+[   7.655][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[   7.655][d][cplayer] Run command: disable-section, flags=64, args=[name="input"]
+[   8.931][d][lavf] stream 0: resize index to 128
+[   9.017][v][cplayer] End buffering (waited 1.905005 secs) [1.358011s].
+[   9.017][v][cplayer] restarting audio after underrun
+[   9.017][d][ao/wasapi] Thread Resume
+[   9.017][d][ao/wasapi] Thread Reset
+[   9.017][v][cplayer] Change display sync audio drift: 1
+[   9.033][v][cplayer] Change display sync audio drift: -1
+[  10.606][d][cplayer] Run command: script-binding, flags=73, args=[name="osc/__keybinding4"]
+[  11.766][v][vo/gpu/win32] DPI detected from the new API: 96
+[  11.767][v][vo/gpu/win32] display-fps: 60.000000
+[  11.769][d][vo/gpu/win32] move window: 1145:-995
+[  11.769][v][vo/gpu] Assuming 60.000000 FPS for display sync.
+[  11.769][v][cplayer] Change display sync audio drift: 0
+[  11.769][v][cplayer] Compensation factor: 0.998478
+[  11.878][v][cplayer] Change display sync audio drift: -1
+[  12.311][v][vo/gpu] adjusting display FPS to a value closer to 90.002 Hz
+[  12.328][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[  12.328][v][cplayer] Set property: shared-script-properties -> 1
+[  12.328][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[  12.351][d][cplayer] Run command: enable-section, flags=64, args=[name="input", flags=""]
+[  12.626][d][cplayer] Run command: script-binding, flags=73, args=[name="osc/__keybinding2"]
+[  12.845][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[  12.845][v][cplayer] Set property: shared-script-properties -> 1
+[  12.845][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[  12.845][d][cplayer] Run command: disable-section, flags=64, args=[name="input"]
+[  12.878][d][cplayer] Run command: script-binding, flags=73, args=[name="osc/__keybinding4"]
+[  13.528][d][vo/gpu/win32] move window: 760:-1057
+[  13.528][v][vo/gpu/win32] resize window: 1920:1027
+[  13.529][d][osc] osc_init 
+[  13.529][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[  13.529][v][cplayer] Set property: shared-script-properties -> 1
+[  13.529][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[  13.535][v][vo/gpu] Resize: 1920x1027
+[  13.535][v][vo/gpu] Window size: 1920x1027 (Borders: l=0 t=0 r=0 b=0)
+[  13.535][v][vo/gpu] Video source: 960x540 (1:1)
+[  13.535][v][vo/gpu] Video display: (0, 0) 960x540 -> (47, 0) 1825x1027
+[  13.535][v][vo/gpu] Video scale: 1.901042/1.901852
+[  13.535][v][vo/gpu] OSD borders: l=47 t=0 r=48 b=0
+[  13.535][v][vo/gpu] Video borders: l=47 t=0 r=48 b=0
+[  13.535][v][vo/gpu] Reported display depth: 8
+[  13.535][v][vo/gpu] Resize: 1920x1027
+[  13.535][v][vo/gpu] Window size: 1920x1027 (Borders: l=0 t=0 r=0 b=0)
+[  13.535][v][vo/gpu] Video source: 960x540 (1:1)
+[  13.535][v][vo/gpu] Video display: (0, 0) 960x540 -> (47, 0) 1825x1027
+[  13.535][v][vo/gpu] Video scale: 1.901042/1.901852
+[  13.535][v][vo/gpu] OSD borders: l=47 t=0 r=48 b=0
+[  13.535][v][vo/gpu] Video borders: l=47 t=0 r=48 b=0
+[  13.535][v][vo/gpu] Reported display depth: 8
+[  13.536][d][vo/gpu] Resizing texture: 960x1027
+[  13.536][d][global] user path: 'C:\Users\admin-beats\AppData\Local/mpv' -> 'C:\Users\admin-beats\AppData\Local/mpv'
+[  13.536][d][osc] osc_init 
+[  13.536][d][vo/gpu] Trying to load shader from disk...
+[  13.536][v][vo/gpu/d3d11] Using cached vertex shader
+[  13.536][v][vo/gpu/d3d11] Using cached fragment shader
+[  13.537][d][vo/gpu] Resizing texture: 1825x1027
+[  13.537][d][global] user path: 'C:\Users\admin-beats\AppData\Local/mpv' -> 'C:\Users\admin-beats\AppData\Local/mpv'
+[  13.537][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[  13.537][v][cplayer] Set property: shared-script-properties -> 1
+[  13.537][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[  13.537][d][vo/gpu] Trying to load shader from disk...
+[  13.537][v][vo/gpu/d3d11] Using cached vertex shader
+[  13.537][v][vo/gpu/d3d11] Using cached fragment shader
+[  13.537][d][vo/gpu] Resizing texture: 1825x1027
+[  13.538][d][vo/gpu] Resizing texture: 1825x1027
+[  13.545][d][vo/gpu] Resizing texture: 1825x1027
+[  13.577][d][vo/gpu] Resizing texture: 1825x1027
+[  13.612][d][vo/gpu] Resizing texture: 1825x1027
+[  13.645][d][vo/gpu] Resizing texture: 1825x1027
+[  13.678][d][vo/gpu] Resizing texture: 1825x1027
+[  13.712][d][vo/gpu] Resizing texture: 1825x1027
+[  13.745][d][vo/gpu] Resizing texture: 1825x1027
+[  13.823][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[  13.823][v][cplayer] Set property: shared-script-properties -> 1
+[  13.823][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[  13.845][d][cplayer] Run command: enable-section, flags=64, args=[name="input", flags=""]
+[  13.856][v][vo/gpu] Reallocating OSD texture to 2048x256.
+[  14.240][d][cplayer] Run command: script-binding, flags=73, args=[name="osc/__keybinding4"]
+[  14.475][d][cplayer] Run command: change-list, flags=64, args=[name="shared-script-properties", operation="append", value="osc-margins=0.000000,0.000000,0.000000,0.000000"]
+[  14.475][v][cplayer] Set property: shared-script-properties -> 1
+[  14.475][v][cplayer] Set property: user-data/osc/margins={"l":0,"b":0,"t":0,"r":0} -> 1
+[  14.478][d][cplayer] Run command: disable-section, flags=64, args=[name="input"]
+[  15.300][v][cplayer] Change display sync audio drift: 0
+[  15.300][v][cplayer] Compensation factor: 0.995981
+[  15.739][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  15.739][v][cplayer] Change display sync audio drift: 1
+[  15.833][v][cplayer] Change display sync audio drift: -1
+[  17.109][e][ffmpeg] http: Stream ends prematurely at 3068536, should be 18446744073709551615
+[  17.109][w][ffmpeg] http: Will reconnect at 3068536 in 0 second(s), error=I/O error.
+[  17.110][d][ffmpeg] tcp: Starting connection attempt to 149.18.45.192 port 80
+[  17.253][d][ffmpeg] tcp: Successfully connected to 149.18.45.192 port 80
+[  17.536][d][ffmpeg] tcp: Starting connection attempt to 154.6.144.9 port 80
+[  17.648][d][ffmpeg] tcp: Successfully connected to 154.6.144.9 port 80
+[  17.794][w][ffmpeg/demuxer] mpegts: Packet corrupt (stream = 0, dts = 398909511).
+[  17.966][v][vo/gpu] adjusting display FPS to a value closer to 90.046 Hz
+[  24.756][v][cplayer] Change display sync audio drift: 0
+[  24.756][v][cplayer] Compensation factor: 0.999926
+[  29.412][w][ad] Invalid audio PTS: 21.760000 -> 120.110667
+[  29.412][w][cplayer] Reset playback due to audio timestamp reset.
+[  29.412][v][cplayer] blocked, waiting for old audio to play
+[  29.412][v][cplayer] audio ready
+[  29.422][v][vd] Pixel formats supported by decoder: vulkan cuda dxva2_vld d3d11va_vld d3d11 yuv420p
+[  29.422][v][vd] Codec profile: Main (0x4d)
+[  29.422][v][vd] Requesting pixfmt 'd3d11' from decoder.
+[  29.422][d][ffmpeg/video] h264: Decoder GUIDs reported as supported:
+[  29.423][d][ffmpeg/video] h264: {86695f12-340e-4f04-9fd3-9253dd327460} 103 106
+[  29.423][d][ffmpeg/video] h264: {ee27417f-5e28-4e65-beea-1d26b508adc9} 103 106
+[  29.423][d][ffmpeg/video] h264: {6f3ec719-3735-42cc-8063-65cc3cb36616} 103 106
+[  29.423][d][ffmpeg/video] h264: {1b81bea4-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  29.423][d][ffmpeg/video] h264: {1b81bea3-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  29.423][d][ffmpeg/video] h264: {32fcfe3f-de46-4a49-861b-ac71110649d5} 103 106
+[  29.424][d][ffmpeg/video] h264: {d79be8da-0cf1-4c81-b82a-69a4e236f43d} 103 106
+[  29.424][d][ffmpeg/video] h264: {f9aaccbb-c2b6-4cfc-8779-5707b1760552} 103 106
+[  29.424][d][ffmpeg/video] h264: {1b81be68-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  29.424][d][ffmpeg/video] h264: {5b11d51b-2f4c-4452-bcc3-09f2a1160cc0} 103 106
+[  29.424][d][ffmpeg/video] h264: {107af0e0-ef1a-4d19-aba8-67a163073d13} 104 106
+[  29.424][d][ffmpeg/video] h264: {1a72925f-0c2c-4f15-96fb-b17d1473603f} 104 106
+[  29.425][d][ffmpeg/video] h264: {15df9b21-06c4-47f1-841e-a67c97d7f312} 103 106
+[  29.425][d][ffmpeg/video] h264: {4008018f-f537-4b36-98cf-61af8a2c1a33} 100 106
+[  29.425][d][ffmpeg/video] h264: {0dabeffa-4458-4602-bc03-0795659d617c} 101 106
+[  29.425][d][ffmpeg/video] h264: {9798634d-fe9d-48e5-b4da-dbec45b3df01} 102 106
+[  29.425][d][ffmpeg/video] h264: {efd64d74-c9e8-41d7-a5e9-e9b0e39fa319} 103 106
+[  29.425][d][ffmpeg/video] h264: {ed418a9f-010d-4eda-9ae3-9a65358d8d2e} 103 106
+[  29.426][d][ffmpeg/video] h264: {9947ec6f-689b-11dc-a320-0019dbbc4184} 103 106
+[  29.426][d][ffmpeg/video] h264: {33fcfe41-de46-4a49-861b-ac71110649d5} 103 106 107
+[  29.426][d][ffmpeg/video] h264: {463707f8-a1d0-4585-876d-83aa6d60b89e} 103 106
+[  29.426][d][ffmpeg/video] h264: {a4c749ef-6ecf-48aa-8448-50a7a1165ff7} 104 106
+[  29.426][d][ffmpeg/video] h264: {dda19dc7-93b5-49f5-a9b3-2bda28a2ce6e} 104 106
+[  29.426][d][ffmpeg/video] h264: {b8be4ccb-cf53-46ba-8d59-d6b8a6da5d2a} 103 104 106
+[  29.426][d][ffmpeg/video] h264: {6affd11e-1d96-42b1-a215-93a31f09a53d} 103 106
+[  29.427][d][ffmpeg/video] h264: {914c84a3-4078-4fa9-984c-e2f262cb5c9c} 103 106
+[  29.427][d][ffmpeg/video] h264: {8a1a1031-29bc-46d0-a007-e9b092ca6767} 103 106
+[  29.427][d][ffmpeg/video] h264: Reinit context to 960x544, pix_fmt: d3d11
+[  29.427][e][ffmpeg/video] h264: co located POCs unavailable
+[  29.437][v][vd] Decoder format: 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/auto CL=mpeg2/4/h264
+[  29.444][v][cplayer] first video frame after restart shown
+[  29.444][d][cplayer] starting video playback
+[  29.444][v][cplayer] starting audio playback
+[  29.444][v][cplayer] playback restart complete @ 120.146111, audio=playing, video=playing
+[  29.457][v][cplayer] Change display sync audio drift: -1
+[  33.469][e][ffmpeg] http: Stream ends prematurely at 2490080, should be 18446744073709551615
+[  33.469][w][ffmpeg] http: Will reconnect at 2490080 in 0 second(s), error=I/O error.
+[  33.470][d][ffmpeg] tcp: Starting connection attempt to 149.18.45.192 port 80
+[  34.276][d][ffmpeg] tcp: Successfully connected to 149.18.45.192 port 80
+[  34.913][d][ffmpeg] tcp: Starting connection attempt to 149.18.76.8 port 80
+[  35.526][d][ffmpeg] tcp: Successfully connected to 149.18.76.8 port 80
+[  35.739][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  35.756][v][cplayer] Change display sync audio drift: 1
+[  35.844][v][cplayer] Change display sync audio drift: -1
+[  37.913][w][ffmpeg/demuxer] mpegts: Packet corrupt (stream = 0, dts = 409368960).
+[  37.967][v][vo/gpu] adjusting display FPS to a value closer to 89.969 Hz
+[  38.922][v][cplayer] Change display sync audio drift: 0
+[  38.922][v][cplayer] Compensation factor: 0.997862
+[  43.955][v][cplayer] Change display sync audio drift: -1
+[  47.211][w][ad] Invalid audio PTS: 137.945333 -> 39.936000
+[  47.222][w][cplayer] 
+[  47.222][w][cplayer] Audio/Video desynchronisation detected! Possible reasons include too slow
+[  47.222][w][cplayer] hardware, temporary CPU spikes, broken drivers, and broken files. Audio
+[  47.222][w][cplayer] position will not match to the video (see A-V status field).
+[  47.222][w][cplayer] 
+[  47.222][w][cplayer] Reset playback due to audio timestamp reset.
+[  47.222][v][cplayer] blocked, waiting for old audio to play
+[  47.222][v][cplayer] audio ready
+[  47.233][v][vd] Pixel formats supported by decoder: vulkan cuda dxva2_vld d3d11va_vld d3d11 yuv420p
+[  47.233][v][vd] Codec profile: Main (0x4d)
+[  47.233][v][vd] Requesting pixfmt 'd3d11' from decoder.
+[  47.233][d][ffmpeg/video] h264: Decoder GUIDs reported as supported:
+[  47.233][d][ffmpeg/video] h264: {86695f12-340e-4f04-9fd3-9253dd327460} 103 106
+[  47.233][d][ffmpeg/video] h264: {ee27417f-5e28-4e65-beea-1d26b508adc9} 103 106
+[  47.234][d][ffmpeg/video] h264: {6f3ec719-3735-42cc-8063-65cc3cb36616} 103 106
+[  47.234][d][ffmpeg/video] h264: {1b81bea4-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  47.234][d][ffmpeg/video] h264: {1b81bea3-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  47.234][d][ffmpeg/video] h264: {32fcfe3f-de46-4a49-861b-ac71110649d5} 103 106
+[  47.234][d][ffmpeg/video] h264: {d79be8da-0cf1-4c81-b82a-69a4e236f43d} 103 106
+[  47.234][d][ffmpeg/video] h264: {f9aaccbb-c2b6-4cfc-8779-5707b1760552} 103 106
+[  47.235][d][ffmpeg/video] h264: {1b81be68-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  47.235][d][ffmpeg/video] h264: {5b11d51b-2f4c-4452-bcc3-09f2a1160cc0} 103 106
+[  47.235][d][ffmpeg/video] h264: {107af0e0-ef1a-4d19-aba8-67a163073d13} 104 106
+[  47.235][d][ffmpeg/video] h264: {1a72925f-0c2c-4f15-96fb-b17d1473603f} 104 106
+[  47.235][d][ffmpeg/video] h264: {15df9b21-06c4-47f1-841e-a67c97d7f312} 103 106
+[  47.235][d][ffmpeg/video] h264: {4008018f-f537-4b36-98cf-61af8a2c1a33} 100 106
+[  47.236][d][ffmpeg/video] h264: {0dabeffa-4458-4602-bc03-0795659d617c} 101 106
+[  47.236][d][ffmpeg/video] h264: {9798634d-fe9d-48e5-b4da-dbec45b3df01} 102 106
+[  47.236][d][ffmpeg/video] h264: {efd64d74-c9e8-41d7-a5e9-e9b0e39fa319} 103 106
+[  47.236][d][ffmpeg/video] h264: {ed418a9f-010d-4eda-9ae3-9a65358d8d2e} 103 106
+[  47.237][d][ffmpeg/video] h264: {9947ec6f-689b-11dc-a320-0019dbbc4184} 103 106
+[  47.237][d][ffmpeg/video] h264: {33fcfe41-de46-4a49-861b-ac71110649d5} 103 106 107
+[  47.237][d][ffmpeg/video] h264: {463707f8-a1d0-4585-876d-83aa6d60b89e} 103 106
+[  47.237][d][ffmpeg/video] h264: {a4c749ef-6ecf-48aa-8448-50a7a1165ff7} 104 106
+[  47.237][d][ffmpeg/video] h264: {dda19dc7-93b5-49f5-a9b3-2bda28a2ce6e} 104 106
+[  47.238][d][ffmpeg/video] h264: {b8be4ccb-cf53-46ba-8d59-d6b8a6da5d2a} 103 104 106
+[  47.238][d][ffmpeg/video] h264: {6affd11e-1d96-42b1-a215-93a31f09a53d} 103 106
+[  47.238][d][ffmpeg/video] h264: {914c84a3-4078-4fa9-984c-e2f262cb5c9c} 103 106
+[  47.238][d][ffmpeg/video] h264: {8a1a1031-29bc-46d0-a007-e9b092ca6767} 103 106
+[  47.239][d][ffmpeg/video] h264: Reinit context to 960x544, pix_fmt: d3d11
+[  47.239][e][ffmpeg/video] h264: co located POCs unavailable
+[  47.243][e][ffmpeg/video] h264: co located POCs unavailable
+[  47.246][v][vd] Decoder format: 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/auto CL=mpeg2/4/h264
+[  47.247][w][cplayer] Invalid video timestamp: 138.164111 -> 39.999378
+[  47.266][v][cplayer] first video frame after restart shown
+[  47.266][d][cplayer] starting video playback
+[  47.266][v][cplayer] starting audio playback
+[  47.266][v][cplayer] playback restart complete @ 138.164111, audio=playing, video=playing
+[  47.268][v][cplayer] Change display sync audio drift: -1
+[  47.622][v][cplayer] Change display sync audio drift: 0
+[  50.522][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  50.544][v][cplayer] Change display sync audio drift: 1
+[  50.622][v][cplayer] Change display sync audio drift: -1
+[  52.744][v][vo/gpu] adjusting display FPS to a value closer to 89.998 Hz
+[  56.084][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  56.089][v][cplayer] Change display sync audio drift: 1
+[  56.166][v][cplayer] Change display sync audio drift: -1
+[  57.488][e][ffmpeg] http: Stream ends prematurely at 2525408, should be 18446744073709551615
+[  57.488][w][ffmpeg] http: Will reconnect at 2525408 in 0 second(s), error=I/O error.
+[  57.489][d][ffmpeg] tcp: Starting connection attempt to 149.18.45.192 port 80
+[  57.589][v][cplayer] Change display sync audio drift: 0
+[  57.589][v][cplayer] Compensation factor: 1.005603
+[  57.678][v][cplayer] Change display sync audio drift: -1
+[  58.144][v][cplayer] Change display sync audio drift: 0
+[  58.144][v][cplayer] Compensation factor: 1.005528
+[  58.166][v][cplayer] Change display sync audio drift: -1
+[  58.194][d][ffmpeg] tcp: Successfully connected to 149.18.45.192 port 80
+[  58.200][v][cplayer] Change display sync audio drift: 0
+[  58.201][v][cplayer] Compensation factor: 1.005678
+[  58.278][v][cplayer] Change display sync audio drift: -1
+[  58.311][v][vo/gpu] adjusting display FPS to a value closer to 90.035 Hz
+[  58.629][d][ffmpeg] tcp: Starting connection attempt to 154.6.144.9 port 80
+[  58.856][d][ffmpeg] tcp: Successfully connected to 154.6.144.9 port 80
+[  59.055][w][ffmpeg/demuxer] mpegts: Packet corrupt (stream = 0, dts = 402522120).
+[  66.378][v][cplayer] Change display sync audio drift: 0
+[  66.378][v][cplayer] Compensation factor: 0.999923
+[  69.220][w][ad] Invalid audio PTS: 61.994667 -> 160.132000
+[  69.222][w][cplayer] Reset playback due to audio timestamp reset.
+[  69.222][v][cplayer] blocked, waiting for old audio to play
+[  69.222][v][cplayer] audio ready
+[  69.233][v][vd] Pixel formats supported by decoder: vulkan cuda dxva2_vld d3d11va_vld d3d11 yuv420p
+[  69.233][v][vd] Codec profile: Main (0x4d)
+[  69.233][v][vd] Requesting pixfmt 'd3d11' from decoder.
+[  69.233][d][ffmpeg/video] h264: Decoder GUIDs reported as supported:
+[  69.233][d][ffmpeg/video] h264: {86695f12-340e-4f04-9fd3-9253dd327460} 103 106
+[  69.234][d][ffmpeg/video] h264: {ee27417f-5e28-4e65-beea-1d26b508adc9} 103 106
+[  69.234][d][ffmpeg/video] h264: {6f3ec719-3735-42cc-8063-65cc3cb36616} 103 106
+[  69.234][d][ffmpeg/video] h264: {1b81bea4-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  69.234][d][ffmpeg/video] h264: {1b81bea3-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  69.234][d][ffmpeg/video] h264: {32fcfe3f-de46-4a49-861b-ac71110649d5} 103 106
+[  69.234][d][ffmpeg/video] h264: {d79be8da-0cf1-4c81-b82a-69a4e236f43d} 103 106
+[  69.235][d][ffmpeg/video] h264: {f9aaccbb-c2b6-4cfc-8779-5707b1760552} 103 106
+[  69.235][d][ffmpeg/video] h264: {1b81be68-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  69.235][d][ffmpeg/video] h264: {5b11d51b-2f4c-4452-bcc3-09f2a1160cc0} 103 106
+[  69.235][d][ffmpeg/video] h264: {107af0e0-ef1a-4d19-aba8-67a163073d13} 104 106
+[  69.235][d][ffmpeg/video] h264: {1a72925f-0c2c-4f15-96fb-b17d1473603f} 104 106
+[  69.235][d][ffmpeg/video] h264: {15df9b21-06c4-47f1-841e-a67c97d7f312} 103 106
+[  69.236][d][ffmpeg/video] h264: {4008018f-f537-4b36-98cf-61af8a2c1a33} 100 106
+[  69.236][d][ffmpeg/video] h264: {0dabeffa-4458-4602-bc03-0795659d617c} 101 106
+[  69.236][d][ffmpeg/video] h264: {9798634d-fe9d-48e5-b4da-dbec45b3df01} 102 106
+[  69.236][d][ffmpeg/video] h264: {efd64d74-c9e8-41d7-a5e9-e9b0e39fa319} 103 106
+[  69.236][d][ffmpeg/video] h264: {ed418a9f-010d-4eda-9ae3-9a65358d8d2e} 103 106
+[  69.236][d][ffmpeg/video] h264: {9947ec6f-689b-11dc-a320-0019dbbc4184} 103 106
+[  69.237][d][ffmpeg/video] h264: {33fcfe41-de46-4a49-861b-ac71110649d5} 103 106 107
+[  69.237][d][ffmpeg/video] h264: {463707f8-a1d0-4585-876d-83aa6d60b89e} 103 106
+[  69.237][d][ffmpeg/video] h264: {a4c749ef-6ecf-48aa-8448-50a7a1165ff7} 104 106
+[  69.237][d][ffmpeg/video] h264: {dda19dc7-93b5-49f5-a9b3-2bda28a2ce6e} 104 106
+[  69.237][d][ffmpeg/video] h264: {b8be4ccb-cf53-46ba-8d59-d6b8a6da5d2a} 103 104 106
+[  69.237][d][ffmpeg/video] h264: {6affd11e-1d96-42b1-a215-93a31f09a53d} 103 106
+[  69.237][d][ffmpeg/video] h264: {914c84a3-4078-4fa9-984c-e2f262cb5c9c} 103 106
+[  69.238][d][ffmpeg/video] h264: {8a1a1031-29bc-46d0-a007-e9b092ca6767} 103 106
+[  69.238][d][ffmpeg/video] h264: Reinit context to 960x544, pix_fmt: d3d11
+[  69.239][e][ffmpeg/video] h264: co located POCs unavailable
+[  69.243][e][ffmpeg/video] h264: co located POCs unavailable
+[  69.245][v][vd] Decoder format: 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/auto CL=mpeg2/4/h264
+[  69.246][w][cplayer] Invalid video timestamp: 62.088111 -> 160.186111
+[  69.246][d][global] user path: 'C:\Users\admin-beats\AppData\Local/mpv' -> 'C:\Users\admin-beats\AppData\Local/mpv'
+[  69.307][v][vo/gpu/d3d11] shaderc compile status 'success' (0 errors, 0 warnings)
+[  69.309][v][vo/gpu/d3d11] Compiled a vertex shader in 62794us
+[  69.309][v][vo/gpu/d3d11] shaderc: 61083us, SPIRV-Cross: 386us, D3DCompile: 1325us
+[  69.309][d][vo/gpu/d3d11] GLSL source:
+[  69.309][d][vo/gpu/d3d11] [  1] #version 450
+[  69.309][d][vo/gpu/d3d11] [  2] #define tex1D texture
+[  69.309][d][vo/gpu/d3d11] [  3] #define tex3D texture
+[  69.309][d][vo/gpu/d3d11] [  4] #define LUT_POS(x, lut_size) mix(0.5 / (lut_size), 1.0 - 0.5 / (lut_size), (x))
+[  69.309][d][vo/gpu/d3d11] [  5] layout(location=0) in vec2 vertex_position;
+[  69.309][d][vo/gpu/d3d11] [  6] layout(location=1) in vec2 vertex_texcoord0;
+[  69.309][d][vo/gpu/d3d11] [  7] layout(location=1) out vec2 texcoord0;
+[  69.309][d][vo/gpu/d3d11] [  8] void main() {
+[  69.309][d][vo/gpu/d3d11] [  9] gl_Position = vec4(vertex_position, 1.0, 1.0);
+[  69.309][d][vo/gpu/d3d11] [ 10] texcoord0 = vertex_texcoord0;
+[  69.309][d][vo/gpu/d3d11] [ 11] }
+[  69.309][d][vo/gpu/d3d11] HLSL source:
+[  69.309][d][vo/gpu/d3d11] [  1] static float4 gl_Position;
+[  69.309][d][vo/gpu/d3d11] [  2] static float2 _18;
+[  69.309][d][vo/gpu/d3d11] [  3] static float2 _27;
+[  69.309][d][vo/gpu/d3d11] [  4] static float2 _28;
+[  69.309][d][vo/gpu/d3d11] [  5] 
+[  69.309][d][vo/gpu/d3d11] [  6] struct SPIRV_Cross_Input
+[  69.309][d][vo/gpu/d3d11] [  7] {
+[  69.309][d][vo/gpu/d3d11] [  8]     float2 _18 : TEXCOORD0;
+[  69.309][d][vo/gpu/d3d11] [  9]     float2 _28 : TEXCOORD1;
+[  69.309][d][vo/gpu/d3d11] [ 10] };
+[  69.309][d][vo/gpu/d3d11] [ 11] 
+[  69.309][d][vo/gpu/d3d11] [ 12] struct SPIRV_Cross_Output
+[  69.309][d][vo/gpu/d3d11] [ 13] {
+[  69.309][d][vo/gpu/d3d11] [ 14]     float2 _27 : TEXCOORD1;
+[  69.309][d][vo/gpu/d3d11] [ 15]     float4 gl_Position : SV_Position;
+[  69.309][d][vo/gpu/d3d11] [ 16] };
+[  69.309][d][vo/gpu/d3d11] [ 17] 
+[  69.309][d][vo/gpu/d3d11] [ 18] void vert_main()
+[  69.309][d][vo/gpu/d3d11] [ 19] {
+[  69.309][d][vo/gpu/d3d11] [ 20]     gl_Position = float4(_18, 1.0f, 1.0f);
+[  69.309][d][vo/gpu/d3d11] [ 21]     _27 = _28;
+[  69.309][d][vo/gpu/d3d11] [ 22]     gl_Position.y = -gl_Position.y;
+[  69.309][d][vo/gpu/d3d11] [ 23] }
+[  69.309][d][vo/gpu/d3d11] [ 24] 
+[  69.309][d][vo/gpu/d3d11] [ 25] SPIRV_Cross_Output main(SPIRV_Cross_Input stage_input)
+[  69.309][d][vo/gpu/d3d11] [ 26] {
+[  69.309][d][vo/gpu/d3d11] [ 27]     _18 = stage_input._18;
+[  69.309][d][vo/gpu/d3d11] [ 28]     _28 = stage_input._28;
+[  69.309][d][vo/gpu/d3d11] [ 29]     vert_main();
+[  69.309][d][vo/gpu/d3d11] [ 30]     SPIRV_Cross_Output stage_output;
+[  69.309][d][vo/gpu/d3d11] [ 31]     stage_output.gl_Position = gl_Position;
+[  69.309][d][vo/gpu/d3d11] [ 32]     stage_output._27 = _27;
+[  69.309][d][vo/gpu/d3d11] [ 33]     return stage_output;
+[  69.309][d][vo/gpu/d3d11] [ 34] }
+[  69.312][v][vo/gpu/d3d11] shaderc compile status 'success' (0 errors, 0 warnings)
+[  69.317][v][vo/gpu/d3d11] Compiled a fragment shader in 8088us
+[  69.317][v][vo/gpu/d3d11] shaderc: 3311us, SPIRV-Cross: 356us, D3DCompile: 4421us
+[  69.317][d][vo/gpu/d3d11] GLSL source:
+[  69.317][d][vo/gpu/d3d11] [  1] #version 450
+[  69.317][d][vo/gpu/d3d11] [  2] #define tex1D texture
+[  69.317][d][vo/gpu/d3d11] [  3] #define tex3D texture
+[  69.317][d][vo/gpu/d3d11] [  4] #define LUT_POS(x, lut_size) mix(0.5 / (lut_size), 1.0 - 0.5 / (lut_size), (x))
+[  69.317][d][vo/gpu/d3d11] [  5] layout(location=0) out vec4 out_color;
+[  69.317][d][vo/gpu/d3d11] [  6] layout(location=1) in vec2 texcoord0;
+[  69.317][d][vo/gpu/d3d11] [  7] layout(std140, binding=0) uniform UBO {
+[  69.317][d][vo/gpu/d3d11] [  8] layout(offset=0) vec3 src_luma;
+[  69.317][d][vo/gpu/d3d11] [  9] layout(offset=16) vec3 dst_luma;
+[  69.317][d][vo/gpu/d3d11] [ 10] layout(offset=32) vec2 texture_size0;
+[  69.317][d][vo/gpu/d3d11] [ 11] layout(offset=48) mat2 texture_rot0;
+[  69.317][d][vo/gpu/d3d11] [ 12] layout(offset=80) vec2 texture_off0;
+[  69.317][d][vo/gpu/d3d11] [ 13] layout(offset=88) vec2 pixel_size0;
+[  69.317][d][vo/gpu/d3d11] [ 14] };
+[  69.317][d][vo/gpu/d3d11] [ 15] layout(binding=0) uniform sampler2D lut;
+[  69.317][d][vo/gpu/d3d11] [ 16] layout(binding=1) uniform sampler2D texture0;
+[  69.317][d][vo/gpu/d3d11] [ 17] void main() {
+[  69.317][d][vo/gpu/d3d11] [ 18] vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
+[  69.317][d][vo/gpu/d3d11] [ 19] #undef tex
+[  69.317][d][vo/gpu/d3d11] [ 20] #undef texmap
+[  69.317][d][vo/gpu/d3d11] [ 21] #define tex texture0
+[  69.317][d][vo/gpu/d3d11] [ 22] #define texmap texmap0
+[  69.317][d][vo/gpu/d3d11] [ 23] vec2 pos = texcoord0;
+[  69.317][d][vo/gpu/d3d11] [ 24] vec2 size = texture_size0;
+[  69.317][d][vo/gpu/d3d11] [ 25] vec2 pt = pixel_size0;
+[  69.317][d][vo/gpu/d3d11] [ 26] color = vec4(0.0);
+[  69.317][d][vo/gpu/d3d11] [ 27] {
+[  69.317][d][vo/gpu/d3d11] [ 28] vec2 dir = vec2(1.0, 0.0);
+[  69.317][d][vo/gpu/d3d11] [ 29] pt *= dir;
+[  69.317][d][vo/gpu/d3d11] [ 30] float fcoord = dot(fract(pos * size - vec2(0.5)), dir);
+[  69.317][d][vo/gpu/d3d11] [ 31] vec2 base = pos - fcoord * pt - pt * vec2(2.0);
+[  69.317][d][vo/gpu/d3d11] [ 32] vec4 c;
+[  69.317][d][vo/gpu/d3d11] [ 33] float ypos = LUT_POS(fcoord, 64.0);
+[  69.317][d][vo/gpu/d3d11] [ 34] float weights[6];
+[  69.317][d][vo/gpu/d3d11] [ 35] c = texture(lut, vec2(0.250000, ypos));
+[  69.317][d][vo/gpu/d3d11] [ 36] weights[0] = c[0];
+[  69.317][d][vo/gpu/d3d11] [ 37] weights[1] = c[1];
+[  69.317][d][vo/gpu/d3d11] [ 38] weights[2] = c[2];
+[  69.317][d][vo/gpu/d3d11] [ 39] weights[3] = c[3];
+[  69.317][d][vo/gpu/d3d11] [ 40] c = texture(lut, vec2(0.750000, ypos));
+[  69.317][d][vo/gpu/d3d11] [ 41] weights[4] = c[0];
+[  69.317][d][vo/gpu/d3d11] [ 42] weights[5] = c[1];
+[  69.317][d][vo/gpu/d3d11] [ 43] // scaler samples
+[  69.317][d][vo/gpu/d3d11] [ 44] c = texture(tex, base + pt * vec2(0.0));
+[  69.317][d][vo/gpu/d3d11] [ 45] color += vec4(weights[0]) * c;
+[  69.317][d][vo/gpu/d3d11] [ 46] c = texture(tex, base + pt * vec2(1.0));
+[  69.317][d][vo/gpu/d3d11] [ 47] color += vec4(weights[1]) * c;
+[  69.317][d][vo/gpu/d3d11] [ 48] c = texture(tex, base + pt * vec2(2.0));
+[  69.317][d][vo/gpu/d3d11] [ 49] color += vec4(weights[2]) * c;
+[  69.317][d][vo/gpu/d3d11] [ 50] c = texture(tex, base + pt * vec2(3.0));
+[  69.317][d][vo/gpu/d3d11] [ 51] color += vec4(weights[3]) * c;
+[  69.317][d][vo/gpu/d3d11] [ 52] c = texture(tex, base + pt * vec2(4.0));
+[  69.317][d][vo/gpu/d3d11] [ 53] color += vec4(weights[4]) * c;
+[  69.317][d][vo/gpu/d3d11] [ 54] c = texture(tex, base + pt * vec2(5.0));
+[  69.317][d][vo/gpu/d3d11] [ 55] color += vec4(weights[5]) * c;
+[  69.317][d][vo/gpu/d3d11] [ 56] }
+[  69.317][d][vo/gpu/d3d11] [ 57] color.a = 1.000000;
+[  69.317][d][vo/gpu/d3d11] [ 58] // scaler post-conversion
+[  69.317][d][vo/gpu/d3d11] [ 59] // color mapping
+[  69.317][d][vo/gpu/d3d11] [ 60] color.rgb *= vec3(1.000000);
+[  69.317][d][vo/gpu/d3d11] [ 61] color.rgb *= vec3(1.000000);
+[  69.317][d][vo/gpu/d3d11] [ 62] out_color = color;
+[  69.317][d][vo/gpu/d3d11] [ 63] }
+[  69.317][d][vo/gpu/d3d11] HLSL source:
+[  69.317][d][vo/gpu/d3d11] [  1] cbuffer _22_24 : register(b0)
+[  69.317][d][vo/gpu/d3d11] [  2] {
+[  69.317][d][vo/gpu/d3d11] [  3]     float3 _24_m0 : packoffset(c0);
+[  69.317][d][vo/gpu/d3d11] [  4]     float3 _24_m1 : packoffset(c1);
+[  69.317][d][vo/gpu/d3d11] [  5]     float2 _24_m2 : packoffset(c2);
+[  69.317][d][vo/gpu/d3d11] [  6]     row_major float2x2 _24_m3 : packoffset(c3);
+[  69.317][d][vo/gpu/d3d11] [  7]     float2 _24_m4 : packoffset(c5);
+[  69.317][d][vo/gpu/d3d11] [  8]     float2 _24_m5 : packoffset(c5.z);
+[  69.317][d][vo/gpu/d3d11] [  9] };
+[  69.317][d][vo/gpu/d3d11] [ 10] 
+[  69.317][d][vo/gpu/d3d11] [ 11] Texture2D<float4> _71 : register(t0);
+[  69.317][d][vo/gpu/d3d11] [ 12] SamplerState __71_sampler : register(s0);
+[  69.317][d][vo/gpu/d3d11] [ 13] Texture2D<float4> _113 : register(t1);
+[  69.317][d][vo/gpu/d3d11] [ 14] SamplerState __113_sampler : register(s1);
+[  69.317][d][vo/gpu/d3d11] [ 15] 
+[  69.317][d][vo/gpu/d3d11] [ 16] static float2 _17;
+[  69.317][d][vo/gpu/d3d11] [ 17] static float4 _221;
+[  69.317][d][vo/gpu/d3d11] [ 18] 
+[  69.317][d][vo/gpu/d3d11] [ 19] struct SPIRV_Cross_Input
+[  69.317][d][vo/gpu/d3d11] [ 20] {
+[  69.317][d][vo/gpu/d3d11] [ 21]     float2 _17 : TEXCOORD1;
+[  69.317][d][vo/gpu/d3d11] [ 22] };
+[  69.317][d][vo/gpu/d3d11] [ 23] 
+[  69.317][d][vo/gpu/d3d11] [ 24] struct SPIRV_Cross_Output
+[  69.317][d][vo/gpu/d3d11] [ 25] {
+[  69.317][d][vo/gpu/d3d11] [ 26]     float4 _221 : SV_Target0;
+[  69.317][d][vo/gpu/d3d11] [ 27] };
+[  69.317][d][vo/gpu/d3d11] [ 28] 
+[  69.317][d][vo/gpu/d3d11] [ 29] void frag_main()
+[  69.317][d][vo/gpu/d3d11] [ 30] {
+[  69.317][d][vo/gpu/d3d11] [ 31]     float2 _48 = frac(mad(_17, _24_m2, (-0.5f).xx));
+[  69.317][d][vo/gpu/d3d11] [ 32]     float _50 = _48.x;
+[  69.317][d][vo/gpu/d3d11] [ 33]     float2 _61 = mad(-_24_m5, float2(2.0f, 0.0f), _17 - ((_24_m5 * float2(1.0f, 0.0f)) * _50));
+[  69.317][d][vo/gpu/d3d11] [ 34]     float _66 = lerp(0.0078125f, 0.9921875f, _50);
+[  69.317][d][vo/gpu/d3d11] [ 35]     float4 _76 = _71.Sample(__71_sampler, float2(0.25f, _66));
+[  69.317][d][vo/gpu/d3d11] [ 36]     float4 _105 = _71.Sample(__71_sampler, float2(0.75f, _66));
+[  69.317][d][vo/gpu/d3d11] [ 37]     float4 _199 = mad(_105.y.xxxx, _113.Sample(__113_sampler, mad(_24_m5, float2(5.0f, 0.0f), _61)), mad(_105.x.xxxx, _113.Sample(__113_sampler, mad(_24_m5, float2(4.0f, 0.0f), _61)), mad(_76.w.xxxx, _113.Sample(__113_sampler, mad(_24_m5, float2(3.0f, 0.0f), _61)), mad(_76.z.xxxx, _113.Sample(__113_sampler, mad(_24_m5, float2(2.0f, 0.0f), _61)), mad(_76.x.xxxx, _113.Sample(__113_sampler, _61), _76.y.xxxx * _113.Sample(__113_sampler, mad(_24_m5, float2(1.0f, 0.0f), _61)))))));
+[  69.317][d][vo/gpu/d3d11] [ 38]     float _206 = _199.x;
+[  69.317][d][vo/gpu/d3d11] [ 39]     float4 _255 = float4(_206, _199.yz, 1.0f);
+[  69.317][d][vo/gpu/d3d11] [ 40]     _255.x = _206;
+[  69.317][d][vo/gpu/d3d11] [ 41]     _255.y = _199.y;
+[  69.317][d][vo/gpu/d3d11] [ 42]     _255.z = _199.z;
+[  69.317][d][vo/gpu/d3d11] [ 43]     _221 = _255;
+[  69.317][d][vo/gpu/d3d11] [ 44] }
+[  69.317][d][vo/gpu/d3d11] [ 45] 
+[  69.317][d][vo/gpu/d3d11] [ 46] SPIRV_Cross_Output main(SPIRV_Cross_Input stage_input)
+[  69.317][d][vo/gpu/d3d11] [ 47] {
+[  69.317][d][vo/gpu/d3d11] [ 48]     _17 = stage_input._17;
+[  69.317][d][vo/gpu/d3d11] [ 49]     frag_main();
+[  69.317][d][vo/gpu/d3d11] [ 50]     SPIRV_Cross_Output stage_output;
+[  69.317][d][vo/gpu/d3d11] [ 51]     stage_output._221 = _221;
+[  69.317][d][vo/gpu/d3d11] [ 52]     return stage_output;
+[  69.317][d][vo/gpu/d3d11] [ 53] }
+[  69.317][d][vo/gpu] Writing shader cache file: C:\Users\admin-beats\AppData\Local/mpv/5377361F4F30C8331E9CF560BD0C5D1C29E7084538F765FA2635920388D1AC13
+[  69.320][v][cplayer] first video frame after restart shown
+[  69.320][d][cplayer] starting video playback
+[  69.320][v][cplayer] starting audio playback
+[  69.320][v][cplayer] playback restart complete @ 62.088111, audio=playing, video=playing
+[  69.521][v][cplayer] Change display sync audio drift: -1
+[  69.521][v][cplayer] Video sync mode enabled.
+[  69.523][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  69.600][v][cplayer] Change display sync audio drift: 1
+[  69.644][v][cplayer] Change display sync audio drift: -1
+[  71.633][v][cplayer] Change display sync audio drift: 0
+[  71.711][v][cplayer] Change display sync audio drift: -1
+[  71.744][v][vo/gpu] adjusting display FPS to a value closer to 90.029 Hz
+[  72.000][v][cplayer] Change display sync audio drift: 0
+[  72.311][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  72.311][v][cplayer] Change display sync audio drift: 1
+[  72.434][v][cplayer] Change display sync audio drift: -1
+[  74.533][v][vo/gpu] adjusting display FPS to a value closer to 89.994 Hz
+[  76.238][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  76.245][v][cplayer] Change display sync audio drift: 1
+[  76.334][v][cplayer] Change display sync audio drift: -1
+[  77.145][v][cplayer] Change display sync audio drift: 0
+[  77.145][v][cplayer] Compensation factor: 1.000703
+[  77.233][v][cplayer] Change display sync audio drift: -1
+[  78.466][v][vo/gpu] adjusting display FPS to a value closer to 90.046 Hz
+[  79.088][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  79.100][v][cplayer] Change display sync audio drift: 1
+[  79.211][v][cplayer] Change display sync audio drift: -1
+[  81.311][v][vo/gpu] adjusting display FPS to a value closer to 89.993 Hz
+[  81.611][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  81.622][v][cplayer] Change display sync audio drift: 1
+[  81.689][v][cplayer] Change display sync audio drift: -1
+[  83.855][v][vo/gpu] adjusting display FPS to a value closer to 90.026 Hz
+[  84.682][e][ffmpeg] http: Stream ends prematurely at 2932796, should be 18446744073709551615
+[  84.682][w][ffmpeg] http: Will reconnect at 2932796 in 0 second(s), error=I/O error.
+[  84.683][d][ffmpeg] tcp: Starting connection attempt to 149.18.45.192 port 80
+[  84.984][d][ffmpeg] tcp: Successfully connected to 149.18.45.192 port 80
+[  85.583][d][ffmpeg] tcp: Starting connection attempt to 154.6.144.9 port 80
+[  85.938][d][ffmpeg] tcp: Successfully connected to 154.6.144.9 port 80
+[  86.341][w][ffmpeg/demuxer] mpegts: Packet corrupt (stream = 0, dts = 413149737).
+[  89.140][e][ffmpeg/audio] aac: env_facs_q 254 is invalid
+[  89.140][e][ffmpeg/audio] aac: TYPE_FIL: Input buffer exhausted before END element found
+[  89.140][e][ad] Error decoding audio.
+[  89.140][w][ad] Invalid audio PTS: 180.100000 -> 190.169333
+[  89.140][w][cplayer] Reset playback due to audio timestamp reset.
+[  89.140][v][cplayer] blocked, waiting for old audio to play
+[  89.141][v][cplayer] audio ready
+[  89.144][v][vd] Pixel formats supported by decoder: vulkan cuda dxva2_vld d3d11va_vld d3d11 yuv420p
+[  89.144][v][vd] Codec profile: Main (0x4d)
+[  89.144][v][vd] Requesting pixfmt 'd3d11' from decoder.
+[  89.144][d][ffmpeg/video] h264: Decoder GUIDs reported as supported:
+[  89.145][d][ffmpeg/video] h264: {86695f12-340e-4f04-9fd3-9253dd327460} 103 106
+[  89.145][d][ffmpeg/video] h264: {ee27417f-5e28-4e65-beea-1d26b508adc9} 103 106
+[  89.145][d][ffmpeg/video] h264: {6f3ec719-3735-42cc-8063-65cc3cb36616} 103 106
+[  89.145][d][ffmpeg/video] h264: {1b81bea4-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  89.146][d][ffmpeg/video] h264: {1b81bea3-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  89.146][d][ffmpeg/video] h264: {32fcfe3f-de46-4a49-861b-ac71110649d5} 103 106
+[  89.146][d][ffmpeg/video] h264: {d79be8da-0cf1-4c81-b82a-69a4e236f43d} 103 106
+[  89.146][d][ffmpeg/video] h264: {f9aaccbb-c2b6-4cfc-8779-5707b1760552} 103 106
+[  89.146][d][ffmpeg/video] h264: {1b81be68-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[  89.147][d][ffmpeg/video] h264: {5b11d51b-2f4c-4452-bcc3-09f2a1160cc0} 103 106
+[  89.147][d][ffmpeg/video] h264: {107af0e0-ef1a-4d19-aba8-67a163073d13} 104 106
+[  89.147][d][ffmpeg/video] h264: {1a72925f-0c2c-4f15-96fb-b17d1473603f} 104 106
+[  89.147][d][ffmpeg/video] h264: {15df9b21-06c4-47f1-841e-a67c97d7f312} 103 106
+[  89.147][d][ffmpeg/video] h264: {4008018f-f537-4b36-98cf-61af8a2c1a33} 100 106
+[  89.147][d][ffmpeg/video] h264: {0dabeffa-4458-4602-bc03-0795659d617c} 101 106
+[  89.147][d][ffmpeg/video] h264: {9798634d-fe9d-48e5-b4da-dbec45b3df01} 102 106
+[  89.148][d][ffmpeg/video] h264: {efd64d74-c9e8-41d7-a5e9-e9b0e39fa319} 103 106
+[  89.148][d][ffmpeg/video] h264: {ed418a9f-010d-4eda-9ae3-9a65358d8d2e} 103 106
+[  89.148][d][ffmpeg/video] h264: {9947ec6f-689b-11dc-a320-0019dbbc4184} 103 106
+[  89.148][d][ffmpeg/video] h264: {33fcfe41-de46-4a49-861b-ac71110649d5} 103 106 107
+[  89.148][d][ffmpeg/video] h264: {463707f8-a1d0-4585-876d-83aa6d60b89e} 103 106
+[  89.148][d][ffmpeg/video] h264: {a4c749ef-6ecf-48aa-8448-50a7a1165ff7} 104 106
+[  89.148][d][ffmpeg/video] h264: {dda19dc7-93b5-49f5-a9b3-2bda28a2ce6e} 104 106
+[  89.149][d][ffmpeg/video] h264: {b8be4ccb-cf53-46ba-8d59-d6b8a6da5d2a} 103 104 106
+[  89.149][d][ffmpeg/video] h264: {6affd11e-1d96-42b1-a215-93a31f09a53d} 103 106
+[  89.149][d][ffmpeg/video] h264: {914c84a3-4078-4fa9-984c-e2f262cb5c9c} 103 106
+[  89.149][d][ffmpeg/video] h264: {8a1a1031-29bc-46d0-a007-e9b092ca6767} 103 106
+[  89.150][d][ffmpeg/video] h264: Reinit context to 960x544, pix_fmt: d3d11
+[  89.158][v][vd] Decoder format: 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/auto CL=mpeg2/4/h264
+[  89.159][v][cplayer] first video frame after restart shown
+[  89.159][d][cplayer] starting video playback
+[  89.159][v][cplayer] starting audio playback
+[  89.159][v][cplayer] playback restart complete @ 190.216111, audio=playing, video=playing
+[  89.200][v][cplayer] Change display sync audio drift: -1
+[  90.977][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  90.977][v][cplayer] Change display sync audio drift: 0
+[  90.977][v][cplayer] Compensation factor: 0.981327
+[  91.091][v][cplayer] Change display sync audio drift: -1
+[  93.200][v][vo/gpu] adjusting display FPS to a value closer to 89.994 Hz
+[  93.978][v][cplayer] Change display sync audio drift: 0
+[  93.978][v][cplayer] Compensation factor: 0.996593
+[  96.436][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  96.444][v][cplayer] Change display sync audio drift: 1
+[  96.522][v][cplayer] Change display sync audio drift: -1
+[  98.922][v][vo/gpu] adjusting display FPS to a value closer to 89.997 Hz
+[  99.177][v][cplayer] Change display sync audio drift: 0
+[  99.177][v][cplayer] Compensation factor: 1.007218
+[  99.499][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[  99.522][v][cplayer] Change display sync audio drift: 1
+[  99.600][v][cplayer] Change display sync audio drift: -1
+[  99.722][v][cplayer] Change display sync audio drift: 0
+[  99.722][v][cplayer] Compensation factor: 0.998372
+[  99.789][v][cplayer] Change display sync audio drift: -1
+[ 101.744][v][vo/gpu] adjusting display FPS to a value closer to 90.026 Hz
+[ 107.667][v][cplayer] Change display sync audio drift: 0
+[ 107.667][v][cplayer] Compensation factor: 1.000000
+[ 109.898][e][ffmpeg] http: Stream ends prematurely at 2935812, should be 18446744073709551615
+[ 109.898][w][ffmpeg] http: Will reconnect at 2935812 in 0 second(s), error=I/O error.
+[ 109.898][d][ffmpeg] tcp: Starting connection attempt to 149.18.45.192 port 80
+[ 110.632][d][ffmpeg] tcp: Successfully connected to 149.18.45.192 port 80
+[ 111.835][d][ffmpeg] tcp: Starting connection attempt to 154.6.144.9 port 80
+[ 112.477][d][ffmpeg] tcp: Successfully connected to 154.6.144.9 port 80
+[ 112.577][w][cplayer] Audio device underrun detected.
+[ 112.577][v][cplayer] Enter buffering (buffer went from 100% -> 3%) [0.033367s].
+[ 112.577][d][ao/wasapi] Thread Reset
+[ 113.104][w][ffmpeg/demuxer] mpegts: Packet corrupt (stream = 0, dts = 416158743).
+[ 113.110][v][cplayer] Still buffering (buffer went from 3% -> 6%) [0.066733s].
+[ 114.631][v][cplayer] Still buffering (buffer went from 6% -> 10%) [0.100100s].
+[ 115.152][w][ad] Invalid audio PTS: 213.422667 -> 210.180000
+[ 117.413][v][cplayer] Still buffering (buffer went from 10% -> 66%) [0.667333s].
+[ 117.674][v][cplayer] End buffering (waited 5.096697 secs) [3.140689s].
+[ 117.674][v][cplayer] restarting audio after underrun
+[ 117.674][d][ao/wasapi] Thread Resume
+[ 117.674][d][ao/wasapi] Thread Reset
+[ 117.675][w][cplayer] 
+[ 117.675][w][cplayer] Audio/Video desynchronisation detected! Possible reasons include too slow
+[ 117.675][w][cplayer] hardware, temporary CPU spikes, broken drivers, and broken files. Audio
+[ 117.675][w][cplayer] position will not match to the video (see A-V status field).
+[ 117.675][w][cplayer] 
+[ 117.675][v][cplayer] Change display sync audio drift: -1
+[ 117.676][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[ 119.878][w][cplayer] Invalid video timestamp: 213.706244 -> 210.236111
+[ 119.899][v][vo/gpu] adjusting display FPS to a value closer to 90.005 Hz
+[ 120.122][v][cplayer] Change display sync audio drift: 1
+[ 120.538][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[ 120.633][v][cplayer] Change display sync audio drift: -1
+[ 122.766][v][vo/gpu] adjusting display FPS to a value closer to 90.003 Hz
+[ 125.166][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[ 125.166][v][cplayer] Change display sync audio drift: 1
+[ 125.277][v][cplayer] Change display sync audio drift: -1
+[ 127.389][v][vo/gpu] adjusting display FPS to a value closer to 89.984 Hz
+[ 128.656][v][cplayer] Change display sync audio drift: 0
+[ 128.656][v][cplayer] Compensation factor: 0.993507
+[ 132.822][v][cplayer] Change display sync audio drift: -1
+[ 134.100][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[ 134.100][v][cplayer] Change display sync audio drift: 1
+[ 134.189][v][cplayer] Change display sync audio drift: -1
+[ 136.344][v][vo/gpu] adjusting display FPS to a value closer to 90.054 Hz
+[ 136.704][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[ 136.722][v][cplayer] Change display sync audio drift: 1
+[ 136.766][v][cplayer] Change display sync audio drift: 0
+[ 136.766][v][cplayer] Compensation factor: 1.000623
+[ 136.844][v][cplayer] Change display sync audio drift: -1
+[ 137.003][e][ffmpeg] http: Stream ends prematurely at 4234700, should be 18446744073709551615
+[ 137.003][w][ffmpeg] http: Will reconnect at 4234700 in 0 second(s), error=I/O error.
+[ 137.003][d][ffmpeg] tcp: Starting connection attempt to 149.18.45.192 port 80
+[ 137.456][v][cplayer] Change display sync audio drift: 0
+[ 137.456][v][cplayer] Compensation factor: 0.998142
+[ 137.534][v][cplayer] Change display sync audio drift: -1
+[ 137.755][v][cplayer] Change display sync audio drift: 0
+[ 137.755][v][cplayer] Compensation factor: 0.998847
+[ 137.833][v][cplayer] Change display sync audio drift: -1
+[ 137.958][d][ffmpeg] tcp: Successfully connected to 149.18.45.192 port 80
+[ 138.378][v][cplayer] Change display sync audio drift: 0
+[ 138.378][v][cplayer] Compensation factor: 1.000881
+[ 138.433][v][cplayer] Change display sync audio drift: -1
+[ 138.933][v][vo/gpu] adjusting display FPS to a value closer to 90.003 Hz
+[ 138.997][d][ffmpeg] tcp: Starting connection attempt to 149.18.76.10 port 80
+[ 139.913][d][ffmpeg] tcp: Successfully connected to 149.18.76.10 port 80
+[ 140.432][w][ffmpeg/demuxer] mpegts: Packet corrupt (stream = 0, dts = 418555137).
+[ 146.644][v][cplayer] Change display sync audio drift: 0
+[ 146.644][v][cplayer] Compensation factor: 1.000255
+[ 147.406][w][ad] Invalid audio PTS: 240.217333 -> 180.157333
+[ 147.406][w][cplayer] Reset playback due to audio timestamp reset.
+[ 147.406][v][cplayer] blocked, waiting for old audio to play
+[ 147.406][v][cplayer] audio ready
+[ 147.411][v][vd] Pixel formats supported by decoder: vulkan cuda dxva2_vld d3d11va_vld d3d11 yuv420p
+[ 147.411][v][vd] Codec profile: Main (0x4d)
+[ 147.411][v][vd] Requesting pixfmt 'd3d11' from decoder.
+[ 147.411][d][ffmpeg/video] h264: Decoder GUIDs reported as supported:
+[ 147.411][d][ffmpeg/video] h264: {86695f12-340e-4f04-9fd3-9253dd327460} 103 106
+[ 147.411][d][ffmpeg/video] h264: {ee27417f-5e28-4e65-beea-1d26b508adc9} 103 106
+[ 147.411][d][ffmpeg/video] h264: {6f3ec719-3735-42cc-8063-65cc3cb36616} 103 106
+[ 147.411][d][ffmpeg/video] h264: {1b81bea4-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[ 147.411][d][ffmpeg/video] h264: {1b81bea3-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[ 147.412][d][ffmpeg/video] h264: {32fcfe3f-de46-4a49-861b-ac71110649d5} 103 106
+[ 147.412][d][ffmpeg/video] h264: {d79be8da-0cf1-4c81-b82a-69a4e236f43d} 103 106
+[ 147.412][d][ffmpeg/video] h264: {f9aaccbb-c2b6-4cfc-8779-5707b1760552} 103 106
+[ 147.412][d][ffmpeg/video] h264: {1b81be68-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[ 147.412][d][ffmpeg/video] h264: {5b11d51b-2f4c-4452-bcc3-09f2a1160cc0} 103 106
+[ 147.413][d][ffmpeg/video] h264: {107af0e0-ef1a-4d19-aba8-67a163073d13} 104 106
+[ 147.413][d][ffmpeg/video] h264: {1a72925f-0c2c-4f15-96fb-b17d1473603f} 104 106
+[ 147.413][d][ffmpeg/video] h264: {15df9b21-06c4-47f1-841e-a67c97d7f312} 103 106
+[ 147.413][d][ffmpeg/video] h264: {4008018f-f537-4b36-98cf-61af8a2c1a33} 100 106
+[ 147.413][d][ffmpeg/video] h264: {0dabeffa-4458-4602-bc03-0795659d617c} 101 106
+[ 147.413][d][ffmpeg/video] h264: {9798634d-fe9d-48e5-b4da-dbec45b3df01} 102 106
+[ 147.413][d][ffmpeg/video] h264: {efd64d74-c9e8-41d7-a5e9-e9b0e39fa319} 103 106
+[ 147.414][d][ffmpeg/video] h264: {ed418a9f-010d-4eda-9ae3-9a65358d8d2e} 103 106
+[ 147.414][d][ffmpeg/video] h264: {9947ec6f-689b-11dc-a320-0019dbbc4184} 103 106
+[ 147.414][d][ffmpeg/video] h264: {33fcfe41-de46-4a49-861b-ac71110649d5} 103 106 107
+[ 147.414][d][ffmpeg/video] h264: {463707f8-a1d0-4585-876d-83aa6d60b89e} 103 106
+[ 147.414][d][ffmpeg/video] h264: {a4c749ef-6ecf-48aa-8448-50a7a1165ff7} 104 106
+[ 147.414][d][ffmpeg/video] h264: {dda19dc7-93b5-49f5-a9b3-2bda28a2ce6e} 104 106
+[ 147.414][d][ffmpeg/video] h264: {b8be4ccb-cf53-46ba-8d59-d6b8a6da5d2a} 103 104 106
+[ 147.415][d][ffmpeg/video] h264: {6affd11e-1d96-42b1-a215-93a31f09a53d} 103 106
+[ 147.415][d][ffmpeg/video] h264: {914c84a3-4078-4fa9-984c-e2f262cb5c9c} 103 106
+[ 147.415][d][ffmpeg/video] h264: {8a1a1031-29bc-46d0-a007-e9b092ca6767} 103 106
+[ 147.415][d][ffmpeg/video] h264: Reinit context to 960x544, pix_fmt: d3d11
+[ 147.416][e][ffmpeg/video] h264: co located POCs unavailable
+[ 147.421][e][ffmpeg/video] h264: co located POCs unavailable
+[ 147.424][v][vd] Decoder format: 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/auto CL=mpeg2/4/h264
+[ 147.433][v][cplayer] first video frame after restart shown
+[ 147.433][d][cplayer] starting video playback
+[ 147.433][v][cplayer] starting audio playback
+[ 147.433][v][cplayer] playback restart complete @ 180.206111, audio=playing, video=playing
+[ 147.466][v][cplayer] Change display sync audio drift: -1
+[ 153.866][v][cplayer] Change display sync audio drift: 0
+[ 153.866][v][cplayer] Compensation factor: 0.999900
+[ 155.172][e][ffmpeg] http: Stream ends prematurely at 1368832, should be 18446744073709551615
+[ 155.172][w][ffmpeg] http: Will reconnect at 1368832 in 0 second(s), error=I/O error.
+[ 155.172][d][ffmpeg] tcp: Starting connection attempt to 149.18.45.192 port 80
+[ 155.811][d][ffmpeg] tcp: Successfully connected to 149.18.45.192 port 80
+[ 156.853][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[ 156.866][v][cplayer] Change display sync audio drift: 1
+[ 156.945][v][cplayer] Change display sync audio drift: -1
+[ 157.322][v][cplayer] Change display sync audio drift: 0
+[ 157.322][v][cplayer] Compensation factor: 1.004211
+[ 157.344][v][cplayer] Change display sync audio drift: -1
+[ 157.478][v][cplayer] Change display sync audio drift: 0
+[ 157.478][v][cplayer] Compensation factor: 1.005782
+[ 157.544][v][cplayer] Change display sync audio drift: -1
+[ 157.622][v][cplayer] Change display sync audio drift: 0
+[ 157.622][v][cplayer] Compensation factor: 1.006046
+[ 157.655][v][cplayer] Change display sync audio drift: -1
+[ 157.922][d][ffmpeg] tcp: Starting connection attempt to 154.6.144.9 port 80
+[ 158.463][d][ffmpeg] tcp: Successfully connected to 154.6.144.9 port 80
+[ 159.045][w][ffmpeg/demuxer] mpegts: Packet corrupt (stream = 0, dts = 414233820).
+[ 159.575][w][cplayer] Audio device underrun detected.
+[ 159.575][d][ao/wasapi] Thread Reset
+[ 159.575][v][cplayer] Enter buffering (buffer went from 100% -> 0%) [0.000000s].
+[ 160.363][v][cplayer] Still buffering (buffer went from 0% -> 3%) [0.033367s].
+[ 160.364][v][cplayer] Still buffering (buffer went from 3% -> 0%) [0.000000s].
+[ 160.388][v][cplayer] End buffering (waited 0.812648 secs) [68.201467s].
+[ 160.388][v][cplayer] Change display sync audio drift: 1
+[ 160.388][e][ffmpeg/audio] aac: env_facs_q 254 is invalid
+[ 160.388][w][ad] Invalid audio PTS: 192.146667 -> 260.228000
+[ 160.388][w][cplayer] Reset playback due to audio timestamp reset.
+[ 160.388][v][cplayer] audio ready
+[ 160.388][v][vd] Pixel formats supported by decoder: vulkan cuda dxva2_vld d3d11va_vld d3d11 yuv420p
+[ 160.388][v][vd] Codec profile: Main (0x4d)
+[ 160.388][v][vd] Requesting pixfmt 'd3d11' from decoder.
+[ 160.388][d][ffmpeg/video] h264: Decoder GUIDs reported as supported:
+[ 160.389][d][ffmpeg/video] h264: {86695f12-340e-4f04-9fd3-9253dd327460} 103 106
+[ 160.389][d][ffmpeg/video] h264: {ee27417f-5e28-4e65-beea-1d26b508adc9} 103 106
+[ 160.389][d][ffmpeg/video] h264: {6f3ec719-3735-42cc-8063-65cc3cb36616} 103 106
+[ 160.389][d][ffmpeg/video] h264: {1b81bea4-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[ 160.389][d][ffmpeg/video] h264: {1b81bea3-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[ 160.389][d][ffmpeg/video] h264: {32fcfe3f-de46-4a49-861b-ac71110649d5} 103 106
+[ 160.389][d][ffmpeg/video] h264: {d79be8da-0cf1-4c81-b82a-69a4e236f43d} 103 106
+[ 160.390][d][ffmpeg/video] h264: {f9aaccbb-c2b6-4cfc-8779-5707b1760552} 103 106
+[ 160.390][d][ffmpeg/video] h264: {1b81be68-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[ 160.390][d][ffmpeg/video] h264: {5b11d51b-2f4c-4452-bcc3-09f2a1160cc0} 103 106
+[ 160.390][d][ffmpeg/video] h264: {107af0e0-ef1a-4d19-aba8-67a163073d13} 104 106
+[ 160.390][d][ffmpeg/video] h264: {1a72925f-0c2c-4f15-96fb-b17d1473603f} 104 106
+[ 160.391][d][ffmpeg/video] h264: {15df9b21-06c4-47f1-841e-a67c97d7f312} 103 106
+[ 160.391][d][ffmpeg/video] h264: {4008018f-f537-4b36-98cf-61af8a2c1a33} 100 106
+[ 160.391][d][ffmpeg/video] h264: {0dabeffa-4458-4602-bc03-0795659d617c} 101 106
+[ 160.391][d][ffmpeg/video] h264: {9798634d-fe9d-48e5-b4da-dbec45b3df01} 102 106
+[ 160.391][d][ffmpeg/video] h264: {efd64d74-c9e8-41d7-a5e9-e9b0e39fa319} 103 106
+[ 160.391][d][ffmpeg/video] h264: {ed418a9f-010d-4eda-9ae3-9a65358d8d2e} 103 106
+[ 160.391][d][ffmpeg/video] h264: {9947ec6f-689b-11dc-a320-0019dbbc4184} 103 106
+[ 160.392][d][ffmpeg/video] h264: {33fcfe41-de46-4a49-861b-ac71110649d5} 103 106 107
+[ 160.392][d][ffmpeg/video] h264: {463707f8-a1d0-4585-876d-83aa6d60b89e} 103 106
+[ 160.392][d][ffmpeg/video] h264: {a4c749ef-6ecf-48aa-8448-50a7a1165ff7} 104 106
+[ 160.392][d][ffmpeg/video] h264: {dda19dc7-93b5-49f5-a9b3-2bda28a2ce6e} 104 106
+[ 160.392][d][ffmpeg/video] h264: {b8be4ccb-cf53-46ba-8d59-d6b8a6da5d2a} 103 104 106
+[ 160.392][d][ffmpeg/video] h264: {6affd11e-1d96-42b1-a215-93a31f09a53d} 103 106
+[ 160.392][d][ffmpeg/video] h264: {914c84a3-4078-4fa9-984c-e2f262cb5c9c} 103 106
+[ 160.393][d][ffmpeg/video] h264: {8a1a1031-29bc-46d0-a007-e9b092ca6767} 103 106
+[ 160.393][d][ffmpeg/video] h264: Reinit context to 960x544, pix_fmt: d3d11
+[ 160.397][v][vd] Decoder format: 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/auto CL=mpeg2/4/h264
+[ 160.400][v][cplayer] first video frame after restart shown
+[ 160.400][d][cplayer] starting video playback
+[ 160.400][v][cplayer] starting audio playback
+[ 160.400][d][ao/wasapi] Thread Resume
+[ 160.400][d][ao/wasapi] Thread Reset
+[ 160.400][v][cplayer] playback restart complete @ 260.286111, audio=playing, video=playing
+[ 160.561][v][cplayer] Enter buffering (buffer went from 100% -> 0%) [0.000000s].
+[ 160.561][d][ao/wasapi] Thread Reset
+[ 160.649][v][cplayer] Still buffering (buffer went from 0% -> 2%) [0.025589s].
+[ 160.651][v][cplayer] Still buffering (buffer went from 2% -> 0%) [0.000000s].
+[ 160.652][v][cplayer] Still buffering (buffer went from 0% -> 10%) [0.100100s].
+[ 160.699][v][cplayer] Still buffering (buffer went from 10% -> 16%) [0.166833s].
+[ 160.800][v][cplayer] Still buffering (buffer went from 16% -> 36%) [0.367033s].
+[ 161.014][v][cplayer] Still buffering (buffer went from 36% -> 76%) [0.767433s].
+[ 161.277][v][cplayer] End buffering (waited 0.715622 secs) [1.534867s].
+[ 161.277][v][cplayer] Change display sync audio drift: -1
+[ 161.277][d][ao/wasapi] Thread Resume
+[ 161.277][d][ao/wasapi] Thread Reset
+[ 163.500][v][vo/gpu] adjusting display FPS to a value closer to 90.066 Hz
+[ 167.222][v][cplayer] Change display sync audio drift: 0
+[ 167.222][v][cplayer] Compensation factor: 1.000055
+[ 169.706][e][ffmpeg] http: Stream ends prematurely at 1986984, should be 18446744073709551615
+[ 169.706][w][ffmpeg] http: Will reconnect at 1986984 in 0 second(s), error=I/O error.
+[ 169.707][d][ffmpeg] tcp: Starting connection attempt to 149.18.45.192 port 80
+[ 169.855][d][ffmpeg] tcp: Successfully connected to 149.18.45.192 port 80
+[ 170.149][d][ffmpeg] tcp: Starting connection attempt to 149.18.76.10 port 80
+[ 170.286][d][ffmpeg] tcp: Successfully connected to 149.18.76.10 port 80
+[ 170.448][w][ffmpeg/demuxer] mpegts: Packet corrupt (stream = 0, dts = 421819398).
+[ 170.814][w][ffmpeg/demuxer] mpegts: PES packet size mismatch
+[ 170.814][w][ffmpeg/demuxer] mpegts: Packet corrupt (stream = 1, dts = 421800716).
+[ 176.111][v][vo/gpu] switching back to assuming display fps = 60.002 Hz
+[ 176.133][v][cplayer] Change display sync audio drift: 1
+[ 176.211][v][cplayer] Change display sync audio drift: -1
+[ 176.856][e][ffmpeg/audio] aac: Number of bands (58) exceeds limit (45).
+[ 176.856][e][ad] Error decoding audio.
+[ 176.856][e][ffmpeg/audio] aac: channel element 3.5 is not allocated
+[ 176.856][e][ad] Error decoding audio.
+[ 176.856][w][ad] Invalid audio PTS: 276.270667 -> 210.237333
+[ 176.856][w][cplayer] Reset playback due to audio timestamp reset.
+[ 176.856][v][cplayer] blocked, waiting for old audio to play
+[ 176.856][v][cplayer] audio ready
+[ 176.866][v][vd] Pixel formats supported by decoder: vulkan cuda dxva2_vld d3d11va_vld d3d11 yuv420p
+[ 176.866][v][vd] Codec profile: Main (0x4d)
+[ 176.866][v][vd] Requesting pixfmt 'd3d11' from decoder.
+[ 176.866][d][ffmpeg/video] h264: Decoder GUIDs reported as supported:
+[ 176.866][d][ffmpeg/video] h264: {86695f12-340e-4f04-9fd3-9253dd327460} 103 106
+[ 176.866][d][ffmpeg/video] h264: {ee27417f-5e28-4e65-beea-1d26b508adc9} 103 106
+[ 176.867][d][ffmpeg/video] h264: {6f3ec719-3735-42cc-8063-65cc3cb36616} 103 106
+[ 176.867][d][ffmpeg/video] h264: {1b81bea4-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[ 176.867][d][ffmpeg/video] h264: {1b81bea3-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[ 176.867][d][ffmpeg/video] h264: {32fcfe3f-de46-4a49-861b-ac71110649d5} 103 106
+[ 176.867][d][ffmpeg/video] h264: {d79be8da-0cf1-4c81-b82a-69a4e236f43d} 103 106
+[ 176.868][d][ffmpeg/video] h264: {f9aaccbb-c2b6-4cfc-8779-5707b1760552} 103 106
+[ 176.868][d][ffmpeg/video] h264: {1b81be68-a0c7-11d3-b984-00c04f2e73c5} 103 106
+[ 176.868][d][ffmpeg/video] h264: {5b11d51b-2f4c-4452-bcc3-09f2a1160cc0} 103 106
+[ 176.868][d][ffmpeg/video] h264: {107af0e0-ef1a-4d19-aba8-67a163073d13} 104 106
+[ 176.868][d][ffmpeg/video] h264: {1a72925f-0c2c-4f15-96fb-b17d1473603f} 104 106
+[ 176.868][d][ffmpeg/video] h264: {15df9b21-06c4-47f1-841e-a67c97d7f312} 103 106
+[ 176.868][d][ffmpeg/video] h264: {4008018f-f537-4b36-98cf-61af8a2c1a33} 100 106
+[ 176.869][d][ffmpeg/video] h264: {0dabeffa-4458-4602-bc03-0795659d617c} 101 106
+[ 176.869][d][ffmpeg/video] h264: {9798634d-fe9d-48e5-b4da-dbec45b3df01} 102 106
+[ 176.869][d][ffmpeg/video] h264: {efd64d74-c9e8-41d7-a5e9-e9b0e39fa319} 103 106
+[ 176.869][d][ffmpeg/video] h264: {ed418a9f-010d-4eda-9ae3-9a65358d8d2e} 103 106
+[ 176.869][d][ffmpeg/video] h264: {9947ec6f-689b-11dc-a320-0019dbbc4184} 103 106
+[ 176.869][d][ffmpeg/video] h264: {33fcfe41-de46-4a49-861b-ac71110649d5} 103 106 107
+[ 176.870][d][ffmpeg/video] h264: {463707f8-a1d0-4585-876d-83aa6d60b89e} 103 106
+[ 176.870][d][ffmpeg/video] h264: {a4c749ef-6ecf-48aa-8448-50a7a1165ff7} 104 106
+[ 176.870][d][ffmpeg/video] h264: {dda19dc7-93b5-49f5-a9b3-2bda28a2ce6e} 104 106
+[ 176.870][d][ffmpeg/video] h264: {b8be4ccb-cf53-46ba-8d59-d6b8a6da5d2a} 103 104 106
+[ 176.870][d][ffmpeg/video] h264: {6affd11e-1d96-42b1-a215-93a31f09a53d} 103 106
+[ 176.870][d][ffmpeg/video] h264: {914c84a3-4078-4fa9-984c-e2f262cb5c9c} 103 106
+[ 176.870][d][ffmpeg/video] h264: {8a1a1031-29bc-46d0-a007-e9b092ca6767} 103 106
+[ 176.871][d][ffmpeg/video] h264: Reinit context to 960x544, pix_fmt: d3d11
+[ 176.871][e][ffmpeg/video] h264: co located POCs unavailable
+[ 176.875][v][vd] Decoder format: 960x540 d3d11[nv12] bt.709/bt.709/bt.1886/limited/auto CL=mpeg2/4/h264
+[ 176.877][v][cplayer] first video frame after restart shown
+[ 176.878][d][cplayer] starting video playback
+[ 176.878][v][cplayer] starting audio playback
+[ 176.878][v][cplayer] playback restart complete @ 276.302111, audio=playing, video=playing
+[ 176.890][w][cplayer] 
+[ 176.890][w][cplayer] Audio/Video desynchronisation detected! Possible reasons include too slow
+[ 176.890][w][cplayer] hardware, temporary CPU spikes, broken drivers, and broken files. Audio
+[ 176.890][w][cplayer] position will not match to the video (see A-V status field).
+[ 176.890][w][cplayer] 
+[ 176.890][v][cplayer] Change display sync audio drift: -1
+[ 178.356][w][cplayer] Invalid video timestamp: 276.569044 -> 210.236111
+[ 178.600][v][cplayer] Change display sync audio drift: 1
+[ 178.711][e][ffmpeg] http: Stream ends prematurely at 1856512, should be 18446744073709551615
+[ 178.711][w][ffmpeg] http: Will reconnect at 1856512 in 0 second(s), error=I/O error.
+[ 178.711][d][ffmpeg] tcp: Starting connection attempt to 149.18.45.192 port 80
+[ 178.879][v][cplayer] Change display sync audio drift: -1
+[ 178.928][d][ffmpeg] tcp: Successfully connected to 149.18.45.192 port 80

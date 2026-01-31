@@ -15,7 +15,7 @@
     "core:tray:default",
     "dialog:default",
     "clipboard-manager:allow-write-text",
-    "shell:default",
+    "shell:allow-open",
     "notification:default",
     "core:webview:allow-set-webview-zoom"
   ]

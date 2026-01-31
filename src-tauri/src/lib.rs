@@ -23,7 +23,7 @@
 use anyhow::Context;
 use anyhow::Error;
 
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Manager, State, Emitter};
 use tokio::sync::Mutex;
 use types::{
     AppState, Channel, CustomChannel, CustomChannelExtraData, EPG, EPGNotify, Filters, Group,
@@ -46,6 +46,7 @@ pub mod m3u;
 pub mod media_type;
 pub mod mpv;
 pub mod restream;
+pub mod security;
 pub mod settings;
 pub mod share;
 pub mod sort_type;
@@ -143,6 +144,7 @@ pub fn run() {
             get_xtream_source_details,
             fetch_vod_info,
             get_mpv_preset,
+            auto_install_dependency,
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -255,7 +257,9 @@ async fn play(
 
 #[tauri::command(async)]
 fn get_settings() -> Result<Settings, String> {
-    settings::get_settings().map_err(map_err_frontend)
+    let mut settings = settings::get_settings().map_err(map_err_frontend)?;
+    
+    Ok(settings)
 }
 
 #[tauri::command(async)]
@@ -274,22 +278,31 @@ fn bulk_update(filters: Filters, action: u8) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn get_xtream(source: Source) -> Result<(), String> {
-    xtream::get_xtream(source, false)
+async fn get_xtream(app: AppHandle, source: Source) -> Result<(), String> {
+    xtream::get_xtream(&app, source, false)
         .await
         .map_err(map_err_frontend)
 }
 
 #[tauri::command]
-async fn refresh_source(source: Source) -> Result<(), String> {
-    utils::refresh_source(source)
-        .await
-        .map_err(map_err_frontend)
+async fn refresh_source(app: AppHandle, source: Source) -> Result<(), String> {
+    let _ = app.emit("refresh-progress", serde_json::json!({
+        "playlist": source.name,
+        "activity": "Starting refresh...",
+        "percent": 0
+    }).to_string());
+    let result = utils::refresh_source(&app, source.clone()).await.map_err(map_err_frontend);
+    let _ = app.emit("refresh-progress", serde_json::json!({
+        "playlist": source.name,
+        "activity": "Refresh complete",
+        "percent": 100
+    }).to_string());
+    result
 }
 
 #[tauri::command]
-async fn refresh_all() -> Result<(), String> {
-    utils::refresh_all().await.map_err(map_err_frontend)
+async fn refresh_all(app: AppHandle) -> Result<(), String> {
+    utils::refresh_all(&app).await.map_err(map_err_frontend)
 }
 
 #[tauri::command]
@@ -616,6 +629,11 @@ fn check_dependencies() -> deps::DependencyCheckResult {
     deps::check_dependencies()
 }
 
+#[tauri::command]
+async fn auto_install_dependency(app: AppHandle, name: String) -> Result<(), String> {
+    deps::auto_install_dependency(app, &name).await.map_err(map_err_frontend)
+}
+
 #[tauri::command(async)]
 fn set_bulk_tag_visibility(tags: Vec<String>, visible: bool) -> Result<usize, String> {
     sql::do_tx(|tx| tags::set_bulk_tag_visibility(tx, &tags, visible)).map_err(map_err_frontend)
@@ -655,7 +673,9 @@ async fn fetch_vod_info(channel: Channel) -> Result<xtream::XtreamVodInfo, Strin
 #[tauri::command]
 fn get_mpv_preset(preset: String) -> String {
     match preset.as_str() {
+        "stable" => mpv::get_stable_params(),
         "enhanced" => mpv::get_enhanced_params(),
+        "performance" => mpv::get_performance_params(),
         "default" => String::new(),
         _ => String::new(),
     }

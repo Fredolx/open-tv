@@ -5,7 +5,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { NgbModalModule, NgbTooltipModule, NgbTypeaheadModule } from '@ng-bootstrap/ng-bootstrap';
 import { FormsModule } from '@angular/forms';
-import { MatMenuModule } from '@angular/material/menu'
+import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
 import { ToastrModule } from 'ngx-toastr';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -31,8 +32,14 @@ import { RestreamModalComponent } from './restream-modal/restream-modal.componen
 import { SortButtonComponent } from './home/sort-button/sort-button.component';
 import { SortItemComponent } from './home/sort-button/sort-item/sort-item.component';
 import { DownloadManagerComponent } from './download-manager/download-manager.component';
+import { FilterChipsComponent } from './home/filter-chips/filter-chips.component';
+import { ContentDetailModalComponent } from './content-detail-modal/content-detail-modal.component';
+import { MediaFilterPillComponent } from './home/components/media-filter-pill.component';
+import { HomeHeaderComponent } from './home/components/home-header.component';
+import { BulkActionBarComponent } from './home/components/bulk-action-bar.component';
+import { BreadcrumbComponent } from './home/components/breadcrumb.component';
 
-import { TimeAgoPipe } from "./pipes/time-ago.pipe";
+import { TimeAgoPipe } from './pipes/time-ago.pipe';
 
 @NgModule({
   declarations: [
@@ -70,12 +77,17 @@ import { TimeAgoPipe } from "./pipes/time-ago.pipe";
     ToastrModule.forRoot(),
     KeyboardShortcutsModule.forRoot(),
     MatMenuModule,
+    MatProgressBarModule,
     NgbModalModule,
-    NgbTypeaheadModule
+    NgbTypeaheadModule,
+    FilterChipsComponent,
+    ContentDetailModalComponent,
+    MediaFilterPillComponent,
+    HomeHeaderComponent,
+    BulkActionBarComponent,
+    BreadcrumbComponent,
   ],
-  providers: [
-    provideAnimationsAsync()
-  ],
-  bootstrap: [AppComponent]
+  providers: [provideAnimationsAsync()],
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

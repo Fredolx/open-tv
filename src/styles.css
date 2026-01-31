@@ -26,6 +26,12 @@
   --clay-radius-md: 18px;
   --clay-radius-lg: 24px;
   --clay-radius-xl: 32px;
+
+  /* Default Theme Background (Clay-Mation Spotlight) */
+  --app-bg:
+    radial-gradient(circle at 50% -10%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% -20%, rgba(255, 255, 255, 0.04) 0%, transparent 30%),
+    linear-gradient(180deg, #141414 0%, #080808 100%);
 }
 
 body {
@@ -214,20 +220,22 @@ input[type="range"]:focus::-ms-thumb {
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 14px; /* Increased from 8px for better visibility */
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--beats-black);
+  background: #2a2a2a; /* Lighter than black background for contrast */
+  border-left: 1px solid #333;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #555; /* Lighter starting color */
   border-radius: 4px;
+  border: 3px solid #2a2a2a; /* Creates a nice padding effect */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--beats-red);
+  background: var(--beats-red); /* Glowing red on hover */
 }
 
 .selectable {
@@ -250,6 +258,7 @@ html {
 html,
 body {
   height: fit-content;
+  -webkit-user-select: none;
   user-select: none;
 }
 body {
@@ -274,6 +283,9 @@ body.theme-smooth-glass {
   --beats-dark-gray: #121212;
   --beats-charcoal: #1c1c1e;
 
+  /* Apple Glass Background Override */
+  --app-bg: linear-gradient(135deg, #1c1c1e 0%, #000000 100%);
+
   /* Apple Glass Colors - Premium Depth */
   --beats-surface: rgba(25, 25, 30, 0.45);
   --beats-surface-light: rgba(255, 255, 255, 0.08);
@@ -296,10 +308,20 @@ body.theme-smooth-glass {
 }
 
 body.theme-smooth-glass {
-  /* Ultra-smooth visionOS style background */
-  background: radial-gradient(circle at 10% 20%, #1a1a22 0%, #050508 100%) fixed;
+  /* Premium Glass Smoke Background */
+  background: var(--app-bg) no-repeat center center fixed !important;
+  background-size: cover !important;
   font-family:
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+}
+
+/* Global Header Override for Glass Theme */
+body.theme-smooth-glass .app-header {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  backdrop-filter: blur(25px) saturate(180%);
 }
 
 /* Glass Card Base - targets both Home (channel) and Settings (source) tiles */
@@ -314,46 +336,54 @@ body.theme-smooth-glass .card,
 body.theme-smooth-glass .list-group-item,
 body.theme-smooth-glass .mat-mdc-menu-panel {
   background: var(--beats-surface) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
-  backdrop-filter: blur(40px) saturate(200%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
-  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  -webkit-backdrop-filter: blur(50px) saturate(150%) !important;
+  backdrop-filter: blur(50px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* Premium Elevate Hover Effect - Shared between Home and Settings */
 body.theme-smooth-glass .channel:hover,
 body.theme-smooth-glass .source:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: rgba(255, 255, 255, 0.25) !important;
-  transform: translateY(-6px) scale(1.02);
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-4px) scale(1.02);
   box-shadow:
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 30px var(--beats-red-glow) !important;
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(0, 122, 255, 0.4) !important; /* Blue glow */
   z-index: 50;
 }
 
 body.theme-smooth-glass .form-control {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   color: white !important;
   border-radius: 12px !important;
-  -webkit-backdrop-filter: blur(15px);
-  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   padding: 0.6rem 1rem;
 }
 
+body.theme-smooth-glass .form-control:focus {
+  border-color: var(--beats-red) !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.25) !important;
+}
+
 body.theme-smooth-glass .btn-primary {
-  background: linear-gradient(145deg, #007aff, #005ecb) !important;
-  box-shadow: 0 4px 14px rgba(0, 122, 255, 0.4) !important;
+  background: linear-gradient(135deg, #007aff, #0056b3) !important;
+  box-shadow:
+    0 4px 15px rgba(0, 122, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
   border: none !important;
-  border-radius: 100px !important; /* Proper Apple Capsule */
-  font-weight: 600;
+  border-radius: 20px !important; /* Proper Apple Capsule */
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
 body.theme-smooth-glass .btn-primary:hover {
-  background: linear-gradient(145deg, #2188ff, #007aff) !important;
-  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.6) !important;
+  background: linear-gradient(135deg, #2a91ff, #0069d9) !important;
+  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.5) !important;
   transform: translateY(-1px);
 }
 
@@ -363,23 +393,32 @@ body.theme-smooth-glass .btn-info {
   color: #5ac8fa !important;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  border-radius: 100px !important;
+  border-radius: 20px !important;
 }
 
 body.theme-smooth-glass ::selection {
-  background: rgba(0, 122, 255, 0.4);
+  background: rgba(0, 122, 255, 0.5);
   color: white;
+  text-shadow: none;
 }
 
 body.theme-smooth-glass ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-radius: 20px !important;
-  border: 5px solid transparent !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px !important;
+  border: 4px solid transparent !important;
   background-clip: padding-box !important;
 }
 
 body.theme-smooth-glass ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Ensure Logo uses Blue in Glass Theme */
+body.theme-smooth-glass .app-title {
+  background: linear-gradient(135deg, #007aff 0%, #5ac8fa 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: 0 10px 30px rgba(0, 122, 255, 0.3);
 }
 
 /* Theme 2: Matrix Terminal */

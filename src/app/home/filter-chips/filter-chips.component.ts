@@ -59,12 +59,13 @@ export interface FilterChip {
         background: rgba(255, 255, 255, 0.1);
         color: #fff;
         transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.25);
       }
       .chip.active {
-        background: #dc3545; /* Vibe Red */
+        background: var(--beats-red);
         color: #fff;
-        border-color: #dc3545;
-        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        border-color: var(--beats-red);
+        box-shadow: 0 4px 12px var(--beats-red-glow);
       }
     `,
   ],

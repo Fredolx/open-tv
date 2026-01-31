@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { ConfirmModalComponent } from './confirm-modal.component';
 
 describe('ConfirmModalComponent', () => {
@@ -8,10 +8,10 @@ describe('ConfirmModalComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ConfirmModalComponent]
-    })
-    .compileComponents();
-    
+      declarations: [ConfirmModalComponent],
+      providers: [NgbActiveModal],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(ConfirmModalComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

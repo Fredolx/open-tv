@@ -2,7 +2,7 @@
   "productName": "Beats TV",
   "version": "2.0.2",
 
-  "identifier": "dev.fredol.open-tv",
+  "identifier": "com.beatstv.app",
   "build": {
     "frontendDist": "../dist/open-tv/browser",
     "devUrl": "http://localhost:4200",
@@ -22,7 +22,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: http: asset: blob:; media-src *; font-src 'self' data: https:; connect-src 'self' https: http: ws: wss:;"
     }
   },
   "bundle": {

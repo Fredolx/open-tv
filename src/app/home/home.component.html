@@ -3,322 +3,147 @@
 
 <div class="app-container">
   <!-- Header Section -->
-  <header class="app-header">
-    <div class="header-content">
-      <div class="logo-section">
-        <h1 class="app-title">Beats TV</h1>
-        <span class="app-subtitle">IPTV Player</span>
-      </div>
-      <div class="selection-status" *ngIf="selectedChannels.size > 0">
-        <span class="selection-count">{{ selectedChannels.size }} items selected</span>
-        <button class="btn-clear" (click)="clearSelection()">Clear</button>
-      </div>
-      <button class="settings-btn" (click)="openSettings()" title="Settings">
-        <svg fill="currentColor" viewBox="0 0 24 24">
-          <path
-            d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
-          />
-        </svg>
-      </button>
-    </div>
-  </header>
+  <app-home-header
+    [selectedCount]="selectedChannels.size"
+    [selectionMode]="selectionMode"
+    [bulkDisabled]="!!filters?.series_id && !filters?.season"
+    [bulkMenu]="bulkMenu"
+    (toggleSelectionMode)="toggleSelectionMode()"
+    (clearSelection)="clearSelection()"
+    (openSettings)="openSettings()"
+  ></app-home-header>
 
   <!-- Sticky Bulk Actions Bar -->
-  <div class="bulk-sticky-bar" *ngIf="selectedChannels.size > 0" [@fadeInOut]>
-    <div class="bulk-bar-content">
-      <button class="bulk-btn btn-fav" (click)="bulkActionOnSelected(bulkActionType.Favorite)">
-        <svg viewBox="0 0 24 24">
-          <path
-            d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-          />
-        </svg>
-        Favorite
-      </button>
-      <button class="bulk-btn btn-hide" (click)="bulkActionOnSelected(bulkActionType.Hide)">
-        <svg viewBox="0 0 24 24">
-          <path
-            d="M11.83,9L15,12.17V12.13C15,10.96 14.04,10 12.87,10H12.83L11.83,9M12,13.17L10.83,12H10.87C12.04,12 13,12.96 13,14.13V14.17L12,13.17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"
-          />
-        </svg>
-        Hide
-      </button>
-      <button class="bulk-btn btn-whitelist" (click)="whitelistSelected()">
-        <svg viewBox="0 0 24 24">
-          <path
-            d="M12,2A10,10 0 1,0 22,12A10,10 0 0,0 12,2M12,18A6,6 0 1,1 18,12A6,6 0 0,1 12,18M12,8A4,4 0 1,0 16,12A4,4 0 0,0 12,8Z"
-          />
-        </svg>
-        Whitelist
-      </button>
-      <div class="spacer"></div>
-      <button class="bulk-btn btn-cancel" (click)="clearSelection()">Cancel</button>
-    </div>
-  </div>
+  <app-bulk-action-bar
+    [visible]="selectedChannels.size > 0"
+    (action)="bulkActionFromBar($event)"
+    (cancel)="clearSelection()"
+  ></app-bulk-action-bar>
 
-  <!-- Search & Controls Section -->
-  <section class="controls-section">
-    <app-filter-chips
-      [chips]="filterChips"
-      (filterChanged)="onFilterChipChanged($event)"
-    ></app-filter-chips>
-    <div class="search-container">
-      <div class="search-box">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"
+  <!-- Search & Controls Section (Apple Premium Design - Reference Matching) -->
+  <section class="controls-section glass-toolbar">
+    <div class="toolbar-stack">
+      <!-- 1. Search Container (Top) -->
+      <div class="search-container">
+        <div class="search-box premium-glass-input">
+          <input
+            autocomplete="off"
+            #search
+            type="text"
+            class="search-input"
+            placeholder="Type to search..."
+            title="Search"
+            [attr.aria-label]="'Search'"
           />
-        </svg>
-        <input
-          autocomplete="off"
-          #search
-          type="text"
-          class="search-input"
-          placeholder="Search channels..."
-          title="Search channels"
-          [attr.aria-label]="'Search channels'"
-        />
-        <div class="search-actions">
-          <button
-            class="icon-btn"
-            (click)="toggleKeywords()"
-            [class.active]="filters?.use_keywords"
-            title="Toggle keyword search"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M5,3C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H5M5,5H19V19H5V5M7,7V9H9V7H7M11,7V9H13V7H11M15,7V9H17V7H15M7,11V13H9V11H7M11,11V13H13V11H11M15,11V13H17V11H15M7,15V17H9V15H7M11,15V17H13V15H11M15,15V17H17V15H15Z"
-              />
-            </svg>
-          </button>
-          <button class="icon-btn" (click)="reload()" title="Reload">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
-              />
-            </svg>
-          </button>
-          <button
-            class="icon-btn"
-            [matMenuTriggerFor]="bulkMenu"
-            [class.disabled]="filters?.series_id && !filters?.season"
-            title="Bulk actions"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M6,2A4,4 0 0,1 10,6V8H14V6A4,4 0 0,1 18,2A4,4 0 0,1 22,6A4,4 0 0,1 18,10H16V14H18A4,4 0 0,1 22,18A4,4 0 0,1 18,22A4,4 0 0,1 14,18V16H10V18A4,4 0 0,1 6,22A4,4 0 0,1 2,18A4,4 0 0,1 6,14H8V10H6A4,4 0 0,1 2,6A4,4 0 0,1 6,2M16,18A2,2 0 0,0 18,20A2,2 0 0,0 20,18A2,2 0 0,0 18,16H16V18M14,10H10V14H14V10M6,16A2,2 0 0,0 4,18A2,2 0 0,0 6,20A2,2 0 0,0 8,18V16H6M8,6A2,2 0 0,0 6,4A2,2 0 0,0 4,6A2,2 0 0,0 6,8H8V6M18,8A2,2 0 0,0 20,6A2,2 0 0,0 18,4A2,2 0 0,0 16,6V8H18Z"
-              />
-            </svg>
-          </button>
-          <button
-            class="icon-btn"
-            (click)="toggleSelectionMode()"
-            [class.active]="selectionMode"
-            title="Selection mode"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M3,5H9V11H3V5M5,7V9H7V7H5M11,7H21V9H11V7M11,11H21V13H11V11M5,13V15H7V13H5M3,11H9V17H3V11M11,15H21V17H11V15M5,19V21H7V19H5M3,17H9V23H3V17M11,19H21V21H11V19Z"
-              />
-            </svg>
-          </button>
-          <button class="icon-btn" [matMenuTriggerFor]="filterMenu" title="Filter">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M14,12V19.88C14.04,20.18 13.94,20.5 13.71,20.71C13.32,21.1 12.69,21.1 12.3,20.71L10.29,18.7C10.06,18.47 9.96,18.16 10,17.87V12H9.97L4.21,4.62C3.87,4.19 3.95,3.56 4.38,3.22C4.57,3.08 4.78,3 5,3V3H19V3C19.22,3 19.43,3.08 19.62,3.22C20.05,3.56 20.13,4.19 19.79,4.62L14.03,12H14Z"
-              />
-            </svg>
-          </button>
-          <mat-menu #filterMenu="matMenu" class="filter-menu-panel">
-            <div class="filter-content" (click)="$event.stopPropagation()">
-              <div class="filter-group">
-                <label>Genre</label>
-                <input
-                  type="text"
-                  class="premium-input"
-                  placeholder="e.g. Action"
-                  [ngModel]="genreInput"
-                  (ngModelChange)="updateGenre($event)"
+          <div class="search-actions">
+            <button class="icon-btn" (click)="reload()" title="Reload">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
                 />
-              </div>
-              <div class="filter-group">
-                <label>Min Rating: {{ minRating }}</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  step="0.5"
-                  class="premium-slider"
-                  [ngModel]="minRating"
-                  (ngModelChange)="updateRating($event)"
-                />
-              </div>
-            </div>
-          </mat-menu>
-          <app-sort-button></app-sort-button>
+              </svg>
+            </button>
+            <app-sort-button></app-sort-button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Selection Actions Bar -->
-    <div *ngIf="selectionMode" class="selection-bar" @fadeInOut>
-      <span class="selection-count" *ngIf="selectedChannels.size > 0">
-        {{ selectedChannels.size }} selected
-      </span>
-      <button class="btn-action" (click)="selectAllView()">Select All</button>
-      <ng-container *ngIf="selectedChannels.size > 0">
-        <button class="btn-action btn-hide" (click)="bulkActionOnSelected(bulkActionType.Hide)">
-          Hide
-        </button>
-        <button class="btn-action btn-show" (click)="bulkActionOnSelected(bulkActionType.Unhide)">
-          Unhide
-        </button>
-        <button class="btn-action btn-fav" (click)="bulkActionOnSelected(bulkActionType.Favorite)">
-          Favorite
+      <!-- 2. Primary View Modes Segmented Control -->
+      <nav class="view-segmented-control apple-segmented">
+        <button
+          (click)="switchMode(viewModeEnum.All)"
+          class="segment-btn"
+          [class.active]="filters?.view_type == viewModeEnum.All"
+        >
+          All
         </button>
         <button
-          class="btn-action btn-whitelist"
-          (click)="whitelistSelected()"
-          [ngbTooltip]="'Keep only selected visible'"
+          (click)="switchMode(viewModeEnum.Categories)"
+          class="segment-btn"
+          [class.active]="filters?.view_type == viewModeEnum.Categories"
         >
-          Whitelist
+          Categories
         </button>
-      </ng-container>
-      <button
-        class="btn-action btn-clear"
-        *ngIf="selectedChannels.size > 0"
-        (click)="clearSelection()"
-      >
-        Clear
-      </button>
-    </div>
+        <button
+          (click)="switchMode(viewModeEnum.Favorites)"
+          class="segment-btn"
+          [class.active]="filters?.view_type == viewModeEnum.Favorites"
+        >
+          Favorites
+        </button>
+        <button
+          (click)="switchMode(viewModeEnum.History)"
+          class="segment-btn"
+          [class.active]="filters?.view_type == viewModeEnum.History"
+        >
+          History
+        </button>
+      </nav>
 
-    <!-- View Mode Tabs -->
-    <nav class="view-tabs">
-      <button
-        (click)="switchMode(viewModeEnum.All)"
-        class="tab-btn"
-        [class.active]="filters?.view_type == viewModeEnum.All"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M3,3H21V21H3V3M5,5V19H19V5H5Z" />
-        </svg>
-        All
-      </button>
-      <button
-        (click)="switchMode(viewModeEnum.Categories)"
-        class="tab-btn"
-        [class.active]="filters?.view_type == viewModeEnum.Categories"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M3,3H11V11H3V3M3,13H11V21H3V13M13,3H21V11H13V3M13,13H21V21H13V13Z" />
-        </svg>
-        Categories
-      </button>
-      <button
-        (click)="switchMode(viewModeEnum.History)"
-        class="tab-btn"
-        [class.active]="filters?.view_type == viewModeEnum.History"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12.5,6V12.25L17,14.92L16.25,16.15L11,13V6H12.5Z"
-          />
-        </svg>
-        History
-      </button>
-      <button
-        (click)="switchMode(viewModeEnum.Favorites)"
-        class="tab-btn"
-        [class.active]="filters?.view_type == viewModeEnum.Favorites"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-          />
-        </svg>
-        Favorites
-      </button>
-      <button
-        (click)="switchMode(viewModeEnum.Hidden)"
-        class="tab-btn"
-        [class.active]="filters?.view_type == viewModeEnum.Hidden"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5M12,17C9.24,17 7,14.76 7,12C7,9.24 9.24,7 12,7C14.76,7 17,9.24 17,12C17,14.76 14.76,17 12,17M12,9C10.34,9 9,10.34 9,12C9,13.66 10.34,15 12,15C13.66,15 15,13.66 15,12C15,10.34 13.66,9 12,9Z"
-          />
-        </svg>
-        Hidden
-      </button>
-    </nav>
-
-    <!-- Media Type Filters -->
-    <div class="filter-bar" *ngIf="filtersVisible()" @fadeInOut>
-      <label class="filter-chip" [class.active]="chkLiveStream">
-        <input
-          type="checkbox"
-          [(ngModel)]="chkLiveStream"
-          (ngModelChange)="updateMediaTypes(mediaTypeEnum.livestream)"
-        />
-        <span class="chip-indicator live"></span>
-        <span>Live</span>
-      </label>
-      <label class="filter-chip" [class.active]="chkMovie">
-        <input
-          type="checkbox"
-          [(ngModel)]="chkMovie"
-          (ngModelChange)="updateMediaTypes(mediaTypeEnum.movie)"
-        />
-        <span class="chip-indicator movie"></span>
-        <span>Movies</span>
-      </label>
-      <label class="filter-chip" [class.active]="chkSerie" *ngIf="anyXtream()">
-        <input
-          type="checkbox"
-          [(ngModel)]="chkSerie"
-          (ngModelChange)="updateMediaTypes(mediaTypeEnum.serie)"
-        />
-        <span class="chip-indicator series"></span>
-        <span>Series</span>
-      </label>
-    </div>
-
-    <!-- Breadcrumb Navigation -->
-    <div
-      class="breadcrumb"
-      *ngIf="
-        (filters?.view_type == viewModeEnum.Categories && filters?.group_id) || filters?.series_id
-      "
-    >
-      <button class="back-btn" (click)="goBack()">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M2,12A10,10 0 0,1 12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12M18,11H10L13.5,7.5L12.08,6.08L6.16,12L12.08,17.92L13.5,16.5L10,13H18V11Z"
-          />
-        </svg>
-      </button>
-      <h4 *ngIf="nodeStack.hasNodes()" class="breadcrumb-text">
-        {{ nodeStack.get()?.toString() }}
-      </h4>
+      <!-- 3. Media Type Switches (Pill Style from Reference) -->
+      <app-media-filter-pill
+        [chkLiveStream]="chkLiveStream"
+        [chkMovie]="chkMovie"
+        [chkSerie]="chkSerie"
+        [showSeries]="anyXtream()"
+        (toggle)="updateMediaTypes($event)"
+      ></app-media-filter-pill>
     </div>
   </section>
 
+  <!-- Selection Actions Bar -->
+  <div *ngIf="selectionMode" class="selection-bar" @fadeInOut>
+    <span class="selection-count" *ngIf="selectedChannels.size > 0">
+      {{ selectedChannels.size }} selected
+    </span>
+    <button class="btn-action" (click)="selectAllView()">Select All</button>
+    <ng-container *ngIf="selectedChannels.size > 0">
+      <button class="btn-action btn-hide" (click)="bulkActionOnSelected(bulkActionType.Hide)">
+        Hide
+      </button>
+      <button class="btn-action btn-show" (click)="bulkActionOnSelected(bulkActionType.Unhide)">
+        Unhide
+      </button>
+      <button class="btn-action btn-fav" (click)="bulkActionOnSelected(bulkActionType.Favorite)">
+        Favorite
+      </button>
+      <button
+        class="btn-action btn-whitelist"
+        (click)="whitelistSelected()"
+        [ngbTooltip]="'Keep only selected visible'"
+      >
+        Whitelist
+      </button>
+    </ng-container>
+    <button
+      class="btn-action btn-clear"
+      *ngIf="selectedChannels.size > 0"
+      (click)="clearSelection()"
+    >
+      Clear
+    </button>
+  </div>
+
+  <app-breadcrumb
+    [visible]="
+      (!!filters?.view_type == !!viewModeEnum.Categories && !!filters?.group_id) ||
+      !!filters?.series_id
+    "
+    [text]="nodeStack.get()?.toString() || ''"
+    (back)="goBack()"
+  ></app-breadcrumb>
   <!-- Content Grid -->
   <main class="content-grid">
-    <div
-      class="channels-container"
-      [class.single-column]="memory.settings.use_single_column"
-      [@fade]="channelsVisible ? 'visible' : 'hidden'"
-    >
+    <div class="channels-container list-view" [@fade]="channelsVisible ? 'visible' : 'hidden'">
       <app-channel-tile
         [attr.id]="i == 0 ? 'first' : null"
         *ngFor="let channel of channels; let i = index"
-        [class]="memory.settings.use_single_column ? 'col-12' : 'channel-item'"
+        class="channel-item"
         [id]="i"
         [channel]="channel"
         [viewMode]="viewType"
-        [threeLines]="memory.settings.max_text_lines === 3"
-        [compact]="memory.settings.compact_mode ?? false"
+        [threeLines]="false"
+        [compact]="true"
         [selectionMode]="selectionMode"
         [selected]="selectedChannels.has(channel.id!)"
         (selectionToggled)="toggleChannelSelection($event)"
@@ -367,36 +192,6 @@
     Unfavorite all
   </button>
 </mat-menu>
-
-<!-- Bulk Sticky Bar -->
-<div class="bulk-sticky-bar" *ngIf="selectedChannels.size > 0">
-  <div class="bulk-bar-content">
-    <div class="selected-info">
-      <span class="count">{{ selectedChannels.size }}</span>
-      <span class="label">Channels Selected</span>
-    </div>
-    <div class="bulk-actions">
-      <button (click)="bulkHide(true)" class="bulk-btn hide-btn">
-        <svg viewBox="0 0 24 24">
-          <path
-            d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"
-          />
-        </svg>
-        Hide
-      </button>
-      <button (click)="bulkFavorite(true)" class="bulk-btn fav-btn">
-        <svg viewBox="0 0 24 24">
-          <path
-            d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-          />
-        </svg>
-        Favorite
-      </button>
-      <div class="divider"></div>
-      <button (click)="clearSelection()" class="bulk-btn clear-btn">Cancel</button>
-    </div>
-  </div>
-</div>
 
 <!-- Content Detail Modal -->
 <app-content-detail-modal

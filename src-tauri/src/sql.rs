@@ -299,9 +299,13 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
     if let Some(id) = id {
         return Ok(id);
     }
+    if let Some(ref password) = source.password {
+        let _ = crate::security::save_password(&source.name, password);
+    }
+
     tx.execute(
     "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id, user_agent, max_streams, last_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id, source.user_agent, source.max_streams, chrono::Utc::now().timestamp()],
+    params![source.name, source.source_type.clone() as u8, source.url, source.username, Option::<String>::None, source.use_tvg_id, source.user_agent, source.max_streams, chrono::Utc::now().timestamp()],
     )?;
     Ok(tx.last_insert_rowid())
 }
@@ -1340,11 +1344,19 @@ pub fn get_enabled_sources() -> Result<Vec<Source>> {
 }
 
 fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
+    let name: String = row.get("name")?;
+    let mut password: Option<String> = row.get("password")?;
+    
+    // Try to load from secure storage, fallback to DB
+    if let Ok(secure_pass) = crate::security::get_password(&name) {
+        password = Some(secure_pass);
+    }
+
     Ok(Source {
         id: row.get("id")?,
-        name: row.get("name")?,
+        name,
         username: row.get("username")?,
-        password: row.get("password")?,
+        password,
         url: row.get("url")?,
         source_type: row.get("source_type")?,
         url_origin: None,
@@ -1743,6 +1755,10 @@ where
 
 pub fn update_source(source: Source) -> Result<()> {
     let sql = get_conn()?;
+    if let Some(ref password) = source.password {
+        let _ = crate::security::save_password(&source.name, password);
+    }
+
     sql.execute(
         r#"
         UPDATE sources
@@ -1750,7 +1766,7 @@ pub fn update_source(source: Source) -> Result<()> {
         WHERE id = ?"#,
         params![
             source.username,
-            source.password,
+            Option::<String>::None, // Redact password in DB
             source.url,
             source.use_tvg_id,
             source.user_agent,

@@ -19,10 +19,11 @@
  * This project is a fork of Open TV by Fredolx.
  */
 
-import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild, NgZone } from '@angular/core';
 import { debounceTime, distinctUntilChanged, fromEvent, map, Subscription } from 'rxjs';
 import { Settings } from '../models/settings';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { Router } from '@angular/router';
 import { open } from '@tauri-apps/plugin-dialog';
 import { Source } from '../models/source';
@@ -69,9 +70,14 @@ export class SettingsComponent {
   mpvPresets = [
     { value: 'custom', label: 'Custom (Manual)' },
     { value: 'default', label: 'Default (Clean)' },
-    { value: 'enhanced', label: 'Enhanced (High Quality)' },
+    { value: 'enhanced', label: 'Enhanced (SHARP/Pro)' },
+    { value: 'stable', label: 'Stable (Anti-Repeat/Fixed)' },
+    { value: 'performance', label: 'Performance+ (Smooth Motion/Low-End)' },
   ];
   selectedPreset = 'custom';
+  dependencyResult: any = null;
+  installStatus: any = null;
+  installingMap = new Map<string, boolean>();
 
   @ViewChild('mpvParams') mpvParams!: ElementRef;
 
@@ -83,7 +89,11 @@ export class SettingsComponent {
     private toastr: ToastrService,
     public dialog: MatDialog,
     public error: ErrorService,
-  ) {}
+    private ngZone: NgZone,
+  ) {
+    this.checkDependencies();
+    this.listenToInstallStatus();
+  }
 
   _getSortTypeText(sortType: SortType) {
     return getSortTypeText(sortType);
@@ -132,11 +142,35 @@ export class SettingsComponent {
       if (this.settings.enable_hwdec == undefined) this.settings.enable_hwdec = true;
       if (this.settings.always_ask_save == undefined) this.settings.always_ask_save = false;
       if (this.settings.enable_gpu == undefined) this.settings.enable_gpu = false;
-      if (this.settings.use_single_column == undefined) this.settings.use_single_column = false;
       if (this.settings.max_text_lines == undefined) this.settings.max_text_lines = 2;
       if (this.settings.compact_mode == undefined) this.settings.compact_mode = false;
       if (this.settings.refresh_interval == undefined) this.settings.refresh_interval = 0;
       if (this.settings.theme == undefined) this.settings.theme = 0;
+
+      // Auto-detect preset
+      if (!this.settings.mpv_params || this.settings.mpv_params.trim() === '') {
+        this.selectedPreset = 'performance';
+        this.applyPreset();
+      } else {
+        // Try to match stable or enhanced
+        Promise.all([
+          invoke('get_mpv_preset', { preset: 'stable' }),
+          invoke('get_mpv_preset', { preset: 'enhanced' }),
+          invoke('get_mpv_preset', { preset: 'performance' }),
+        ]).then(([stable, enhanced, performance]) => {
+          if (this.settings.mpv_params === stable) {
+            this.selectedPreset = 'stable';
+          } else if (this.settings.mpv_params === enhanced) {
+            this.selectedPreset = 'enhanced';
+          } else if (this.settings.mpv_params === performance) {
+            this.selectedPreset = 'performance';
+          } else {
+            // Default to custom if we can't match known presets
+            this.selectedPreset = 'custom';
+          }
+        });
+      }
+
       this.applyTheme(this.settings.theme);
     });
     this.getSources();
@@ -164,11 +198,9 @@ export class SettingsComponent {
         const aVisible = a.hidden_count < a.count;
         const bVisible = b.hidden_count < b.count;
 
-        // 1. Visible tags first
         if (aVisible && !bVisible) return -1;
         if (!aVisible && bVisible) return 1;
 
-        // 2. Priority Tags (US, English) bubble to top of their section
         const priorityRegex = /^(USA|US|United States|English|EN)$/i;
         const aPriority = priorityRegex.test(a.name);
         const bPriority = priorityRegex.test(b.name);
@@ -176,27 +208,21 @@ export class SettingsComponent {
         if (aPriority && !bPriority) return -1;
         if (!aPriority && bPriority) return 1;
 
-        // 3. Alphabetical Order
         return a.name.localeCompare(b.name);
       });
     });
   }
 
   toggleTag(tag: Tag, event: any) {
-    // If checked (event.target.checked is true), it implies we want it VISIBLE.
-    // So 'visible' = true.
     const visible = event.target.checked;
-
-    // Optimistic update
     tag.hidden_count = visible ? 0 : tag.count;
 
     invoke('set_tag_visibility', { tag: tag.name, visible: visible }).then((count) => {
       this.toastr.success(`Updated visibility for ${count} channels`);
-      this.getTags(); // Refresh to get accurate counts
+      this.getTags();
     });
   }
 
-  // Content Type Filtering for Tags
   contentTypeFilter: 'all' | 'live' | 'vod' | 'series' = 'all';
 
   get filteredTags() {
@@ -214,8 +240,6 @@ export class SettingsComponent {
 
   updateContentTypeFilter(type: 'all' | 'live' | 'vod' | 'series') {
     this.contentTypeFilter = type;
-    // Trigger backend fetch if needed or just local filter
-    // For now, we reuse the existing getTags but we could pass a filter if we modify backend.
   }
 
   selectAllTags() {
@@ -228,22 +252,12 @@ export class SettingsComponent {
 
   bulkToggleTags(visible: boolean) {
     const tagNames = this.filteredTags.map((t) => t.name);
-    // We need a bulk API or loop. Looping is easier for now but might spam.
-    // Ideally we add a 'set_bulk_tag_visibility' command.
-    // For now, let's just loop locally and send one optimized request if possible,
-    // or just loop.
-
-    // Better approach: Create a new command in Rust for bulk update to avoid UI lag.
-    // But to save time and stick to frontend if possible:
-
-    // Let's rely on the requested feature: "allow fo the ability to select all or deselect all"
     invoke('set_bulk_tag_visibility', { tags: tagNames, visible: visible })
       .then((count) => {
         this.toastr.success(`Updated visibility for ${count} tags`);
         this.getTags();
       })
       .catch((e) => {
-        // Fallback if backend command doesn't exist yet (I'll implement it next)
         console.error('Bulk update failed, trying individual', e);
         tagNames.forEach((name) => {
           invoke('set_tag_visibility', { tag: name, visible: visible });
@@ -298,15 +312,43 @@ export class SettingsComponent {
   }
 
   async refreshAll() {
+    console.log('refreshAll called, setting IsRefreshing = true');
     this.memory.IsRefreshing = true;
     this.memory.SeriesRefreshed.clear();
+
+    // Get sources for progress tracking
+    const sources = this.sources;
+    this.memory.RefreshTotal = sources.length;
+    this.memory.RefreshCurrent = 0;
+    this.memory.RefreshActivity = 'Starting refresh...';
+    this.memory.RefreshPlaylist = 'All Sources';
+    this.memory.RefreshPercent = 0;
+
     try {
-      await invoke('refresh_all');
+      for (let i = 0; i < sources.length; i++) {
+        const source = sources[i];
+        this.memory.RefreshCurrent = i + 1;
+        this.memory.RefreshPlaylist = source.name || 'Source';
+        this.memory.RefreshActivity = `Refeshing ${source.name}...`;
+        this.memory.RefreshPercent = 0;
+
+        try {
+          await invoke('refresh_source', { source: source });
+        } catch (e) {
+          console.error(`Failed to refresh source ${source.name}:`, e);
+        }
+      }
       this.toastr.success('Successfully updated all sources');
     } catch (e) {
       this.error.handleError(e, 'Failed to refresh sources');
     } finally {
+      console.log('refreshAll complete, setting IsRefreshing = false');
       this.memory.IsRefreshing = false;
+      this.memory.RefreshPlaylist = '';
+      this.memory.RefreshActivity = '';
+      this.memory.RefreshPercent = 0;
+      this.memory.RefreshTotal = 0;
+      this.memory.RefreshCurrent = 0;
     }
   }
 
@@ -319,6 +361,10 @@ export class SettingsComponent {
     this.settings.mpv_params = this.settings.mpv_params?.trim();
     if (this.settings.mpv_params == '') this.settings.mpv_params = undefined;
     await invoke('update_settings', { settings: this.settings });
+    this.toastr.success('Settings saved', '', {
+      timeOut: 1000,
+      positionClass: 'toast-bottom-right',
+    });
   }
 
   async selectFolder() {
@@ -356,16 +402,39 @@ export class SettingsComponent {
   async applyPreset() {
     if (this.selectedPreset === 'custom') return;
 
-    if (this.selectedPreset === 'default') {
-      this.settings.mpv_params = '';
-      await this.updateSettings();
-      return;
-    }
-
     invoke('get_mpv_preset', { preset: this.selectedPreset }).then((params) => {
       this.settings.mpv_params = params as string;
       this.updateSettings();
     });
+  }
+
+  async checkDependencies() {
+    this.dependencyResult = await invoke('check_dependencies');
+  }
+
+  async installDependency(name: string) {
+    if (this.installingMap.get(name)) return;
+
+    this.installingMap.set(name, true);
+    try {
+      await invoke('auto_install_dependency', { name });
+      await this.checkDependencies();
+      this.toastr.success(`${name} installed successfully!`, 'Success');
+    } catch (error) {
+      this.toastr.error(`Installation failed: ${error}`, 'Error');
+    } finally {
+      this.installingMap.set(name, false);
+      this.installStatus = null;
+    }
+  }
+
+  private async listenToInstallStatus() {
+    const unlisten = await listen('install-status', (event: any) => {
+      this.ngZone.run(() => {
+        this.installStatus = event.payload;
+      });
+    });
+    this.subscriptions.push({ unsubscribe: () => unlisten() } as any);
   }
 
   ngOnDestroy(): void {

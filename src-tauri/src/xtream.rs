@@ -19,24 +19,17 @@
  * This project is a fork of Open TV by Fredolx.
  */
 
-use crate::log;
-use crate::media_type;
-use crate::sql;
-use crate::sql::insert_season;
-use crate::types::Channel;
-use crate::types::ChannelPreserve;
-use crate::types::EPG;
-use crate::types::Season;
-use crate::types::Source;
-use crate::utils::get_local_time;
+use crate::types::{Channel, ChannelPreserve, EPG, Season, Source};
 use crate::utils::get_user_agent_from_source;
+use crate::{
+    log, media_type,
+    sql::{self, insert_season},
+};
 use anyhow::anyhow;
 use anyhow::{Context, Result};
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
-use chrono::DateTime;
-use chrono::Local;
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Local, NaiveDateTime};
 use reqwest::Client;
 use rusqlite::Transaction;
 use serde::Deserialize;
@@ -45,6 +38,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use tokio::join;
 use url::Url;
+use tauri::Emitter;
 
 const GET_LIVE_STREAMS: &str = "get_live_streams";
 const GET_VODS: &str = "get_vod_streams";
@@ -165,38 +159,45 @@ fn build_xtream_url(source: &mut Source) -> Result<Url> {
     Ok(url)
 }
 
-pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
+pub async fn get_xtream<R: tauri::Runtime>(app: &tauri::AppHandle<R>, mut source: Source, wipe: bool) -> Result<()> {
+    use tauri::Emitter;
     let url = build_xtream_url(&mut source)?;
     let user_agent = get_user_agent_from_source(&source)?;
     let client = Client::builder().user_agent(&user_agent).build()?;
+    let source_name = source.name.clone();
 
-    // Fetch Live Streams & Categories (Batch 1)
-    let (live, live_cats) = join!(
-        get_xtream_http_data::<Vec<XtreamStream>>(&client, url.clone(), GET_LIVE_STREAMS),
-        get_xtream_http_data::<Vec<XtreamCategory>>(
-            &client,
-            url.clone(),
-            GET_LIVE_STREAM_CATEGORIES
-        ),
+    let _ = app.emit("refresh-progress", format!("[{}] Fetching all playlist data...", source_name));
+
+    // Fetch ALL data concurrently
+    let (live, live_cats, vods, vods_cats, series, series_cats) = join!(
+        get_xtream_http_data_with_progress::<Vec<XtreamStream>, R>(app, &source_name, "Live Streams", &client, url.clone(), GET_LIVE_STREAMS),
+        get_xtream_http_data_with_progress::<Vec<XtreamCategory>, R>(app, &source_name, "Live Categories", &client, url.clone(), GET_LIVE_STREAM_CATEGORIES),
+        get_xtream_http_data_with_progress::<Vec<XtreamStream>, R>(app, &source_name, "VOD Info", &client, url.clone(), GET_VODS),
+        get_xtream_http_data_with_progress::<Vec<XtreamCategory>, R>(app, &source_name, "VOD Categories", &client, url.clone(), GET_VOD_CATEGORIES),
+        get_xtream_http_data_with_progress::<Vec<XtreamStream>, R>(app, &source_name, "Series Info", &client, url.clone(), GET_SERIES),
+        get_xtream_http_data_with_progress::<Vec<XtreamCategory>, R>(app, &source_name, "Series Categories", &client, url.clone(), GET_SERIES_CATEGORIES),
     );
 
-    // Fetch VODs & Categories (Batch 2)
-    let (vods, vods_cats) = join!(
-        get_xtream_http_data::<Vec<XtreamStream>>(&client, url.clone(), GET_VODS),
-        get_xtream_http_data::<Vec<XtreamCategory>>(&client, url.clone(), GET_VOD_CATEGORIES),
-    );
+    let live_count = live.as_ref().map(|v| v.len()).unwrap_or(0);
+    let vods_count = vods.as_ref().map(|v| v.len()).unwrap_or(0);
+    let series_count = series.as_ref().map(|v| v.len()).unwrap_or(0);
+    let grand_total = live_count + vods_count + series_count;
 
-    // Fetch Series & Categories (Batch 3)
-    let (series, series_cats) = join!(
-        get_xtream_http_data::<Vec<XtreamStream>>(&client, url.clone(), GET_SERIES),
-        get_xtream_http_data::<Vec<XtreamCategory>>(
-            &client,
-            url.clone(),
-            GET_SERIES_CATEGORIES
-        ),
-    );
+    let _ = app.emit("refresh-progress", serde_json::json!({
+        "playlist": source_name,
+        "activity": format!("Fetched {} items. Processing...", grand_total),
+        "percent": 0
+    }).to_string());
 
     let mut sql = sql::get_conn()?;
+    
+    // Enable optimizations for bulk insert
+    // Enable optimizations for bulk insert, but keep WAL to avoid locking
+    sql.execute_batch(
+        "PRAGMA synchronous = OFF;
+         PRAGMA cache_size = 10000;"
+    )?;
+    
     let tx = sql.transaction()?;
     let mut channel_preserve: Vec<ChannelPreserve> = Vec::new();
     if wipe {
@@ -209,7 +210,14 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
     let mut fail_count = 0;
     let mut last_error = String::from("Too many Xtream requests failed");
 
-    live.and_then(|live| process_xtream(&tx, live, live_cats?, &source, media_type::LIVESTREAM))
+    let mut current_offset = 0;
+    
+    let _ = app.emit("refresh-progress", serde_json::json!({
+        "playlist": source_name,
+        "activity": "Saving Live TV...",
+        "percent": 0
+    }).to_string());
+    live.and_then(|live| process_xtream(app, &source_name, "Live TV", &tx, live, live_cats?, &source, media_type::LIVESTREAM, current_offset, grand_total))
         .unwrap_or_else(|e| {
             let error_string = e.to_string();
             let context = format!("{:?}", e.context("Failed to process live"));
@@ -218,8 +226,14 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
             fail_count += 1;
         });
 
+    current_offset += live_count;
+    let _ = app.emit("refresh-progress", serde_json::json!({
+        "playlist": source_name,
+        "activity": "Saving Movies...",
+        "percent": (current_offset as f32 / grand_total as f32 * 100.0) as u32
+    }).to_string());
     vods.and_then(|vods: Vec<XtreamStream>| {
-        process_xtream(&tx, vods, vods_cats?, &source, media_type::MOVIE)
+        process_xtream(app, &source_name, "Movies", &tx, vods, vods_cats?, &source, media_type::MOVIE, current_offset, grand_total)
     })
     .unwrap_or_else(|e| {
         let error_string = e.to_string();
@@ -229,9 +243,15 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
         fail_count += 1;
     });
 
+    current_offset += vods_count;
+    let _ = app.emit("refresh-progress", serde_json::json!({
+        "playlist": source_name,
+        "activity": "Saving Series...",
+        "percent": (current_offset as f32 / grand_total as f32 * 100.0) as u32
+    }).to_string());
     series
         .and_then(|series: Vec<XtreamStream>| {
-            process_xtream(&tx, series, series_cats?, &source, media_type::SERIE)
+            process_xtream(app, &source_name, "Series", &tx, series, series_cats?, &source, media_type::SERIE, current_offset, grand_total)
         })
         .unwrap_or_else(|e| {
             let error_string = e.to_string();
@@ -242,22 +262,34 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
         });
 
     if fail_count > 2 {
-        match tx.rollback() {
-            Ok(_) => {}
-            Err(e) => log::log(format!("Failed to rollback tx: {:?}", e)),
-        }
+        let _ = tx.rollback();
         return Err(anyhow::anyhow!(last_error));
     }
     if wipe {
         sql::restore_preserve(&tx, source.id.context("no source id")?, channel_preserve)?;
     }
+    
+    let _ = app.emit("refresh-progress", serde_json::json!({
+        "playlist": source_name,
+        "activity": "Finalizing database...",
+        "percent": 99
+    }).to_string());
     sql::analyze(&tx)?;
     tx.commit()?;
+    
+    // Reset pragmas to safe defaults
+    let _ = sql.execute_batch("PRAGMA synchronous = NORMAL; PRAGMA journal_mode = WAL;");
+    
+    let _ = app.emit("refresh-progress", serde_json::json!({
+        "playlist": source_name,
+        "activity": "Refresh complete!",
+        "percent": 100
+    }).to_string());
     Ok(())
 }
 
 async fn get_xtream_http_data<T>(client: &Client, mut url: Url, action: &str) -> Result<T>
-where
+    where
     T: serde::de::DeserializeOwned,
 {
     url.query_pairs_mut().append_pair("action", action);
@@ -265,12 +297,38 @@ where
     Ok(data)
 }
 
-fn process_xtream(
+async fn get_xtream_http_data_with_progress<T, R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    source_name: &str,
+    category: &str,
+    client: &Client,
+    mut url: Url,
+    action: &str,
+) -> Result<T>
+where
+    T: serde::de::DeserializeOwned,
+{
+    url.query_pairs_mut().append_pair("action", action);
+    let data = client.get(url).send().await?.json::<T>().await?;
+    let _ = app.emit("refresh-progress", serde_json::json!({
+        "playlist": source_name,
+        "activity": format!("Downloaded {}.", category),
+        "percent": 0
+    }).to_string());
+    Ok(data)
+}
+
+fn process_xtream<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    source_name: &str,
+    description: &str,
     tx: &Transaction,
     streams: Vec<XtreamStream>,
     cats: Vec<XtreamCategory>,
     source: &Source,
     stream_type: u8,
+    offset: usize,
+    grand_total: usize,
 ) -> Result<()> {
     let cats: HashMap<String, String> = cats
         .into_iter()
@@ -280,7 +338,16 @@ fn process_xtream(
         })
         .collect();
     let mut groups: HashMap<String, i64> = HashMap::new();
-    for live in streams {
+    let total = streams.len();
+    for (i, live) in streams.into_iter().enumerate() {
+        if i % 500 == 0 && i > 0 {
+             let percent = ((offset + i) as f32 / grand_total as f32 * 100.0) as u32;
+             let _ = app.emit("refresh-progress", serde_json::json!({
+                "playlist": source_name,
+                "activity": format!("Saving {} ({}/{})...", description, i, total),
+                "percent": percent
+            }).to_string());
+        }
         let category_name = get_cat_name(&cats, get_serde_json_string(&live.category_id).as_deref());
         convert_xtream_live_to_channel(live, source, stream_type, category_name)
             .and_then(|mut channel| {
@@ -360,7 +427,13 @@ pub fn parse_xtream_date(value: &serde_json::Value) -> Option<String> {
              if s.len() > 7 {
                  if let Ok(ts) = s.parse::<i64>() {
                      return timestamp_to_date_string(ts);
+                 } else if let Ok(ts_f) = s.parse::<f64>() {
+                     // Handle float timestamps just in case
+                     return timestamp_to_date_string(ts_f as i64);
                  }
+                 // If it looks like a long timestamp but fails to parse/convert, 
+                 // treat it as invalid rather than returning the raw number string.
+                 return None;
              }
              return Some(s.to_string());
         }
@@ -377,10 +450,7 @@ pub fn parse_xtream_date(value: &serde_json::Value) -> Option<String> {
 fn timestamp_to_date_string(ts: i64) -> Option<String> {
     // Check if it's seconds or milliseconds
     let seconds = if ts > 10_000_000_000 { ts / 1000 } else { ts };
-    if let Some(dt) = NaiveDateTime::from_timestamp_opt(seconds, 0) {
-        return Some(dt.format("%Y-%m-%d").to_string());
-    }
-    None
+    DateTime::from_timestamp(seconds, 0).map(|dt| dt.format("%Y-%m-%d").to_string())
 }
 
 fn get_url(
@@ -638,7 +708,9 @@ pub async fn get_epg(channel: Channel) -> Result<Vec<EPG>> {
 }
 
 fn is_valid_epg(epg: &EPG, now: &DateTime<Local>) -> Result<bool> {
-    let epg_start_local = crate::utils::get_local_time(epg.start_timestamp)?;
+    let epg_start_local = DateTime::from_timestamp(epg.start_timestamp, 0)
+        .map(|dt| dt.with_timezone(&Local))
+        .context("Invalid timestamp")?;
     if epg_start_local < *now && !epg.has_archive && !epg.now_playing {
         return Ok(false);
     }
@@ -648,18 +720,18 @@ fn is_valid_epg(epg: &EPG, now: &DateTime<Local>) -> Result<bool> {
 fn xtream_epg_to_epg(epg: XtreamEPGItem, url: &Url, stream_id: &str) -> Result<EPG> {
     let start_timestamp =
         get_serde_json_i64(&epg.start_timestamp).context("no valid start timestamp")?;
+    let stop_timestamp = get_serde_json_i64(&epg.stop_timestamp).context("no valid end timestamp")?;
+
     Ok(EPG {
         epg_id: get_serde_json_string(&epg.id).context("no epg id")?,
         title: String::from_utf8(BASE64_STANDARD.decode(&epg.title)?)?,
         description: String::from_utf8(BASE64_STANDARD.decode(&epg.description)?)?,
-        start_time: get_local_time(start_timestamp)?
-            .format("%B %d, %H:%M")
-            .to_string(),
-        end_time: get_local_time(
-            get_serde_json_i64(&epg.stop_timestamp).context("no valid end timestamp")?,
-        )?
-        .format("%B %d, %H:%M")
-        .to_string(),
+        start_time: DateTime::from_timestamp(start_timestamp, 0)
+            .map(|dt| dt.with_timezone(&Local).format("%B %d, %H:%M").to_string())
+            .unwrap_or_default(),
+        end_time: DateTime::from_timestamp(stop_timestamp, 0)
+            .map(|dt| dt.with_timezone(&Local).format("%B %d, %H:%M").to_string())
+            .unwrap_or_default(),
         start_timestamp,
         timeshift_url: if epg.has_archive == 1 {
             Some(get_timeshift_url(

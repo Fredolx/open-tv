@@ -26,7 +26,7 @@ import { MatMenuTrigger } from '@angular/material/menu';
 import { ToastrService } from 'ngx-toastr';
 import { ErrorService } from './error.service';
 import { NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { invoke } from '@tauri-apps/api/core';
+import { TauriService } from './services/tauri.service';
 import { SortType } from './models/sortType';
 import { LAST_SEEN_VERSION } from './models/localStorage';
 import { SetNodeDTO } from './models/setNodeDTO';
@@ -38,8 +38,9 @@ export class MemoryService {
   constructor(
     private toastr: ToastrService,
     private error: ErrorService,
+    private tauri: TauriService,
   ) {
-    invoke('is_container').then((val) => (this.IsContainer = val as boolean));
+    this.tauri.call<boolean>('is_container').then((val) => (this.IsContainer = val));
   }
   public SetNode: Subject<SetNodeDTO> = new Subject();
   public SetFocus: Subject<number> = new Subject();
@@ -62,6 +63,13 @@ export class MemoryService {
   private downloadingChannels: Map<number, [number, Subject<boolean>]> = new Map();
   public LoadingNotification: boolean = false;
   public IsRefreshing: boolean = false;
+  // public RefreshStatus: string = ''; // Deprecated
+  public RefreshPlaylist: string = '';
+  public RefreshActivity: string = '';
+  public RefreshPercent: number = 0;
+
+  public RefreshCurrent: number = 0;
+  public RefreshTotal: number = 0;
   public AppVersion?: string;
   public trayEnabled?: boolean;
   public IsContainer?: boolean;
@@ -87,8 +95,8 @@ export class MemoryService {
   }
 
   async get_epg_ids() {
-    let data = await invoke('get_epg_ids');
-    let set = new Set(data as Array<string>);
+    let data = await this.tauri.call<string[]>('get_epg_ids');
+    let set = new Set(data);
     this.Watched_epgs = set;
   }
 

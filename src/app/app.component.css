@@ -5,3 +5,95 @@
   width: 100%;
   z-index: 9999;
 }
+
+/* Refresh Progress Bar - Fixed Bottom Middle */
+.refresh-progress-container {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 500px;
+  background: rgba(30, 30, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  z-index: 100000;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(10px);
+}
+
+.refresh-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.refresh-status span {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.refresh-progress-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+::ng-deep .refresh-status mat-progress-bar {
+  border-radius: 4px;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.refresh-line {
+  color: white;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlist-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--beats-red);
+}
+
+.activity-text {
+  font-size: 0.85rem;
+  color: var(--beats-text-gray);
+  margin-top: -0.25rem;
+}
+
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-progress-bar {
+  flex: 1;
+  height: 6px !important;
+  border-radius: 3px;
+}
+
+.percentage-text {
+  font-size: 0.8rem;
+  color: var(--beats-text-white);
+  font-weight: 600;
+  min-width: 35px;
+  text-align: right;
+}

@@ -78,6 +78,15 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     let reader = BufReader::new(file);
     let mut lines = reader.lines().enumerate();
     let mut sql = sql::get_conn()?;
+    
+    // Enable optimizations for bulk insert
+    sql.execute_batch(
+        "PRAGMA synchronous = OFF;
+         PRAGMA journal_mode = MEMORY;
+         PRAGMA temp_store = MEMORY;
+         PRAGMA cache_size = 10000;"
+    )?;
+    
     let mut channel_preserve: Vec<ChannelPreserve> = Vec::new();
     let tx = sql.transaction()?;
     if wipe {
@@ -133,6 +142,10 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     }
     sql::analyze(&tx)?;
     tx.commit()?;
+    
+    // Reset pragmas to safe defaults
+    let _ = sql.execute_batch("PRAGMA synchronous = NORMAL; PRAGMA journal_mode = WAL;");
+    
     Ok(())
 }
 

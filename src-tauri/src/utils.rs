@@ -61,12 +61,31 @@ const DEFAULT_USER_AGENT: &str = "Beats TV";
 static ILLEGAL_CHARS_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"[<>:"/\\|?*\x00-\x1F]"#).unwrap());
 
-pub async fn refresh_source(source: Source) -> Result<()> {
+pub async fn refresh_source<R: tauri::Runtime>(app: &tauri::AppHandle<R>, source: Source) -> Result<()> {
+    use tauri::Emitter;
     let id = source.id;
+    let source_name = source.name.clone();
+    
     match source.source_type {
-        source_type::M3U => m3u::read_m3u8(source, true)?,
-        source_type::M3U_LINK => m3u::get_m3u8_from_link(source, true).await?,
-        source_type::XTREAM => xtream::get_xtream(source, true).await?,
+        source_type::M3U => {
+            let _ = app.emit("refresh-progress", serde_json::json!({
+                "playlist": source_name,
+                "activity": "Reading M3U file...",
+                "percent": 0
+            }).to_string());
+            m3u::read_m3u8(source, true)?
+        },
+        source_type::M3U_LINK => {
+            let _ = app.emit("refresh-progress", serde_json::json!({
+                "playlist": source_name,
+                "activity": "Downloading M3U link...",
+                "percent": 0
+            }).to_string());
+            m3u::get_m3u8_from_link(source, true).await?
+        },
+        source_type::XTREAM => {
+            xtream::get_xtream(app, source, true).await?
+        },
         source_type::CUSTOM => {}
         _ => return Err(anyhow!("invalid source_type")),
     }
@@ -76,11 +95,18 @@ pub async fn refresh_source(source: Source) -> Result<()> {
     Ok(())
 }
 
-pub async fn refresh_all() -> Result<()> {
+pub async fn refresh_all<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<()> {
+    use tauri::Emitter;
+    // Notify frontend start
+    let _ = app.emit("refresh-start", ());
+    
     let sources = sql::get_sources()?;
     for source in sources {
-        refresh_source(source).await?;
+        refresh_source(app, source).await?;
     }
+    
+    // Notify frontend end
+    let _ = app.emit("refresh-end", ());
     Ok(())
 }
 
@@ -121,6 +147,7 @@ pub async fn download(
         }
         if let Some(ignore_ssl) = headers.ignore_ssl {
             if ignore_ssl {
+                log("[SECURITY WARNING]: SSL certificate validation is BYPASSED for this download. This is insecure!".to_string());
                 client = client.danger_accept_invalid_certs(true);
             }
         }

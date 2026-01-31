@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { ToastrModule } from 'ngx-toastr';
+import { MatMenuModule } from '@angular/material/menu';
+import { NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { SortButtonComponent } from './sort-button.component';
 
 describe('SortButtonComponent', () => {
@@ -8,10 +10,10 @@ describe('SortButtonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SortButtonComponent]
-    })
-    .compileComponents();
-    
+      declarations: [SortButtonComponent],
+      imports: [ToastrModule.forRoot(), MatMenuModule, NgbModalModule],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(SortButtonComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

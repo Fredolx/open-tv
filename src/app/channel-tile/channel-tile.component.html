@@ -46,12 +46,31 @@
           <span class="badge-series" *ngIf="channel?.media_type === mediaTypeEnum.serie"
             >SERIES</span
           >
-          <span class="badge-rating" *ngIf="channel?.rating"
-            ><i class="fa fa-star"></i> {{ channel?.rating | number: "1.1-1" }}</span
+          <span
+            class="badge-rating"
+            [ngClass]="{
+              'rating-high': (channel?.rating ?? 0) >= 7,
+              'rating-medium': (channel?.rating ?? 0) >= 5 && (channel?.rating ?? 0) < 7,
+              'rating-low': (channel?.rating ?? 0) < 5,
+            }"
+            *ngIf="
+              channel?.rating &&
+              (channel?.media_type === mediaTypeEnum.movie ||
+                channel?.media_type === mediaTypeEnum.serie)
+            "
           >
-          <span class="badge-year" *ngIf="channel?.release_date">{{
-            channel?.release_date | slice: 0 : 4
-          }}</span>
+            <i class="fa fa-star"></i> {{ channel?.rating | number: "1.0-0" }}
+          </span>
+          <span
+            class="badge-year"
+            *ngIf="
+              channel?.release_date &&
+              (channel?.media_type === mediaTypeEnum.movie ||
+                channel?.media_type === mediaTypeEnum.serie)
+            "
+          >
+            {{ channel?.release_date | slice: 0 : 4 }}
+          </span>
         </div>
       </div>
     </div>

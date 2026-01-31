@@ -94,9 +94,108 @@ button:hover .history {
 
 /* Content Filter Tags */
 .badge.bg-secondary {
-    background-color: #4a4a4a !important; /* Darker grey */
-    color: #ffffff !important;           /* Bright white text */
-    font-size: 0.9rem;
-    padding: 0.5em 0.8em;
-    border: 1px solid #666;              /* Subtle border for definition */
+  background-color: #4a4a4a !important; /* Darker grey */
+  color: #ffffff !important; /* Bright white text */
+  font-size: 0.9rem;
+  padding: 0.5em 0.8em;
+  border: 1px solid #666; /* Subtle border for definition */
+}
+
+/* Refresh Progress Bar - Fixed Bottom Middle */
+.refresh-progress-container {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 500px;
+  background: rgba(30, 30, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(10px);
+}
+
+.refresh-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.refresh-status span {
+  color: var(--beats-text-white, white);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+::ng-deep .refresh-status mat-progress-bar {
+  border-radius: 4px;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* MPV Medical Check */
+.medical-check-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.25rem;
+}
+
+.medical-title {
+  color: var(--beats-red);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dependency-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dependency-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.status-healthy {
+  color: #2ecc71;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.install-progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.install-progress-fill {
+  height: 100%;
+  background: var(--beats-red);
+  transition: width 0.3s ease;
 }

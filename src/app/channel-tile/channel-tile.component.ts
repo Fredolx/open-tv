@@ -430,7 +430,8 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   getExistingDownload() {
-    let download = this.download.Downloads.get(this.channel!.id!.toString());
+    if (!this.channel?.id) return;
+    let download = this.download.Downloads.get(this.channel.id.toString());
     if (download) {
       this.setDownloadGradient(download.progress);
       this.downloadSubscribe(download);

@@ -59,6 +59,31 @@
     <div class="row mt-3 align-items-center">
       <div class="col-4">
         <span
+          id="label-mpv-preset"
+          [ngbTooltip]="
+            'Select a preset to auto-populate MPV parameters. Enhanced mode provides better quality but requires a good GPU.'
+          "
+          >MPV Configuration</span
+        >
+      </div>
+      <div class="col">
+        <select
+          [(ngModel)]="selectedPreset"
+          (ngModelChange)="applyPreset()"
+          class="form-select"
+          aria-labelledby="label-mpv-preset"
+          title="MPV Preset"
+        >
+          <option *ngFor="let preset of mpvPresets" [ngValue]="preset.value">
+            {{ preset.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row mt-3 align-items-center">
+      <div class="col-4">
+        <span
           [ngbTooltip]="
             'Launch parameters applied to all channels. Leave as-is if you don\'t know what this is'
           "
@@ -242,28 +267,71 @@
       </div>
     </div>
 
-    <div class="row mt-3 align-items-center">
-      <div class="col-4">
-        <span
-          id="label-mpv-preset"
-          [ngbTooltip]="
-            'Select a preset to auto-populate MPV parameters. Enhanced mode provides better quality but requires a good GPU.'
+    <!-- MPV Medical Check Section -->
+    <div class="row mt-5">
+      <div class="col-12">
+        <h5 class="flex align-items-center gap-2" style="color: var(--beats-red); font-weight: 700">
+          <svg style="width: 24px; height: 24px" viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M19,3H5C3.89,3 3,3.89 3,5V19C3,20.11 3.89,21 5,21H19C20.11,21 21,20.11 21,19V5C21,3.89 20.11,3 19,3M19,19H5V5H19V19M11,17H13V15H15V13H13V11H11V13H9V15H11V17Z"
+            />
+          </svg>
+          MPV Medical Check
+        </h5>
+        <div
+          class="p-3 mt-2"
+          style="
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
           "
-          >MPV Configuration</span
         >
-      </div>
-      <div class="col">
-        <select
-          [(ngModel)]="selectedPreset"
-          (ngModelChange)="applyPreset()"
-          class="form-select"
-          aria-labelledby="label-mpv-preset"
-          title="MPV Preset"
-        >
-          <option *ngFor="let preset of mpvPresets" [ngValue]="preset.value">
-            {{ preset.label }}
-          </option>
-        </select>
+          <div
+            *ngFor="let dep of dependencyResult?.dependencies"
+            class="d-flex justify-content-between align-items-center mb-2"
+          >
+            <div>
+              <span class="fw-bold" style="color: #eee">{{ dep.name | uppercase }}</span>
+              <div class="small text-muted" *ngIf="dep.version">{{ dep.version }}</div>
+              <div class="small text-danger" *ngIf="!dep.installed">Not Found</div>
+            </div>
+            <div>
+              <button
+                *ngIf="!dep.installed"
+                class="btn btn-sm btn-outline-danger"
+                (click)="installDependency(dep.name)"
+                [disabled]="installingMap.get(dep.name)"
+              >
+                {{ installingMap.get(dep.name) ? "Installing..." : "Install Now" }}
+              </button>
+              <span *ngIf="dep.installed" class="text-success small fw-bold">
+                <svg style="width: 16px; height: 16px" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                  />
+                </svg>
+                HEALTHY
+              </span>
+            </div>
+          </div>
+
+          <!-- Install Progress -->
+          <div *ngIf="installStatus" class="mt-3">
+            <div class="small mb-1 d-flex justify-content-between">
+              <span>{{ installStatus.status | titlecase }} {{ installStatus.name }}...</span>
+              <span>{{ installStatus.progress }}%</span>
+            </div>
+            <div class="progress" style="height: 6px; background: rgba(255, 255, 255, 0.1)">
+              <div
+                class="progress-bar bg-danger"
+                role="progressbar"
+                [style.width.%]="installStatus.progress"
+              ></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -289,24 +357,6 @@
             {{ theme.label }}
           </option>
         </select>
-      </div>
-    </div>
-
-    <div class="row mt-3 align-items-center">
-      <div class="col-4">
-        <span id="label-single-column">Single column layout</span>
-      </div>
-      <div class="col">
-        <div class="form-check form-switch">
-          <input
-            [(ngModel)]="settings.use_single_column"
-            (ngModelChange)="updateSettings()"
-            class="form-check-input"
-            type="checkbox"
-            aria-labelledby="label-single-column"
-            title="Single column layout"
-          />
-        </div>
       </div>
     </div>
 
