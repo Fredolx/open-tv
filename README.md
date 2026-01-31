@@ -161,12 +161,9 @@ pnpm tauri build
 
 ---
 
-## 🙏 Credits & Inspiration
+## 🙏 Credits & Appreciation
 
-This project is a fork of the excellent [Open TV](https://github.com/Fredolx/open-tv) by Fredolx. Full credit to the original developers for their incredible foundation.
-
-**Why this fork exists:**
-While Open TV is fantastic, we embrace AI-assisted development to push the boundaries of what's possible. Beats TV is built in the spirit of "Vibe Coding" – using AI as a powerful tool for rapid development, optimization, and innovation.
+Beats TV is a proud fork of [Open TV](https://github.com/Fredolx/open-tv) by **Fredolx**. We are deeply grateful for the incredible foundation they built. Beats TV aims to build upon this work with modern UI refinements and AI-assisted optimizations.
 
 ---
 
@@ -181,9 +178,9 @@ While Open TV is fantastic, we embrace AI-assisted development to push the bound
 
 ## 📄 License
 
-Beats TV is open source software, licensed under the same terms as the original Open TV project.
+Beats TV is open-source software, licensed under the **GNU General Public License v2.0 (GPL-2.0)**.
 
----
+In accordance with the GPL-2.0 license, all modifications and derivative works—including this project—are also shared under the same license terms. See the [LICENSE](LICENSE) file for the full legal text.
 
 ## 🔍 SEO Keywords
 

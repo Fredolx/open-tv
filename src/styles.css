@@ -314,8 +314,8 @@ body.theme-smooth-glass .card,
 body.theme-smooth-glass .list-group-item,
 body.theme-smooth-glass .mat-mdc-menu-panel {
   background: var(--beats-surface) !important;
-  backdrop-filter: blur(40px) saturate(200%) !important;
   -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
   transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
@@ -338,6 +338,7 @@ body.theme-smooth-glass .form-control {
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   color: white !important;
   border-radius: 12px !important;
+  -webkit-backdrop-filter: blur(15px);
   backdrop-filter: blur(15px);
   padding: 0.6rem 1rem;
 }
@@ -360,6 +361,7 @@ body.theme-smooth-glass .btn-info {
   background: rgba(90, 200, 250, 0.15) !important;
   border: 1px solid rgba(90, 200, 250, 0.3) !important;
   color: #5ac8fa !important;
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-radius: 100px !important;
 }

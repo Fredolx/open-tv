@@ -322,14 +322,7 @@ fn get_media_type(url: String) -> u8 {
 
 #[cfg(test)]
 mod test_m3u {
-    use std::{env, time::Instant};
-
-    use crate::{
-        m3u::{get_channel_from_lines, get_m3u8_from_link},
-        types::Source,
-    };
-
-    use super::read_m3u8;
+    use crate::m3u::get_channel_from_lines;
 
     #[test]
     fn test_get_channel_from_lines() {

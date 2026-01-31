@@ -23,6 +23,7 @@
   width: 1.5rem;
   cursor: pointer;
   transition: transform 0.3s ease;
+  -webkit-user-select: none;
   user-select: none;
 }
 
