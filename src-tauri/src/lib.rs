@@ -153,17 +153,19 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|_window, event| match event {
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
-            tauri::WindowEvent::CloseRequested { api, .. } => {
-                if !*ENABLE_TRAY_ICON {
-                    return;
+                #[cfg(any(target_os = "macos", target_os = "windows"))]
+                tauri::WindowEvent::CloseRequested { api, .. } => {
+                    if !*ENABLE_TRAY_ICON {
+                        return;
+                    }
+    
+                    if let Err(e) = _window.hide() {
+                        log::log(format!("Failed to hide window: {}", e));
+                    }
+                    api.prevent_close();
                 }
-
-                _window.hide().unwrap();
-                api.prevent_close();
-            }
-            _ => {}
-        })
+                _ => {}
+            })
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|_app, event| match event {

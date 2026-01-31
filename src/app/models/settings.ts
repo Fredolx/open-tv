@@ -40,4 +40,5 @@ export class Settings {
   last_refresh?: number;
   enhanced_video?: boolean;
   theme?: number; // 0=Clay-Mation, 1=Smooth Glass, 2=Matrix Terminal
+  performance_mode?: boolean; // Performance mode for reduced animations and optimizations
 }

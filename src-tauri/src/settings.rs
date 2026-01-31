@@ -46,6 +46,7 @@ pub const REFRESH_INTERVAL: &str = "refreshInterval";
 pub const LAST_REFRESH: &str = "lastRefresh";
 pub const ENHANCED_VIDEO: &str = "enhancedVideo";
 pub const THEME: &str = "theme";
+pub const PERFORMANCE_MODE: &str = "performanceMode";
 
 pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
@@ -79,74 +80,37 @@ pub fn get_settings() -> Result<Settings> {
 }
 
 pub fn update_settings(settings: Settings) -> Result<()> {
-    let mut map: HashMap<String, String> = HashMap::with_capacity(3);
-    if let Some(mpv_params) = settings.mpv_params {
-        map.insert(MPV_PARAMS.to_string(), mpv_params);
+    let mut map: HashMap<String, String> = HashMap::with_capacity(20);
+    
+    macro_rules! insert_if_some {
+        ($key:expr, $value:expr) => {
+            if let Some(v) = $value {
+                map.insert($key.to_string(), v.to_string());
+            }
+        };
     }
-    if let Some(recording_path) = settings.recording_path {
-        map.insert(RECORDING_PATH.to_string(), recording_path);
-    }
-    if let Some(use_stream_caching) = settings.use_stream_caching {
-        map.insert(
-            USE_STREAM_CACHING.to_string(),
-            use_stream_caching.to_string(),
-        );
-    }
-    if let Some(default_view) = settings.default_view {
-        map.insert(DEFAULT_VIEW.to_string(), default_view.to_string());
-    }
-    if let Some(volume) = settings.volume {
-        map.insert(VOLUME.to_string(), volume.to_string());
-    }
-    if let Some(refresh_on_start) = settings.refresh_on_start {
-        map.insert(REFRESH_ON_START.to_string(), refresh_on_start.to_string());
-    }
-    if let Some(port) = settings.restream_port {
-        map.insert(RESTREAM_PORT.to_string(), port.to_string());
-    }
-    if let Some(enable_tray) = settings.enable_tray_icon {
-        map.insert(ENABLE_TRAY_ICON.to_string(), enable_tray.to_string());
-    }
-    if let Some(zoom) = settings.zoom {
-        map.insert(ZOOM.to_string(), zoom.to_string());
-    }
-    if let Some(sort) = settings.default_sort {
-        map.insert(DEFAULT_SORT.to_string(), sort.to_string());
-    }
-    if let Some(hwdec) = settings.enable_hwdec {
-        map.insert(ENABLE_HWDEC.to_string(), hwdec.to_string());
-    }
-    if let Some(save) = settings.always_ask_save {
-        map.insert(ALWAYS_ASK_SAVE.to_string(), save.to_string());
-    }
-    if let Some(gpu) = settings.enable_gpu {
-        map.insert(ENABLE_GPU.to_string(), gpu.to_string());
-    }
-    if let Some(single_col) = settings.use_single_column {
-        map.insert(USE_SINGLE_COLUMN.to_string(), single_col.to_string());
-    }
-    if let Some(lines) = settings.max_text_lines {
-        map.insert(MAX_TEXT_LINES.to_string(), lines.to_string());
-    }
-    if let Some(compact) = settings.compact_mode {
-        map.insert(COMPACT_MODE.to_string(), compact.to_string());
-    }
-    // Update refresh interval setting
-    if let Some(interval) = settings.refresh_interval {
-        map.insert(REFRESH_INTERVAL.to_string(), interval.to_string());
-    }
-    // Update last refresh timestamp
-    if let Some(last) = settings.last_refresh {
-        map.insert(LAST_REFRESH.to_string(), last.to_string());
-    }
-    // Enhanced video mode
-    if let Some(enhanced) = settings.enhanced_video {
-        map.insert(ENHANCED_VIDEO.to_string(), enhanced.to_string());
-    }
-    // Theme
-    if let Some(theme) = settings.theme {
-        map.insert(THEME.to_string(), theme.to_string());
-    }
+    
+    insert_if_some!(MPV_PARAMS, settings.mpv_params);
+    insert_if_some!(RECORDING_PATH, settings.recording_path);
+    insert_if_some!(USE_STREAM_CACHING, settings.use_stream_caching);
+    insert_if_some!(DEFAULT_VIEW, settings.default_view);
+    insert_if_some!(VOLUME, settings.volume);
+    insert_if_some!(REFRESH_ON_START, settings.refresh_on_start);
+    insert_if_some!(RESTREAM_PORT, settings.restream_port);
+    insert_if_some!(ENABLE_TRAY_ICON, settings.enable_tray_icon);
+    insert_if_some!(ZOOM, settings.zoom);
+    insert_if_some!(DEFAULT_SORT, settings.default_sort);
+    insert_if_some!(ENABLE_HWDEC, settings.enable_hwdec);
+    insert_if_some!(ALWAYS_ASK_SAVE, settings.always_ask_save);
+    insert_if_some!(ENABLE_GPU, settings.enable_gpu);
+    insert_if_some!(USE_SINGLE_COLUMN, settings.use_single_column);
+    insert_if_some!(MAX_TEXT_LINES, settings.max_text_lines);
+    insert_if_some!(COMPACT_MODE, settings.compact_mode);
+    insert_if_some!(REFRESH_INTERVAL, settings.refresh_interval);
+    insert_if_some!(LAST_REFRESH, settings.last_refresh);
+    insert_if_some!(ENHANCED_VIDEO, settings.enhanced_video);
+    insert_if_some!(THEME, settings.theme);
+    
     sql::update_settings(map)?;
     Ok(())
 }
