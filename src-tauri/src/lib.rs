@@ -119,6 +119,7 @@ pub fn run() {
             set_tag_visibility,
             set_bulk_tag_visibility,
             check_dependencies,
+            get_xtream_source_details,
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -264,6 +265,13 @@ async fn refresh_source(source: Source) -> Result<(), String> {
 #[tauri::command]
 async fn refresh_all() -> Result<(), String> {
     utils::refresh_all().await.map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn get_xtream_source_details(source: Source) -> Result<xtream::XtreamPanelInfo, String> {
+    xtream::get_xtream_details(source)
+        .await
+        .map_err(map_err_frontend)
 }
 
 #[tauri::command]

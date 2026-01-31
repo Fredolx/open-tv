@@ -615,3 +615,42 @@ fn get_timeshift_url(mut url: Url, start: String, end: String, stream_id: &str) 
         .append_pair("duration", &duration);
     Ok(url.to_string())
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct XtreamUserInfo {
+    pub username: Option<String>,
+    pub status: Option<String>,
+    pub active_cons: Option<String>,
+    pub is_trial: Option<String>,
+    pub created_at: Option<String>,
+    pub exp_date: Option<String>,
+    pub max_connections: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct XtreamServerInfo {
+    pub url: Option<String>,
+    pub port: Option<String>,
+    pub https_port: Option<String>,
+    pub server_protocol: Option<String>,
+    pub rtmp_port: Option<String>,
+    pub timezone: Option<String>,
+    pub timestamp_now: Option<i64>,
+    pub time_now: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct XtreamPanelInfo {
+    pub user_info: XtreamUserInfo,
+    pub server_info: XtreamServerInfo,
+}
+
+pub async fn get_xtream_details(mut source: Source) -> Result<XtreamPanelInfo> {
+    let mut url = build_xtream_url(&mut source)?;
+    let user_agent = get_user_agent_from_source(&source)?;
+    let client = Client::builder().user_agent(user_agent).build()?;
+    
+    // Base login call returns user_info and server_info
+    let data = client.get(url).send().await?.json::<XtreamPanelInfo>().await?;
+    Ok(data)
+}

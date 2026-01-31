@@ -1,6 +1,6 @@
 {
   "productName": "Beats TV",
-  "version": "1.9.4",
+  "version": "1.9.5",
 
   "identifier": "dev.fredol.open-tv",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Beats TV (v1.9.4)",
+        "title": "Beats TV (v1.9.5)",
 
         "width": 800,
         "height": 600,

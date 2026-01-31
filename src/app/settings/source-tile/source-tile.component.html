@@ -320,6 +320,20 @@
       </svg>
     </button>
     <button
+      [disabled]="memory.Loading || loadingDetails"
+      *ngIf="source?.source_type == sourceTypeEnum.Xtream && !editing"
+      (click)="toggleDetails()"
+      class="btn btn-info d-inline-flex align-items-center"
+      title="Show playlist details"
+    >
+      <span>{{ showDetails ? "Hide Info" : "Show Info" }}</span>
+      <svg class="ms-1 pen" fill="currentColor" viewBox="0 0 24 24">
+        <path
+          d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+        />
+      </svg>
+    </button>
+    <button
       [disabled]="memory.Loading"
       *ngIf="source?.source_type == sourceTypeEnum.Custom"
       (click)="addCustomChannel()"
@@ -437,4 +451,72 @@
       d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z"
     />
   </svg>
+
+  <div *ngIf="showDetails" class="mt-3 p-3 bg-dark rounded border border-secondary w-100">
+    <div *ngIf="loadingDetails" class="text-center text-info">
+      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      Fetching playlist details...
+    </div>
+
+    <div *ngIf="details && !loadingDetails">
+      <h6 class="text-info border-bottom border-secondary pb-2 mb-3">Account Information</h6>
+      <div class="row g-2 mb-3">
+        <div class="col-sm-6 col-md-3">
+          <small class="text-muted d-block">Status</small>
+          <span
+            [class.text-success]="details.user_info.status === 'Active'"
+            [class.text-danger]="details.user_info.status !== 'Active'"
+          >
+            {{ details.user_info.status || "Unknown" }}
+          </span>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <small class="text-muted d-block">Expiration</small>
+          <span>
+            {{
+              details.user_info.exp_date
+                ? (details.user_info.exp_date * 1000 | date: "mediumDate")
+                : "Never"
+            }}
+          </span>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <small class="text-muted d-block">Connections</small>
+          <span>
+            {{ details.user_info.active_cons || 0 }} /
+            {{ details.user_info.max_connections || "Unlimited" }}
+          </span>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <small class="text-muted d-block">Created</small>
+          <span>
+            {{
+              details.user_info.created_at
+                ? (details.user_info.created_at * 1000 | date: "mediumDate")
+                : "-"
+            }}
+          </span>
+        </div>
+      </div>
+
+      <h6 class="text-info border-bottom border-secondary pb-2 mb-3">Server Details</h6>
+      <div class="row g-2">
+        <div
+          class="col-12 col-md-6 text-truncate"
+          title="{{ details.server_info.url }}:{{ details.server_info.port }}"
+        >
+          <small class="text-muted d-block">URL</small>
+          {{ details.server_info.url }}:{{ details.server_info.port }}
+        </div>
+        <div class="col-6 col-md-3">
+          <small class="text-muted d-block">Protocol</small>
+          {{ details.server_info.server_protocol || "http" }}
+        </div>
+        <div class="col-6 col-md-3">
+          <small class="text-muted d-block">Timezone</small>
+          {{ details.server_info.timezone || "UTC" }}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

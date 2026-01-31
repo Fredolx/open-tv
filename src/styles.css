@@ -318,11 +318,12 @@ body.theme-smooth-glass .channel {
 
 body.theme-smooth-glass .channel:hover {
   background: rgba(80, 80, 80, 0.5) !important;
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: var(--beats-red); /* Blue border on hover */
   transform: scale(1.02);
   box-shadow:
     0 15px 35px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(255, 255, 255, 0.05);
+    0 0 25px var(--beats-red-glow),
+    /* Blue ambient glow */ inset 0 0 10px rgba(0, 122, 255, 0.1); /* Subtle inner blue tint */
 }
 
 body.theme-smooth-glass .btn-primary {

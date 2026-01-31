@@ -11,6 +11,8 @@ import { open, save } from '@tauri-apps/plugin-dialog';
 import { CHANNEL_EXTENSION, FAVS_BACKUP, PLAYLIST_EXTENSION } from '../../models/extensions';
 import { sanitizeFileName } from '../../utils';
 
+import { XtreamPanelInfo } from '../../models/xtream-panel-info';
+
 @Component({
   selector: 'app-source-tile',
   templateUrl: './source-tile.component.html',
@@ -27,10 +29,30 @@ export class SourceTileComponent {
   editableSource: Source = {};
   defaultUserAgent = 'Beats TV';
 
+  details?: XtreamPanelInfo;
+  loadingDetails = false;
+  showDetails = false;
+
   constructor(
     public memory: MemoryService,
     private modal: NgbModal,
   ) {}
+
+  async toggleDetails() {
+    this.showDetails = !this.showDetails;
+    if (this.showDetails && !this.details && this.source?.source_type == SourceType.Xtream) {
+      this.loadingDetails = true;
+      try {
+        this.details = await invoke<XtreamPanelInfo>('get_xtream_source_details', {
+          source: this.source,
+        });
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.loadingDetails = false;
+      }
+    }
+  }
 
   get_source_type_name() {
     if (!this.source) return null;
