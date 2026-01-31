@@ -28,7 +28,6 @@ use std::process::Command;
 use tauri::{AppHandle, Emitter};
 use tokio::io::AsyncWriteExt;
 use which::which;
-use std::fs;
 
 /// Represents the status of a single dependency
 #[derive(Debug, Clone, Serialize)]
@@ -236,7 +235,7 @@ pub async fn auto_install_dependency(app: AppHandle, name: &str) -> Result<()> {
         deps_dir.push("deps");
         
         if !deps_dir.exists() {
-            fs::create_dir_all(&deps_dir).context("Failed to create deps directory")?;
+            std::fs::create_dir_all(&deps_dir).context("Failed to create deps directory")?;
         }
 
         match name {
@@ -297,7 +296,7 @@ async fn download_and_extract(app: AppHandle, display_name: &str, url: &str, dep
 
     // FFmpeg and MPV zips often have nested folders. We need to find the bin and move it or just ensure it exists.
     // Cleanup zip
-    let _ = fs::remove_file(zip_path);
+    let _ = std::fs::remove_file(zip_path);
     
     let _ = app.emit("install-status", serde_json::json!({
         "name": display_name,
