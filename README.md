@@ -41,9 +41,6 @@ Choose from three stunning visual themes:
 - **Smooth Glass** – Elegant Apple-style glassmorphism with frosted transparency
 - **Matrix Terminal** – Hacker-style green terminal aesthetic inspired by The Matrix
 
-![Matrix Terminal Theme](screenshots/matrix_theme.png)
-_Matrix Terminal Theme - For the hacker in you_
-
 ### 🎬 Enhanced Video Mode
 
 IPTV-optimized playback with:
