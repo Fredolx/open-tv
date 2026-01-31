@@ -161,6 +161,12 @@ pub async fn download(
         .default_headers(headers_map)
         .build()?;
     let url = channel.url.clone().context("no url provided")?;
+    
+    // Validate URL scheme - only allow http:// and https://
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        bail!("Invalid URL scheme: only http:// and https:// are allowed");
+    }
+    
     let name = channel.name.clone();
     let mut response = client.get(&url).send().await?;
     let total_size = response.content_length().unwrap_or(0);

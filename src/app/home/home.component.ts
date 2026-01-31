@@ -151,7 +151,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   getSources() {
-    console.log('[HomeComponent] getSources - Fetching sources and settings...');
     let get_settings = this.tauri.call('get_settings');
     let get_sources = this.tauri.call('get_sources');
     Promise.all([get_settings, get_sources])
@@ -163,14 +162,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         this.memory.trayEnabled = settings.enable_tray_icon ?? true;
         this.memory.AlwaysAskSave = settings.always_ask_save ?? false;
         this.memory.Sources = new Map(sources.filter((x) => x.enabled).map((s) => [s.id!, s]));
-        console.log(
-          '[HomeComponent] Sources received:',
-          sources.length,
-          'Enabled:',
-          this.memory.Sources.size,
-        );
         if (sources.length == 0) {
-          console.warn('[HomeComponent] No sources found! Redirecting to setup (FTUE)...');
           this.reset();
         } else {
           getVersion().then((version) => {
