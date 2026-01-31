@@ -256,7 +256,7 @@ async fn play(
 
 #[tauri::command(async)]
 fn get_settings() -> Result<Settings, String> {
-    let mut settings = settings::get_settings().map_err(map_err_frontend)?;
+    let settings = settings::get_settings().map_err(map_err_frontend)?;
     
     Ok(settings)
 }

@@ -1987,20 +1987,21 @@ pub fn clear_history() -> Result<()> {
 
 pub fn find_all_episodes_after(channel: &Channel) -> Result<Vec<String>> {
     let sql = get_conn()?;
-    Ok(sql
-        .prepare(
-            r#"
+    let mut stmt = sql.prepare(
+        r#"
         SELECT url FROM channels
         WHERE season_id = ?
         AND episode_num > ?
         ORDER BY episode_num
       "#,
-        )?
+    )?;
+    let urls: Vec<String> = stmt
         .query_map(params![channel.season_id, channel.episode_num], |row| {
             row.get::<_, String>(0)
         })?
         .filter_map(Result::ok)
-        .collect())
+        .collect();
+    Ok(urls)
 }
 
 pub fn update_source_last_updated(source_id: i64) -> Result<()> {
