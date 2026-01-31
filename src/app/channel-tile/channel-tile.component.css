@@ -22,14 +22,14 @@
 }
 
 .channel:hover {
-  background: linear-gradient(145deg, #2a2a2a, var(--beats-surface-light, #252525));
+  background: var(--beats-surface-light);
   cursor: pointer;
   border-color: var(--beats-red);
   transform: translateY(-3px) scale(1.01);
   box-shadow:
-    10px 10px 20px rgba(0, 0, 0, 0.6),
-    -5px -5px 15px rgba(50, 50, 50, 0.1),
-    0 0 25px var(--beats-red-glow, rgba(255, 0, 51, 0.35)),
+    10px 10px 20px var(--clay-shadow-dark),
+    -5px -5px 15px var(--clay-shadow-light),
+    0 0 25px var(--beats-red-glow),
     inset 1px 1px 3px rgba(255, 255, 255, 0.08);
   z-index: 10;
 }
@@ -103,11 +103,7 @@
   justify-content: center;
 }
 
-.channel:hover {
-  background: #2a2a2a;
-  cursor: pointer;
-  border-color: #444;
-}
+/* Removed hardcoded override */
 
 .faded {
   opacity: 0.5;

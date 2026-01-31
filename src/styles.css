@@ -274,82 +274,110 @@ body.theme-smooth-glass {
   --beats-dark-gray: #121212;
   --beats-charcoal: #1c1c1e;
 
-  /* Apple Glass Colors */
-  --beats-surface: rgba(30, 30, 30, 0.6);
-  --beats-surface-light: rgba(255, 255, 255, 0.1);
+  /* Apple Glass Colors - Premium Depth */
+  --beats-surface: rgba(25, 25, 30, 0.45);
+  --beats-surface-light: rgba(255, 255, 255, 0.08);
   --beats-red: #007aff; /* Apple Blue instead of red for this theme */
   --beats-red-soft: #5ac8fa;
-  --beats-red-glow: rgba(0, 122, 255, 0.4);
+  --beats-red-glow: rgba(0, 122, 255, 0.5);
   --beats-text-white: #ffffff;
-  --beats-text-gray: #8e8e93; /* Apple Gray */
+  --beats-text-gray: #aeb2b7; /* Professional Apple Gray */
 
-  /* Glass Shadows */
-  --clay-shadow-dark: rgba(0, 0, 0, 0.3);
+  /* Glass Shadows & Depth */
+  --clay-shadow-dark: rgba(0, 0, 0, 0.4);
   --clay-shadow-light: rgba(255, 255, 255, 0.1);
-  --clay-shadow-red: rgba(0, 122, 255, 0.2);
+  --clay-shadow-red: rgba(0, 122, 255, 0.3);
 
-  /* Apple styling radius */
-  --clay-radius-sm: 12px;
-  --clay-radius-md: 20px;
-  --clay-radius-lg: 30px;
-  --clay-radius-xl: 40px;
+  /* Apple styling radius - Cleaner, more professional cards */
+  --clay-radius-sm: 10px;
+  --clay-radius-md: 14px;
+  --clay-radius-lg: 22px;
+  --clay-radius-xl: 32px;
 }
 
 body.theme-smooth-glass {
-  /* Dynamic background for glass effect */
-  background: radial-gradient(circle at 10% 20%, rgb(40, 40, 45) 0%, rgb(10, 10, 10) 90%);
+  /* Ultra-smooth visionOS style background */
+  background: radial-gradient(circle at 10% 20%, #1a1a22 0%, #050508 100%) fixed;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
 }
 
+/* Glass Card Base - targets both Home (channel) and Settings (source) tiles */
 body.theme-smooth-glass .channel,
+body.theme-smooth-glass .source,
 body.theme-smooth-glass .modal-content,
 body.theme-smooth-glass .nav-tabs .nav-link,
-body.theme-smooth-glass .btn-outline-primary {
-  /* Apple Glass Material Effect */
-  background: rgba(40, 40, 40, 0.4) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
-  backdrop-filter: blur(25px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+body.theme-smooth-glass .btn-outline-primary,
+body.theme-smooth-glass .filterBox,
+body.theme-smooth-glass .selection-actions,
+body.theme-smooth-glass .card,
+body.theme-smooth-glass .list-group-item,
+body.theme-smooth-glass .mat-mdc-menu-panel {
+  background: var(--beats-surface) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-body.theme-smooth-glass .channel {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-body.theme-smooth-glass .channel:hover {
-  background: rgba(80, 80, 80, 0.5) !important;
-  border-color: var(--beats-red); /* Blue border on hover */
-  transform: scale(1.02);
+/* Premium Elevate Hover Effect - Shared between Home and Settings */
+body.theme-smooth-glass .channel:hover,
+body.theme-smooth-glass .source:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  transform: translateY(-6px) scale(1.02);
   box-shadow:
-    0 15px 35px rgba(0, 0, 0, 0.3),
-    0 0 25px var(--beats-red-glow),
-    /* Blue ambient glow */ inset 0 0 10px rgba(0, 122, 255, 0.1); /* Subtle inner blue tint */
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 30px var(--beats-red-glow) !important;
+  z-index: 50;
+}
+
+body.theme-smooth-glass .form-control {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(15px);
+  padding: 0.6rem 1rem;
 }
 
 body.theme-smooth-glass .btn-primary {
-  background: #007aff !important; /* Apple System Blue */
-  box-shadow: 0 2px 10px rgba(0, 122, 255, 0.3) !important;
-  border-radius: 40px !important; /* Pill shape */
-  font-weight: 500;
+  background: linear-gradient(145deg, #007aff, #005ecb) !important;
+  box-shadow: 0 4px 14px rgba(0, 122, 255, 0.4) !important;
+  border: none !important;
+  border-radius: 100px !important; /* Proper Apple Capsule */
+  font-weight: 600;
 }
 
 body.theme-smooth-glass .btn-primary:hover {
-  background: #0062cc !important;
-  box-shadow: 0 4px 15px rgba(0, 122, 255, 0.5) !important;
+  background: linear-gradient(145deg, #2188ff, #007aff) !important;
+  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.6) !important;
+  transform: translateY(-1px);
+}
+
+body.theme-smooth-glass .btn-info {
+  background: rgba(90, 200, 250, 0.15) !important;
+  border: 1px solid rgba(90, 200, 250, 0.3) !important;
+  color: #5ac8fa !important;
+  backdrop-filter: blur(12px);
+  border-radius: 100px !important;
 }
 
 body.theme-smooth-glass ::selection {
-  background: rgba(0, 122, 255, 0.3);
+  background: rgba(0, 122, 255, 0.4);
   color: white;
 }
 
 body.theme-smooth-glass ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 20px !important;
+  border: 5px solid transparent !important;
+  background-clip: padding-box !important;
 }
 
 body.theme-smooth-glass ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.25) !important;
 }
 
 /* Theme 2: Matrix Terminal */

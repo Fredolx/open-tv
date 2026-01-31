@@ -27,10 +27,10 @@
 }
 
 .filterBox {
-  border-radius: 8px;
-  padding: 8px 12px;
-  background-color: var(--beats-charcoal);
-  border: 1px solid #333;
+  border-radius: var(--clay-radius-sm);
+  padding: 8px 16px;
+  background-color: var(--beats-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: block;
   width: fit-content;
   margin-bottom: 0.75rem;
