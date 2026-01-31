@@ -268,58 +268,87 @@ body.theme-clay-mation {
   --beats-red-glow: rgba(255, 0, 51, 0.35);
 }
 
-/* Theme 1: Smooth Glass (Glassmorphism) */
+/* Theme 1: Smooth Glass (Apple-style Glassmorphism) */
 body.theme-smooth-glass {
-  --beats-black: #0d1117;
-  --beats-dark-gray: #161b22;
-  --beats-charcoal: #21262d;
-  --beats-surface: rgba(33, 38, 45, 0.7);
-  --beats-surface-light: rgba(48, 54, 61, 0.6);
-  --beats-red: #58a6ff;
-  --beats-red-soft: #388bfd;
-  --beats-red-glow: rgba(88, 166, 255, 0.3);
-  --beats-text-white: #f0f6fc;
-  --beats-text-gray: #8b949e;
+  --beats-black: #000000;
+  --beats-dark-gray: #121212;
+  --beats-charcoal: #1c1c1e;
 
-  /* Glassmorphism Shadows */
-  --clay-shadow-dark: rgba(0, 0, 0, 0.4);
-  --clay-shadow-light: rgba(255, 255, 255, 0.05);
-  --clay-shadow-red: rgba(88, 166, 255, 0.1);
+  /* Apple Glass Colors */
+  --beats-surface: rgba(30, 30, 30, 0.6);
+  --beats-surface-light: rgba(255, 255, 255, 0.1);
+  --beats-red: #007aff; /* Apple Blue instead of red for this theme */
+  --beats-red-soft: #5ac8fa;
+  --beats-red-glow: rgba(0, 122, 255, 0.4);
+  --beats-text-white: #ffffff;
+  --beats-text-gray: #8e8e93; /* Apple Gray */
 
-  /* Softer radius for glass */
-  --clay-radius-sm: 16px;
+  /* Glass Shadows */
+  --clay-shadow-dark: rgba(0, 0, 0, 0.3);
+  --clay-shadow-light: rgba(255, 255, 255, 0.1);
+  --clay-shadow-red: rgba(0, 122, 255, 0.2);
+
+  /* Apple styling radius */
+  --clay-radius-sm: 12px;
   --clay-radius-md: 20px;
-  --clay-radius-lg: 28px;
-  --clay-radius-xl: 36px;
+  --clay-radius-lg: 30px;
+  --clay-radius-xl: 40px;
+}
+
+body.theme-smooth-glass {
+  /* Dynamic background for glass effect */
+  background: radial-gradient(circle at 10% 20%, rgb(40, 40, 45) 0%, rgb(10, 10, 10) 90%);
 }
 
 body.theme-smooth-glass .channel,
 body.theme-smooth-glass .modal-content,
 body.theme-smooth-glass .nav-tabs .nav-link,
 body.theme-smooth-glass .btn-outline-primary {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  background: rgba(33, 38, 45, 0.6) !important;
-  border: 1px solid rgba(88, 166, 255, 0.2);
+  /* Apple Glass Material Effect */
+  background: rgba(40, 40, 40, 0.4) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  backdrop-filter: blur(25px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+}
+
+body.theme-smooth-glass .channel {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 body.theme-smooth-glass .channel:hover {
-  background: rgba(48, 54, 61, 0.8) !important;
-  border-color: var(--beats-red);
-  box-shadow: 0 8px 32px rgba(88, 166, 255, 0.25);
+  background: rgba(80, 80, 80, 0.5) !important;
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.02);
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(255, 255, 255, 0.05);
 }
 
 body.theme-smooth-glass .btn-primary {
-  background: linear-gradient(145deg, #58a6ff, #388bfd) !important;
-  box-shadow: 0 4px 20px rgba(88, 166, 255, 0.3) !important;
+  background: #007aff !important; /* Apple System Blue */
+  box-shadow: 0 2px 10px rgba(0, 122, 255, 0.3) !important;
+  border-radius: 40px !important; /* Pill shape */
+  font-weight: 500;
+}
+
+body.theme-smooth-glass .btn-primary:hover {
+  background: #0062cc !important;
+  box-shadow: 0 4px 15px rgba(0, 122, 255, 0.5) !important;
 }
 
 body.theme-smooth-glass ::selection {
-  background: #58a6ff;
+  background: rgba(0, 122, 255, 0.3);
+  color: white;
+}
+
+body.theme-smooth-glass ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
 }
 
 body.theme-smooth-glass ::-webkit-scrollbar-thumb:hover {
-  background: #58a6ff;
+  background: rgba(255, 255, 255, 0.4);
 }
 
 /* Theme 2: Matrix Terminal */

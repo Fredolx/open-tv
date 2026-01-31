@@ -38,8 +38,11 @@ Whether you're streaming live TV, movies, or TV series from your IPTV provider, 
 Choose from three stunning visual themes:
 
 - **Clay-Mation** – Soft, puffy 3D claymorphism with red accents and glowing tiles
-- **Smooth Glass** – Elegant glassmorphism with frosted transparency and blue highlights
+- **Smooth Glass** – Elegant Apple-style glassmorphism with frosted transparency
 - **Matrix Terminal** – Hacker-style green terminal aesthetic inspired by The Matrix
+
+![Matrix Terminal Theme](screenshots/matrix_theme.png)
+_Matrix Terminal Theme - For the hacker in you_
 
 ### 🎬 Enhanced Video Mode
 

@@ -1,6 +1,9 @@
 {
   "name": "open-tv",
-  "version": "1.9.3",
+  "version": "1.9.4",
+  "description": "Beats TV - A Premium, AI-Enhanced IPTV Player (Fork of Open TV)",
+  "author": "Beats TV Team (Forked from Fredolx)",
+  "license": "GPL-2.0",
   "scripts": {
     "ng": "ng",
     "tauri": "tauri",
