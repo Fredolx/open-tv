@@ -39,9 +39,14 @@ use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::{OptionalExtension, Row, Transaction, params, params_from_iter};
 use rusqlite_migration::{M, Migrations};
 
+// Number of items to display per page in the UI grid
+// Set to 36 because the UI displays items in a 3-column grid,
+// so 36 provides exactly 12 complete rows for optimal visual balance
 const PAGE_SIZE: u8 = 36;
 pub const DB_NAME: &str = "db.sqlite";
-static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| create_connection_pool());
+static CONN: LazyLock<Pool<SqliteConnectionManager>> = LazyLock::new(|| {
+    create_connection_pool().expect("Failed to initialize database connection pool")
+});
 
 pub fn get_conn() -> Result<PooledConnection<SqliteConnectionManager>> {
     CONN.try_get().context("No sqlite conns available")
@@ -55,21 +60,24 @@ where
     f(&conn)
 }
 
-fn create_connection_pool() -> Pool<SqliteConnectionManager> {
-    let manager = SqliteConnectionManager::file(get_and_create_sqlite_db_path());
-    r2d2::Pool::builder().max_size(20).build(manager).unwrap()
+fn create_connection_pool() -> Result<Pool<SqliteConnectionManager>> {
+    let manager = SqliteConnectionManager::file(get_and_create_sqlite_db_path()?);
+    r2d2::Pool::builder()
+        .max_size(20)
+        .build(manager)
+        .context("Failed to create database connection pool")
 }
 
-fn get_and_create_sqlite_db_path() -> String {
+fn get_and_create_sqlite_db_path() -> Result<String> {
     let mut path = ProjectDirs::from("com", "beatstv", "app")
-        .unwrap()
+        .context("Failed to get project directories")?
         .data_dir()
         .to_owned();
     if !path.exists() {
-        std::fs::create_dir_all(&path).unwrap();
+        std::fs::create_dir_all(&path).context("Failed to create data directory")?;
     }
     path.push(DB_NAME);
-    return path.to_string_lossy().to_string();
+    Ok(path.to_string_lossy().to_string())
 }
 
 fn create_structure() -> Result<()> {
@@ -1438,7 +1446,9 @@ pub fn edit_custom_channel(channel: CustomChannel) -> Result<()> {
             Ok(())
         }
         Err(e) => {
-            tx.rollback().unwrap_or_else(|e| log(format!("{:?}", e)));
+            if let Err(rollback_err) = tx.rollback() {
+                log(format!("Rollback failed: {:?}", rollback_err));
+            }
             return Err(e);
         }
     }

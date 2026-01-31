@@ -42,9 +42,9 @@ fn main() -> Result<()> {
 pub fn apply_gpu_fixes() {
     if Path::new("/proc/driver/nvidia").exists() {
         eprintln!("NVIDIA GPU detected. Setting WEBKIT_DISABLE_DMABUF_RENDERER=1");
-        unsafe {
-            env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-        }
+        // Safe alternative to unsafe block: std::env::set_var is safe to use
+        // It sets the environment variable for the current process and all future child processes
+        env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
     }
 }
 
