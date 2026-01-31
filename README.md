@@ -185,6 +185,9 @@ Beats TV is open-source software, licensed under the **GNU General Public Licens
 
 In accordance with the GPL-2.0 license, all modifications and derivative works—including this project—are also shared under the same license terms. See the [LICENSE](LICENSE) file for the full legal text.
 
-## 🔍 SEO Keywords
+<details>
+<summary><h2>🔍 SEO Keywords</h2></summary>
 
 _IPTV Player, M3U Player, Xtream Player, Xtream Codes Player, Free IPTV App, Free IPTV Player, Free IPTV Software, Open Source IPTV, Open Source IPTV Player, Open Source M3U Player, IPTV for Windows, IPTV for Windows 10, IPTV for Windows 11, IPTV for Mac, IPTV for macOS, IPTV for Linux, IPTV for Ubuntu, IPTV for Debian, M3U8 Player, M3U Playlist Player, HLS Player, Live TV Streaming, Live TV Player, TV Series Player, VOD Player, Video on Demand Player, mpv IPTV, mpv Media Player, Desktop IPTV, Desktop Streaming App, Cross Platform IPTV, Multi Platform IPTV, Tauri App, Rust IPTV, Angular IPTV, Best Free IPTV Player, Best IPTV App Windows, Best M3U Player Windows, Best IPTV Player 2024, Best IPTV Player 2025, Free TV Streaming Software, Free Live TV App, Free Streaming Player, Stream Recorder, IPTV Recorder, Record Live TV, Record IPTV Streams, Hardware Accelerated Video, GPU Video Player, HDR Video Player, 4K IPTV Player, HD Streaming, IPTV Favorites, Channel Manager, Playlist Manager, IPTV Categories, EPG Player, Electronic Program Guide, TV Guide App, Claymorphism UI, Glassmorphism App, Matrix Theme, Dark Mode IPTV, Modern UI Player, Premium IPTV App, Beautiful IPTV Player, Lightweight IPTV, Fast IPTV Player, Low Resource IPTV, Minimal RAM Player, Instant Search IPTV, Quick Channel Search, TV Remote Compatible, Living Room IPTV, 10 Foot Interface, Smart TV Streaming, IPTV Restreaming, Share IPTV Streams, IPTV to Phone, IPTV to Tablet, Multi Source IPTV, Multiple Playlist IPTV, IPTV Provider Manager, Cord Cutting App, Cord Cutter Software, Free Cable TV Alternative, Watch Live TV Free, Stream TV Shows, Stream Movies Free, IPTV GitHub, IPTV Open Source GitHub_
+
+</details>
