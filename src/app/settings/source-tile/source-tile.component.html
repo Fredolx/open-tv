@@ -475,7 +475,7 @@
           <span>
             {{
               details.user_info.exp_date
-                ? (details.user_info.exp_date * 1000 | date: "mediumDate")
+                ? (parseDate(details.user_info.exp_date) | date: "mediumDate")
                 : "Never"
             }}
           </span>
@@ -492,7 +492,7 @@
           <span>
             {{
               details.user_info.created_at
-                ? (details.user_info.created_at * 1000 | date: "mediumDate")
+                ? (parseDate(details.user_info.created_at) | date: "mediumDate")
                 : "-"
             }}
           </span>

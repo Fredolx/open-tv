@@ -54,6 +54,12 @@ export class SourceTileComponent {
     }
   }
 
+  parseDate(dateStr?: string): number | null {
+    if (!dateStr) return null;
+    const num = parseInt(dateStr, 10);
+    return isNaN(num) ? null : num * 1000;
+  }
+
   get_source_type_name() {
     if (!this.source) return null;
     return SourceType[this.source.source_type!];
