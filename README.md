@@ -134,7 +134,8 @@ brew install mpv ffmpeg yt-dlp
 
 ---
 
-## 🏗️ Building from Source
+<details>
+<summary><h2>🏗️ Building from Source (Advanced Users)</h2></summary>
 
 ### Prerequisites
 
@@ -158,6 +159,8 @@ pnpm tauri dev
 # Production build
 pnpm tauri build
 ```
+
+</details>
 
 ---
 
