@@ -21,6 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache-workspaces: "src-tauri -> target"
 
       - name: Download mpv
         if: matrix.os == 'windows-latest'
