@@ -162,8 +162,9 @@ pub async fn download(
         .build()?;
     let url = channel.url.clone().context("no url provided")?;
     
-    // Validate URL scheme - only allow http:// and https://
-    if !url.starts_with("http://") && !url.starts_with("https://") {
+    // Validate URL scheme - only allow http:// and https:// (case-insensitive)
+    let url_lower = url.to_lowercase();
+    if !url_lower.starts_with("http://") && !url_lower.starts_with("https://") {
         bail!("Invalid URL scheme: only http:// and https:// are allowed");
     }
     
