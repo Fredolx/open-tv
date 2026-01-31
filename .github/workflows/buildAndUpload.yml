@@ -124,7 +124,7 @@ jobs:
       - name: Build
         if: matrix.os == 'ubuntu-22.04'
         run: |
-          pnpm run tauri build -- --bundles=deb,rpm
+          pnpm run tauri build --bundles deb,rpm
 
       - name: Upload MSI
         if: matrix.os == 'windows-latest'
