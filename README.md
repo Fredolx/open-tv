@@ -41,11 +41,8 @@ Choose from three stunning visual themes:
 - **Smooth Glass** – Elegant Apple-style glassmorphism with frosted transparency
 - **Matrix Terminal** – Hacker-style green terminal aesthetic inspired by The Matrix
 
-![Beats TV Home Screen](screenshots/demo1.png)
-_Beats TV Home Screen - Sleek and modern_
-
-![Beats TV Full Experience](screenshots/demo2.png)
-_Beats TV Experience - Vibrant and feature-rich_
+![Matrix Terminal Theme](screenshots/matrix_theme.png)
+_Matrix Terminal Theme - For the hacker in you_
 
 ### 🎬 Enhanced Video Mode
 
