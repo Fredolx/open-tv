@@ -1,9 +1,18 @@
-<svg class="sort-icon" (click)="click($event)" fill="black" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <title>Sort</title>
-  <path d="M18 21L14 17H17V7H14L18 3L22 7H19V17H22M2 19V17H12V19M2 13V11H9V13M2 7V5H6V7H2Z" />
+<svg
+  class="sort-icon"
+  (click)="click($event)"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+>
+  <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" />
 </svg>
-<div style="visibility: hidden; position: fixed" [style.left.px]="menuTopLeftPosition.x"
-  [style.top.px]="menuTopLeftPosition.y" [matMenuTriggerFor]="rightMenu"></div>
+<div
+  style="visibility: hidden; position: fixed"
+  [style.left.px]="menuTopLeftPosition.x"
+  [style.top.px]="menuTopLeftPosition.y"
+  [matMenuTriggerFor]="rightMenu"
+></div>
 <mat-menu #rightMenu="matMenu">
   <ng-template matMenuContent let-item="item">
     <ng-container *ngFor="let sortType of sortTypes">

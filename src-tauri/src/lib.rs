@@ -141,6 +141,8 @@ pub fn run() {
             set_bulk_tag_visibility,
             check_dependencies,
             get_xtream_source_details,
+            fetch_vod_info,
+            get_mpv_preset,
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -617,4 +619,44 @@ fn check_dependencies() -> deps::DependencyCheckResult {
 #[tauri::command(async)]
 fn set_bulk_tag_visibility(tags: Vec<String>, visible: bool) -> Result<usize, String> {
     sql::do_tx(|tx| tags::set_bulk_tag_visibility(tx, &tags, visible)).map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn fetch_vod_info(channel: Channel) -> Result<xtream::XtreamVodInfo, String> {
+    let result = xtream::fetch_vod_info(channel.clone())
+        .await
+        .map_err(map_err_frontend)?;
+
+    let info = &result.info;
+    let rating = xtream::get_serde_json_f32(&info.rating_5based).or(xtream::get_serde_json_f32(&info.rating));
+    let release_date = xtream::parse_xtream_date(&info.release_date);
+    let plot = info.plot.clone();
+    let cast = info.cast.clone();
+    let director = info.director.clone();
+    let genre = info.genre.clone();
+    let image = info.movie_image.clone();
+
+    if let Some(channel_id) = channel.id {
+        let _ = sql::update_channel_enriched_data(
+            channel_id,
+            rating,
+            release_date,
+            plot,
+            cast,
+            director,
+            genre,
+            image,
+        );
+    }
+
+    Ok(result)
+}
+
+#[tauri::command]
+fn get_mpv_preset(preset: String) -> String {
+    match preset.as_str() {
+        "enhanced" => mpv::get_enhanced_params(),
+        "default" => String::new(),
+        _ => String::new(),
+    }
 }

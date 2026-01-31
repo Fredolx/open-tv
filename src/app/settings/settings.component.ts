@@ -65,6 +65,14 @@ export class SettingsComponent {
     { value: 1, label: 'Smooth Glass' },
     { value: 2, label: 'Matrix Terminal' },
   ];
+
+  mpvPresets = [
+    { value: 'custom', label: 'Custom (Manual)' },
+    { value: 'default', label: 'Default (Clean)' },
+    { value: 'enhanced', label: 'Enhanced (High Quality)' },
+  ];
+  selectedPreset = 'custom';
+
   @ViewChild('mpvParams') mpvParams!: ElementRef;
 
   constructor(
@@ -290,12 +298,15 @@ export class SettingsComponent {
   }
 
   async refreshAll() {
+    this.memory.IsRefreshing = true;
     this.memory.SeriesRefreshed.clear();
     try {
       await invoke('refresh_all');
       this.toastr.success('Successfully updated all sources');
     } catch (e) {
       this.error.handleError(e, 'Failed to refresh sources');
+    } finally {
+      this.memory.IsRefreshing = false;
     }
   }
 
@@ -340,6 +351,21 @@ export class SettingsComponent {
         await invoke('clear_history');
       },
     );
+  }
+
+  async applyPreset() {
+    if (this.selectedPreset === 'custom') return;
+
+    if (this.selectedPreset === 'default') {
+      this.settings.mpv_params = '';
+      await this.updateSettings();
+      return;
+    }
+
+    invoke('get_mpv_preset', { preset: this.selectedPreset }).then((params) => {
+      this.settings.mpv_params = params as string;
+      this.updateSettings();
+    });
   }
 
   ngOnDestroy(): void {

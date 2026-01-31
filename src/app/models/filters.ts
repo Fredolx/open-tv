@@ -1,6 +1,6 @@
-import { MediaType } from "./mediaType";
-import { SortType } from "./sortType";
-import { ViewMode } from "./viewMode";
+import { MediaType } from './mediaType';
+import { SortType } from './sortType';
+import { ViewMode } from './viewMode';
 
 export class Filters {
   public query?: string;
@@ -13,4 +13,6 @@ export class Filters {
   public use_keywords!: boolean;
   public sort?: SortType;
   public season?: number;
+  public rating_min?: number;
+  public genre?: string;
 }

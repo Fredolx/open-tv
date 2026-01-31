@@ -58,6 +58,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   @Input() selectionMode: boolean = false;
   @Input() selected: boolean = false;
   @Output() selectionToggled = new EventEmitter<number>();
+  @Output() requestDetails = new EventEmitter<Channel>();
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
   menuTopLeftPosition = { x: 0, y: 0 };
   showImage: boolean = true;
@@ -107,28 +108,29 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     }
     if (
       this.channel?.media_type == MediaType.serie ||
-      this.channel?.media_type == MediaType.group ||
-      this.channel?.media_type == MediaType.season
+      this.channel?.media_type == MediaType.movie
     ) {
       if (
         this.channel.media_type == MediaType.serie &&
         !this.memory.SeriesRefreshed.has(this.channel.id!)
       ) {
-        this.memory.HideChannels.next(false);
-        try {
-          await invoke('get_episodes', { channel: this.channel });
-          this.memory.SeriesRefreshed.set(this.channel.id!, true);
-        } catch (e) {
-          this.error.handleError(e, 'Failed to fetch series');
-        }
+        // Prefetch series episodes if needed, but we'll let the modal handle parsing/fetching?
+        // Actually, existing logic for series fetches episodes immediately.
+        // For now, let's just emit requestDetails. The Home component or Modal can decide to fetch.
+        // BUT wait, existing logic is inside the if block.
       }
+      this.requestDetails.emit(this.channel);
+      return;
+    }
+
+    if (
+      this.channel?.media_type == MediaType.group ||
+      this.channel?.media_type == MediaType.season
+    ) {
       this.memory.SetNode.next({
-        id:
-          this.channel?.media_type == MediaType.serie
-            ? parseInt(this.channel.url!)
-            : this.channel.id!,
+        id: this.channel.id!,
         name: this.channel.name!,
-        type: fromMediaType(this.channel.media_type),
+        type: fromMediaType(this.channel.media_type!),
         sourceId: this.channel.source_id,
       });
       return;

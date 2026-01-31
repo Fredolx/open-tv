@@ -1,2 +1,7 @@
+<mat-progress-bar
+  mode="indeterminate"
+  *ngIf="memory.IsRefreshing"
+  class="global-progress"
+></mat-progress-bar>
 <router-outlet></router-outlet>
 <app-download-manager *ngIf="showDownloadManager()"></app-download-manager>

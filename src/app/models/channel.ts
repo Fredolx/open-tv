@@ -1,4 +1,4 @@
-import { MediaType } from "./mediaType";
+import { MediaType } from './mediaType';
 
 export class Channel {
   id?: number;
@@ -12,4 +12,12 @@ export class Channel {
   stream_id?: number;
   tv_archive?: boolean;
   hidden?: boolean;
+  // Metadata fields
+  rating?: number;
+  genre?: string;
+  release_date?: string;
+  plot?: string;
+  cast?: string;
+  director?: string;
+  added?: string;
 }

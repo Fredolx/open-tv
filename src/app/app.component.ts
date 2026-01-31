@@ -21,6 +21,7 @@
 
 import { Component, HostListener, OnInit } from '@angular/core';
 import { DownloadService } from './download.service';
+import { MemoryService } from './memory.service';
 import { invoke } from '@tauri-apps/api/core';
 import { Settings } from './models/settings';
 
@@ -32,7 +33,10 @@ import { Settings } from './models/settings';
 export class AppComponent implements OnInit {
   title = 'open-tv';
 
-  constructor(private download: DownloadService) {}
+  constructor(
+    private download: DownloadService,
+    public memory: MemoryService,
+  ) {}
 
   ngOnInit(): void {
     this.applyTheme();

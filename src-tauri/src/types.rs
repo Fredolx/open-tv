@@ -54,6 +54,18 @@ pub struct Channel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub episode_num: Option<i64>,
     pub hidden: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rating: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub genre: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub release_date: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub plot: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cast: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub director: Option<String>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize, Default)]
@@ -111,6 +123,7 @@ pub struct Settings {
     pub last_refresh: Option<i64>,
     pub enhanced_video: Option<bool>,
     pub theme: Option<u8>,
+    pub vpn_mode: Option<bool>,  // VPN mode for unstable connections
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -125,6 +138,10 @@ pub struct Filters {
     pub use_keywords: bool,
     pub sort: u8,
     pub season: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rating_min: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub genre: Option<String>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize, Default)]

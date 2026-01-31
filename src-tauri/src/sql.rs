@@ -262,6 +262,19 @@ fn apply_migrations() -> Result<()> {
               ANALYZE;
             "#,
         ),
+        M::up(
+            r#"
+              ALTER TABLE channels ADD COLUMN rating REAL;
+              ALTER TABLE channels ADD COLUMN genre TEXT;
+              ALTER TABLE channels ADD COLUMN release_date TEXT;
+              ALTER TABLE channels ADD COLUMN plot TEXT;
+              ALTER TABLE channels ADD COLUMN cast TEXT;
+              ALTER TABLE channels ADD COLUMN director TEXT;
+              
+              CREATE INDEX index_channels_rating ON channels(rating);
+              CREATE INDEX index_channels_release_date ON channels(release_date);
+            "#,
+        ),
     ]);
     migrations.to_latest(&mut sql)?;
     Ok(())
@@ -327,8 +340,8 @@ pub fn insert_season(tx: &Transaction, season: Season) -> Result<i64> {
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
-INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id, tv_archive, season_id, episode_num)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id, tv_archive, season_id, episode_num, rating, genre, release_date, plot, cast, director)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (name, source_id, url, series_id, season_id)
 DO UPDATE SET
     url = excluded.url,
@@ -337,7 +350,13 @@ DO UPDATE SET
     image = excluded.image,
     series_id = excluded.series_id,
     tv_archive = excluded.tv_archive,
-    season_id = excluded.season_id;
+    season_id = excluded.season_id,
+    rating = excluded.rating,
+    genre = excluded.genre,
+    release_date = excluded.release_date,
+    plot = excluded.plot,
+    cast = excluded.cast,
+    director = excluded.director;
 "#,
         params![
             channel.name,
@@ -351,7 +370,13 @@ DO UPDATE SET
             channel.stream_id,
             channel.tv_archive,
             channel.season_id,
-            channel.episode_num
+            channel.episode_num,
+            channel.rating,
+            channel.genre,
+            channel.release_date,
+            channel.plot,
+            channel.cast,
+            channel.director
         ],
     )?;
     Ok(())
@@ -371,6 +396,53 @@ VALUES (?, ?, ?, ?, ?);
             headers.ignore_ssl
         ],
     )?;
+    Ok(())
+}
+
+pub fn update_channel_enriched_data(
+    id: i64,
+    rating: Option<f32>,
+    release_date: Option<String>,
+    plot: Option<String>,
+    cast: Option<String>,
+    director: Option<String>,
+    genre: Option<String>,
+    image: Option<String>,
+) -> Result<()> {
+    let conn = get_conn()?;
+    let mut sql = "UPDATE channels SET rating = ?1, release_date = ?2, plot = ?3, cast = ?4, director = ?5, genre = ?6".to_string();
+    
+    if image.is_some() {
+        sql += ", image = ?7";
+    }
+    
+    sql += " WHERE id = ?8";
+
+    let mut stmt = conn.prepare(&sql)?;
+    
+    if let Some(img_val) = image {
+        stmt.execute(params![
+            rating,
+            release_date,
+            plot,
+            cast,
+            director,
+            genre,
+            img_val,
+            id
+        ])?;
+    } else {
+        stmt.execute(params![
+            rating,
+            release_date,
+            plot,
+            cast,
+            director,
+            genre,
+            id
+        ])?;
+    }
+    
     Ok(())
 }
 
@@ -523,6 +595,15 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         sql_query += "\nAND favorite = 1";
     }
 
+    if filters.rating_min.is_some() {
+        sql_query += "\nAND rating >= ?";
+        baked_params += 1;
+    }
+    if filters.genre.is_some() {
+        sql_query += "\nAND genre LIKE '%' || ? || '%'";
+        baked_params += 1;
+    }
+
     if filters.series_id.is_some() {
         sql_query += &format!("\nAND series_id = ?");
         baked_params += 1;
@@ -534,18 +615,32 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
         sql_query += &format!("\nAND season_id = ?");
         baked_params += 1;
     }
-    let order = match filters.sort {
-        sort_type::ALPHABETICAL_DESC => "DESC",
-        _ => "ASC",
-    };
+    
     if filters.view_type == view_type::HISTORY {
         sql_query += "\nAND last_watched IS NOT NULL";
         sql_query += "\nORDER BY last_watched DESC";
     } else if filters.season.is_some() {
+        let order = match filters.sort {
+            sort_type::ALPHABETICAL_DESC => "DESC",
+            _ => "ASC",
+        };
         sql_query += &format!("\nORDER BY episode_num {0}, name {0}", order)
-    } else if filters.sort != sort_type::PROVIDER {
-        sql_query += &format!("\nORDER BY name {}", order);
+    } else {
+        match filters.sort {
+            sort_type::ALPHABETICAL_DESC => sql_query += "\nORDER BY name DESC",
+            sort_type::ALPHABETICAL_ASC => sql_query += "\nORDER BY name ASC",
+            sort_type::RATING_DESC => sql_query += "\nORDER BY rating DESC NULLS LAST, name ASC",
+            sort_type::RATING_ASC => sql_query += "\nORDER BY rating ASC NULLS LAST, name ASC",
+            sort_type::DATE_DESC => sql_query += "\nORDER BY release_date DESC NULLS LAST, name ASC",
+            sort_type::DATE_ASC => sql_query += "\nORDER BY release_date ASC NULLS LAST, name ASC",
+            _ => {
+                if filters.sort != sort_type::PROVIDER {
+                    sql_query += "\nORDER BY name ASC";
+                }
+            }
+        }
     }
+
     sql_query += "\nLIMIT ?, ?";
     let mut params: Vec<&dyn rusqlite::ToSql> = Vec::with_capacity(
         baked_params + media_types.len() + filters.source_ids.len() + keywords.len(),
@@ -553,6 +648,14 @@ pub fn search(filters: Filters) -> Result<Vec<Channel>> {
     params.extend(to_to_sql(&keywords));
     params.extend(to_to_sql(&media_types));
     params.extend(to_to_sql(&filters.source_ids));
+    
+    if let Some(ref rating) = filters.rating_min {
+        params.push(rating);
+    }
+    if let Some(ref genre) = filters.genre {
+        params.push(genre);
+    }
+
     if let Some(ref series_id) = filters.series_id {
         params.push(series_id);
     } else if let Some(ref group) = filters.group_id {
@@ -630,6 +733,12 @@ fn season_row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Er
         url: None,
         episode_num: None,
         hidden: Some(false),
+        rating: None,
+        genre: None,
+        release_date: None,
+        plot: None,
+        cast: None,
+        director: None,
     })
 }
 
@@ -1025,6 +1134,12 @@ fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         season_id: None,
         episode_num: None,
         hidden: row.get("hidden")?,
+        rating: None,
+        genre: None,
+        release_date: None,
+        plot: None,
+        cast: None,
+        director: None,
     };
     Ok(channel)
 }
@@ -1046,6 +1161,12 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         tv_archive: row.get("tv_archive")?,
         season_id: row.get("season_id")?,
         hidden: row.get("hidden")?,
+        rating: row.get("rating").ok(),
+        genre: row.get("genre").ok(),
+        release_date: row.get("release_date").ok(),
+        plot: row.get("plot").ok(),
+        cast: row.get("cast").ok(),
+        director: row.get("director").ok(),
     };
     Ok(channel)
 }
@@ -1557,6 +1678,12 @@ fn row_to_custom_channel(row: &Row) -> Result<CustomChannel, rusqlite::Error> {
             season_id: None,
             episode_num: None,
             hidden: Some(false),
+            rating: None,
+            genre: None,
+            release_date: None,
+            plot: None,
+            cast: None,
+            director: None,
         },
         headers: Some(ChannelHttpHeaders {
             http_origin: row.get("http_origin")?,

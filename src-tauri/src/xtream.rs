@@ -71,6 +71,23 @@ struct XtreamStream {
     container_extension: Option<String>,
     #[serde(default)]
     tv_archive: serde_json::Value,
+    // Metadata fields from Xtream API
+    #[serde(default)]
+    rating: serde_json::Value,
+    #[serde(default, alias = "rating_5based")]
+    rating_5based: serde_json::Value,
+    #[serde(default)]
+    genre: serde_json::Value,
+    #[serde(default, alias = "releaseDate")]
+    releasedate: serde_json::Value,
+    #[serde(default)]
+    plot: serde_json::Value,
+    #[serde(default)]
+    cast: serde_json::Value,
+    #[serde(default)]
+    director: serde_json::Value,
+    #[serde(default)]
+    added: serde_json::Value,
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct XtreamSeries {
@@ -324,7 +341,46 @@ fn convert_xtream_live_to_channel(
         season_id: None,
         episode_num: None,
         hidden: Some(false),
+        // Metadata from Xtream API
+        rating: get_serde_json_f32(&stream.rating_5based).or_else(|| get_serde_json_f32(&stream.rating)),
+        genre: get_serde_json_string(&stream.genre),
+        release_date: parse_xtream_date(&stream.releasedate).or_else(|| parse_xtream_date(&stream.added)),
+        plot: get_serde_json_string(&stream.plot),
+        cast: get_serde_json_string(&stream.cast),
+        director: get_serde_json_string(&stream.director),
     })
+}
+
+pub fn parse_xtream_date(value: &serde_json::Value) -> Option<String> {
+    if let Some(s) = value.as_str() {
+        if s.trim().is_empty() { return None; }
+        // If it looks like a year or a date, return as is
+        if s.len() >= 4 && s.chars().all(|c| c.is_numeric() || c == '-') {
+             // If it's a long numeric string, it might be a timestamp
+             if s.len() > 7 {
+                 if let Ok(ts) = s.parse::<i64>() {
+                     return timestamp_to_date_string(ts);
+                 }
+             }
+             return Some(s.to_string());
+        }
+        return Some(s.to_string());
+    }
+    if let Some(n) = value.as_i64() {
+        if n > 0 {
+            return timestamp_to_date_string(n);
+        }
+    }
+    None
+}
+
+fn timestamp_to_date_string(ts: i64) -> Option<String> {
+    // Check if it's seconds or milliseconds
+    let seconds = if ts > 10_000_000_000 { ts / 1000 } else { ts };
+    if let Some(dt) = NaiveDateTime::from_timestamp_opt(seconds, 0) {
+        return Some(dt.format("%Y-%m-%d").to_string());
+    }
+    None
 }
 
 fn get_url(
@@ -482,7 +538,7 @@ fn create_makeshift_season(
     }
 }
 
-fn get_serde_json_string(value: &serde_json::Value) -> Option<String> {
+pub fn get_serde_json_string(value: &serde_json::Value) -> Option<String> {
     value
         .as_str()
         .map(|cid| cid.to_string())
@@ -490,18 +546,25 @@ fn get_serde_json_string(value: &serde_json::Value) -> Option<String> {
         .map(|cid| cid.trim().to_string())
 }
 
-fn get_serde_json_u64(value: &serde_json::Value) -> Option<u64> {
+pub fn get_serde_json_u64(value: &serde_json::Value) -> Option<u64> {
     value
         .as_str()
         .and_then(|val| val.trim().parse::<u64>().ok())
         .or_else(|| value.as_u64())
 }
 
-fn get_serde_json_i64(value: &serde_json::Value) -> Option<i64> {
+pub fn get_serde_json_i64(value: &serde_json::Value) -> Option<i64> {
     value
         .as_str()
         .and_then(|val| val.trim().parse::<i64>().ok())
         .or_else(|| value.as_i64())
+}
+
+pub fn get_serde_json_f32(value: &serde_json::Value) -> Option<f32> {
+    value
+        .as_str()
+        .and_then(|val| val.trim().parse::<f32>().ok())
+        .or_else(|| value.as_f64().map(|v| v as f32))
 }
 
 fn xtream_season_to_season(season: &XtreamSeason, source_id: i64, series_id: u64) -> Result<Season> {
@@ -545,6 +608,12 @@ fn episode_to_channel(
         favorite: false,
         tv_archive: None,
         hidden: Some(false),
+        rating: None,
+        genre: None,
+        release_date: None,
+        plot: None,
+        cast: None,
+        director: None,
     })
 }
 
@@ -667,7 +736,41 @@ pub async fn get_xtream_details(mut source: Source) -> Result<XtreamPanelInfo> {
     let user_agent = get_user_agent_from_source(&source)?;
     let client = Client::builder().user_agent(&user_agent).build()?;
     
-    // Base login call returns user_info and server_info
     let data = client.get(url).send().await?.json::<XtreamPanelInfo>().await?;
+    Ok(data)
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct XtreamVodInfo {
+    pub info: XtreamVodInfoData,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct XtreamVodInfoData {
+    #[serde(default)]
+    pub rating: serde_json::Value,
+    #[serde(default, alias = "rating_5based")]
+    pub rating_5based: serde_json::Value,
+    pub genre: Option<String>,
+    #[serde(default, alias = "releasedate")]
+    pub release_date: serde_json::Value,
+    pub plot: Option<String>,
+    pub cast: Option<String>,
+    pub director: Option<String>,
+    pub movie_image: Option<String>,
+}
+
+pub async fn fetch_vod_info(channel: Channel) -> Result<XtreamVodInfo> {
+    let mut source = sql::get_source_from_id(channel.source_id.context("no source id")?)?;
+    let mut url = build_xtream_url(&mut source)?;
+    let user_agent = get_user_agent_from_source(&source)?;
+    let client = Client::builder().user_agent(&user_agent).build()?;
+    
+    let stream_id = channel.stream_id.context("No stream id")?.to_string();
+    url.query_pairs_mut()
+        .append_pair("action", "get_vod_info")
+        .append_pair("vod_id", &stream_id);
+        
+    let data = client.get(url).send().await?.json::<XtreamVodInfo>().await?;
     Ok(data)
 }

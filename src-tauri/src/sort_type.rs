@@ -23,3 +23,7 @@
 pub const ALPHABETICAL_ASC: u8 = 0;
 pub const ALPHABETICAL_DESC: u8 = 1;
 pub const PROVIDER: u8 = 2;
+pub const RATING_DESC: u8 = 3;
+pub const RATING_ASC: u8 = 4;
+pub const DATE_ASC: u8 = 5;
+pub const DATE_DESC: u8 = 6;

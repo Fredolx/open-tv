@@ -307,6 +307,12 @@ fn get_channel_from_lines(
         season_id: None,
         episode_num: None,
         hidden: Some(false),
+        rating: None,
+        genre: None,
+        release_date: None,
+        plot: None,
+        cast: None,
+        director: None,
     };
     Ok(channel)
 }

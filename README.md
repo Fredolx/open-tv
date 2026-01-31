@@ -1,193 +1,95 @@
-# Beats TV - Premium IPTV Player for Windows, macOS & Linux
+# Beats TV
 
-<p align="center">
-  <img src="readme_imgs/beats_tv_logo.png" alt="Beats TV - Best Free IPTV Player" width="200"/>
-</p>
+A modern, feature-rich IPTV player and manager. Free and open source.
 
-<p align="center">
-  <strong>The Ultimate M3U & Xtream IPTV Player with Premium Themes</strong><br>
-  <em>Fast • Beautiful • Feature-Rich • Free & Open Source</em>
-</p>
-
-<p align="center">
-  <a href="https://github.com/officebeats/open-tv/releases">
-    <img src="https://img.shields.io/github/v/release/officebeats/open-tv?style=for-the-badge&color=ff0033" alt="Latest Release"/>
-  </a>
-  <a href="https://github.com/officebeats/open-tv/stargazers">
-    <img src="https://img.shields.io/github/stars/officebeats/open-tv?style=for-the-badge&color=ff0033" alt="GitHub Stars"/>
-  </a>
-  <a href="https://github.com/officebeats/open-tv/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/officebeats/open-tv?style=for-the-badge" alt="License"/>
-  </a>
-</p>
+**Fast • Beautiful • Feature-Rich • Free & Open Source**
 
 ---
 
-## 🎬 What is Beats TV?
+## Features
 
-**Beats TV** is a high-performance, cross-platform IPTV player designed for users who want a premium streaming experience. Built with Rust and Angular for speed on the backend and beauty on the frontend, Beats TV supports M3U playlists, M3U8 links, and Xtream Codes APIs.
-
-Whether you're streaming live TV, movies, or TV series from your IPTV provider, Beats TV delivers a stunning visual experience with multiple themes, smart content filtering, and blazing-fast performance.
-
----
-
-## ✨ Key Features
-
-### 🎨 Premium Visual Themes
-
-Choose from three stunning visual themes:
-
-- **Clay-Mation** – Soft, puffy 3D claymorphism with red accents and glowing tiles
-- **Smooth Glass** – Elegant Apple-style glassmorphism with frosted transparency
-- **Matrix Terminal** – Hacker-style green terminal aesthetic inspired by The Matrix
-
-![Matrix Terminal Theme](screenshots/matrix_theme.png)
-_Matrix Terminal Theme - For the hacker in you_
-
-### 🎬 Enhanced Video Mode
-
-IPTV-optimized playback with:
-
-- Display resampling and interpolation for smoother video
-- Aggressive caching (512MB) to prevent buffering
-- High-quality catmull_rom scaling
-- Auto-reconnect for dropped streams
-- Platform-specific GPU optimizations (D3D11 for Windows, OpenGL for macOS)
-
-### 🏷️ Smart Content Filtering
-
-- **Tag-Based Filtering** – Automatically detects country/language tags (USA, UK, EN, Spanish, etc.)
-- **Priority Sorting** – US/English tags bubble to the top for quick access
-- **Content Type Filters** – Filter by Live TV, Movies/VOD, or Series
-- **Bulk Hide/Show** – Select/deselect all visible tags at once
-
-### ⚡ Performance & Efficiency
-
-- **Ultra-Low Resource Usage** – Minimal RAM footprint
-- **Instant Search** – Lightning-fast channel search
-- **Hardware Acceleration** – GPU-accelerated playback with HDR support
-- **Modern MPV Integration** – Powered by the mpv media player
-
-### 📺 Multi-Source Management
-
-- Import M3U files and URLs
-- Xtream Codes API support
-- Manage multiple IPTV providers
-- Custom channel organization
-
-### 🎥 Recording & Streaming
-
-- **Record While Watching** – Save your favorite content
-- **Re-streaming** – Share streams to other devices (phones, tablets, TVs)
-
-### 🛋️ Living Room Ready
-
-- Full keyboard and TV remote navigation
-- Large, readable interface optimized for 10-foot viewing
-- Smart tooltips and accessibility features
+| Category | Features |
+|----------|----------|
+| **Playback** | MPV & VLC support, Live TV, Movies, Series, TV Archive, External Players |
+| **Organization** | Groups, Favorites, Custom Channels, Smart Filters, EPG Guide |
+| **Content** | Xtream Codes, M3U, Custom Sources, Genre Filtering, Release Date Sorting |
+| **Privacy** | VPN Mode, Custom Headers, Ignore SSL, Password Protection |
+| **UX** | Dark/Light/Matrix Themes, Keyboard Navigation, Search, Bulk Actions |
 
 ---
 
-## 📥 Download & Installation
+## Downloads
 
-Download the latest release for your platform:
+| Platform | Download |
+|----------|----------|
+| Windows | [Beats TV Setup.exe](https://github.com/admin-beats/beats-tv/releases/latest) |
+| Linux | .deb, .AppImage, Arch AUR, Flatpak |
+| macOS | .dmg (Apple Silicon & Intel) |
+| Android | APK |
 
-| Platform    | Download                                                                            |
-| ----------- | ----------------------------------------------------------------------------------- |
-| **Windows** | [Download .exe Installer](https://github.com/officebeats/open-tv/releases)          |
-| **macOS**   | [Download .dmg](https://github.com/officebeats/open-tv/releases)                    |
-| **Linux**   | [Download .deb / .rpm / .AppImage](https://github.com/officebeats/open-tv/releases) |
+---
 
-### Dependencies
+## Quick Start
 
-| Platform                | Dependency Handling                                    |
-| ----------------------- | ------------------------------------------------------ |
-| **Windows (.msi/.exe)** | ✅**Automatic** – All dependencies bundled             |
-| **Linux (.deb/.rpm)**   | ✅**Automatic** – Package managers handle dependencies |
-| **Flatpak**             | ✅**Automatic** – Sandboxed with all dependencies      |
-| **macOS**               | ⚠️**Manual** – See below                               |
+1. **Add Your Source**
+   - Xtream Codes API (most providers)
+   - M3U Playlist URL
+   - Manual channel definition
 
-#### macOS Users Only
+2. **Navigate**
+   - `Arrow keys` - Browse channels
+   - `Enter` - Play
+   - `F` - Favorites
+   - `S` - Search
+   - `Esc` - Back/Close
 
-Install dependencies via [Homebrew](https://brew.sh/):
+3. **Customize**
+   - Theme: Settings → Theme
+   - Player: Settings → Player
+   - VPN: Settings → VPN Mode
+
+---
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `Space` | Play/Pause |
+| `Arrows` | Navigate |
+| `F` | Toggle Favorite |
+| `S` | Search |
+| `G` | Go to Channel |
+| `R` | Refresh |
+| `M` | Mute |
+| `+/-` | Volume |
+| `Esc` | Back/Close |
+
+---
+
+## Build from Source
 
 ```bash
-brew install mpv ffmpeg yt-dlp
+git clone https://github.com/admin-beats/beats-tv.git
+cd beats-tv
+
+# Frontend
+npm install
+npm run dev
+
+# Desktop App
+cargo install tauri-cli
+cargo tauri dev
 ```
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## Credits
 
-| Shortcut           | Action             |
-| ------------------ | ------------------ |
-| `F1`               | Help               |
-| `Ctrl + A`         | Show all channels  |
-| `Ctrl + S`         | Show categories    |
-| `Ctrl + D`         | Show favorites     |
-| `Ctrl + F`         | Search             |
-| `Ctrl + Q`         | Toggle livestreams |
-| `Ctrl + W`         | Toggle movies      |
-| `Ctrl + E`         | Toggle series      |
-| `Backspace / Esc`  | Go back            |
-| `Arrow Keys / Tab` | Navigation         |
+- **Original Project**: [Open TV](https://github.com/fredolx/open-tv) by [Fredolx](https://github.com/fredolx) - Licensed under GPL-2.0
+- **Beats TV**: A feature-enhanced fork with modern UI and additional functionality
 
 ---
 
-<details>
-<summary><h2>🏗️ Building from Source (Advanced Users)</h2></summary>
+## License
 
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (v18+)
-- [Rust](https://www.rust-lang.org/tools/install)
-- [pnpm](https://pnpm.io/)
-
-### Build Steps
-
-```bash
-# Clone the repository
-git clone https://github.com/officebeats/open-tv.git
-cd open-tv
-
-# Install dependencies
-pnpm install
-
-# Development mode
-pnpm tauri dev
-
-# Production build
-pnpm tauri build
-```
-
-</details>
-
----
-
-## 🙏 Credits & Appreciation
-
-Beats TV is a proud fork of [Open TV](https://github.com/Fredolx/open-tv) by **Fredolx**. We are deeply grateful for the incredible foundation they built. Beats TV aims to build upon this work with modern UI refinements and AI-assisted optimizations.
-
----
-
-## 🔗 Connect
-
-- [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/productmg/) – Connect professionally
-- [![Twitter/X](https://img.shields.io/badge/X-000000?style=flat&logo=x&logoColor=white)](https://x.com/officebeats) – Follow for updates
-- [GitHub Issues](https://github.com/officebeats/open-tv/issues) – Report bugs or request features
-- [Releases](https://github.com/officebeats/open-tv/releases) – Download the latest version
-
----
-
-## 📄 License
-
-Beats TV is open-source software, licensed under the **GNU General Public License v2.0 (GPL-2.0)**.
-
-In accordance with the GPL-2.0 license, all modifications and derivative works—including this project—are also shared under the same license terms. See the [LICENSE](LICENSE) file for the full legal text.
-
-<details>
-<summary><h2>🔍 SEO Keywords</h2></summary>
-
-_IPTV Player, M3U Player, Xtream Player, Xtream Codes Player, Free IPTV App, Free IPTV Player, Free IPTV Software, Open Source IPTV, Open Source IPTV Player, Open Source M3U Player, IPTV for Windows, IPTV for Windows 10, IPTV for Windows 11, IPTV for Mac, IPTV for macOS, IPTV for Linux, IPTV for Ubuntu, IPTV for Debian, M3U8 Player, M3U Playlist Player, HLS Player, Live TV Streaming, Live TV Player, TV Series Player, VOD Player, Video on Demand Player, mpv IPTV, mpv Media Player, Desktop IPTV, Desktop Streaming App, Cross Platform IPTV, Multi Platform IPTV, Tauri App, Rust IPTV, Angular IPTV, Best Free IPTV Player, Best IPTV App Windows, Best M3U Player Windows, Best IPTV Player 2024, Best IPTV Player 2025, Free TV Streaming Software, Free Live TV App, Free Streaming Player, Stream Recorder, IPTV Recorder, Record Live TV, Record IPTV Streams, Hardware Accelerated Video, GPU Video Player, HDR Video Player, 4K IPTV Player, HD Streaming, IPTV Favorites, Channel Manager, Playlist Manager, IPTV Categories, EPG Player, Electronic Program Guide, TV Guide App, Claymorphism UI, Glassmorphism App, Matrix Theme, Dark Mode IPTV, Modern UI Player, Premium IPTV App, Beautiful IPTV Player, Lightweight IPTV, Fast IPTV Player, Low Resource IPTV, Minimal RAM Player, Instant Search IPTV, Quick Channel Search, TV Remote Compatible, Living Room IPTV, 10 Foot Interface, Smart TV Streaming, IPTV Restreaming, Share IPTV Streams, IPTV to Phone, IPTV to Tablet, Multi Source IPTV, Multiple Playlist IPTV, IPTV Provider Manager, Cord Cutting App, Cord Cutter Software, Free Cable TV Alternative, Watch Live TV Free, Stream TV Shows, Stream Movies Free, IPTV GitHub, IPTV Open Source GitHub_
-
-</details>
+GPL-2.0 - See [LICENSE](LICENSE) for details.

@@ -1,6 +1,6 @@
 {
   "name": "open-tv",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "Beats TV - A Premium, AI-Enhanced IPTV Player (Fork of Open TV)",
   "author": "Beats TV Team (Forked from Fredolx)",
   "license": "GPL-2.0",
@@ -32,6 +32,7 @@
     "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-notification": "^2.3.3",
     "@tauri-apps/plugin-shell": "^2.3.3",
+    "fuse.js": "^7.1.0",
     "ng-keyboard-shortcuts": "^13.0.8",
     "ngx-toastr": "^19.0.0",
     "rxjs": "~7.8.0",

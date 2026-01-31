@@ -199,51 +199,7 @@ fn get_play_args(
         args.push(ARG_GPU_NEXT.to_string());
         // args.push(ARG_GPU_PROFILE_HIGH_QUALITY.to_string());
     }
-    // Enhanced Video Mode - optimized for IPTV streaming
-    if settings.enhanced_video.unwrap_or(false) {
-        // Video sync and interpolation
-        args.push("--video-sync=display-resample".to_string());
-        args.push("--interpolation=yes".to_string());
-        args.push("--tscale=linear".to_string());
-        args.push("--tscale-clamp=0.0".to_string());
-        
-        // Caching for smooth playback
-        args.push("--cache=yes".to_string());
-        args.push("--demuxer-max-bytes=512MiB".to_string());
-        args.push("--demuxer-max-back-bytes=128MiB".to_string());
-        args.push("--demuxer-readahead-secs=60".to_string());
-        args.push("--stream-buffer-size=2MiB".to_string());
-        
-        // Performance optimizations
-        args.push("--framedrop=vo".to_string());
-        args.push("--vd-lavc-fast".to_string());
-        args.push("--vd-lavc-skiploopfilter=all".to_string());
-        args.push("--vd-lavc-threads=0".to_string());
-        
-        // High-quality scaling
-        args.push("--scale=catmull_rom".to_string());
-        args.push("--cscale=catmull_rom".to_string());
-        args.push("--dscale=catmull_rom".to_string());
-        args.push("--scale-antiring=0.7".to_string());
-        args.push("--cscale-antiring=0.7".to_string());
-        
-        // Hardware decoding (auto-copy for compatibility)
-        args.push("--hwdec=auto-copy".to_string());
-        
-        // Stream reconnection (via FFmpeg/lavf options)
-        args.push("--stream-lavf-o=reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=5".to_string());
-        
-        // User agent for compatibility
-        args.push("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36".to_string());
-        
-        // Platform-specific GPU API
-        if OS == "windows" {
-            args.push("--d3d11-flip=yes".to_string());
-            args.push("--gpu-api=d3d11".to_string());
-        } else if OS == "macos" {
-            args.push("--gpu-api=opengl".to_string());
-        }
-    }
+    /* Enhanced Video Mode removed from auto-injection. User must populate mpv_params via preset. */
     if record {
         let path = if let Some(p) = record_path {
             p
@@ -319,4 +275,63 @@ fn get_file_name() -> String {
     let current_time = Local::now();
     let formatted_time = current_time.format("%Y-%m-%d-%H-%M-%S").to_string();
     format!("{formatted_time}.mp4")
+}
+
+pub fn get_enhanced_params() -> String {
+    let mut args = Vec::new();
+    
+    // Video sync and interpolation
+    args.push("--video-sync=display-resample");
+    args.push("--interpolation=yes");
+    args.push("--tscale=linear");
+    args.push("--tscale-clamp=0.0");
+    
+    // VPN-Optimized Caching for unstable connections
+    args.push("--cache=yes");
+    args.push("--demuxer-max-bytes=1GiB");  // Increased from 512MiB for more buffering
+    args.push("--demuxer-max-back-bytes=512MiB");  // Increased from 128MiB
+    args.push("--demuxer-readahead-secs=120");  // Increased from 60 for longer buffer
+    args.push("--stream-buffer-size=4MiB");  // Increased from 2MiB
+    args.push("--cache-secs=120");  // Cache 120 seconds of content
+    
+    // Performance optimizations for VPN
+    args.push("--framedrop=vo");
+    args.push("--vd-lavc-fast");
+    args.push("--vd-lavc-skiploopfilter=all");
+    args.push("--vd-lavc-threads=4");  // Limited threads to reduce CPU under VPN
+    
+    // High-quality scaling
+    args.push("--scale=catmull_rom");
+    args.push("--cscale=catmull_rom");
+    args.push("--dscale=catmull_rom");
+    args.push("--scale-antiring=0.7");
+    args.push("--cscale-antiring=0.7");
+    
+    // Hardware decoding - use copy mode for better stability
+    args.push("--hwdec=auto-copy");
+    
+    // VPN-Optimized Stream Reconnection Settings
+    args.push("--stream-lavf-o=reconnect_at_eof=1,reconnect_streamed=1,reconnect_delay_max=30,reconnect_on_network_error=1");
+    args.push("--timeout=60");  // Increase timeout for VPN latency
+    
+    // HTTP options for VPN compatibility
+    args.push("--http-persistent=no");  // Disable persistent connections for VPN
+    args.push("--http-keep-alive=no");  // Disable keep-alive for VPN
+    
+    // User Agent
+    args.push("--user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\"");
+    
+    // Buffering for slow connections
+    args.push("--initial-byte-stream-pos=yes");
+    args.push("--prefetch-playlist=yes");
+    
+    // Platform-specific
+    if OS == "windows" {
+        args.push("--d3d11-flip=yes");
+        args.push("--gpu-api=d3d11");
+    } else if OS == "macos" {
+        args.push("--gpu-api=opengl");
+    }
+
+    args.join("\n")
 }

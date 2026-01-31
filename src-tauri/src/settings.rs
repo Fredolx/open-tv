@@ -47,6 +47,7 @@ pub const LAST_REFRESH: &str = "lastRefresh";
 pub const ENHANCED_VIDEO: &str = "enhancedVideo";
 pub const THEME: &str = "theme";
 pub const PERFORMANCE_MODE: &str = "performanceMode";
+pub const VPN_MODE: &str = "vpnMode";
 
 pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
@@ -73,8 +74,11 @@ pub fn get_settings() -> Result<Settings> {
         compact_mode: map.get(COMPACT_MODE).and_then(|s| s.parse().ok()),
         refresh_interval: map.get(REFRESH_INTERVAL).and_then(|s| s.parse().ok()),
         last_refresh: map.get(LAST_REFRESH).and_then(|s| s.parse().ok()),
-        enhanced_video: map.get(ENHANCED_VIDEO).and_then(|s| s.parse().ok()),
+        // Enhanced video mode enabled by default for better playback
+        enhanced_video: map.get(ENHANCED_VIDEO).and_then(|s| s.parse().ok()).or(Some(true)),
         theme: map.get(THEME).and_then(|s| s.parse().ok()),
+        // VPN mode enabled by default for unstable connections
+        vpn_mode: map.get(VPN_MODE).and_then(|s| s.parse().ok()).or(Some(true)),
     };
     Ok(settings)
 }
@@ -110,6 +114,7 @@ pub fn update_settings(settings: Settings) -> Result<()> {
     insert_if_some!(LAST_REFRESH, settings.last_refresh);
     insert_if_some!(ENHANCED_VIDEO, settings.enhanced_video);
     insert_if_some!(THEME, settings.theme);
+    insert_if_some!(VPN_MODE, settings.vpn_mode);
     
     sql::update_settings(map)?;
     Ok(())

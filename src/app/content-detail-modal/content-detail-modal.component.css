@@ -1,0 +1,255 @@
+:host {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+:host.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  z-index: 1;
+}
+
+.modal-content {
+  position: relative;
+  z-index: 2;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 90vh;
+  background: rgba(20, 20, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Header / Hero Section */
+.hero-section {
+  position: relative;
+  height: 400px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.hero-backdrop-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.hero-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 40px;
+  background: linear-gradient(to top, rgba(20, 20, 20, 1) 10%, rgba(20, 20, 20, 0) 100%);
+  display: flex;
+  align-items: flex-end;
+  gap: 30px;
+}
+
+.poster-card {
+  width: 160px;
+  height: 240px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.poster-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-info {
+  flex: 1;
+  padding-bottom: 10px;
+  z-index: 2;
+}
+
+.title {
+  font-family: "Outfit", sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  line-height: 1.1;
+  background: linear-gradient(90deg, #fff, #aaa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 20px;
+}
+
+.rating-badge {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.year-badge,
+.duration-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.genre-tags {
+  display: flex;
+  gap: 8px;
+}
+
+.genre-tag {
+  color: #a0a0a0;
+  font-size: 0.9rem;
+}
+
+/* Actions */
+.action-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.btn-play {
+  background: #e50914; /* Netflix Red */
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+}
+
+.btn-play:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(229, 9, 20, 0.6);
+  background: #ff0f1b;
+}
+
+.btn-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s;
+}
+
+.btn-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Content Body */
+.modal-body {
+  padding: 0 40px 40px 40px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.plot-summary {
+  font-family: "Inter", sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 30px;
+  max-width: 800px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 30px;
+}
+
+.detail-item h4 {
+  color: #888;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+
+.detail-item p {
+  color: white;
+  margin: 0;
+  font-size: 1rem;
+}

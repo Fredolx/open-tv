@@ -1,0 +1,73 @@
+<div class="modal-backdrop" (click)="close.emit()"></div>
+
+<div class="modal-content">
+  <button class="btn-close" (click)="close.emit()" title="Close">
+    <i class="fa fa-times"></i>
+  </button>
+
+  <div class="hero-section" *ngIf="channel">
+    <!-- Backdrop Image -->
+    <img
+      [src]="channel.image"
+      class="hero-backdrop-image"
+      alt="Backdrop"
+      onerror="this.src = 'assets/images/default-backdrop.jpg'"
+    />
+
+    <div class="hero-overlay">
+      <!-- Poster Card -->
+      <div class="poster-card">
+        <img
+          [src]="channel.image"
+          alt="Poster"
+          onerror="this.src = 'assets/images/default-poster.jpg'"
+        />
+      </div>
+
+      <!-- Hero Info -->
+      <div class="hero-info">
+        <h1 class="title">{{ channel.name }}</h1>
+
+        <div class="meta-row">
+          <div class="rating-badge" *ngIf="channel.rating">
+            <i class="fa fa-star"></i> {{ channel.rating | number: "1.1-1" }}
+          </div>
+          <div class="year-badge" *ngIf="channel.release_date">
+            {{ channel.release_date | slice: 0 : 4 }}
+          </div>
+          <div class="genre-tags" *ngIf="channel.genre">
+            <span class="genre-tag">{{ channel.genre }}</span>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn-play" (click)="play.emit()"><i class="fa fa-play"></i> Play</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-body" *ngIf="channel">
+    <p class="plot-summary" *ngIf="channel.plot">
+      {{ channel.plot }}
+    </p>
+    <div *ngIf="isLoadingDetails" class="loading-details">
+      <i class="fa fa-circle-notch fa-spin"></i> Loading details...
+    </div>
+
+    <div class="details-grid">
+      <div class="detail-item" *ngIf="channel.director">
+        <h4>Director</h4>
+        <p>{{ channel.director }}</p>
+      </div>
+      <div class="detail-item" *ngIf="channel.cast">
+        <h4>Cast</h4>
+        <p>{{ channel.cast }}</p>
+      </div>
+      <div class="detail-item" *ngIf="channel.added">
+        <h4>Added</h4>
+        <p>{{ channel.added }}</p>
+      </div>
+    </div>
+  </div>
+</div>
