@@ -105,7 +105,6 @@ pub fn run() {
             add_custom_source,
             share_custom_channel,
             group_auto_complete,
-            edit_custom_channel,
             edit_custom_group,
             add_custom_group,
             delete_custom_group,

@@ -339,7 +339,6 @@ pub fn get_stable_params() -> String {
     }
 
     args.push("--msg-level=all=v");
-    args.push("--log-file=\"C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log\"");
 
     args.join(" ")
 }
@@ -395,7 +394,6 @@ pub fn get_enhanced_params() -> String {
     }
 
     args.push("--msg-level=all=v");
-    args.push("--log-file=\"C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log\"");
 
     args.join(" ")
 }
@@ -434,7 +432,6 @@ pub fn get_performance_params() -> String {
     args.push("--user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\"");
 
     args.push("--msg-level=all=v");
-    args.push("--log-file=\"C:/Users/admin-beats/OneDrive/xo Vibe Coding xo/iptvnator/open-tv/mpv_debug.log\"");
 
     args.join(" ")
 }

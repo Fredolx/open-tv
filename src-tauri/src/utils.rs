@@ -369,7 +369,7 @@ pub fn create_nuke_request() -> Result<()> {
 }
 
 fn get_nuke_path() -> Result<PathBuf> {
-    let path = ProjectDirs::from("dev", "fredol", "open-tv").context("project dir not found")?;
+    let path = ProjectDirs::from("com", "beatstv", "app").context("project dir not found")?;
     let path = path.cache_dir();
     let path = path.join("nuke.txt");
     Ok(path)
@@ -381,7 +381,7 @@ pub fn check_nuke() -> Result<()> {
         return Ok(());
     }
     std::fs::remove_file(path)?;
-    let path = ProjectDirs::from("dev", "fredol", "open-tv").context("project dir not found")?;
+    let path = ProjectDirs::from("com", "beatstv", "app").context("project dir not found")?;
     let path = path.data_dir();
     let path = path.join(sql::DB_NAME);
     if path.exists() {

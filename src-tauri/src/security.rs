@@ -6,7 +6,7 @@
 use keyring::Entry;
 use anyhow::{Result, Context};
 
-const SERVICE_NAME: &str = "dev.fredol.open-tv";
+const SERVICE_NAME: &str = "com.beatstv.app";
 
 /// Save a password to the system keyring
 pub fn save_password(source_name: &str, password: &str) -> Result<()> {
