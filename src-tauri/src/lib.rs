@@ -19,7 +19,6 @@
  * This project is a fork of Open TV by Fredolx.
  */
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
 use anyhow::Context;
 use anyhow::Error;
 

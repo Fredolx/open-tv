@@ -284,7 +284,7 @@ fn apply_migrations() -> Result<()> {
             "#,
         ),
     ]);
-    migrations.to_latest(&mut sql)?;
+    migrations.to_latest(&mut *sql)?;
     Ok(())
 }
 

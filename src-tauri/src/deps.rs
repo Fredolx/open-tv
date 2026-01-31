@@ -19,7 +19,7 @@
  * This project is a fork of Open TV by Fredolx.
  */
 
-use anyhow::{Result, anyhow};
+use anyhow::{Result, anyhow, Context};
 use futures_util::StreamExt;
 use serde::Serialize;
 use std::env::consts::OS;
@@ -28,6 +28,7 @@ use std::process::Command;
 use tauri::{AppHandle, Emitter};
 use tokio::io::AsyncWriteExt;
 use which::which;
+use std::fs;
 
 /// Represents the status of a single dependency
 #[derive(Debug, Clone, Serialize)]
@@ -219,9 +220,11 @@ pub fn is_first_run() -> bool {
     }
 }
 
-pub async fn auto_install_dependency(_app: AppHandle, _name: &str) -> Result<()> {
+pub async fn auto_install_dependency(app: AppHandle, name: &str) -> Result<()> {
     #[cfg(not(target_os = "windows"))]
     {
+        let _ = app;
+        let _ = name;
         return Err(anyhow!("Auto-install is only supported on Windows at this time. Please use your package manager."));
     }
 
