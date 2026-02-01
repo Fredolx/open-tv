@@ -93,6 +93,54 @@ body {
     0 0 15px var(--beats-red-glow) !important;
 }
 
+/* Secondary Button - Claymorphism Style (Dark) */
+.btn-secondary {
+  color: var(--beats-text-gray) !important;
+  background: var(--beats-surface) !important;
+  border: none !important;
+  border-radius: var(--clay-radius-md) !important;
+  box-shadow:
+    4px 4px 8px var(--clay-shadow-dark),
+    -2px -2px 6px var(--clay-shadow-light),
+    inset 0 0 0 transparent !important;
+  transition: all 0.25s ease !important;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-secondary:active,
+.btn-secondary.active {
+  color: var(--beats-text-white) !important;
+  background: linear-gradient(145deg, var(--beats-surface-light), var(--beats-charcoal)) !important;
+  transform: translateY(-2px);
+  box-shadow:
+    5px 5px 10px var(--clay-shadow-dark),
+    -3px -3px 7px var(--clay-shadow-light),
+    0 0 8px rgba(255, 0, 51, 0.2) !important;
+}
+
+/* Form Control - Dark Theme Override */
+.form-control {
+  background: var(--beats-surface) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--beats-text-white) !important;
+  border-radius: var(--clay-radius-sm) !important;
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3) !important;
+}
+
+.form-control:focus {
+  background: var(--beats-surface-light) !important;
+  border-color: var(--beats-red) !important;
+  color: var(--beats-text-white) !important;
+  box-shadow:
+    0 0 0 0.25rem var(--beats-red-glow),
+    inset 2px 2px 5px rgba(0, 0, 0, 0.3) !important;
+}
+
+.form-control::placeholder {
+  color: #666 !important;
+}
+
 /* Form Check / Switches (Blue -> Red) */
 .form-check-input:checked {
   background-color: var(--beats-red) !important;
