@@ -9,6 +9,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { SortType } from "./models/sortType";
 import { LAST_SEEN_VERSION } from "./models/localStorage";
 import { SetNodeDTO } from "./models/setNodeDTO";
+import { Channel } from "./models/channel";
+import { PlayerEngine } from "./models/playerEngine";
+import { PlayerState } from "./models/playerState";
+import { Settings } from "./models/settings";
 
 @Injectable({
   providedIn: "root",
@@ -19,6 +23,11 @@ export class MemoryService {
     private error: ErrorService,
   ) {
     invoke("is_container").then((val) => (this.IsContainer = val as boolean));
+    invoke("get_settings").then((s) => {
+      const settings = s as Settings;
+      this.PlayerEngine.next(settings.player_engine ?? PlayerEngine.Web);
+      this.AlwaysAskSave = settings.always_ask_save;
+    });
   }
   public SetNode: Subject<SetNodeDTO> = new Subject();
   public SetFocus: Subject<number> = new Subject();
@@ -44,6 +53,12 @@ export class MemoryService {
   public trayEnabled?: boolean;
   public IsContainer?: boolean;
   public AlwaysAskSave?: boolean;
+
+  // Now playing state
+  public NowPlaying: BehaviorSubject<Channel | null> = new BehaviorSubject<Channel | null>(null);
+  public PlayerState: BehaviorSubject<PlayerState> = new BehaviorSubject<PlayerState>(PlayerState.Closed);
+  public PlayerEngine: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  public LocalProxyRunning: boolean = false;
 
   async tryIPC<T>(
     successMessage: string,

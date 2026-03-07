@@ -10,6 +10,7 @@ import { ViewMode } from "../models/viewMode";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { ConfirmDeleteModalComponent } from "../confirm-delete-modal/confirm-delete-modal.component";
 import { SORT_TYPES, SortType, getSortTypeText } from "../models/sortType";
+import { PlayerEngine } from "../models/playerEngine";
 
 @Component({
   selector: "app-settings",
@@ -30,10 +31,11 @@ export class SettingsComponent {
     always_ask_save: false,
     enable_gpu: false,
   };
+  playerEngineEnum = PlayerEngine;
   viewModeEnum = ViewMode;
   sources: Source[] = [];
   sortTypes = SORT_TYPES;
-  @ViewChild("mpvParams") mpvParams!: ElementRef;
+  @ViewChild("mpvParams") mpvParams?: ElementRef;
 
   constructor(
     private router: Router,
@@ -89,6 +91,8 @@ export class SettingsComponent {
       if (this.settings.enable_hwdec == undefined) this.settings.enable_hwdec = true;
       if (this.settings.always_ask_save == undefined) this.settings.always_ask_save = false;
       if (this.settings.enable_gpu == undefined) this.settings.enable_gpu = false;
+      if (this.settings.player_engine == undefined) this.settings.player_engine = PlayerEngine.Web;
+      this.memory.PlayerEngine.next(this.settings.player_engine);
     });
   }
 
@@ -103,19 +107,22 @@ export class SettingsComponent {
   }
 
   ngAfterViewInit(): void {
-    this.subscriptions.push(
-      fromEvent(this.mpvParams.nativeElement, "keyup")
-        .pipe(
-          map((event: any) => {
-            return event.target.value;
+    const mpvEl = this.mpvParams?.nativeElement;
+    if (mpvEl) {
+      this.subscriptions.push(
+        fromEvent(mpvEl, "keyup")
+          .pipe(
+            map((event: any) => {
+              return event.target.value;
+            }),
+            debounceTime(500),
+            distinctUntilChanged(),
+          )
+          .subscribe(async () => {
+            await this.updateSettings();
           }),
-          debounceTime(500),
-          distinctUntilChanged(),
-        )
-        .subscribe(async () => {
-          await this.updateSettings();
-        }),
-    );
+      );
+    }
     this.subscriptions.push(
       this.memory.RefreshSources.subscribe((_) => {
         this.getSources();

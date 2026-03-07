@@ -6,7 +6,7 @@ use tauri::{AppHandle, Manager, State};
 use tokio::sync::Mutex;
 use types::{
     AppState, Channel, CustomChannel, CustomChannelExtraData, EPG, EPGNotify, Filters, Group,
-    IdName, NetworkInfo, Settings, Source,
+    IdName, NetworkInfo, Settings, Source, StreamInfo,
 };
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use {
@@ -19,6 +19,7 @@ use {
 
 pub mod bulk_action_type;
 pub mod epg;
+pub mod local_player;
 pub mod log;
 pub mod m3u;
 pub mod media_type;
@@ -113,6 +114,9 @@ pub fn run() {
             hide_channel,
             hide_group,
             remove_from_history,
+            get_stream_info,
+            start_local_stream,
+            stop_local_stream,
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -147,6 +151,14 @@ pub fn run() {
                 let window = _app.get_webview_window("main").expect("no main window");
                 let _ = window.show();
                 let _ = window.set_focus();
+            }
+            tauri::RunEvent::ExitRequested { .. } => {
+                let state: State<Mutex<AppState>> = _app.state();
+                if let Ok(state) = state.try_lock() {
+                    state.notify_stop.store(true, Ordering::Relaxed);
+                    state.restream_stop_signal.store(true, Ordering::Relaxed);
+                    state.local_player_stop.store(true, Ordering::Relaxed);
+                }
             }
             _ => {}
         });
@@ -558,6 +570,28 @@ async fn cancel_play(
     state: State<'_, Mutex<AppState>>,
 ) -> Result<(), String> {
     mpv::cancel_play(source_id, channel_id.to_string(), state)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn get_stream_info(channel: Channel) -> Result<StreamInfo, String> {
+    local_player::get_stream_info(&channel).map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn start_local_stream(
+    channel: Channel,
+    state: State<'_, Mutex<AppState>>,
+) -> Result<String, String> {
+    local_player::start_local_stream(channel, state)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn stop_local_stream(state: State<'_, Mutex<AppState>>) -> Result<(), String> {
+    local_player::stop_local_stream(state)
         .await
         .map_err(map_err_frontend)
 }

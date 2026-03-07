@@ -88,6 +88,23 @@
 
   <div class="row mt-3 align-items-center">
     <div class="col-4">
+      <span [ngbTooltip]="'Choose how video is played'">Player engine</span>
+    </div>
+    <div class="col">
+      <select
+        (ngModelChange)="updateSettings(); memory.PlayerEngine.next(settings.player_engine!)"
+        [(ngModel)]="settings.player_engine"
+        class="form-control"
+      >
+        <option [ngValue]="playerEngineEnum.Web">Web Player (Inline)</option>
+        <option [ngValue]="playerEngineEnum.EmbeddedMpv">Embedded MPV (Inline)</option>
+        <option [ngValue]="playerEngineEnum.ExternalMpv">External MPV (Popout)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row mt-3 align-items-center">
+    <div class="col-4">
       <span>Volume on start</span>
     </div>
     <div class="col d-inline-flex">

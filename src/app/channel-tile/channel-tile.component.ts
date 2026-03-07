@@ -28,6 +28,8 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { CHANNEL_EXTENSION, GROUP_EXTENSION, RECORD_EXTENSION } from "../models/extensions";
 import { getDateFormatted, getExtension, sanitizeFileName } from "../utils";
 import { NodeType, fromMediaType } from "../models/nodeType";
+import { PlayerEngine } from "../models/playerEngine";
+import { PlayerState } from "../models/playerState";
 
 import { ViewMode } from "../models/viewMode";
 
@@ -81,6 +83,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     if (this.starting === true) {
       try {
         await invoke("cancel_play", { sourceId: this.channel?.source_id, channelId: this.channel?.id });
+        this.memory.NowPlaying.next(null);
       } catch (e) {
         this.error.handleError(e);
       }
@@ -114,17 +117,21 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       });
       return;
     }
-    let file = undefined;
-    if (record && (this.memory.IsContainer || this.memory.AlwaysAskSave)) {
-      file = await save({
-        canCreateDirectories: true,
-        title: "Select where to save recording",
-        defaultPath: `${sanitizeFileName(this.channel?.name!)}_${getDateFormatted()}${RECORD_EXTENSION}`,
-      });
-      if (!file) return;
+    const engine = this.memory.PlayerEngine.value ?? PlayerEngine.Web;
+
+    // Web / EmbeddedMpv: set NowPlaying and let InlinePlayerComponent handle it
+    if (engine === PlayerEngine.Web || engine === PlayerEngine.EmbeddedMpv) {
+      this.memory.SetFocus.next(this.id);
+      this.memory.NowPlaying.next(this.channel!);
+      this.memory.PlayerState.next(PlayerState.Expanded);
+      invoke("add_last_watched", { id: this.channel?.id }).catch(console.error);
+      return;
     }
+
+    // External MPV: standard playback
     this.starting = true;
     this.memory.SetFocus.next(this.id);
+    this.memory.NowPlaying.next(this.channel!);
     try {
       await invoke("play", { channel: this.channel, record: record, recordPath: file });
     } catch (e) {
@@ -135,6 +142,10 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       this.error.handleError(e);
     });
     this.starting = false;
+    // Only clear NowPlaying if this channel is still the one playing
+    if (this.memory.NowPlaying.value?.id === this.channel?.id) {
+      this.memory.NowPlaying.next(null);
+    }
   }
 
   onRightClick(event: MouseEvent) {

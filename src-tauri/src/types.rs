@@ -83,6 +83,7 @@ pub struct Settings {
     pub enable_hwdec: Option<bool>,
     pub always_ask_save: Option<bool>,
     pub enable_gpu: Option<bool>,
+    pub player_engine: Option<u8>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -175,11 +176,19 @@ pub struct EPGNotify {
     pub channel_name: String,
 }
 
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct StreamInfo {
+    pub url: String,
+    pub has_custom_headers: bool,
+    pub is_hls: bool,
+}
 #[derive(Debug, Default)]
 pub struct AppState {
     pub notify_stop: Arc<AtomicBool>,
     pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
     pub restream_stop_signal: Arc<AtomicBool>,
+    pub local_player_stop: Arc<AtomicBool>,
+    pub local_player_port: Option<u16>,
 
     pub play_stop: HashMap<i64, IndexMap<String, CancellationToken>>,
 }

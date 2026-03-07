@@ -18,6 +18,7 @@ pub const DEFAULT_SORT: &str = "defaultSort";
 pub const ENABLE_HWDEC: &str = "enableHWDEC";
 pub const ALWAYS_ASK_SAVE: &str = "alwaysAskSave";
 pub const ENABLE_GPU: &str = "enableGPU";
+pub const PLAYER_ENGINE: &str = "playerEngine";
 
 pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
@@ -39,12 +40,13 @@ pub fn get_settings() -> Result<Settings> {
         enable_hwdec: map.get(ENABLE_HWDEC).and_then(|s| s.parse().ok()),
         always_ask_save: map.get(ALWAYS_ASK_SAVE).and_then(|s| s.parse().ok()),
         enable_gpu: map.get(ENABLE_GPU).and_then(|s| s.parse().ok()),
+        player_engine: map.get(PLAYER_ENGINE).and_then(|s| s.parse().ok()),
     };
     Ok(settings)
 }
 
 pub fn update_settings(settings: Settings) -> Result<()> {
-    let mut map: HashMap<String, Option<String>> = HashMap::with_capacity(13);
+    let mut map: HashMap<String, Option<String>> = HashMap::with_capacity(14);
 
     map.insert(MPV_PARAMS.to_string(), settings.mpv_params);
 
@@ -89,6 +91,9 @@ pub fn update_settings(settings: Settings) -> Result<()> {
     }
     if let Some(gpu) = settings.enable_gpu {
         map.insert(ENABLE_GPU.to_string(), Some(gpu.to_string()));
+    }
+    if let Some(engine) = settings.player_engine {
+        map.insert(PLAYER_ENGINE.to_string(), Some(engine.to_string()));
     }
     sql::update_settings(map)?;
     Ok(())
