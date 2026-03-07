@@ -1,151 +1,72 @@
-# Fred TV (Formerly Open TV)
+# FredTV-Next
 
-Completely rewritten to accommodate new features and to be even speedier, Fred TV has been carefully crafted to deliver the best IPTV experience.
+A personal fork of [Fred TV (open-tv)](https://github.com/Fredolx/open-tv) with a major UI overhaul, inline player, server-side recording, and modern design system.
 
-<a href="https://apps.microsoft.com/detail/9PBWX3RKR1QX?launch=true&mode=mini">
-	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="350"/>
-</a>
-<a href="https://flathub.org/apps/dev.fredol.open-tv">
-  <img src="https://dl.flathub.org/assets/badges/flathub-badge-en.svg" width="300"/>
-</a>
-<a href="https://aur.archlinux.org/packages/open-tv-bin">
-  <img src="https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/readme_imgs/aur-open-tv.svg" width="350" />
-</a>
-<a href="https://apps.apple.com/ca/app/open-tv-open-source-iptv/id6742751800">
-  <img src="https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/readme_imgs/app-store.svg" width=300 />
-</a>
-<a href="https://play.google.com/store/apps/details?id=dev.fredol.open_tv">
-  <img src="https://raw.githubusercontent.com/Fredolx/open-tv/refs/heads/main/readme_imgs/gplay.png">
-</a>
+All changes are being submitted as PRs back to upstream. This repo exists as the full working source for those PRs.
 
-# This project NEEDS your help. Please consider donating on [Github](https://github.com/sponsors/Fredolx), [Paypal](https://paypal.me/fredolx) or directly by [crypto](#donate-crypto-thank-you)
-I've been developing and maintaining this project alone and for entirely for free over the past 2 years. I am in dire need of support to continue developing this project. I've never added annoying donation pop-ups or anything of the sort to make sure you have the fastest and cleanest IPTV experience and I'm committed to keep this project FREE & OPEN-SOURCE. To keep that commitment, I need your support!
+## What's New
 
-![Image of the app](https://github.com/Fredolx/open-tv/blob/main/screenshots/demo1.png)
+### Inline Player
+- **Web Player** (hls.js) and **Embedded MPV** playback engines, alongside the existing External MPV
+- Configurable in Settings, three-state layout (closed / mini / expanded)
+- `local_player.rs` backend proxies streams via ffmpeg to localhost
 
-## Features:
-- Import your IPTV channels from any source (M3U File, M3U link, Xtream) 🗃️
-- Record while watching 🎥
-- Multi IPTV sources 🎊
-- Control the UI from a TV remote 📺
-- Super low RAM usage, crazy speeds, and instant search 🚅
-- Refresh your sources when you need it 🔄
-- Add channels to favorites 🌟
-- Make your own custom channels
-- Share your custom channels with friends
-- Re-stream channels to friends or other devices (phone, tv)
+### Server-Side Recording
+- Record any livestream to disk via ffmpeg, independent of playback
+- Graceful shutdown (writes "q" to ffmpeg stdin to preserve MP4 moov atom)
+- Start/stop from the channel context menu, busy state tracking
 
-## Prerequisites
-If you are on Windows or use the flatpak on Linux; SKIP THIS PART. 
+### UI Overhaul
+- **Sidebar navigation** with collapsible sections (Home, All, Categories, Favorites, History, Hidden, per-source filtering)
+- **Dashboard home view** with content rows (recently watched, favorites, by source)
+- **Search overlay** (Ctrl+K / Cmd+K) with instant results
+- **Channel detail panel** (slide-out info from right-click > Info)
+- **Now-playing bar** at the bottom when something is playing
+- **Multiple channel views**: grid large, grid compact, and list/table mode
+- **Skeleton loading** and contextual **empty states**
+- **Settings redesign** with card-based sections
 
-The app depends on mpv, ffmpeg and yt-dlp. 
-If you are on MacOS, you must use Brew or MacPorts to install those dependencies. 
+### Design System
+- CSS custom properties (`--ftv-*`) for surfaces, borders, text, accent, semantic colors, radius, transitions, shadows
+- Material menu overrides, modal animations, toastr dark theme
+- All hardcoded colors migrated to design tokens
 
-On Fedora, you must add rpmfusion to install those packages.
+### Bug Fixes
+- Loading component interval leak (clearInterval on destroy)
+- SQL page offset underflow clamp (`.max(1)`)
+- Home nav dead code (`tmpFocus / 3` was missing `=`)
 
-On Debian or LTS distro, I would strongly suggest using a backport for yt-dlp.
+### Performance
+- `trackBy` on channel ngFor prevents full DOM re-renders
+- Cached `anyXtream()` check (computed once, not on every change detection)
 
-The Windows build **comes with mpv included** (.msi), but you can still install mpv from a package manager of your choice to always have the latest version installed
+## Upstream PRs
 
-```
-brew install mpv ffmpeg yt-dlp #MacOS
-sudo dnf install mpv ffmpeg yt-dlp #Fedora
-sudo zypper install mpv ffmpeg yt-dlp #OpenSUSE
-sudo pacman -Syu mpv ffmpeg yt-dlp #Arch
-sudo apt install mpv ffmpeg yt-dlp #Debian/Ubuntu
-scoop install mpv ffmpeg yt-dlp # Windows
-choco install mpv ffmpeg yt-dlp # Windows alternative
-```
+These changes are split into 8 PRs against [Fredolx/open-tv](https://github.com/Fredolx/open-tv):
 
-## Docker
-You can install Fred TV using Docker. It wouldn't necessarily be the recommended way to install it, but it's now possible.
-You should always install Fred TV from either Releases or Flatpak on Linux.
+| PR | Branch | Description |
+|----|--------|-------------|
+| [#387](https://github.com/Fredolx/open-tv/pull/387) | `fix/loading-interval-leak` | Fix interval memory leak |
+| [#388](https://github.com/Fredolx/open-tv/pull/388) | `fix/sql-page-offset-clamp` | Fix SQL page offset underflow |
+| [#389](https://github.com/Fredolx/open-tv/pull/389) | `fix/home-nav-dead-code` | Fix dead code in nav() |
+| [#390](https://github.com/Fredolx/open-tv/pull/390) | `feat/design-system` | CSS custom properties design system |
+| [#391](https://github.com/Fredolx/open-tv/pull/391) | `perf/home-improvements` | trackBy + cached anyXtream |
+| [#392](https://github.com/Fredolx/open-tv/pull/392) | `feat/recording-system` | Server-side recording |
+| [#393](https://github.com/Fredolx/open-tv/pull/393) | `feat/inline-player` | Inline player (stacked on #392) |
+| [#394](https://github.com/Fredolx/open-tv/pull/394) | `feat/ui-overhaul` | UI overhaul (stacked on #393) |
 
-For Nvidia GPUs:
-```
-docker run --rm -it \
-  --net=host \
-  --env="DISPLAY" \
-  --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-  --volume="$HOME/.Xauthority:/root/.Xauthority:rw" \
-  --volume="$HOME/.local/share/open-tv:/root/.local/share/open-tv" \
-  --gpus all \
-  ghcr.io/fredolx/open-tv:latest
-```
-For everyone else (Intel, AMD):
-```
-docker run --rm -it \
-  --net=host \
-  --env="DISPLAY" \
-  --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-  --volume="$HOME/.Xauthority:/root/.Xauthority:rw" \
-  --volume="$HOME/.local/share/open-tv:/root/.local/share/open-tv" \
-  --device /dev/dri \
-  ghcr.io/fredolx/open-tv:latest
+PRs 1-5 are independent. PRs 6-8 are stacked (merge in order).
+
+## Building
+
+Same as upstream. Requires Rust, Node.js, and pnpm.
+
+```bash
+pnpm install
+cargo tauri dev    # development
+cargo tauri build  # production
 ```
 
+## Credits
 
-## Feedback
-Feel free to submit any kind of feedback by creating a new issue.
-
-## Hotkeys
-* F1: Help
-* Ctrl + a: Show all channels
-* Ctrl + s: Show categories
-* Ctrl + d: Show favorites
-* Ctrl + f: Search
-* Ctrl + q: Enable/Disable livestreams
-* Ctrl + w: Enable/Disable movies
-* Ctrl + e: Enable/Disable series
-* Backspace/Esc: Go back
-* Arrow keys/Tab/Shift+Tab: Navigation
-
-If you have a tv remote or air mouse that has slightly different bindings for general nav (back, up, down, left, right),
-please open an issue and I will add them if it's feasible. Otherwise, you can still use hwdb to make them match Fred TV's bindings.
-
-## Settings explained
-
-**Stream Caching**
-
-Why enabling:
-  - If you have a slow internet connection/IPTV provider causing the stream to pause often
-
-Why disabling: 
-  - If the stream often drops completely. It will prevent the stream from jumping too far ahead/behind
-  - If you have a good internet/provider and want lower latency
-  - Can prevent some weird bugs/slowdowns
-
-## Donate Crypto (Thank you!)
-BTC:
-```
-bc1q7v27u4mrxhtqzl97pcp4vl52npss760epsheu3
-```
-
-ETH:
-```
-0x171D5B628eff75c98c141aD5584FffA209274365
-```
-
-LTC:
-```
-ltc1qzxgp2grt9ayvpv0dur7lgzgf88yp09h2ytmga0
-```
-
-BCH:
-```
-bitcoincash:qz4mauqyytkvhp9yze0qhgn2nnlv4z5glckyysxg2n
-```
-
-SOL:
-```
-AM7roSrxBKrS5mG7q6aXnQHZKh3ArtBxvG3x1B1VjKhj
-```
-
-BNB:
-```
-0x0C8C5217a8044b3736aD82CCFB9f099597b65253
-```
-
-## Disclaimer
-
-Fred TV is an independent open-source project created to provide a fast and powerful IPTV experience. The name "Fred TV" is used solely to represent this specific software and its purpose as described in the project documentation. Any other software, applications, or products bearing the same or similar name are unrelated to this project. Any resemblance to other software or applications is purely coincidental and unintended. We do not intend to cause confusion or imply affiliation with any other products or organizations that may share a similar name.
+All credit to [Fredolx](https://github.com/Fredolx) for the original Fred TV. Please [support the project](https://github.com/sponsors/Fredolx).

@@ -1,34 +1,35 @@
 .download-box {
   width: 320px;
-  background-color: #353a3f;
-  border: 1px solid #444;
-  border-radius: 0.5rem;
+  background-color: var(--ftv-surface);
+  border: 1px solid var(--ftv-border-hover);
+  border-radius: var(--ftv-radius-md);
   overflow: hidden;
 }
 
 .download-header {
-  background-color: #202124;
-  border-bottom: 1px solid #444;
+  background-color: var(--ftv-bg);
+  border-bottom: 1px solid var(--ftv-border-hover);
 }
 
 button.btn-outline-light {
-  border-color: #666;
-  color: #ccc;
+  border-color: var(--ftv-text-tertiary);
+  color: var(--ftv-text-secondary);
 }
 
 button.btn-outline-light:hover {
-  background-color: #444;
-  border-color: #888;
+  background-color: var(--ftv-surface-active);
+  border-color: var(--ftv-text-secondary);
 }
 
 .progress {
-  background-color: #2b2d30;
+  background-color: var(--ftv-surface-recessed);
 }
 
 .stop {
   width: 1.5rem;
   height: 1.5rem;
   cursor: pointer;
+  color: var(--ftv-danger);
   transition: transform 0.3s ease;
 }
 

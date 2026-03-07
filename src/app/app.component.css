@@ -1,0 +1,63 @@
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  transition: margin-left var(--ftv-transition-med);
+}
+
+.has-sidebar .main-content {
+  margin-left: var(--ftv-sidebar-width);
+}
+
+.has-sidebar.sidebar-collapsed .main-content {
+  margin-left: var(--ftv-sidebar-width-collapsed);
+}
+
+.main-content.has-now-playing {
+  padding-bottom: 64px;
+}
+
+.router-content {
+  position: relative;
+}
+
+.router-content.behind-expanded-player {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+
+/* Global progress bar */
+.global-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.progress-indeterminate {
+  height: 100%;
+  background: var(--ftv-accent);
+  animation: indeterminate 1.5s ease-in-out infinite;
+  transform-origin: left;
+}
+
+@keyframes indeterminate {
+  0% {
+    transform: translateX(-100%) scaleX(0.3);
+  }
+  50% {
+    transform: translateX(0) scaleX(0.5);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.3);
+  }
+}

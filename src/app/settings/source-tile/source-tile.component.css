@@ -1,20 +1,20 @@
 .source {
-    border-radius: 0.25rem;
-    background-color: #343a40;
+    border-radius: var(--ftv-radius-sm);
+    background-color: var(--ftv-surface);
     width: 100%;
     padding: 1rem;
     position: relative;
 }
 
 .thin-line {
-    height: 1px;       
-    background-color: white;
-    width: 100%;       
-    margin: 0;    
+    height: 1px;
+    background-color: var(--ftv-border-hover);
+    width: 100%;
+    margin: 0;
 }
 
 .field {
-    min-width: 12rem; 
+    min-width: 12rem;
     display: inline-block;
 }
 
@@ -35,7 +35,7 @@ button .refresh {
     width: 1.5rem;
     transition: transform 0.3s ease;
   }
-  
+
   button:hover .refresh {
     transform: rotate(360deg);
   }
@@ -77,7 +77,7 @@ button:hover .trash-lid {
     transform: translateY(-50%);
     cursor: pointer;
     transition: transform 0.3s ease;
-    color: white;
+    color: var(--ftv-text-primary);
 }
 
 .check:hover {

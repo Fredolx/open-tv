@@ -1,0 +1,40 @@
+<div class="content-row">
+  <div class="row-header">
+    <h3 class="row-title">{{ title }}</h3>
+    <button *ngIf="channels.length > 0" class="see-all-btn" (click)="seeAll.emit()">See All</button>
+  </div>
+
+  <div class="row-track-container">
+    <button *ngIf="showLeftArrow" class="scroll-btn scroll-btn-left" (click)="scrollLeft()">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z" />
+      </svg>
+    </button>
+
+    <div class="row-track" #scrollTrack (scroll)="onScroll()">
+      <!-- Skeleton loading -->
+      <ng-container *ngIf="loading">
+        <div *ngFor="let i of skeletonItems" class="skeleton-card-row">
+          <div class="skeleton-image-row skeleton-shimmer"></div>
+          <div class="skeleton-info-row">
+            <div class="skeleton-title-row skeleton-shimmer"></div>
+            <div class="skeleton-subtitle-row skeleton-shimmer"></div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Actual channel cards -->
+      <ng-container *ngIf="!loading">
+        <app-channel-card *ngFor="let channel of channels; let i = index; trackBy: trackByChannelId"
+          [id]="i" [channel]="channel" [viewMode]="viewMode">
+        </app-channel-card>
+      </ng-container>
+    </div>
+
+    <button *ngIf="showRightArrow" class="scroll-btn scroll-btn-right" (click)="scrollRight()">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+      </svg>
+    </button>
+  </div>
+</div>

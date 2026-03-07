@@ -12,4 +12,11 @@ export class Settings {
   enable_hwdec?: boolean;
   always_ask_save?: boolean;
   enable_gpu?: boolean;
+  player_engine?: number;
+  user_agent?: string;
+  proxy?: string;
+  connection_timeout?: number;
+  epg_refresh_interval?: number;
+  source_refresh_interval?: number;
+  buffer_size?: number;
 }

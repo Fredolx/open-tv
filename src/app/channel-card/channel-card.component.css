@@ -1,0 +1,151 @@
+.card-tile {
+  width: 100%;
+  border-radius: var(--ftv-radius-md);
+  overflow: hidden;
+  background: var(--ftv-surface);
+  cursor: pointer;
+  user-select: none;
+}
+
+.card-tile:hover {
+  outline: 2px solid var(--ftv-accent);
+}
+
+.card-tile:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ftv-accent);
+}
+
+.card-tile.playing {
+  box-shadow: 0 0 16px rgba(10, 132, 255, 0.4);
+}
+
+.card-tile.playing:hover {
+  background: var(--ftv-danger);
+}
+
+.card-tile.faded {
+  opacity: 0.5;
+}
+
+.card-image-container {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--ftv-surface-recessed);
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Play overlay (direct play on hover) */
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+
+.card-image-container:hover .play-overlay {
+  display: flex;
+}
+
+.play-overlay svg {
+  width: 40px;
+  height: 40px;
+  color: white;
+}
+
+.card-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-image-placeholder svg {
+  width: 32px;
+  height: 32px;
+  color: var(--ftv-text-tertiary);
+}
+
+.live-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ftv-live);
+  box-shadow: 0 0 4px rgba(255, 69, 58, 0.5);
+}
+
+.card-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+.badge-live {
+  background: rgba(255, 69, 58, 0.9);
+  color: white;
+}
+
+.badge-movie {
+  background: rgba(10, 132, 255, 0.9);
+  color: white;
+}
+
+.badge-series {
+  background: rgba(191, 90, 242, 0.85);
+  color: white;
+}
+
+.badge-group {
+  background: var(--ftv-surface-active);
+  color: var(--ftv-text-primary);
+}
+
+.card-star {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 16px;
+  height: 16px;
+  color: var(--ftv-star);
+}
+
+.card-info {
+  padding: 10px 12px;
+}
+
+.card-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ftv-text-primary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.card-source {
+  font-size: 0.7rem;
+  color: var(--ftv-text-secondary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}

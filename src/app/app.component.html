@@ -1,2 +1,19 @@
-<router-outlet></router-outlet>
+<div *ngIf="memory.Loading" class="global-progress">
+  <div class="progress-indeterminate"></div>
+</div>
+<div class="app-shell" [class.has-sidebar]="isHomeRoute" [class.sidebar-collapsed]="sidebarCollapsed">
+  <app-sidebar *ngIf="isHomeRoute" [collapsed]="sidebarCollapsed"
+    (toggleCollapse)="onSidebarToggle()"></app-sidebar>
+  <main class="main-content" [class.has-now-playing]="hasNowPlaying">
+    <app-inline-player></app-inline-player>
+    <div class="router-content" [class.behind-expanded-player]="playerState === 'expanded'">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>
 <app-download-manager *ngIf="showDownloadManager()"></app-download-manager>
+<app-channel-detail-panel></app-channel-detail-panel>
+<app-search-overlay></app-search-overlay>
+<app-now-playing-bar
+  [class.with-sidebar]="isHomeRoute"
+  [class.sidebar-collapsed]="sidebarCollapsed"></app-now-playing-bar>

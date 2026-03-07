@@ -1,0 +1,121 @@
+<!-- Backdrop overlay -->
+<div *ngIf="visible" class="panel-backdrop" @fadeBackdrop (click)="close()"></div>
+
+<!-- Detail panel -->
+<div *ngIf="visible" class="detail-panel" @slideUp>
+  <!-- Hero section with channel image backdrop -->
+  <div class="panel-hero">
+    <div class="hero-bg" *ngIf="channel?.image"
+      [style.background-image]="'url(' + channel?.image + ')'"></div>
+    <div class="hero-gradient"></div>
+
+    <!-- Close button -->
+    <button class="close-btn" (click)="close()">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+      </svg>
+    </button>
+
+    <!-- Channel info overlaid on hero -->
+    <div class="hero-content">
+      <h2 class="panel-title">{{ channel?.name }}</h2>
+      <div class="panel-meta">
+        <span class="panel-source">{{ getSourceName() }}</span>
+        <span *ngIf="getMediaLabel()" class="media-badge" [ngClass]="getBadgeClass()">
+          {{ getMediaLabel() }}
+        </span>
+        <svg *ngIf="channel?.favorite" fill="currentColor" class="panel-star" viewBox="0 0 24 24">
+          <path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel body -->
+  <div class="panel-body">
+    <!-- EPG section (live channels only) -->
+    <div *ngIf="isLive() && hasEPG()" class="epg-section">
+      <!-- Loading skeleton -->
+      <div *ngIf="epgLoading" class="epg-skeleton">
+        <div class="skeleton-bar" style="height: 12px; width: 80px; margin-bottom: 10px;"></div>
+        <div class="skeleton-bar" style="height: 16px; width: 200px; margin-bottom: 8px;"></div>
+        <div class="skeleton-bar" style="height: 10px; width: 100%;"></div>
+      </div>
+
+      <!-- Now Playing -->
+      <div *ngIf="nowPlaying && !epgLoading" class="epg-now">
+        <div class="epg-now-header">
+          <span class="epg-live-indicator"></span>
+          <span class="epg-now-label">Now</span>
+          <span class="epg-now-time">{{ nowPlaying.start_time }} – {{ nowPlaying.end_time }}</span>
+        </div>
+        <h3 class="epg-now-title">{{ nowPlaying.title }}</h3>
+        <p *ngIf="nowPlaying.description" class="epg-now-desc">{{ nowPlaying.description }}</p>
+        <div class="epg-progress-track">
+          <div class="epg-progress-fill" [style.width.%]="epgProgress"></div>
+        </div>
+      </div>
+
+      <!-- Up Next -->
+      <div *ngIf="upNext && !epgLoading" class="epg-next">
+        <span class="epg-next-label">Up Next</span>
+        <span class="epg-next-time">{{ upNext.start_time }}</span>
+        <h4 class="epg-next-title">{{ upNext.title }}</h4>
+      </div>
+
+      <!-- No EPG available -->
+      <div *ngIf="!nowPlaying && !epgLoading" class="epg-empty">
+        No program info available
+      </div>
+
+      <!-- Full EPG link -->
+      <button *ngIf="!epgLoading" class="epg-full-link" (click)="openFullEPG()">
+        View full schedule
+      </button>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="panel-actions">
+      <button class="action-btn action-play" [class.loading]="playing" (click)="play()">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+        </svg>
+        {{ playing ? 'Starting...' : 'Play' }}
+      </button>
+
+      <button *ngIf="isLive()" class="action-btn" [class.recording-active]="isChannelRecording()" [disabled]="isRecordingBusy()" (click)="doRecord()">
+        <span *ngIf="isRecordingBusy()" class="btn-spinner"></span>
+        <svg *ngIf="!isChannelRecording() && !isRecordingBusy()" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
+        </svg>
+        <svg *ngIf="isChannelRecording() && !isRecordingBusy()" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18,18H6V6H18V18Z" />
+        </svg>
+        {{ isRecordingBusy() ? 'Working...' : isChannelRecording() ? 'Stop Recording' : 'Record' }}
+      </button>
+
+      <button class="action-btn" (click)="toggleFavorite()">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path *ngIf="!channel?.favorite" d="M12,15.39L8.24,17.66L9.23,13.38L5.91,10.5L10.29,10.13L12,6.09L13.71,10.13L18.09,10.5L14.77,13.38L15.76,17.66M22,9.24L14.81,8.63L12,2L9.19,8.63L2,9.24L7.45,13.97L5.82,21L12,17.27L18.18,21L16.54,13.97L22,9.24Z" />
+          <path *ngIf="channel?.favorite" d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z" />
+        </svg>
+        {{ channel?.favorite ? 'Unfavorite' : 'Favorite' }}
+      </button>
+
+      <button class="action-btn" (click)="toggleHide()">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path *ngIf="!channel?.hidden" d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z" />
+          <path *ngIf="channel?.hidden" d="M11.83,9L15,12.16C15,12.11 15,12.05 15,12A3,3 0 0,0 12,9C11.94,9 11.89,9 11.83,9M7.53,9.8L9.08,11.35C9.03,11.56 9,11.77 9,12A3,3 0 0,0 12,15C12.22,15 12.44,14.97 12.65,14.92L14.2,16.47C13.53,16.8 12.79,17 12,17A5,5 0 0,1 7,12C7,11.21 7.2,10.47 7.53,9.8M2,4.27L4.28,6.55L4.73,7C3.08,8.3 1.78,10 1,12C2.73,16.39 7,19.5 12,19.5C13.55,19.5 15.03,19.2 16.38,18.66L16.81,19.08L19.73,22L21,20.73L3.27,3M12,7A5,5 0 0,1 17,12C17,12.64 16.87,13.26 16.64,13.82L19.57,16.75C21.07,15.5 22.27,13.86 23,12C21.27,7.61 17,4.5 12,4.5C10.6,4.5 9.26,4.75 8,5.2L10.17,7.35C10.74,7.13 11.35,7 12,7Z" />
+        </svg>
+        {{ channel?.hidden ? 'Unhide' : 'Hide' }}
+      </button>
+
+      <button *ngIf="isLive()" class="action-btn" (click)="openRestream()">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M1,10V12A9,9 0 0,1 10,21H12C12,14.92 7.07,10 1,10M1,14V16A5,5 0 0,1 6,21H8A7,7 0 0,0 1,14M1,18V21H4A3,3 0 0,0 1,18M21,3H3C1.89,3 1,3.89 1,5V8H3V5H21V19H14V21H21A2,2 0 0,0 23,19V5C23,3.89 22.1,3 21,3Z" />
+        </svg>
+        Re-stream
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,98 @@
+<div *ngIf="channel && playerState !== 'expanded'" @barSlide class="now-playing-bar">
+  <div class="bar-content">
+    <!-- Channel info (left) -->
+    <div class="bar-channel" (click)="showInfo()">
+      <div class="bar-thumbnail">
+        <img *ngIf="channel.image && showImage" [src]="channel.image" (error)="onImageError()" />
+        <div *ngIf="!channel.image || !showImage" class="bar-thumb-placeholder">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8.5 21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H20C21.1 3 22 3.9 22 5V11.5" />
+          </svg>
+        </div>
+      </div>
+      <div class="bar-info">
+        <div class="bar-name">{{ channel.name }}</div>
+        <div class="bar-source">{{ getSourceName() }}</div>
+      </div>
+    </div>
+
+    <!-- Status indicators (center) -->
+    <div class="bar-status">
+      <span *ngIf="isLive()" class="bar-live-badge">
+        <span class="bar-live-dot"></span>
+        LIVE
+      </span>
+      <span *ngIf="isCurrentChannelRecording()" class="bar-rec-badge">
+        <span class="bar-rec-dot"></span>
+        REC {{ formatElapsed(recording.getRecordingForChannel(channel!.id!)?.start_timestamp!) }}
+      </span>
+      <!-- Equalizer animation -->
+      <div class="bar-equalizer">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- Controls (right) -->
+    <div class="bar-controls">
+      <button *ngIf="isCurrentChannelRecording()"
+              class="bar-btn bar-rec-stop-btn"
+              [disabled]="recording.isBusy(channel!.id!)"
+              (click)="stopRecording(recording.getRecordingForChannel(channel!.id!)!.recording_id)"
+              title="Stop Recording">
+        <span *ngIf="recording.isBusy(channel!.id!)" class="btn-spinner"></span>
+        <svg *ngIf="!recording.isBusy(channel!.id!)" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18,18H6V6H18V18Z" />
+        </svg>
+      </button>
+      <button *ngIf="isWebPlayer" class="bar-btn bar-expand-btn" (click)="expand()" title="Expand Player">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" />
+        </svg>
+      </button>
+      <button class="bar-btn bar-info-btn" (click)="showInfo()" title="Channel Info">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" />
+        </svg>
+      </button>
+      <button class="bar-btn bar-stop-btn" (click)="stop()" title="Stop Playback">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18,18H6V6H18V18Z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Standalone recording bar (when recording but not playing anything) -->
+<div *ngIf="!channel && activeRecordings.length > 0" @barSlide class="now-playing-bar recording-bar">
+  <div class="bar-content" *ngFor="let rec of activeRecordings">
+    <div class="bar-channel">
+      <div class="bar-thumbnail">
+        <img *ngIf="rec.channel_image" [src]="rec.channel_image" />
+        <div *ngIf="!rec.channel_image" class="bar-thumb-placeholder">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8.5 21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H20C21.1 3 22 3.9 22 5V11.5" />
+          </svg>
+        </div>
+      </div>
+      <div class="bar-info">
+        <div class="bar-name">{{ rec.channel_name }}</div>
+        <div class="bar-source bar-rec-timer">
+          <span class="bar-rec-dot"></span>
+          REC {{ formatElapsed(rec.start_timestamp) }}
+        </div>
+      </div>
+    </div>
+    <div class="bar-controls">
+      <button class="bar-btn bar-rec-stop-btn"
+              [disabled]="recording.isBusy(rec.channel_id)"
+              (click)="stopRecording(rec.recording_id)"
+              title="Stop Recording">
+        <span *ngIf="recording.isBusy(rec.channel_id)" class="btn-spinner"></span>
+        <svg *ngIf="!recording.isBusy(rec.channel_id)" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18,18H6V6H18V18Z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>

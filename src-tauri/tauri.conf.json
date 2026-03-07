@@ -1,5 +1,5 @@
 {
-  "productName": "Fred TV",
+  "productName": "FredTV-Next",
   "version": "1.9.1",
   "identifier": "dev.fredol.open-tv",
   "build": {
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "Fred TV (v1.9.1)",
+        "title": "FredTV-Next (v1.9.1)",
         "width": 800,
         "height": 600,
         "resizable": true,

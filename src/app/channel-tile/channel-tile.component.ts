@@ -25,9 +25,12 @@ import { DownloadService } from "../download.service";
 import { Download } from "../models/download";
 import { Subscription, take } from "rxjs";
 import { save } from "@tauri-apps/plugin-dialog";
-import { CHANNEL_EXTENSION, GROUP_EXTENSION, RECORD_EXTENSION } from "../models/extensions";
-import { getDateFormatted, getExtension, sanitizeFileName } from "../utils";
+import { CHANNEL_EXTENSION, GROUP_EXTENSION } from "../models/extensions";
+import { getExtension, sanitizeFileName } from "../utils";
+import { RecordingService } from "../recording.service";
 import { NodeType, fromMediaType } from "../models/nodeType";
+import { PlayerEngine } from "../models/playerEngine";
+import { PlayerState } from "../models/playerState";
 
 import { ViewMode } from "../models/viewMode";
 
@@ -45,6 +48,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     private el: ElementRef,
     private renderer: Renderer2,
     private download: DownloadService,
+    public recording: RecordingService,
   ) { }
   @Input() channel?: Channel;
   @Input() id!: number;
@@ -67,20 +71,22 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   setDownloadGradient(progress: number) {
     let element = this.el.nativeElement.querySelector(`#tile-${this.id}`);
-    let background = `linear-gradient(to right, green ${progress}%, #343a40 ${progress}%)`;
+    let surfaceColor = getComputedStyle(document.documentElement).getPropertyValue('--ftv-surface').trim();
+    let successColor = getComputedStyle(document.documentElement).getPropertyValue('--ftv-success').trim();
+    let background = `linear-gradient(to right, ${successColor} ${progress}%, ${surfaceColor} ${progress}%)`;
     this.renderer.setStyle(element, "background", background);
   }
 
   clearDownloadGradient() {
     let element = this.el.nativeElement.querySelector(`#tile-${this.id}`);
-    let background = "#343a40";
-    this.renderer.setStyle(element, "background", background);
+    this.renderer.removeStyle(element, "background");
   }
 
-  async click(record = false) {
+  async click() {
     if (this.starting === true) {
       try {
         await invoke("cancel_play", { sourceId: this.channel?.source_id, channelId: this.channel?.id });
+        this.memory.NowPlaying.next(null);
       } catch (e) {
         this.error.handleError(e);
       }
@@ -114,19 +120,23 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       });
       return;
     }
-    let file = undefined;
-    if (record && (this.memory.IsContainer || this.memory.AlwaysAskSave)) {
-      file = await save({
-        canCreateDirectories: true,
-        title: "Select where to save recording",
-        defaultPath: `${sanitizeFileName(this.channel?.name!)}_${getDateFormatted()}${RECORD_EXTENSION}`,
-      });
-      if (!file) return;
+    const engine = this.memory.PlayerEngine.value ?? PlayerEngine.Web;
+
+    // Web / EmbeddedMpv: set NowPlaying and let InlinePlayerComponent handle it
+    if (engine === PlayerEngine.Web || engine === PlayerEngine.EmbeddedMpv) {
+      this.memory.SetFocus.next(this.id);
+      this.memory.NowPlaying.next(this.channel!);
+      this.memory.PlayerState.next(PlayerState.Expanded);
+      invoke("add_last_watched", { id: this.channel?.id }).catch(console.error);
+      return;
     }
+
+    // External MPV: playback only (recording is now handled by recording.service)
     this.starting = true;
     this.memory.SetFocus.next(this.id);
+    this.memory.NowPlaying.next(this.channel!);
     try {
-      await invoke("play", { channel: this.channel, record: record, recordPath: file });
+      await invoke("play", { channel: this.channel, record: false, recordPath: null });
     } catch (e) {
       this.error.handleError(e);
     }
@@ -135,6 +145,10 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       this.error.handleError(e);
     });
     this.starting = false;
+    // Only clear NowPlaying if this channel is still the one playing
+    if (this.memory.NowPlaying.value?.id === this.channel?.id) {
+      this.memory.NowPlaying.next(null);
+    }
   }
 
   onRightClick(event: MouseEvent) {
@@ -211,7 +225,16 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   async record() {
-    await this.click(true);
+    if (!this.channel) return;
+    await this.recording.toggleRecording(this.channel);
+  }
+
+  isChannelRecording(): boolean {
+    return !!this.channel?.id && this.recording.isRecording(this.channel.id);
+  }
+
+  isRecordingBusy(): boolean {
+    return !!this.channel?.id && this.recording.isBusy(this.channel.id);
   }
 
   isMovie() {
@@ -433,6 +456,12 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
         this.clearDownloadGradient();
       }),
     );
+  }
+
+  showInfo() {
+    if (this.channel) {
+      this.memory.ShowChannelDetail.next(this.channel);
+    }
   }
 
   ngOnDestroy() {

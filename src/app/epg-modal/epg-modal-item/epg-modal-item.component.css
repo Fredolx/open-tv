@@ -1,6 +1,6 @@
 .epg-item {
-  border-radius: 0.25rem;
-  background-color: #343a40;
+  border-radius: var(--ftv-radius-sm);
+  background-color: var(--ftv-surface);
   width: 100%;
   padding: 1rem;
   position: relative;
@@ -8,7 +8,7 @@
 
 .thin-line {
   height: 1px;
-  background-color: white;
+  background-color: var(--ftv-border-hover);
   width: 100%;
   margin: 0;
 }
@@ -18,7 +18,7 @@
   width: 2rem;
   cursor: pointer;
   transition: transform 0.3s ease;
-  color: white;
+  color: var(--ftv-text-primary);
 }
 
 .timeshift {
@@ -26,7 +26,7 @@
   width: 2rem;
   cursor: pointer;
   transition: transform 0.3s ease;
-  color: white;
+  color: var(--ftv-text-primary);
 }
 
 .loading {
@@ -38,7 +38,8 @@
   height: 0.75rem;
   width: 0.75rem;
   border-radius: 50%;
-  background-color: red;
+  color: var(--ftv-live);
+  background-color: var(--ftv-live);
   animation: pulsate 1.5s infinite ease-in-out;
 }
 

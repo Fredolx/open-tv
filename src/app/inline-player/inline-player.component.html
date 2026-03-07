@@ -1,0 +1,180 @@
+<div
+  class="player-container"
+  [class.state-expanded]="playerState === PlayerState.Expanded"
+  [class.state-mini]="playerState === PlayerState.Mini"
+  [class.state-closed]="!channel || playerState === PlayerState.Closed"
+  [class.controls-hidden]="!controlsVisible && playerState === PlayerState.Expanded"
+  [class.dragging]="isDragging"
+  (mousemove)="onMouseMove()"
+>
+  <!-- Drag handle (expanded mode) -->
+  <div
+    class="drag-handle"
+    *ngIf="playerState === PlayerState.Expanded"
+    (mousedown)="onDragStart($event)"
+    (touchstart)="onDragStart($event)"
+  >
+    <div class="drag-indicator"></div>
+  </div>
+
+  <div class="player-video-wrapper" (click)="onVideoClick($event)">
+    <video #videoElement playsinline></video>
+
+    <!-- Frost backdrop layer -->
+    <div
+      class="frost-layer"
+      [class.frost-active]="frostPhase !== 'none'"
+      [class.frost-gradient]="frostPhase === 'gradient'"
+      [class.frost-frame]="frostPhase === 'frosted-frame'"
+      [class.frost-revealing]="frostPhase === 'revealing'"
+    >
+      <div class="frost-gradient-bg"></div>
+      <div
+        class="frost-frame-bg"
+        [style.backgroundImage]="frostFrameUrl ? 'url(' + frostFrameUrl + ')' : 'none'"
+      ></div>
+    </div>
+
+    <!-- Loading spinner -->
+    <div class="player-loading" *ngIf="loading && playerState !== PlayerState.Closed">
+      <div class="player-spinner"></div>
+      <div class="spinner-throughput" *ngIf="throughputDisplay">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4Z" />
+        </svg>
+        <span>{{ throughputDisplay }}</span>
+      </div>
+    </div>
+
+    <!-- Controls overlay (expanded mode only) -->
+    <div
+      class="player-controls-overlay"
+      *ngIf="playerState === PlayerState.Expanded"
+      [class.visible]="controlsVisible"
+    >
+      <!-- Top gradient + info -->
+      <div class="player-top-bar">
+        <div class="player-top-info">
+          <span class="player-channel-name">{{ channel?.name }}</span>
+          <span class="player-source-name">{{ getSourceName() }}</span>
+        </div>
+        <div class="player-top-actions">
+          <span class="player-live-badge" *ngIf="isLive">LIVE</span>
+          <span class="player-rec-badge" *ngIf="isCurrentChannelRecording()">
+            <span class="player-rec-dot"></span>
+            REC
+          </span>
+          <button class="player-btn player-close-btn" (click)="close()" title="Stop & Close">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom controls -->
+      <div class="player-bottom-bar">
+        <!-- Seek bar (VOD only) -->
+        <div class="player-seek-row" *ngIf="!isLive">
+          <span class="player-time">{{ formatTime(currentTime) }}</span>
+          <div class="player-seek-wrapper">
+            <input
+              type="range"
+              class="player-seek"
+              min="0"
+              [max]="duration"
+              [value]="currentTime"
+              step="0.1"
+              (input)="onSeek($event)"
+              [style.--seek-percent]="seekPercent + '%'"
+            />
+          </div>
+          <span class="player-time">{{ formatTime(duration) }}</span>
+        </div>
+
+        <div class="player-controls-row">
+          <!-- Play/Pause -->
+          <button class="player-btn" (click)="togglePlay()" title="Play/Pause">
+            <svg *ngIf="!isPlaying" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+            </svg>
+            <svg *ngIf="isPlaying" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,19H18V5H14M6,19H10V5H6V19Z" />
+            </svg>
+          </button>
+
+          <!-- Volume -->
+          <div class="player-volume-group">
+            <button class="player-btn player-volume-btn" (click)="toggleMute()" title="Mute">
+              <svg *ngIf="!isMuted && volume > 50" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
+              </svg>
+              <svg *ngIf="!isMuted && volume > 0 && volume <= 50" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5,9V15H9L14,20V4L9,9M18.5,12C18.5,10.23 17.5,8.71 16,7.97V16C17.5,15.29 18.5,13.76 18.5,12Z" />
+              </svg>
+              <svg *ngIf="isMuted || volume === 0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.45 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.5,12.43 16.5,12.21 16.5,12Z" />
+              </svg>
+            </button>
+            <div class="player-volume-slider-wrapper">
+              <input
+                type="range"
+                class="player-volume"
+                min="0"
+                max="100"
+                [value]="volumePercent"
+                (input)="onVolumeChange($event)"
+                [style.--volume-percent]="volumePercent + '%'"
+              />
+            </div>
+          </div>
+
+          <!-- Spacer -->
+          <div class="player-spacer"></div>
+
+          <!-- Minimize to mini-player -->
+          <button class="player-btn" (click)="minimize()" title="Mini Player">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.5,3.09L15,7.59V4H13V11H20V9H16.41L20.91,4.5L19.5,3.09M4,13V15H7.59L3.09,19.5L4.5,20.91L9,16.41V20H11V13H4Z" />
+            </svg>
+          </button>
+
+          <!-- Fullscreen -->
+          <button class="player-btn" (click)="toggleFullscreen()" title="Fullscreen">
+            <svg *ngIf="!isFullscreen" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" />
+            </svg>
+            <svg *ngIf="isFullscreen" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,14H19V16H16V19H14V14M5,14H10V19H8V16H5V14M8,5H10V10H5V8H8V5M19,8V10H14V5H16V8H19Z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini-player overlay -->
+  <div class="mini-overlay" *ngIf="playerState === PlayerState.Mini">
+    <span class="mini-channel-name">{{ channel?.name }}</span>
+    <div class="mini-controls">
+      <button class="mini-btn" (click)="togglePlay(); $event.stopPropagation()" title="Play/Pause">
+        <svg *ngIf="!isPlaying" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+        </svg>
+        <svg *ngIf="isPlaying" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14,19H18V5H14M6,19H10V5H6V19Z" />
+        </svg>
+      </button>
+      <button class="mini-btn" (click)="expand(); $event.stopPropagation()" title="Expand">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" />
+        </svg>
+      </button>
+      <button class="mini-btn mini-close-btn" (click)="close(); $event.stopPropagation()" title="Close">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>

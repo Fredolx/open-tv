@@ -1,6 +1,6 @@
 .epg-item {
-  border-radius: 0.25rem;
-  background-color: #343a40;
+  border-radius: var(--ftv-radius-sm);
+  background-color: var(--ftv-surface);
   width: 100%;
   padding: 1rem;
   position: relative;
@@ -10,6 +10,12 @@
   width: 3rem;
   height: 3rem;
   cursor: pointer;
+  color: var(--ftv-accent);
+  transition: transform 0.2s ease;
+}
+
+.arrow:hover {
+  transform: scale(1.15);
 }
 
 .date-text {

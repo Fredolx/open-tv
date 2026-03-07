@@ -1,0 +1,143 @@
+.list-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 1.5fr 150px 120px 80px 60px;
+  align-items: center;
+  padding: 6px 16px;
+  height: 48px;
+  background: var(--ftv-surface);
+  border-bottom: 1px solid var(--ftv-border);
+  cursor: pointer;
+  transition: background var(--ftv-transition-fast);
+  gap: 12px;
+  user-select: none;
+}
+
+.list-row:hover {
+  background: var(--ftv-surface-hover);
+}
+
+.list-row:focus {
+  outline: none;
+  background: var(--ftv-surface-hover);
+  box-shadow: inset 0 0 0 2px var(--ftv-accent);
+}
+
+.list-row.playing {
+  background: var(--ftv-accent-active);
+}
+
+.list-row.playing:hover {
+  background: var(--ftv-danger);
+}
+
+.list-row.faded {
+  opacity: 0.5;
+}
+
+.row-image {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.row-image-placeholder {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ftv-surface-recessed);
+  border-radius: 4px;
+}
+
+.row-image-placeholder svg {
+  width: 18px;
+  height: 18px;
+  color: var(--ftv-text-tertiary);
+}
+
+.list-cell {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.name-text {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ftv-text-primary);
+}
+
+.now-playing-text {
+  font-size: 0.75rem;
+  color: var(--ftv-accent-hover);
+  font-style: italic;
+}
+
+.group-text,
+.source-text {
+  font-size: 0.75rem;
+  color: var(--ftv-text-secondary);
+}
+
+.media-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+  display: inline-block;
+}
+
+.badge-live {
+  background: var(--ftv-live);
+  color: white;
+}
+
+.badge-movie {
+  background: var(--ftv-movie);
+  color: white;
+}
+
+.badge-series {
+  background: var(--ftv-series);
+  color: white;
+}
+
+.badge-group {
+  background: var(--ftv-surface-active);
+  color: var(--ftv-text-primary);
+}
+
+.cell-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.icon-star {
+  width: 16px;
+  height: 16px;
+  color: var(--ftv-star);
+}
+
+.icon-archive {
+  width: 16px;
+  height: 16px;
+  color: var(--ftv-text-secondary);
+}
+
+@media screen and (max-width: 767px) {
+  .list-row {
+    grid-template-columns: 36px 1fr 80px 60px;
+  }
+
+  .cell-now-playing,
+  .cell-group,
+  .cell-source {
+    display: none;
+  }
+}

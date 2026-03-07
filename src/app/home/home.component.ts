@@ -40,8 +40,9 @@ import { isInputFocused } from "../utils";
 import { Node } from "../models/node";
 import { NodeType } from "../models/nodeType";
 import { Stack } from "../models/stack";
-
-import { BulkActionType } from '../models/bulkActionType';
+import { BulkActionType } from "../models/bulkActionType";
+import { ViewDensity } from "../models/viewDensity";
+import { SidebarNavEvent } from "../models/sidebarNavEvent";
 
 @Component({
   selector: "app-home",
@@ -81,6 +82,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   readonly viewModeEnum = ViewMode;
   bulkActionType = BulkActionType;
   readonly mediaTypeEnum = MediaType;
+  readonly viewDensityEnum = ViewDensity;
+  readonly sortTypeEnum = SortType;
   @ViewChild("search") search!: ElementRef;
   shortcuts: ShortcutInput[] = [];
   focus: number = 0;
@@ -99,6 +102,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   loading = false;
   nodeStack: Stack = new Stack();
   showScrollTop = false;
+  viewDensity: ViewDensity = ViewDensity.GridLarge;
+  showMediaFilters = true;
+  skeletonItems = Array(9).fill(0);
+  isDashboard = true;
+  isAnyXtream = false;
 
   scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -124,7 +132,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         if (settings.zoom) getCurrentWebview().setZoom(Math.trunc(settings.zoom! * 100) / 10000);
         this.memory.trayEnabled = settings.enable_tray_icon ?? true;
         this.memory.AlwaysAskSave = settings.always_ask_save ?? false;
-        this.memory.Sources = new Map(sources.filter((x) => x.enabled).map(s => [s.id!, s]));
+        this.memory.Sources = new Map(sources.filter((x) => x.enabled).map((s) => [s.id!, s]));
+        this.isAnyXtream = this.anyXtream();
         if (sources.length == 0) this.reset();
         else {
           getVersion().then((version) => {
@@ -171,6 +180,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
             this.refreshOnStart().then((_) => _);
           }
           this.load().then((_) => _);
+          this.memory.RefreshSources.next(true);
         }
       })
       .catch((e) => {
@@ -238,8 +248,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(
       this.memory.Refresh.subscribe((scroll) => {
         this.load();
-        if(scroll)
-          window.scrollTo({ top: 0, behavior: "instant" });
+        if (scroll) window.scrollTo({ top: 0, behavior: "instant" });
       }),
     );
     this.subscriptions.push(
@@ -247,6 +256,57 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         if (!this.filters || !load) return;
         this.filters!.sort = sort;
         await this.load();
+      }),
+    );
+
+    // Subscribe to sidebar navigation events
+    this.subscriptions.push(
+      this.memory.SidebarNav.subscribe(async (event: SidebarNavEvent) => {
+        if (event.viewType === ViewMode.Home) {
+          // Home/Dashboard view handled separately
+          return;
+        }
+        this.filters!.series_id = undefined;
+        this.filters!.group_id = undefined;
+        this.filters!.season = undefined;
+        this.filters!.view_type = event.viewType;
+        this.nodeStack.clear();
+        this.clearSearch();
+
+        // Apply media type filter from sidebar if provided
+        if (event.mediaTypeFilter) {
+          this.filters!.media_types = [...event.mediaTypeFilter];
+          this.showMediaFilters = event.mediaTypeFilter.length > 1;
+          // Sync checkboxes
+          this.chkLiveStream = event.mediaTypeFilter.includes(MediaType.livestream);
+          this.chkMovie = event.mediaTypeFilter.includes(MediaType.movie);
+          this.chkSerie = event.mediaTypeFilter.includes(MediaType.serie);
+        } else {
+          this.showMediaFilters = false;
+        }
+
+        // Apply source filter if provided
+        if (event.sourceFilter) {
+          this.filters!.source_ids = event.sourceFilter;
+        } else {
+          this.filters!.source_ids = Array.from(this.memory.Sources.keys());
+        }
+
+        await this.load();
+      }),
+    );
+
+    // Subscribe to view density changes
+    this.subscriptions.push(
+      this.memory.ViewDensity.subscribe((density) => {
+        this.viewDensity = density;
+      }),
+    );
+
+    // Subscribe to active sidebar item to toggle dashboard vs browse
+    this.subscriptions.push(
+      this.memory.ActiveSidebarItem.subscribe((item) => {
+        this.isDashboard = item === "home";
       }),
     );
   }
@@ -343,25 +403,37 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         label: "Switching modes",
         description: "Selects the all channels view",
         preventDefault: true,
-        command: async (_) => await this.switchMode(this.viewModeEnum.All),
+        command: async (_) => {
+          this.memory.ActiveSidebarItem.next("all");
+          await this.switchMode(this.viewModeEnum.All);
+        },
       },
       {
         key: ["ctrl + s", "cmd + s"],
         label: "Switching modes",
         description: "Selects the categories view",
-        command: async (_) => await this.switchMode(this.viewModeEnum.Categories),
+        command: async (_) => {
+          this.memory.ActiveSidebarItem.next("categories");
+          await this.switchMode(this.viewModeEnum.Categories);
+        },
       },
       {
         key: ["ctrl + d", "cmd + d"],
         label: "Switching modes",
         description: "Selects the history view",
-        command: async (_) => await this.switchMode(this.viewModeEnum.History),
+        command: async (_) => {
+          this.memory.ActiveSidebarItem.next("history");
+          await this.switchMode(this.viewModeEnum.History);
+        },
       },
       {
         key: ["ctrl + r", "cmd + r"],
         label: "Switching modes",
         description: "Selects the favorites view",
-        command: async (_) => await this.switchMode(this.viewModeEnum.Favorites),
+        command: async (_) => {
+          this.memory.ActiveSidebarItem.next("favorites");
+          await this.switchMode(this.viewModeEnum.Favorites);
+        },
       },
       {
         key: "ctrl + q",
@@ -522,19 +594,48 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.router.navigateByUrl("settings");
   }
 
+  getGridColumns(): number {
+    if (this.viewDensity === ViewDensity.List) return 1;
+    const gridEl = document.querySelector(".channel-grid");
+    if (!gridEl) return 3;
+    const cols = getComputedStyle(gridEl).gridTemplateColumns.split(" ").length;
+    return cols > 0 ? cols : 3;
+  }
+
+  getGridClass(): string {
+    return this.viewDensity === ViewDensity.GridCompact ? "grid-compact" : "grid-large";
+  }
+
+  toggleNameSort() {
+    if (!this.filters) return;
+    if (this.filters.sort === SortType.alphabeticalAscending) {
+      this.memory.Sort.next([SortType.alphabeticalDescending, true]);
+    } else {
+      this.memory.Sort.next([SortType.alphabeticalAscending, true]);
+    }
+  }
+
+  isNameSortActive(): boolean {
+    return (
+      this.filters?.sort === SortType.alphabeticalAscending ||
+      this.filters?.sort === SortType.alphabeticalDescending
+    );
+  }
+
   async nav(key: string) {
     if (this.searchFocused()) return;
     let lowSize = this.currentWindowSize < 768;
     if (this.memory.currentContextMenu?.menuOpen || this.memory.ModalRef) {
       return;
     }
+    let colCount = this.getGridColumns();
     let tmpFocus = 0;
     switch (key) {
       case "ArrowUp":
-        tmpFocus -= 3;
+        tmpFocus -= colCount;
         break;
       case "ArrowDown":
-        tmpFocus += 3;
+        tmpFocus += colCount;
         break;
       case "ShiftTab":
       case "ArrowLeft":
@@ -546,7 +647,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         break;
     }
     let goOverSize = this.shortFiltersMode() ? 1 : 2;
-    if (lowSize && tmpFocus % 3 == 0 && this.focusArea == FocusArea.Tiles) tmpFocus / 3;
+    if (lowSize && tmpFocus % colCount == 0 && this.focusArea == FocusArea.Tiles)
+      tmpFocus /= colCount;
     tmpFocus += this.focus;
     if (tmpFocus < 0) {
       this.changeFocusArea(false);
@@ -571,11 +673,17 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   shortFiltersMode() {
-    return this.filters?.source_ids.findIndex((x) => this.memory.XtreamSourceIds.has(x)) == -1;
+    return (
+      this.filters?.source_ids.findIndex((x) => this.memory.XtreamSourceIds.has(x)) == -1
+    );
   }
 
   anyXtream() {
-    return Array.from(this.memory.Sources.values()).findIndex((x) => x.source_type == SourceType.Xtream) != -1;
+    return (
+      Array.from(this.memory.Sources.values()).findIndex(
+        (x) => x.source_type == SourceType.Xtream,
+      ) != -1
+    );
   }
 
   changeFocusArea(down: boolean) {
@@ -627,6 +735,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (this.memory.currentContextMenu?.menuOpen) {
       this.memory.currentContextMenu?.closeMenu();
     }
+  }
+
+  trackByChannelId(index: number, channel: Channel): number {
+    return channel.id!;
   }
 
   ngOnDestroy() {

@@ -1,31 +1,27 @@
-.settings {
-  position: absolute;
-  top: 2%;
-  right: 2%;
-  height: 2.5rem;
-  width: 2.5rem;
-  cursor: pointer;
-  transition: transform 0.3s ease;
+/* Top bar layout */
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
-.settings:hover {
-  transform: scale(125%) rotate(360deg);
+.search-area {
+  flex: 1;
 }
 
-.reserve-settings-space {
-  margin-top: 2rem;
-}
-
-@media screen and (max-width: 767px) {
-  .reserve-settings-space {
-    margin-top: 5rem;
-  }
+.top-bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .filterBox {
-  border-radius: 10px;
+  border-radius: var(--ftv-radius-md);
   padding: 10px;
-  background-color: #343a40;
+  background-color: var(--ftv-surface);
   display: block;
   width: fit-content;
 }
@@ -89,37 +85,32 @@
   right: 2rem;
   width: 3rem;
   height: 3rem;
-  background-color: #0d6efd;
+  background-color: var(--ftv-accent);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   z-index: 1000;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--ftv-shadow-md);
   transition: transform 0.2s ease, background-color 0.2s;
   animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .scroll-to-top:hover {
   transform: scale(1.1);
-  background-color: #0b5ed7;
+  background-color: var(--ftv-accent-active);
 }
 
 .scroll-to-top svg {
   width: 2rem;
   height: 2rem;
-  color: white;
+  color: var(--ftv-text-primary);
 }
 
 @keyframes popIn {
-  0% {
-    transform: scale(0);
-  }
-
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
 }
 
 .bulk-action-icon {
@@ -141,4 +132,205 @@
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+/* CSS Grid layout for channel cards */
+.channel-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.channel-grid.grid-large {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.channel-grid.grid-compact {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+/* List view */
+.list-container {
+  border-radius: var(--ftv-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--ftv-border);
+}
+
+.list-header {
+  display: grid;
+  grid-template-columns: 48px 1fr 1.5fr 150px 120px 80px 60px;
+  align-items: center;
+  padding: 8px 16px;
+  gap: 12px;
+  background: var(--ftv-surface);
+  border-bottom: 1px solid var(--ftv-border);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ftv-text-tertiary);
+  user-select: none;
+}
+
+.list-header .clickable {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.list-header .clickable:hover {
+  color: var(--ftv-text-primary);
+}
+
+.sort-arrow {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--ftv-transition-fast);
+}
+
+.sort-arrow.sort-desc {
+  transform: rotate(180deg);
+}
+
+/* Empty states */
+.empty-state {
+  display: flex;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+.empty-state-content {
+  text-align: center;
+  max-width: 360px;
+}
+
+.empty-state-icon {
+  width: 56px;
+  height: 56px;
+  color: var(--ftv-text-tertiary);
+  margin-bottom: 16px;
+}
+
+.empty-state-content h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ftv-text-primary);
+  margin-bottom: 8px;
+}
+
+.empty-state-content p {
+  font-size: 0.85rem;
+  color: var(--ftv-text-secondary);
+}
+
+/* Skeleton loading */
+.skeleton-card {
+  border-radius: var(--ftv-radius-md);
+  overflow: hidden;
+  background: var(--ftv-surface);
+}
+
+.skeleton-image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+}
+
+.skeleton-info {
+  padding: 12px;
+}
+
+.skeleton-title {
+  height: 14px;
+  width: 75%;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-subtitle {
+  height: 10px;
+  width: 45%;
+  border-radius: 4px;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, var(--ftv-surface) 25%, var(--ftv-surface-hover) 50%, var(--ftv-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Stagger reveal for skeleton cards */
+.skeleton-card {
+  animation: skeletonIn 0.4s ease-out backwards;
+}
+
+@keyframes skeletonIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* List view skeleton */
+.list-skeleton-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 1.5fr 150px 120px 80px 60px;
+  align-items: center;
+  padding: 8px 16px;
+  gap: 12px;
+  border-bottom: 1px solid var(--ftv-border);
+  animation: skeletonIn 0.3s ease-out backwards;
+}
+
+.skel-cell {
+  display: flex;
+  align-items: center;
+}
+
+.skel-wide {
+  flex: 1;
+}
+
+.skel-med {
+  min-width: 0;
+}
+
+/* Stagger animation for grid/list items */
+@keyframes itemReveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.channel-grid > *:nth-child(-n+12) {
+  animation: itemReveal 0.3s ease-out backwards;
+}
+
+.channel-grid > *:nth-child(1) { animation-delay: 0ms; }
+.channel-grid > *:nth-child(2) { animation-delay: 25ms; }
+.channel-grid > *:nth-child(3) { animation-delay: 50ms; }
+.channel-grid > *:nth-child(4) { animation-delay: 75ms; }
+.channel-grid > *:nth-child(5) { animation-delay: 100ms; }
+.channel-grid > *:nth-child(6) { animation-delay: 125ms; }
+.channel-grid > *:nth-child(7) { animation-delay: 150ms; }
+.channel-grid > *:nth-child(8) { animation-delay: 175ms; }
+.channel-grid > *:nth-child(9) { animation-delay: 200ms; }
+.channel-grid > *:nth-child(10) { animation-delay: 225ms; }
+.channel-grid > *:nth-child(11) { animation-delay: 250ms; }
+.channel-grid > *:nth-child(12) { animation-delay: 275ms; }
+
+@media screen and (max-width: 767px) {
+  .list-header {
+    grid-template-columns: 36px 1fr 80px 60px;
+  }
+
+  .list-header .cell-now-playing,
+  .list-header .cell-group,
+  .list-header .cell-source {
+    display: none;
+  }
+
+  .channel-grid.grid-large {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
 }

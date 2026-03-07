@@ -6,6 +6,8 @@ import { EPGNotify } from "../../models/epgNotify";
 import { ErrorService } from "../../error.service";
 import { Channel } from "../../models/channel";
 import { MediaType } from "../../models/mediaType";
+import { PlayerEngine } from "../../models/playerEngine";
+import { PlayerState } from "../../models/playerState";
 import { DownloadService } from "../../download.service";
 import { Subscription, take } from "rxjs";
 import { Download } from "../../models/download";
@@ -86,10 +88,20 @@ export class EpgModalItemComponent implements OnDestroy {
       url: this.epg?.timeshift_url,
       name: this.epg?.title,
       media_type: MediaType.movie,
-
       favorite: false,
       source_id: this.sourceId,
     };
+    const engine = this.memory.PlayerEngine.value ?? PlayerEngine.Web;
+
+    // Web / EmbeddedMpv: use inline player
+    if (engine === PlayerEngine.Web || engine === PlayerEngine.EmbeddedMpv) {
+      this.memory.NowPlaying.next(channel);
+      this.memory.PlayerState.next(PlayerState.Expanded);
+      this.playing = false;
+      return;
+    }
+
+    // External MPV
     try {
       await invoke("play", {
         channel: channel,

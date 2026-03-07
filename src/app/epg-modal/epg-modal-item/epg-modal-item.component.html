@@ -6,7 +6,7 @@
         ngbTooltip="Playing now"
         *ngIf="epg?.now_playing"
         class="live"
-        fill="red"
+        fill="currentColor"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
       >
@@ -45,14 +45,12 @@
         *ngIf="downloading()"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
       >
         <title>close-circle</title>
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop [attr.offset]="progress + '%'" stop-color="green" />
-            <stop [attr.offset]="progress + '%'" stop-color="white" />
+            <stop [attr.offset]="progress + '%'" stop-color="var(--ftv-success)" />
+            <stop [attr.offset]="progress + '%'" stop-color="var(--ftv-text-primary)" />
           </linearGradient>
         </defs>
         <path

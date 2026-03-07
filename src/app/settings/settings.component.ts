@@ -3,13 +3,14 @@ import { debounceTime, distinctUntilChanged, fromEvent, map, Subscription } from
 import { Settings } from "../models/settings";
 import { invoke } from "@tauri-apps/api/core";
 import { Router } from "@angular/router";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open, save } from "@tauri-apps/plugin-dialog";
 import { Source } from "../models/source";
 import { MemoryService } from "../memory.service";
 import { ViewMode } from "../models/viewMode";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { ConfirmDeleteModalComponent } from "../confirm-delete-modal/confirm-delete-modal.component";
 import { SORT_TYPES, SortType, getSortTypeText } from "../models/sortType";
+import { PlayerEngine } from "../models/playerEngine";
 
 @Component({
   selector: "app-settings",
@@ -30,10 +31,11 @@ export class SettingsComponent {
     always_ask_save: false,
     enable_gpu: false,
   };
+  playerEngineEnum = PlayerEngine;
   viewModeEnum = ViewMode;
   sources: Source[] = [];
   sortTypes = SORT_TYPES;
-  @ViewChild("mpvParams") mpvParams!: ElementRef;
+  @ViewChild("mpvParams") mpvParams?: ElementRef;
 
   constructor(
     private router: Router,
@@ -89,6 +91,12 @@ export class SettingsComponent {
       if (this.settings.enable_hwdec == undefined) this.settings.enable_hwdec = true;
       if (this.settings.always_ask_save == undefined) this.settings.always_ask_save = false;
       if (this.settings.enable_gpu == undefined) this.settings.enable_gpu = false;
+      if (this.settings.player_engine == undefined) this.settings.player_engine = PlayerEngine.Web;
+      if (this.settings.connection_timeout == undefined) this.settings.connection_timeout = 30;
+      if (this.settings.epg_refresh_interval == undefined) this.settings.epg_refresh_interval = 0;
+      if (this.settings.source_refresh_interval == undefined) this.settings.source_refresh_interval = 0;
+      if (this.settings.buffer_size == undefined) this.settings.buffer_size = 1;
+      this.memory.PlayerEngine.next(this.settings.player_engine);
     });
   }
 
@@ -103,19 +111,22 @@ export class SettingsComponent {
   }
 
   ngAfterViewInit(): void {
-    this.subscriptions.push(
-      fromEvent(this.mpvParams.nativeElement, "keyup")
-        .pipe(
-          map((event: any) => {
-            return event.target.value;
+    const mpvEl = this.mpvParams?.nativeElement;
+    if (mpvEl) {
+      this.subscriptions.push(
+        fromEvent(mpvEl, "keyup")
+          .pipe(
+            map((event: any) => {
+              return event.target.value;
+            }),
+            debounceTime(500),
+            distinctUntilChanged(),
+          )
+          .subscribe(async () => {
+            await this.updateSettings();
           }),
-          debounceTime(500),
-          distinctUntilChanged(),
-        )
-        .subscribe(async () => {
-          await this.updateSettings();
-        }),
-    );
+      );
+    }
     this.subscriptions.push(
       this.memory.RefreshSources.subscribe((_) => {
         this.getSources();
@@ -167,6 +178,43 @@ export class SettingsComponent {
     });
     this.memory.ModalRef.result.then((_) => (this.memory.ModalRef = undefined));
     this.memory.ModalRef.componentInstance.name = "ConfirmDeleteModal";
+  }
+
+  async exportBackup() {
+    const path = await save({
+      defaultPath: "open-tv-backup.otvbackup",
+      filters: [{ name: "Open TV Backup", extensions: ["otvbackup"] }],
+    });
+    if (path) {
+      await this.memory.tryIPC(
+        "Backup exported successfully",
+        "Failed to export backup",
+        () => invoke("export_backup", { path }),
+      );
+    }
+  }
+
+  async importBackup(mode: string) {
+    const path = await open({
+      multiple: false,
+      filters: [{ name: "Open TV Backup", extensions: ["otvbackup"] }],
+    });
+    if (path) {
+      await this.memory.tryIPC(
+        "Backup imported successfully",
+        "Failed to import backup",
+        () => invoke("import_backup", { path, mode }),
+      );
+      // Reload settings and sources after import
+      this.getSettings();
+      this.getSources();
+    }
+  }
+
+  async restartScheduler() {
+    try {
+      await invoke("restart_scheduler");
+    } catch (_) {}
   }
 
   async clearHistory() {

@@ -25,7 +25,7 @@ export class SourceTileComponent {
   sourceTypeEnum = SourceType;
   editing = false;
   editableSource: Source = {};
-  defaultUserAgent = "Fred TV";
+  defaultUserAgent = "FredTV-Next";
 
   constructor(
     public memory: MemoryService,

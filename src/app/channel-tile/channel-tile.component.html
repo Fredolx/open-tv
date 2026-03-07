@@ -44,7 +44,9 @@
         *ngIf="alreadyHidden">Unhide</ng-container>
       <ng-container *ngIf="!alreadyHidden">Hide</ng-container>
     </button>
-    <button [hidden]="!isLivestream()" mat-menu-item (click)="record()">Record</button>
+    <button [hidden]="!isLivestream()" mat-menu-item [disabled]="isRecordingBusy()" (click)="record()">
+      {{ isRecordingBusy() ? 'Working...' : isChannelRecording() ? 'Stop Recording' : 'Record' }}
+    </button>
     <button [hidden]="!isMovie() || downloading" mat-menu-item (click)="downloadVod()">
       Download
     </button>
@@ -58,5 +60,6 @@
       Re-stream
     </button>
     <button [hidden]="!isCustom()" mat-menu-item (click)="delete()">Delete</button>
+    <button [hidden]="channel?.media_type == mediaTypeEnum.group || channel?.media_type == mediaTypeEnum.season" mat-menu-item (click)="showInfo()">Info</button>
   </ng-template>
 </mat-menu>
