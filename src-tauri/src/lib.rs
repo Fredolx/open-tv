@@ -2,11 +2,12 @@
 use anyhow::Context;
 use anyhow::Error;
 
+use std::sync::atomic::Ordering;
 use tauri::{AppHandle, Manager, State};
 use tokio::sync::Mutex;
 use types::{
     AppState, Channel, CustomChannel, CustomChannelExtraData, EPG, EPGNotify, Filters, Group,
-    IdName, NetworkInfo, Settings, Source,
+    IdName, NetworkInfo, Settings, Source, StreamInfo,
 };
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use {
@@ -17,13 +18,18 @@ use {
     },
 };
 
+pub mod backup;
 pub mod bulk_action_type;
 pub mod epg;
+pub mod http;
+pub mod local_player;
 pub mod log;
 pub mod m3u;
 pub mod media_type;
 pub mod mpv;
+pub mod recording;
 pub mod restream;
+pub mod scheduler;
 pub mod settings;
 pub mod share;
 pub mod sort_type;
@@ -113,15 +119,29 @@ pub fn run() {
             hide_channel,
             hide_group,
             remove_from_history,
+            get_stream_info,
+            start_local_stream,
+            stop_local_stream,
+            start_recording,
+            stop_recording,
+            get_active_recordings,
+            restart_scheduler,
+            export_backup,
+            import_backup,
         ])
         .setup(|app| {
-            app.manage(Mutex::new(AppState {
-                ..Default::default()
-            }));
+            let mut state = AppState::default();
+            let (epg_stop, source_stop) = scheduler::start_scheduler(app.handle().clone());
+            state.epg_refresh_stop = epg_stop;
+            state.source_refresh_stop = source_stop;
+            app.manage(Mutex::new(state));
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             if *ENABLE_TRAY_ICON {
                 let _ = build_tray_icon(app);
             }
+            // HardwareAccelerationPolicy left at default (OnDemand)
+            // so WebKitGTK only GPU-composites when needed (video playback)
+            // rather than spinning the compositor for all UI content
             Ok(())
         })
         .on_window_event(|_window, event| match event {
@@ -147,6 +167,20 @@ pub fn run() {
                 let window = _app.get_webview_window("main").expect("no main window");
                 let _ = window.show();
                 let _ = window.set_focus();
+            }
+            tauri::RunEvent::ExitRequested { .. } => {
+                // Signal all background processes to stop so they don't become orphans
+                let state: State<Mutex<AppState>> = _app.state();
+                if let Ok(state) = state.try_lock() {
+                    state.notify_stop.store(true, Ordering::Relaxed);
+                    state.restream_stop_signal.store(true, Ordering::Relaxed);
+                    state.local_player_stop.store(true, Ordering::Relaxed);
+                    state.epg_refresh_stop.store(true, Ordering::Relaxed);
+                    state.source_refresh_stop.store(true, Ordering::Relaxed);
+                    for rec in state.active_recordings.values() {
+                        rec.stop_signal.store(true, Ordering::Relaxed);
+                    }
+                }
             }
             _ => {}
         });
@@ -560,4 +594,79 @@ async fn cancel_play(
     mpv::cancel_play(source_id, channel_id.to_string(), state)
         .await
         .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn get_stream_info(channel: Channel) -> Result<StreamInfo, String> {
+    local_player::get_stream_info(&channel).await.map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn start_local_stream(
+    channel: Channel,
+    state: State<'_, Mutex<AppState>>,
+) -> Result<String, String> {
+    local_player::start_local_stream(channel, state)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn stop_local_stream(state: State<'_, Mutex<AppState>>) -> Result<(), String> {
+    local_player::stop_local_stream(state)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn start_recording(
+    channel: Channel,
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+) -> Result<recording::RecordingInfo, String> {
+    recording::start_recording(channel, state, app)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn stop_recording(
+    recording_id: String,
+    state: State<'_, Mutex<AppState>>,
+) -> Result<String, String> {
+    recording::stop_recording(recording_id, state)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn get_active_recordings(
+    state: State<'_, Mutex<AppState>>,
+) -> Result<Vec<recording::RecordingInfo>, String> {
+    recording::get_active_recordings(state)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn restart_scheduler(
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+) -> Result<(), String> {
+    let mut state = state.lock().await;
+    let (epg_stop, source_stop) =
+        scheduler::restart_scheduler(app, &state.epg_refresh_stop, &state.source_refresh_stop);
+    state.epg_refresh_stop = epg_stop;
+    state.source_refresh_stop = source_stop;
+    Ok(())
+}
+
+#[tauri::command(async)]
+fn export_backup(path: String) -> Result<(), String> {
+    backup::export_backup(path).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn import_backup(path: String, mode: String) -> Result<(), String> {
+    backup::import_backup(path, mode).map_err(map_err_frontend)
 }

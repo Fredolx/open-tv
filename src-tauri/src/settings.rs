@@ -18,6 +18,13 @@ pub const DEFAULT_SORT: &str = "defaultSort";
 pub const ENABLE_HWDEC: &str = "enableHWDEC";
 pub const ALWAYS_ASK_SAVE: &str = "alwaysAskSave";
 pub const ENABLE_GPU: &str = "enableGPU";
+pub const PLAYER_ENGINE: &str = "playerEngine";
+pub const USER_AGENT: &str = "userAgent";
+pub const PROXY: &str = "proxy";
+pub const CONNECTION_TIMEOUT: &str = "connectionTimeout";
+pub const EPG_REFRESH_INTERVAL: &str = "epgRefreshInterval";
+pub const SOURCE_REFRESH_INTERVAL: &str = "sourceRefreshInterval";
+pub const BUFFER_SIZE: &str = "bufferSize";
 
 pub fn get_settings() -> Result<Settings> {
     let map = sql::get_settings()?;
@@ -39,12 +46,19 @@ pub fn get_settings() -> Result<Settings> {
         enable_hwdec: map.get(ENABLE_HWDEC).and_then(|s| s.parse().ok()),
         always_ask_save: map.get(ALWAYS_ASK_SAVE).and_then(|s| s.parse().ok()),
         enable_gpu: map.get(ENABLE_GPU).and_then(|s| s.parse().ok()),
+        player_engine: map.get(PLAYER_ENGINE).and_then(|s| s.parse().ok()),
+        user_agent: map.get(USER_AGENT).map(|s| s.to_string()),
+        proxy: map.get(PROXY).map(|s| s.to_string()),
+        connection_timeout: map.get(CONNECTION_TIMEOUT).and_then(|s| s.parse().ok()),
+        epg_refresh_interval: map.get(EPG_REFRESH_INTERVAL).and_then(|s| s.parse().ok()),
+        source_refresh_interval: map.get(SOURCE_REFRESH_INTERVAL).and_then(|s| s.parse().ok()),
+        buffer_size: map.get(BUFFER_SIZE).and_then(|s| s.parse().ok()),
     };
     Ok(settings)
 }
 
 pub fn update_settings(settings: Settings) -> Result<()> {
-    let mut map: HashMap<String, Option<String>> = HashMap::with_capacity(13);
+    let mut map: HashMap<String, Option<String>> = HashMap::with_capacity(20);
 
     map.insert(MPV_PARAMS.to_string(), settings.mpv_params);
 
@@ -89,6 +103,23 @@ pub fn update_settings(settings: Settings) -> Result<()> {
     }
     if let Some(gpu) = settings.enable_gpu {
         map.insert(ENABLE_GPU.to_string(), Some(gpu.to_string()));
+    }
+    if let Some(engine) = settings.player_engine {
+        map.insert(PLAYER_ENGINE.to_string(), Some(engine.to_string()));
+    }
+    map.insert(USER_AGENT.to_string(), settings.user_agent);
+    map.insert(PROXY.to_string(), settings.proxy);
+    if let Some(timeout) = settings.connection_timeout {
+        map.insert(CONNECTION_TIMEOUT.to_string(), Some(timeout.to_string()));
+    }
+    if let Some(epg_interval) = settings.epg_refresh_interval {
+        map.insert(EPG_REFRESH_INTERVAL.to_string(), Some(epg_interval.to_string()));
+    }
+    if let Some(source_interval) = settings.source_refresh_interval {
+        map.insert(SOURCE_REFRESH_INTERVAL.to_string(), Some(source_interval.to_string()));
+    }
+    if let Some(buf) = settings.buffer_size {
+        map.insert(BUFFER_SIZE.to_string(), Some(buf.to_string()));
     }
     sql::update_settings(map)?;
     Ok(())

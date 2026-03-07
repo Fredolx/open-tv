@@ -8,7 +8,7 @@ use crate::types::EPG;
 use crate::types::Season;
 use crate::types::Source;
 use crate::utils::get_local_time;
-use crate::utils::get_user_agent_from_source;
+use crate::http;
 use anyhow::anyhow;
 use anyhow::{Context, Result};
 use base64::Engine;
@@ -130,21 +130,21 @@ fn build_xtream_url(source: &mut Source) -> Result<Url> {
 
 pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
     let url = build_xtream_url(&mut source)?;
-    let user_agent = get_user_agent_from_source(&source)?;
+    let client = http::build_client_for_source(source.user_agent.as_deref())?;
     let (live, live_cats, vods, vods_cats, series, series_cats) = join!(
-        get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_LIVE_STREAMS, &user_agent),
+        get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_LIVE_STREAMS, &client),
         get_xtream_http_data::<Vec<XtreamCategory>>(
             url.clone(),
             GET_LIVE_STREAM_CATEGORIES,
-            &user_agent
+            &client
         ),
-        get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_VODS, &user_agent),
-        get_xtream_http_data::<Vec<XtreamCategory>>(url.clone(), GET_VOD_CATEGORIES, &user_agent),
-        get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_SERIES, &user_agent),
+        get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_VODS, &client),
+        get_xtream_http_data::<Vec<XtreamCategory>>(url.clone(), GET_VOD_CATEGORIES, &client),
+        get_xtream_http_data::<Vec<XtreamStream>>(url.clone(), GET_SERIES, &client),
         get_xtream_http_data::<Vec<XtreamCategory>>(
             url.clone(),
             GET_SERIES_CATEGORIES,
-            &user_agent
+            &client
         ),
     );
     let mut sql = sql::get_conn()?;
@@ -193,11 +193,10 @@ pub async fn get_xtream(mut source: Source, wipe: bool) -> Result<()> {
     Ok(())
 }
 
-async fn get_xtream_http_data<T>(mut url: Url, action: &str, user_agent: &String) -> Result<T>
+async fn get_xtream_http_data<T>(mut url: Url, action: &str, client: &Client) -> Result<T>
 where
     T: serde::de::DeserializeOwned,
 {
-    let client = Client::builder().user_agent(user_agent).build()?;
     url.query_pairs_mut().append_pair("action", action);
     let data = client.get(url).send().await?.json::<T>().await?;
     Ok(data)
@@ -320,11 +319,11 @@ pub async fn get_episodes(channel: Channel) -> Result<()> {
     }
     let mut source = sql::get_source_from_id(channel.source_id.context("no source id")?)?;
     let mut url = build_xtream_url(&mut source)?;
-    let user_agent = get_user_agent_from_source(&source)?;
+    let client = http::build_client_for_source(source.user_agent.as_deref())?;
     url.query_pairs_mut()
         .append_pair("series_id", &series_id.to_string());
     let mut series =
-        get_xtream_http_data::<XtreamSeries>(url, GET_SERIES_INFO, &user_agent).await?;
+        get_xtream_http_data::<XtreamSeries>(url, GET_SERIES_INFO, &client).await?;
     let mut episodes: Vec<XtreamEpisode> = series
         .episodes
         .into_values()
@@ -509,10 +508,10 @@ fn episode_to_channel(
 pub async fn get_epg(channel: Channel) -> Result<Vec<EPG>> {
     let mut source = sql::get_source_from_id(channel.source_id.context("no source id")?)?;
     let mut url = build_xtream_url(&mut source)?;
-    let user_agent = get_user_agent_from_source(&source)?;
+    let client = http::build_client_for_source(source.user_agent.as_deref())?;
     let stream_id = channel.stream_id.context("No stream id")?.to_string();
     url.query_pairs_mut().append_pair("stream_id", &stream_id);
-    let epg: XtreamEPG = get_xtream_http_data(url, GET_EPG, &user_agent).await?;
+    let epg: XtreamEPG = get_xtream_http_data(url, GET_EPG, &client).await?;
     let url = get_timeshift_url_base(&source)?;
     let current_time = Local::now();
     let mut otv_epgs = Vec::new();

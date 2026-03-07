@@ -83,6 +83,13 @@ pub struct Settings {
     pub enable_hwdec: Option<bool>,
     pub always_ask_save: Option<bool>,
     pub enable_gpu: Option<bool>,
+    pub player_engine: Option<u8>,
+    pub user_agent: Option<String>,
+    pub proxy: Option<String>,
+    pub connection_timeout: Option<u16>,
+    pub epg_refresh_interval: Option<u16>,
+    pub source_refresh_interval: Option<u16>,
+    pub buffer_size: Option<u8>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
@@ -175,13 +182,34 @@ pub struct EPGNotify {
     pub channel_name: String,
 }
 
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
+pub struct StreamInfo {
+    pub url: String,
+    pub has_custom_headers: bool,
+    pub is_hls: bool,
+    pub resolved_url: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct ActiveRecording {
+    pub info: crate::recording::RecordingInfo,
+    pub stop_signal: Arc<AtomicBool>,
+}
+
 #[derive(Debug, Default)]
 pub struct AppState {
     pub notify_stop: Arc<AtomicBool>,
     pub thread_handle: Option<JoinHandle<Result<(), anyhow::Error>>>,
     pub restream_stop_signal: Arc<AtomicBool>,
+    pub local_player_stop: Arc<AtomicBool>,
+    pub local_player_port: Option<u16>,
+    pub local_player_monitor: Option<tokio::task::JoinHandle<()>>,
 
     pub play_stop: HashMap<i64, IndexMap<String, CancellationToken>>,
+    pub active_recordings: HashMap<String, ActiveRecording>,
+
+    pub epg_refresh_stop: Arc<AtomicBool>,
+    pub source_refresh_stop: Arc<AtomicBool>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

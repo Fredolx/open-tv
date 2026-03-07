@@ -2971,6 +2971,7 @@ dependencies = [
  "bytes",
  "chrono",
  "directories",
+ "hyper 0.14.32",
  "if-addrs",
  "indexmap 2.12.1",
  "log",
@@ -2995,6 +2996,7 @@ dependencies = [
  "tokio-util",
  "url",
  "warp",
+ "webkit2gtk",
  "which",
  "winsplit",
 ]

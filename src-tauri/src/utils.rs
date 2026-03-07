@@ -12,10 +12,6 @@ use chrono::{DateTime, Local, Utc};
 use directories::ProjectDirs;
 use indexmap::IndexMap;
 use regex::Regex;
-use reqwest::{
-    Client,
-    header::{HeaderMap, HeaderValue},
-};
 use serde::Serialize;
 use std::{
     env::{consts::OS, current_exe},
@@ -35,7 +31,6 @@ const MACOS_POTENTIAL_PATHS: [&str; 3] = [
     "/usr/local/bin",    // Homebrew on AMD64 Mac
 ];
 
-const DEFAULT_USER_AGENT: &str = "Fred TV";
 
 static ILLEGAL_CHARS_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"[<>:"/\\|?*\x00-\x1F]"#).unwrap());
@@ -89,29 +84,7 @@ pub async fn download(
         .map_err(|e| log(format!("{:?}", e)));
 
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id?")?)?;
-    let mut client = Client::builder();
-    let mut headers_map = HeaderMap::new();
-    if let Some(headers) = headers.as_ref() {
-        if let Some(origin) = headers.http_origin.as_ref() {
-            headers_map.insert("Origin", HeaderValue::from_str(origin)?);
-        }
-        if let Some(referrer) = headers.referrer.as_ref() {
-            headers_map.insert("Referer", HeaderValue::from_str(referrer)?);
-        }
-        if let Some(ignore_ssl) = headers.ignore_ssl {
-            if ignore_ssl {
-                client = client.danger_accept_invalid_certs(true);
-            }
-        }
-    }
-    let user_agent = headers
-        .and_then(|f| f.user_agent)
-        .or(source.stream_user_agent)
-        .unwrap_or_else(|| DEFAULT_USER_AGENT.to_string());
-    let client = client
-        .user_agent(user_agent)
-        .default_headers(headers_map)
-        .build()?;
+    let client = crate::http::build_client_for_channel(&source, headers.as_ref())?;
     let url = channel.url.clone().context("no url provided")?;
     let name = channel.name.clone();
     let mut response = client.get(&url).send().await?;
@@ -340,15 +313,6 @@ pub fn check_nuke() -> Result<()> {
         std::fs::remove_file(path)?;
     }
     Ok(())
-}
-
-pub fn get_user_agent_from_source(source: &Source) -> Result<String> {
-    let user_agent: &str = source
-        .user_agent
-        .as_deref()
-        .filter(|s| !s.trim().is_empty())
-        .unwrap_or(DEFAULT_USER_AGENT);
-    Ok(user_agent.to_string())
 }
 
 #[cfg(test)]

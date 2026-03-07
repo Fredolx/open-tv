@@ -221,8 +221,9 @@ fn get_ips(port: u16) -> Result<Vec<String>> {
 }
 
 async fn get_wan_ip(port: u16) -> Result<String> {
+    let client = crate::http::build_client()?;
     Ok(format!(
         "http://{}:{port}/stream.m3u8",
-        reqwest::get(WAN_IP_API).await?.text().await?
+        client.get(WAN_IP_API).send().await?.text().await?
     ))
 }

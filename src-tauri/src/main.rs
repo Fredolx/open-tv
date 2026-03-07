@@ -24,6 +24,17 @@ pub fn apply_gpu_fixes() {
         unsafe {
             env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
         }
+    } else {
+        // Enable VA-API hardware video decoding in WebKitGTK
+        // WebKitGTK disables VAAPI decoders by default
+        eprintln!("Non-NVIDIA GPU: enabling VA-API hardware video decode");
+        unsafe {
+            env::set_var("WEBKIT_GST_ENABLE_LEGACY_VAAPI", "1");
+            env::set_var(
+                "GST_PLUGIN_FEATURE_RANK",
+                "vaapih264dec:MAX,vaapih265dec:MAX,vah264dec:MAX,vah265dec:MAX",
+            );
+        }
     }
 }
 
