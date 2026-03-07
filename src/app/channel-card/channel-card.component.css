@@ -4,13 +4,11 @@
   overflow: hidden;
   background: var(--ftv-surface);
   cursor: pointer;
-  transition: transform var(--ftv-transition-fast), box-shadow var(--ftv-transition-fast);
   user-select: none;
 }
 
 .card-tile:hover {
-  transform: scale(1.05) translateY(-4px);
-  box-shadow: var(--ftv-shadow-md);
+  outline: 2px solid var(--ftv-accent);
 }
 
 .card-tile:focus {
@@ -47,29 +45,21 @@
 .play-overlay {
   position: absolute;
   inset: 0;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.35);
-  opacity: 0;
-  transition: opacity var(--ftv-transition-fast);
   z-index: 2;
 }
 
 .card-image-container:hover .play-overlay {
-  opacity: 1;
+  display: flex;
 }
 
 .play-overlay svg {
   width: 40px;
   height: 40px;
   color: white;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
-  transition: transform var(--ftv-transition-fast);
-}
-
-.play-overlay:hover svg {
-  transform: scale(1.15);
 }
 
 .card-image-placeholder {
@@ -94,13 +84,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--ftv-live);
-  animation: livePulse 2s infinite;
-}
-
-@keyframes livePulse {
-  0% { box-shadow: 0 0 0 0 rgba(255, 69, 58, 0.6); }
-  70% { box-shadow: 0 0 0 6px rgba(255, 69, 58, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 69, 58, 0); }
+  box-shadow: 0 0 4px rgba(255, 69, 58, 0.5);
 }
 
 .card-badge {
@@ -113,16 +97,15 @@
   padding: 2px 6px;
   border-radius: 4px;
   letter-spacing: 0.03em;
-  backdrop-filter: blur(8px);
 }
 
 .badge-live {
-  background: rgba(255, 69, 58, 0.85);
+  background: rgba(255, 69, 58, 0.9);
   color: white;
 }
 
 .badge-movie {
-  background: rgba(10, 132, 255, 0.85);
+  background: rgba(10, 132, 255, 0.9);
   color: white;
 }
 
@@ -143,7 +126,6 @@
   width: 16px;
   height: 16px;
   color: var(--ftv-star);
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 .card-info {

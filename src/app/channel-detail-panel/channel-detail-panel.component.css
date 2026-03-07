@@ -4,7 +4,6 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
   z-index: 900;
-  backdrop-filter: blur(4px);
 }
 
 /* Panel container */
@@ -59,8 +58,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;

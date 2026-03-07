@@ -83,15 +83,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
         invoke("search", { filters: { ...base, view_type: ViewMode.Categories } }).catch(() => []),
       ]);
 
-      this.historyRow.channels = (history as Channel[]).slice(0, 12);
+      this.historyRow.channels = (history as Channel[]).slice(0, 10);
       this.historyRow.loading = false;
 
-      this.favoritesRow.channels = (favorites as Channel[]).slice(0, 12);
+      this.favoritesRow.channels = (favorites as Channel[]).slice(0, 10);
       this.favoritesRow.loading = false;
 
       // Create rows for each category (lazy loaded via IntersectionObserver)
       const cats = categories as Channel[];
-      this.categoryRows = cats.slice(0, 20).map((cat) => ({
+      this.categoryRows = cats.slice(0, 6).map((cat) => ({
         title: cat.name || "Unknown",
         channels: [],
         loading: true,
@@ -144,7 +144,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           group_id: row.groupId,
         },
       });
-      row.channels = channels.slice(0, 12);
+      row.channels = channels.slice(0, 10);
     } catch (e) {
       row.channels = [];
     }

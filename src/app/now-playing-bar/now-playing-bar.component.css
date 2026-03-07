@@ -21,9 +21,7 @@
 /* Bar container */
 .now-playing-bar {
   pointer-events: auto;
-  background: rgba(28, 28, 30, 0.88);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(28, 28, 30, 0.95);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding: 0 20px;
   height: 56px;

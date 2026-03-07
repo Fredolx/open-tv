@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, ChangeDetectionStrategy } from "@angular/core";
 import { ChannelTileComponent } from "../channel-tile/channel-tile.component";
 import { MediaType } from "../models/mediaType";
 
@@ -6,6 +6,7 @@ import { MediaType } from "../models/mediaType";
   selector: "app-channel-card",
   templateUrl: "./channel-card.component.html",
   styleUrl: "./channel-card.component.css",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChannelCardComponent extends ChannelTileComponent {
   // On dashboard cards, single click opens detail panel for playable channels.

@@ -5,7 +5,7 @@
   (contextmenu)="onRightClick($event)">
 
   <div class="card-image-container">
-    <img (error)="showImage = false" *ngIf="channel?.image && showImage" [src]="channel?.image" class="card-image" />
+    <img (error)="showImage = false" *ngIf="channel?.image && showImage" [src]="channel?.image" class="card-image" loading="lazy" decoding="async" />
     <div *ngIf="!channel?.image || !showImage" class="card-image-placeholder">
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M8.5 21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H20C21.1 3 22 3.9 22 5V11.5" />
