@@ -126,19 +126,6 @@ pub fn run() {
             if *ENABLE_TRAY_ICON {
                 let _ = build_tray_icon(app);
             }
-            #[cfg(target_os = "linux")]
-            {
-                use webkit2gtk::{SettingsExt, WebViewExt};
-                let window = app.get_webview_window("main").expect("no main window");
-                let _ = window.with_webview(|webview| {
-                    let wv = webview.inner();
-                    if let Some(settings) = WebViewExt::settings(&wv) {
-                        settings.set_hardware_acceleration_policy(
-                            webkit2gtk::HardwareAccelerationPolicy::Always,
-                        );
-                    }
-                });
-            }
             Ok(())
         })
         .on_window_event(|_window, event| match event {
