@@ -181,6 +181,7 @@ pub struct StreamInfo {
     pub url: String,
     pub has_custom_headers: bool,
     pub is_hls: bool,
+    pub resolved_url: Option<String>,
 }
 #[derive(Debug, Default)]
 pub struct AppState {
@@ -189,6 +190,7 @@ pub struct AppState {
     pub restream_stop_signal: Arc<AtomicBool>,
     pub local_player_stop: Arc<AtomicBool>,
     pub local_player_port: Option<u16>,
+    pub local_player_monitor: Option<tokio::task::JoinHandle<()>>,
 
     pub play_stop: HashMap<i64, IndexMap<String, CancellationToken>>,
 }

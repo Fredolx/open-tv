@@ -9,7 +9,6 @@ import {
 } from "@angular/core";
 import { Subscription } from "rxjs";
 import { invoke } from "@tauri-apps/api/core";
-import Hls from "hls.js";
 import { MemoryService } from "../memory.service";
 import { Channel } from "../models/channel";
 import { MediaType } from "../models/mediaType";
@@ -18,12 +17,6 @@ import { PlayerState } from "../models/playerState";
 import { ErrorService } from "../error.service";
 import { Settings } from "../models/settings";
 import { RecordingService } from "../recording.service";
-
-interface StreamInfo {
-  url: string;
-  has_custom_headers: boolean;
-  is_hls: boolean;
-}
 
 @Component({
   selector: "app-inline-player",
@@ -45,6 +38,7 @@ export class InlinePlayerComponent implements OnInit, OnDestroy {
   isFullscreen = false;
   loading = true;
   isDragging = false;
+  throughputDisplay: string | null = null;
 
   // Frost backdrop state
   frostPhase: 'none' | 'gradient' | 'frosted-frame' | 'revealing' = 'none';
@@ -54,19 +48,30 @@ export class InlinePlayerComponent implements OnInit, OnDestroy {
   private frostRevealTimer: any = null;
   private frameCheckInterval: any = null;
 
-  private hls: Hls | null = null;
   private subscriptions: Subscription[] = [];
   private controlsTimer: any = null;
-  private usingProxy = false;
   private dragStartY = 0;
   private dragThreshold = 150;
   private lastMouseMove = 0;
+
+  // Stall detection: absorb minor dropouts silently
+  private stallTimer: any = null;
+  private stallGraceMs = 3500;
+  private frostCooldownUntil = 0;
+  private readonly FROST_COOLDOWN_MS = 800;
+  private stallGeneration = 0;
+
+  // Timeupdate throttle
+  private lastTimeUpdateFlush = 0;
 
   // Stored listener refs for proper cleanup
   private onTimeUpdate: (() => void) | null = null;
   private onWaiting: (() => void) | null = null;
   private onPlaying: (() => void) | null = null;
-  private onLoadedMetadata: (() => void) | null = null;
+
+  // Drag listener refs for cleanup on destroy
+  private dragMoveHandler: ((e: MouseEvent | TouchEvent) => void) | null = null;
+  private dragEndHandler: ((e: MouseEvent | TouchEvent) => void) | null = null;
 
   // Expose enum to template
   PlayerState = PlayerState;
@@ -107,10 +112,24 @@ export class InlinePlayerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // Clean up leaked drag listeners before stopping playback
+    if (this.dragMoveHandler) {
+      document.removeEventListener('mousemove', this.dragMoveHandler);
+      document.removeEventListener('touchmove', this.dragMoveHandler);
+    }
+    if (this.dragEndHandler) {
+      document.removeEventListener('mouseup', this.dragEndHandler);
+      document.removeEventListener('touchend', this.dragEndHandler);
+    }
+    this.dragMoveHandler = null;
+    this.dragEndHandler = null;
+
     this.stopPlayback();
     this.subscriptions.forEach((s) => s.unsubscribe());
     this.clearControlsTimer();
     this.stopFrameDetection();
+    this.clearFrostRevealTimer();
+    this.cancelStallTimer();
     this.frostCanvas = null;
     this.frostCtx = null;
   }
@@ -131,112 +150,70 @@ export class InlinePlayerComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ── Centralized overlay state manager ─────────────
+
+  private updateOverlayState(state: 'loading' | 'stalling' | 'playing' | 'stopped') {
+    switch (state) {
+      case 'loading':
+        this.loading = true;
+        this.showFrostGradient();
+        break;
+      case 'stalling':
+        this.loading = true;
+        this.showFrostFrame();
+        break;
+      case 'playing':
+        this.cancelStallTimer();
+        this.loading = false;
+        this.hideFrost();
+        this.frostCooldownUntil = Date.now() + this.FROST_COOLDOWN_MS;
+        break;
+      case 'stopped':
+        this.cancelStallTimer();
+        this.loading = true;
+        this.frostPhase = 'none';
+        this.frostFrameUrl = null;
+        break;
+    }
+  }
+
+  // ── Playback lifecycle ────────────────────────────
+
   private async startPlayback() {
     if (!this.videoRef?.nativeElement || !this.channel) return;
 
+    this.destroyPlayer();
+
     const video = this.videoRef.nativeElement;
-    this.loading = true;
-    this.showFrostGradient();
+    this.updateOverlayState('loading');
     this.startFrameDetection();
 
     try {
-      const info: StreamInfo = await invoke("get_stream_info", { channel: this.channel });
-
-      let playUrl = info.url;
-
-      if (!info.is_hls || info.has_custom_headers) {
-        playUrl = await invoke("start_local_stream", { channel: this.channel });
-        this.usingProxy = true;
-        this.memory.LocalProxyRunning = true;
-        // Wait for ffmpeg to produce at least one segment
-        await this.waitForManifest(playUrl);
-      }
-
-      this.attachHls(video, playUrl);
+      const proxyUrl: string = await invoke("start_local_stream", { channel: this.channel });
+      this.memory.LocalProxyRunning = true;
+      this.attachPlayer(video, proxyUrl);
     } catch (e) {
       this.error.handleError(e, "Failed to start inline playback");
       this.stopPlayback();
     }
   }
 
-  private async waitForManifest(url: string, timeoutMs = 15000): Promise<void> {
-    const start = Date.now();
-    while (Date.now() - start < timeoutMs) {
-      try {
-        const resp = await fetch(url);
-        if (resp.ok) {
-          const text = await resp.text();
-          if (text.includes("#EXTINF")) return;
-        }
-      } catch (_) {}
-      await new Promise((r) => setTimeout(r, 500));
-    }
-  }
+  private attachPlayer(video: HTMLVideoElement, url: string) {
+    this.destroyPlayer();
 
-  private attachHls(video: HTMLVideoElement, url: string) {
-    this.destroyHls();
+    video.src = url;
+    video.volume = this.volume / 100;
+    video.muted = this.isMuted;
+    video.play().catch(() => {});
+    this.isPlaying = true;
 
-    if (Hls.isSupported()) {
-      this.hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: this.isLive,
-        maxBufferLength: this.isLive ? 30 : 60,
-        maxMaxBufferLength: this.isLive ? 60 : 600,
-        backBufferLength: this.isLive ? 30 : 60,
-        liveSyncDurationCount: 3,
-        liveMaxLatencyDurationCount: 10,
-        fragLoadingMaxRetry: 6,
-        fragLoadingRetryDelay: 1000,
-        manifestLoadingMaxRetry: 4,
-        manifestLoadingRetryDelay: 1000,
-        levelLoadingMaxRetry: 4,
-        levelLoadingRetryDelay: 1000,
-        startFragPrefetch: true,
-      });
-      this.hls.loadSource(url);
-      this.hls.attachMedia(video);
-      this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        this.zone.run(() => {
-          this.loading = false;
-          this.hideFrost();
-        });
-        video.volume = this.volume / 100;
-        video.play().catch(() => {});
-        this.isPlaying = true;
-      });
-      this.hls.on(Hls.Events.ERROR, (_event: any, data: any) => {
-        if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              this.hls?.startLoad();
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              this.hls?.recoverMediaError();
-              break;
-            default:
-              this.zone.run(() => {
-                this.error.handleError(data.details, "Playback error");
-                this.stopPlayback();
-              });
-              break;
-          }
-        }
-      });
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = url;
-      this.onLoadedMetadata = () => {
-        this.loading = false;
-        this.hideFrost();
-        video.volume = this.volume / 100;
-        video.play().catch(() => {});
-        this.isPlaying = true;
-      };
-      video.addEventListener("loadedmetadata", this.onLoadedMetadata);
-    }
-
+    // Video element event listeners
     this.removeVideoListeners();
 
     this.onTimeUpdate = () => {
+      const now = Date.now();
+      if (now - this.lastTimeUpdateFlush < 250) return;
+      this.lastTimeUpdateFlush = now;
       this.zone.run(() => {
         this.currentTime = video.currentTime;
         this.duration = video.duration || 0;
@@ -245,18 +222,16 @@ export class InlinePlayerComponent implements OnInit, OnDestroy {
     video.addEventListener("timeupdate", this.onTimeUpdate);
 
     this.onWaiting = () => {
-      this.zone.run(() => {
-        this.loading = true;
-        this.showFrostFrame();
-      });
+      this.startStallTimer();
     };
     video.addEventListener("waiting", this.onWaiting);
 
     this.onPlaying = () => {
-      this.zone.run(() => {
-        this.loading = false;
-        this.hideFrost();
-      });
+      if (this.loading || this.frostPhase !== 'none') {
+        this.zone.run(() => this.updateOverlayState('playing'));
+      } else {
+        this.cancelStallTimer();
+      }
     };
     video.addEventListener("playing", this.onPlaying);
 
@@ -269,34 +244,30 @@ export class InlinePlayerComponent implements OnInit, OnDestroy {
     if (this.onTimeUpdate) { video.removeEventListener("timeupdate", this.onTimeUpdate); this.onTimeUpdate = null; }
     if (this.onWaiting) { video.removeEventListener("waiting", this.onWaiting); this.onWaiting = null; }
     if (this.onPlaying) { video.removeEventListener("playing", this.onPlaying); this.onPlaying = null; }
-    if (this.onLoadedMetadata) { video.removeEventListener("loadedmetadata", this.onLoadedMetadata); this.onLoadedMetadata = null; }
   }
 
-  private destroyHls() {
+  private destroyPlayer() {
     this.removeVideoListeners();
-    if (this.hls) {
-      this.hls.destroy();
-      this.hls = null;
+    this.cancelStallTimer();
+    this.clearFrostRevealTimer();
+    this.throughputDisplay = null;
+    const video = this.videoRef?.nativeElement;
+    if (video) {
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
     }
   }
 
   async stopPlayback() {
-    this.destroyHls();
-    if (this.usingProxy) {
-      try { await invoke("stop_local_stream"); } catch (_) {}
-      this.usingProxy = false;
-      this.memory.LocalProxyRunning = false;
-    }
+    this.destroyPlayer();
+    try { await invoke("stop_local_stream"); } catch (_) {}
+    this.memory.LocalProxyRunning = false;
+    this.updateOverlayState('stopped');
+    this.stopFrameDetection();
+    this.clearFrostRevealTimer();
     this.channel = null;
     this.isPlaying = false;
-    this.loading = true;
-    this.frostPhase = 'none';
-    this.frostFrameUrl = null;
-    this.stopFrameDetection();
-    if (this.frostRevealTimer) {
-      clearTimeout(this.frostRevealTimer);
-      this.frostRevealTimer = null;
-    }
     this.memory.PlayerState.next(PlayerState.Closed);
     this.clearControlsTimer();
   }
@@ -330,13 +301,8 @@ export class InlinePlayerComponent implements OnInit, OnDestroy {
   toggleMute() {
     const video = this.videoRef?.nativeElement;
     if (!video) return;
-    if (this.isMuted) {
-      video.volume = this.volume / 100;
-      this.isMuted = false;
-    } else {
-      video.volume = 0;
-      this.isMuted = true;
-    }
+    this.isMuted = !this.isMuted;
+    video.muted = this.isMuted;
   }
 
   onSeek(event: Event) {
@@ -428,7 +394,13 @@ export class InlinePlayerComponent implements OnInit, OnDestroy {
       document.removeEventListener('mouseup', onEnd);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onEnd);
+      this.dragMoveHandler = null;
+      this.dragEndHandler = null;
     };
+
+    // Store refs so ngOnDestroy can clean up if component destroys mid-drag
+    this.dragMoveHandler = onMove;
+    this.dragEndHandler = onEnd;
 
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onEnd);
@@ -452,6 +424,40 @@ export class InlinePlayerComponent implements OnInit, OnDestroy {
       clearTimeout(this.controlsTimer);
       this.controlsTimer = null;
     }
+  }
+
+  // ── Stall detection helpers ────────────────────────
+
+  private startStallTimer() {
+    if (this.stallTimer) return;
+    if (Date.now() < this.frostCooldownUntil) return;
+    const gen = ++this.stallGeneration;
+    this.stallTimer = setTimeout(() => {
+      this.stallTimer = null;
+      if (gen !== this.stallGeneration) return;
+      if (this.getBufferAhead() > 1) return;
+      this.zone.run(() => this.updateOverlayState('stalling'));
+    }, this.stallGraceMs);
+  }
+
+  private cancelStallTimer() {
+    if (this.stallTimer) {
+      clearTimeout(this.stallTimer);
+      this.stallTimer = null;
+    }
+    this.stallGeneration++;
+  }
+
+  private getBufferAhead(): number {
+    const video = this.videoRef?.nativeElement;
+    if (!video || !video.buffered.length) return 0;
+    const pos = video.currentTime;
+    for (let i = 0; i < video.buffered.length; i++) {
+      if (video.buffered.start(i) <= pos && video.buffered.end(i) > pos) {
+        return video.buffered.end(i) - pos;
+      }
+    }
+    return 0;
   }
 
   // ── Frost backdrop methods ──────────────────────────
@@ -509,28 +515,35 @@ export class InlinePlayerComponent implements OnInit, OnDestroy {
   }
 
   private showFrostFrame() {
+    this.clearFrostRevealTimer();
     const frame = this.captureVideoFrame();
     if (frame) {
       this.frostFrameUrl = frame;
       this.frostPhase = 'frosted-frame';
-    } else {
+    } else if (this.frostPhase === 'none' || this.frostPhase === 'revealing') {
       this.showFrostGradient();
     }
   }
 
   private hideFrost() {
-    if (this.frostPhase === 'none') return;
+    if (this.frostPhase === 'none' || this.frostPhase === 'revealing') return;
     this.stopFrameDetection();
     this.frostPhase = 'revealing';
-    if (this.frostRevealTimer) {
-      clearTimeout(this.frostRevealTimer);
-    }
+    this.clearFrostRevealTimer();
     this.frostRevealTimer = setTimeout(() => {
+      if (this.frostPhase !== 'revealing') return;
       this.zone.run(() => {
         this.frostPhase = 'none';
         this.frostRevealTimer = null;
       });
     }, 420);
+  }
+
+  private clearFrostRevealTimer() {
+    if (this.frostRevealTimer) {
+      clearTimeout(this.frostRevealTimer);
+      this.frostRevealTimer = null;
+    }
   }
 
   getSourceName(): string {

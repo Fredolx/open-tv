@@ -126,6 +126,19 @@ pub fn run() {
             if *ENABLE_TRAY_ICON {
                 let _ = build_tray_icon(app);
             }
+            #[cfg(target_os = "linux")]
+            {
+                use webkit2gtk::{SettingsExt, WebViewExt};
+                let window = app.get_webview_window("main").expect("no main window");
+                let _ = window.with_webview(|webview| {
+                    let wv = webview.inner();
+                    if let Some(settings) = WebViewExt::settings(&wv) {
+                        settings.set_hardware_acceleration_policy(
+                            webkit2gtk::HardwareAccelerationPolicy::Always,
+                        );
+                    }
+                });
+            }
             Ok(())
         })
         .on_window_event(|_window, event| match event {
@@ -574,9 +587,9 @@ async fn cancel_play(
         .map_err(map_err_frontend)
 }
 
-#[tauri::command(async)]
-fn get_stream_info(channel: Channel) -> Result<StreamInfo, String> {
-    local_player::get_stream_info(&channel).map_err(map_err_frontend)
+#[tauri::command]
+async fn get_stream_info(channel: Channel) -> Result<StreamInfo, String> {
+    local_player::get_stream_info(&channel).await.map_err(map_err_frontend)
 }
 
 #[tauri::command]

@@ -95,10 +95,17 @@
   align-items: center;
   justify-content: center;
   cursor: grab;
+  transition: opacity 300ms ease;
 }
 
 .drag-handle:active {
   cursor: grabbing;
+}
+
+.controls-hidden .drag-handle {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
 }
 
 .drag-indicator {
@@ -120,25 +127,57 @@
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   background: rgba(0, 0, 0, 0.4);
   z-index: 5;
 }
 
 .player-spinner {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   border: 3px solid rgba(255, 255, 255, 0.15);
   border-top-color: var(--ftv-accent);
   border-radius: 50%;
   animation: playerSpin 0.8s linear infinite;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-throughput {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  pointer-events: none;
+}
+
+.spinner-throughput svg {
+  width: 13px;
+  height: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.spinner-throughput span {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .state-mini .player-spinner {
   width: 28px;
   height: 28px;
   border-width: 2px;
+}
+
+.state-mini .spinner-throughput {
+  display: none;
 }
 
 @keyframes playerSpin {
