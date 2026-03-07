@@ -1,28 +1,42 @@
-<div id="tile-{{ id }}" placement="top" tabindex="0" (keyup.enter)="click()" [ngClass]="{ 
-    playing: starting, 
+<div id="tile-{{ id }}" tabindex="0" (keyup.enter)="click()" [ngClass]="{
+    playing: starting,
     faded: fade
-}" [ngbTooltip]="channel?.name" triggers="hover" (click)="click()" class="channel d-inline-flex p-2 align-items-center"
+}" [ngbTooltip]="channel?.name" triggers="hover" (click)="click()" class="card-tile"
   (contextmenu)="onRightClick($event)">
-  <div class="image-container me-2">
-    <img (error)="showImage = false" class="channel-image" *ngIf="channel?.image && showImage"
-      src="{{ channel?.image }}" />
-  </div>
-  <div class="channel-title-container d-flex flex-column justify-content-center">
-    <div class="channel-title">{{ channel?.name }}</div>
-    <div class="channel-source">{{ getSourceName() }}</div>
-  </div>
-  <div class="ms-auto d-flex flex-column justify-content-center align-items-center h-100">
-    <svg *ngIf="channel?.tv_archive === true" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      class="archive-icon">
-      <title>archive-clock</title>
-      <path
-        d="M20 6H2V2H20V6M16.5 12H15V17L18.61 19.16L19.36 17.94L16.5 16.25V12M23 16C23 19.87 19.87 23 16 23C13.62 23 11.53 21.81 10.26 20H3V7H19V9.68C21.36 10.81 23 13.21 23 16M8 12H10.26C10.83 11.19 11.56 10.5 12.41 10H8.5C8.22 10 8 10.22 8 10.5V12M21 16C21 13.24 18.76 11 16 11S11 13.24 11 16 13.24 21 16 21 21 18.76 21 16Z" />
-    </svg>
+
+  <div class="card-image-container">
+    <img (error)="showImage = false" *ngIf="channel?.image && showImage" [src]="channel?.image" class="card-image" />
+    <div *ngIf="!channel?.image || !showImage" class="card-image-placeholder">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8.5 21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H20C21.1 3 22 3.9 22 5V11.5" />
+      </svg>
+    </div>
+
+    <!-- Play overlay (click to play directly, bypassing detail panel) -->
+    <div class="play-overlay" (click)="playDirect(); $event.stopPropagation()">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+      </svg>
+    </div>
+
+    <!-- Live indicator dot -->
+    <div *ngIf="isLivestream()" class="live-dot"></div>
+
+    <!-- Media type badge -->
+    <span *ngIf="getMediaTypeLabel()" class="card-badge" [ngClass]="getMediaBadgeClass()">
+      {{ getMediaTypeLabel() }}
+    </span>
+
+    <!-- Favorite star overlay -->
     <svg *ngIf="channel?.favorite" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      class="favorite-icon">
-      <title>star</title>
+      class="card-star">
       <path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z" />
     </svg>
+  </div>
+
+  <div class="card-info">
+    <div class="card-name">{{ channel?.name }}</div>
+    <div class="card-source">{{ getSourceName() }}</div>
   </div>
 </div>
 
@@ -31,6 +45,7 @@
 
 <mat-menu #rightMenu="matMenu">
   <ng-template matMenuContent let-item="item">
+    <button mat-menu-item (click)="playDirect()">Play</button>
     <button [hidden]="viewMode != viewModeEnum.History" mat-menu-item (click)="removeFromHistory()">
       Remove
     </button>
@@ -40,11 +55,13 @@
       <ng-container *ngIf="alreadyExistsInFav">Unfavorite</ng-container>
       <ng-container *ngIf="!alreadyExistsInFav">Favorite</ng-container>
     </button>
-    <button [hidden]="isCustom() || viewMode == viewModeEnum.History" mat-menu-item (click)="hide()"> <ng-container
-        *ngIf="alreadyHidden">Unhide</ng-container>
+    <button [hidden]="isCustom() || viewMode == viewModeEnum.History" mat-menu-item (click)="hide()">
+      <ng-container *ngIf="alreadyHidden">Unhide</ng-container>
       <ng-container *ngIf="!alreadyHidden">Hide</ng-container>
     </button>
-    <button [hidden]="!isLivestream()" mat-menu-item (click)="record()">Record</button>
+    <button [hidden]="!isLivestream()" mat-menu-item (click)="record()">
+      {{ isChannelRecording() ? 'Stop Recording' : 'Record' }}
+    </button>
     <button [hidden]="!isMovie() || downloading" mat-menu-item (click)="downloadVod()">
       Download
     </button>

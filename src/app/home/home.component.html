@@ -1,13 +1,15 @@
 <ng-keyboard-shortcuts [shortcuts]="shortcuts"></ng-keyboard-shortcuts>
 <ng-keyboard-shortcuts-help [key]="'f1'" [closeKey]="'escape'" [title]="'Help'" />
-<div class="mb-5">
-  <svg fill="currentColor" class="settings" (click)="openSettings()" viewBox="0 0 24 24">
-    <path
-      d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
-  </svg>
-  <div class="container-lg reserve-settings-space">
-    <div class="row mb-3">
-      <div class="mx-auto col-md-8 col-12">
+
+<!-- Dashboard mode -->
+<app-dashboard *ngIf="isDashboard"></app-dashboard>
+
+<!-- Browse mode (use [hidden] to keep search ViewChild in DOM) -->
+<div [hidden]="isDashboard" class="mb-5">
+  <div class="container-lg">
+    <!-- Top bar with search and controls -->
+    <div class="top-bar">
+      <div class="search-area">
         <div class="search-box">
           <input autocomplete="off" type="text" id="search" #search style="width: 100%" class="form-control"
             placeholder="Type to search..." />
@@ -46,32 +48,13 @@
           <app-sort-button></app-sort-button>
         </div>
       </div>
+      <div class="top-bar-controls">
+        <app-view-density-toggle></app-view-density-toggle>
+      </div>
     </div>
 
-    <div class="btn-group mx-auto d-block mb-3" style="width: fit-content">
-      <button id="viewMode-0" (click)="switchMode(viewModeEnum.All)" class="btn btn-primary"
-        [ngClass]="{ active: filters?.view_type == viewModeEnum.All }">
-        All
-      </button>
-      <button id="viewMode-1" (click)="switchMode(viewModeEnum.Categories)" class="btn btn-primary"
-        [ngClass]="{ active: filters?.view_type == viewModeEnum.Categories }">
-        Categories
-      </button>
-      <button id="viewMode-2" (click)="switchMode(viewModeEnum.History)" class="btn btn-primary"
-        [ngClass]="{ active: filters?.view_type == viewModeEnum.History }">
-        History
-      </button>
-      <button id="viewMode-3" (click)="switchMode(viewModeEnum.Favorites)" class="btn btn-primary"
-        [ngClass]="{ active: filters?.view_type == viewModeEnum.Favorites }">
-        Favorites
-      </button>
-      <button id="viewMode-4" (click)="switchMode(viewModeEnum.Hidden)" class="btn btn-primary"
-        [ngClass]="{ active: filters?.view_type == viewModeEnum.Hidden }">
-        Hidden
-      </button>
-    </div>
-
-    <div class="mx-auto filterBox" style="margin-bottom: 1rem" *ngIf="filtersVisible()" @fadeInOut>
+    <!-- Media type filters (shown in All Channels browse view) -->
+    <div class="mx-auto filterBox" style="margin-bottom: 1rem" *ngIf="filtersVisible() && showMediaFilters" @fadeInOut>
       <div class="form-check form-check-inline form-switch">
         <input [(ngModel)]="chkLiveStream" (ngModelChange)="updateMediaTypes(mediaTypeEnum.livestream)"
           class="form-check-input" id="filter-0" type="checkbox" />
@@ -80,16 +63,17 @@
       <div class="form-check form-check-inline form-switch">
         <input [(ngModel)]="chkMovie" (ngModelChange)="updateMediaTypes(mediaTypeEnum.movie)" class="form-check-input"
           id="filter-1" type="checkbox" />
-        <label *ngIf="anyXtream()" class="form-check-label" for="filter-1"> Movies/Vods </label>
-        <label *ngIf="!anyXtream()"> Movies/Vods/Series </label>
+        <label *ngIf="isAnyXtream" class="form-check-label" for="filter-1"> Movies/Vods </label>
+        <label *ngIf="!isAnyXtream"> Movies/Vods/Series </label>
       </div>
-      <div *ngIf="anyXtream()" class="form-check form-check-inline form-switch">
+      <div *ngIf="isAnyXtream" class="form-check form-check-inline form-switch">
         <input [(ngModel)]="chkSerie" (ngModelChange)="updateMediaTypes(mediaTypeEnum.serie)" class="form-check-input"
           id="filter-2" type="checkbox" />
         <label class="form-check-label" for="filter-2"> Series </label>
       </div>
     </div>
 
+    <!-- Breadcrumb navigation (drilling into categories/series) -->
     <div class="mb-3 d-flex align-items-center" *ngIf="
         (filters?.view_type == viewModeEnum.Categories && filters?.group_id) || filters?.series_id
       ">
@@ -102,9 +86,104 @@
         {{ this.nodeStack.get()?.toString() }}
       </h4>
     </div>
-    <div class="row gy-3" [@fade]="channelsVisible ? 'visible' : 'hidden'">
-      <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
-        class="col-lg-4 col-md-4" [id]="i" [channel]="channel" [viewMode]="viewType"></app-channel-tile>
+
+    <!-- Empty states -->
+    <div *ngIf="channels.length === 0 && !loading && filters" class="empty-state">
+      <div *ngIf="filters.view_type === viewModeEnum.Favorites" class="empty-state-content">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="empty-state-icon">
+          <path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z" />
+        </svg>
+        <h3>No Favorites Yet</h3>
+        <p>Right-click any channel and select Favorite to add it here</p>
+      </div>
+      <div *ngIf="filters.view_type === viewModeEnum.History" class="empty-state-content">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="empty-state-icon">
+          <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3" />
+        </svg>
+        <h3>Nothing Watched Yet</h3>
+        <p>Channels you watch will show up here</p>
+      </div>
+      <div *ngIf="filters.query" class="empty-state-content">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="empty-state-icon">
+          <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" />
+        </svg>
+        <h3>No Results</h3>
+        <p>Try a different search term or check your filters</p>
+      </div>
+      <div *ngIf="filters.view_type === viewModeEnum.Hidden" class="empty-state-content">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="empty-state-icon">
+          <path d="M11.83,9L15,12.16C15,12.11 15,12.05 15,12A3,3 0 0,0 12,9C11.94,9 11.89,9 11.83,9M7.53,9.8L9.08,11.35C9.03,11.56 9,11.77 9,12A3,3 0 0,0 12,15C12.22,15 12.44,14.97 12.65,14.92L14.2,16.47C13.53,16.8 12.79,17 12,17A5,5 0 0,1 7,12C7,11.21 7.2,10.47 7.53,9.8M2,4.27L4.28,6.55L4.73,7C3.08,8.3 1.78,10 1,12C2.73,16.39 7,19.5 12,19.5C13.55,19.5 15.03,19.2 16.38,18.66L16.81,19.08L19.73,22L21,20.73L3.27,3M12,7A5,5 0 0,1 17,12C17,12.64 16.87,13.26 16.64,13.82L19.57,16.75C21.07,15.5 22.27,13.86 23,12C21.27,7.61 17,4.5 12,4.5C10.6,4.5 9.26,4.75 8,5.2L10.17,7.35C10.74,7.13 11.35,7 12,7Z" />
+        </svg>
+        <h3>No Hidden Channels</h3>
+        <p>Right-click any channel and select Hide to manage it here</p>
+      </div>
+      <div *ngIf="!filters.query && filters.view_type !== viewModeEnum.Favorites && filters.view_type !== viewModeEnum.History && filters.view_type !== viewModeEnum.Hidden" class="empty-state-content">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="empty-state-icon">
+          <path d="M8.5 21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H20C21.1 3 22 3.9 22 5V11.5C21.4 11.2 20.7 11 20 11V5H4V19H8.5V21M12.5 17.5C12.5 16.4 12.8 15.4 13.2 14.5H7V16H12.7C12.6 16.5 12.5 17 12.5 17.5M7 12H17V11H7V12M7 8H17V7H7V8M17 17L22 14.5V19.5L17 17Z" />
+        </svg>
+        <h3>No Channels</h3>
+        <p>Try adjusting your filters or add a new source</p>
+      </div>
+    </div>
+
+    <!-- Skeleton loading state (grid) -->
+    <div *ngIf="loading && channels.length === 0 && viewDensity !== viewDensityEnum.List" class="channel-grid" [ngClass]="getGridClass()">
+      <div *ngFor="let i of skeletonItems; let idx = index" class="skeleton-card" [style.animation-delay.ms]="idx * 40">
+        <div class="skeleton-image skeleton-shimmer"></div>
+        <div class="skeleton-info">
+          <div class="skeleton-title skeleton-shimmer"></div>
+          <div class="skeleton-subtitle skeleton-shimmer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skeleton loading state (list) -->
+    <div *ngIf="loading && channels.length === 0 && viewDensity === viewDensityEnum.List" class="list-container">
+      <div class="list-header">
+        <div class="list-cell cell-image"></div>
+        <div class="list-cell cell-name">Name</div>
+        <div class="list-cell cell-now-playing">Now Playing</div>
+        <div class="list-cell cell-group">Group</div>
+        <div class="list-cell cell-source">Source</div>
+        <div class="list-cell cell-type">Type</div>
+        <div class="list-cell cell-icons"></div>
+      </div>
+      <div *ngFor="let i of skeletonItems; let idx = index" class="list-skeleton-row" [style.animation-delay.ms]="idx * 30">
+        <div class="skel-cell"><div class="skeleton-shimmer" style="width:36px;height:36px;border-radius:6px;"></div></div>
+        <div class="skel-cell skel-wide"><div class="skeleton-shimmer" style="height:12px;width:70%;border-radius:4px;"></div></div>
+        <div class="skel-cell skel-med"><div class="skeleton-shimmer" style="height:10px;width:60%;border-radius:4px;"></div></div>
+        <div class="skel-cell skel-med"><div class="skeleton-shimmer" style="height:10px;width:50%;border-radius:4px;"></div></div>
+        <div class="skel-cell skel-med"><div class="skeleton-shimmer" style="height:10px;width:40%;border-radius:4px;"></div></div>
+        <div class="skel-cell"><div class="skeleton-shimmer" style="height:18px;width:48px;border-radius:4px;"></div></div>
+        <div class="skel-cell"></div>
+      </div>
+    </div>
+
+    <!-- List view -->
+    <div *ngIf="viewDensity === viewDensityEnum.List && channels.length > 0" class="list-container" [@fade]="channelsVisible ? 'visible' : 'hidden'">
+      <div class="list-header">
+        <div class="list-cell cell-image"></div>
+        <div class="list-cell cell-name clickable" (click)="toggleNameSort()">
+          Name
+          <svg *ngIf="isNameSortActive()" viewBox="0 0 24 24" fill="currentColor" class="sort-arrow"
+            [class.sort-desc]="filters?.sort === sortTypeEnum.alphabeticalDescending">
+            <path d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z" />
+          </svg>
+        </div>
+        <div class="list-cell cell-now-playing">Now Playing</div>
+        <div class="list-cell cell-group">Group</div>
+        <div class="list-cell cell-source">Source</div>
+        <div class="list-cell cell-type">Type</div>
+        <div class="list-cell cell-icons"></div>
+      </div>
+      <app-channel-list-row [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index; trackBy: trackByChannelId"
+        [id]="i" [channel]="channel" [viewMode]="viewType"></app-channel-list-row>
+    </div>
+
+    <!-- Grid view -->
+    <div *ngIf="viewDensity !== viewDensityEnum.List && channels.length > 0" class="channel-grid" [ngClass]="getGridClass()" [@fade]="channelsVisible ? 'visible' : 'hidden'">
+      <app-channel-card [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index; trackBy: trackByChannelId"
+        [id]="i" [channel]="channel" [viewMode]="viewType"></app-channel-card>
     </div>
   </div>
 
@@ -114,7 +193,7 @@
   </button>
 </div>
 
-<div *ngIf="showScrollTop" (click)="scrollToTop()" class="scroll-to-top">
+<div *ngIf="showScrollTop && !isDashboard" (click)="scrollToTop()" class="scroll-to-top">
   <svg viewBox="0 0 24 24">
     <path fill="currentColor" d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z" />
   </svg>

@@ -31,8 +31,18 @@ import { RestreamModalComponent } from './restream-modal/restream-modal.componen
 import { SortButtonComponent } from './home/sort-button/sort-button.component';
 import { SortItemComponent } from './home/sort-button/sort-item/sort-item.component';
 import { DownloadManagerComponent } from './download-manager/download-manager.component';
-
 import { TimeAgoPipe } from "./pipes/time-ago.pipe";
+
+// New components
+import { SidebarComponent } from './sidebar/sidebar.component';
+import { ViewDensityToggleComponent } from './home/view-density-toggle/view-density-toggle.component';
+import { ChannelListRowComponent } from './channel-list-row/channel-list-row.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
+import { ContentRowComponent } from './content-row/content-row.component';
+import { ChannelCardComponent } from './channel-card/channel-card.component';
+import { ChannelDetailPanelComponent } from './channel-detail-panel/channel-detail-panel.component';
+import { NowPlayingBarComponent } from './now-playing-bar/now-playing-bar.component';
+import { SearchOverlayComponent } from './search-overlay/search-overlay.component';
 import { InlinePlayerComponent } from './inline-player/inline-player.component';
 
 @NgModule({
@@ -61,6 +71,16 @@ import { InlinePlayerComponent } from './inline-player/inline-player.component';
     SortButtonComponent,
     SortItemComponent,
     DownloadManagerComponent,
+    // New components
+    SidebarComponent,
+    ViewDensityToggleComponent,
+    ChannelListRowComponent,
+    DashboardComponent,
+    ContentRowComponent,
+    ChannelCardComponent,
+    ChannelDetailPanelComponent,
+    NowPlayingBarComponent,
+    SearchOverlayComponent,
     InlinePlayerComponent,
   ],
   imports: [

@@ -4,4 +4,5 @@ export enum ViewMode {
   Categories,
   History,
   Hidden,
+  Home,
 }

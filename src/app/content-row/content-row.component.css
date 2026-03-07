@@ -1,0 +1,134 @@
+.content-row {
+  margin-bottom: 32px;
+}
+
+.row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  margin-bottom: 12px;
+}
+
+.row-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ftv-text-primary);
+  margin: 0;
+}
+
+.see-all-btn {
+  background: none;
+  border: none;
+  color: var(--ftv-accent);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: var(--ftv-radius-sm);
+  transition: background var(--ftv-transition-fast);
+}
+
+.see-all-btn:hover {
+  background: var(--ftv-surface-hover);
+}
+
+.row-track-container {
+  position: relative;
+}
+
+.row-track {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 4px 16px 8px;
+}
+
+.row-track ::ng-deep .card-tile {
+  width: 200px;
+  min-width: 200px;
+  flex-shrink: 0;
+}
+
+.row-track::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ftv-surface-elevated);
+  border: 1px solid var(--ftv-border);
+  color: var(--ftv-text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--ftv-shadow-md);
+  transition: background var(--ftv-transition-fast);
+}
+
+.scroll-btn:hover {
+  background: var(--ftv-surface-hover);
+}
+
+.scroll-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.scroll-btn-left {
+  left: 4px;
+}
+
+.scroll-btn-right {
+  right: 4px;
+}
+
+/* Skeleton cards */
+.skeleton-card-row {
+  width: 200px;
+  min-width: 200px;
+  border-radius: var(--ftv-radius-md);
+  overflow: hidden;
+  background: var(--ftv-surface);
+}
+
+.skeleton-image-row {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.skeleton-info-row {
+  padding: 10px 12px;
+}
+
+.skeleton-title-row {
+  height: 12px;
+  width: 75%;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.skeleton-subtitle-row {
+  height: 10px;
+  width: 50%;
+  border-radius: 4px;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, var(--ftv-surface) 25%, var(--ftv-surface-hover) 50%, var(--ftv-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

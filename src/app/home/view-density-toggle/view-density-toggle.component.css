@@ -1,0 +1,36 @@
+.density-toggle {
+  display: inline-flex;
+  background: var(--ftv-surface);
+  border-radius: var(--ftv-radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.density-toggle button {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--ftv-text-tertiary);
+  cursor: pointer;
+  transition: background var(--ftv-transition-fast), color var(--ftv-transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.density-toggle button:hover {
+  color: var(--ftv-text-secondary);
+  background: var(--ftv-surface-hover);
+}
+
+.density-toggle button.active {
+  background: var(--ftv-accent);
+  color: var(--ftv-text-primary);
+}
+
+.density-toggle button svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
