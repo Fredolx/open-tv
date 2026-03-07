@@ -3,32 +3,80 @@
 @import "@angular/material/prebuilt-themes/pink-bluegrey.css";
 @import "./assets/css/roboto.css";
 
+:root {
+  /* Surfaces */
+  --ftv-bg: #121214;
+  --ftv-surface: #1c1c1e;
+  --ftv-surface-hover: #2c2c2e;
+  --ftv-surface-active: #3a3a3c;
+  --ftv-surface-elevated: #2c2c2e;
+  --ftv-surface-recessed: #0a0a0a;
+
+  /* Borders */
+  --ftv-border: rgba(255, 255, 255, 0.08);
+  --ftv-border-hover: rgba(255, 255, 255, 0.15);
+
+  /* Text */
+  --ftv-text-primary: #f5f5f7;
+  --ftv-text-secondary: #a1a1a6;
+  --ftv-text-tertiary: #6e6e73;
+
+  /* Accent */
+  --ftv-accent: #0a84ff;
+  --ftv-accent-hover: #409cff;
+  --ftv-accent-active: #0071e3;
+
+  /* Semantic */
+  --ftv-danger: #ff453a;
+  --ftv-success: #30d158;
+  --ftv-warning: #ffd60a;
+  --ftv-star: #ffd60a;
+  --ftv-live: #ff453a;
+  --ftv-movie: #0a84ff;
+  --ftv-series: #bf5af2;
+
+  /* Radius */
+  --ftv-radius-sm: 8px;
+  --ftv-radius-md: 12px;
+  --ftv-radius-lg: 16px;
+  --ftv-radius-xl: 22px;
+
+  /* Transitions */
+  --ftv-transition-fast: 150ms ease;
+  --ftv-transition-med: 250ms ease;
+
+  /* Shadows */
+  --ftv-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --ftv-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --ftv-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
 body {
-  background-color: #202124;
-  color: white;
+  background-color: var(--ftv-bg);
+  color: var(--ftv-text-primary);
 }
 
 .help-modal__container {
   .help-modal {
-    background-color: #202124 !important;
+    background-color: var(--ftv-bg) !important;
 
     .item {
-      background-color: #202124 !important;
+      background-color: var(--ftv-bg) !important;
 
       .key {
-        background-color: #202124 !important;
+        background-color: var(--ftv-bg) !important;
       }
 
       .description {
-        color: white !important;
+        color: var(--ftv-text-primary) !important;
       }
     }
   }
 }
 
 .modal-content {
-  border-radius: 22px !important;
-  background-color: #292b2c;
+  border-radius: var(--ftv-radius-xl) !important;
+  background-color: var(--ftv-surface-elevated);
 }
 
 .selectable {
@@ -56,4 +104,46 @@ body {
 body {
   margin: 0;
   font-family: "Roboto", sans-serif;
+}
+
+/* Material menu overrides */
+.mat-mdc-menu-panel {
+  border-radius: var(--ftv-radius-md) !important;
+  background: var(--ftv-surface-elevated) !important;
+  border: 1px solid var(--ftv-border) !important;
+  box-shadow: var(--ftv-shadow-lg) !important;
+}
+
+.mat-mdc-menu-item {
+  border-radius: var(--ftv-radius-sm) !important;
+  margin: 2px 4px !important;
+  transition: background var(--ftv-transition-fast) !important;
+}
+
+.mat-mdc-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Modal animation override */
+.modal.show .modal-dialog {
+  animation: modalSlideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Toastr dark theme */
+.toast-container .ngx-toastr {
+  background-color: var(--ftv-surface-elevated) !important;
+  border: 1px solid var(--ftv-border) !important;
+  border-radius: var(--ftv-radius-md) !important;
+  box-shadow: var(--ftv-shadow-md) !important;
 }

@@ -1,5 +1,5 @@
 :host {
-    background-color: #292b2c;
-    color: white;
-    border-radius: 20px;
+    background-color: var(--ftv-surface-elevated);
+    color: var(--ftv-text-primary);
+    border-radius: var(--ftv-radius-xl);
 }
