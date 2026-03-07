@@ -99,6 +99,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   loading = false;
   nodeStack: Stack = new Stack();
   showScrollTop = false;
+  isAnyXtream = false;
 
   scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -125,6 +126,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         this.memory.trayEnabled = settings.enable_tray_icon ?? true;
         this.memory.AlwaysAskSave = settings.always_ask_save ?? false;
         this.memory.Sources = new Map(sources.filter((x) => x.enabled).map(s => [s.id!, s]));
+        this.isAnyXtream = this.anyXtream();
         if (sources.length == 0) this.reset();
         else {
           getVersion().then((version) => {
@@ -627,6 +629,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (this.memory.currentContextMenu?.menuOpen) {
       this.memory.currentContextMenu?.closeMenu();
     }
+  }
+
+  trackByChannelId(index: number, channel: Channel): number {
+    return channel.id!;
   }
 
   ngOnDestroy() {

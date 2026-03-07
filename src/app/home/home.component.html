@@ -80,10 +80,10 @@
       <div class="form-check form-check-inline form-switch">
         <input [(ngModel)]="chkMovie" (ngModelChange)="updateMediaTypes(mediaTypeEnum.movie)" class="form-check-input"
           id="filter-1" type="checkbox" />
-        <label *ngIf="anyXtream()" class="form-check-label" for="filter-1"> Movies/Vods </label>
-        <label *ngIf="!anyXtream()"> Movies/Vods/Series </label>
+        <label *ngIf="isAnyXtream" class="form-check-label" for="filter-1"> Movies/Vods </label>
+        <label *ngIf="!isAnyXtream"> Movies/Vods/Series </label>
       </div>
-      <div *ngIf="anyXtream()" class="form-check form-check-inline form-switch">
+      <div *ngIf="isAnyXtream" class="form-check form-check-inline form-switch">
         <input [(ngModel)]="chkSerie" (ngModelChange)="updateMediaTypes(mediaTypeEnum.serie)" class="form-check-input"
           id="filter-2" type="checkbox" />
         <label class="form-check-label" for="filter-2"> Series </label>
@@ -103,7 +103,7 @@
       </h4>
     </div>
     <div class="row gy-3" [@fade]="channelsVisible ? 'visible' : 'hidden'">
-      <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
+      <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index; trackBy: trackByChannelId"
         class="col-lg-4 col-md-4" [id]="i" [channel]="channel" [viewMode]="viewType"></app-channel-tile>
     </div>
   </div>
