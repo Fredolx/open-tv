@@ -175,6 +175,12 @@ pub struct EPGNotify {
     pub channel_name: String,
 }
 
+#[derive(Debug)]
+pub struct ActiveRecording {
+    pub info: crate::recording::RecordingInfo,
+    pub stop_signal: Arc<AtomicBool>,
+}
+
 #[derive(Debug, Default)]
 pub struct AppState {
     pub notify_stop: Arc<AtomicBool>,
@@ -182,6 +188,7 @@ pub struct AppState {
     pub restream_stop_signal: Arc<AtomicBool>,
 
     pub play_stop: HashMap<i64, IndexMap<String, CancellationToken>>,
+    pub active_recordings: HashMap<String, ActiveRecording>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

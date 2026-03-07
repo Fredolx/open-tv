@@ -25,8 +25,9 @@ import { DownloadService } from "../download.service";
 import { Download } from "../models/download";
 import { Subscription, take } from "rxjs";
 import { save } from "@tauri-apps/plugin-dialog";
-import { CHANNEL_EXTENSION, GROUP_EXTENSION, RECORD_EXTENSION } from "../models/extensions";
-import { getDateFormatted, getExtension, sanitizeFileName } from "../utils";
+import { CHANNEL_EXTENSION, GROUP_EXTENSION } from "../models/extensions";
+import { getExtension, sanitizeFileName } from "../utils";
+import { RecordingService } from "../recording.service";
 import { NodeType, fromMediaType } from "../models/nodeType";
 
 import { ViewMode } from "../models/viewMode";
@@ -45,6 +46,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     private el: ElementRef,
     private renderer: Renderer2,
     private download: DownloadService,
+    public recording: RecordingService,
   ) { }
   @Input() channel?: Channel;
   @Input() id!: number;
@@ -77,7 +79,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     this.renderer.setStyle(element, "background", background);
   }
 
-  async click(record = false) {
+  async click() {
     if (this.starting === true) {
       try {
         await invoke("cancel_play", { sourceId: this.channel?.source_id, channelId: this.channel?.id });
@@ -114,19 +116,10 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       });
       return;
     }
-    let file = undefined;
-    if (record && (this.memory.IsContainer || this.memory.AlwaysAskSave)) {
-      file = await save({
-        canCreateDirectories: true,
-        title: "Select where to save recording",
-        defaultPath: `${sanitizeFileName(this.channel?.name!)}_${getDateFormatted()}${RECORD_EXTENSION}`,
-      });
-      if (!file) return;
-    }
     this.starting = true;
     this.memory.SetFocus.next(this.id);
     try {
-      await invoke("play", { channel: this.channel, record: record, recordPath: file });
+      await invoke("play", { channel: this.channel, record: false, recordPath: null });
     } catch (e) {
       this.error.handleError(e);
     }
@@ -211,7 +204,16 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   async record() {
-    await this.click(true);
+    if (!this.channel) return;
+    await this.recording.toggleRecording(this.channel);
+  }
+
+  isChannelRecording(): boolean {
+    return !!this.channel?.id && this.recording.isRecording(this.channel.id);
+  }
+
+  isRecordingBusy(): boolean {
+    return !!this.channel?.id && this.recording.isBusy(this.channel.id);
   }
 
   isMovie() {

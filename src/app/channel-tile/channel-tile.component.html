@@ -44,7 +44,11 @@
         *ngIf="alreadyHidden">Unhide</ng-container>
       <ng-container *ngIf="!alreadyHidden">Hide</ng-container>
     </button>
-    <button [hidden]="!isLivestream()" mat-menu-item (click)="record()">Record</button>
+    <button [hidden]="!isLivestream()" mat-menu-item (click)="record()" [disabled]="isRecordingBusy()">
+      <ng-container *ngIf="isRecordingBusy()">Working...</ng-container>
+      <ng-container *ngIf="!isRecordingBusy() && isChannelRecording()">Stop Recording</ng-container>
+      <ng-container *ngIf="!isRecordingBusy() && !isChannelRecording()">Record</ng-container>
+    </button>
     <button [hidden]="!isMovie() || downloading" mat-menu-item (click)="downloadVod()">
       Download
     </button>

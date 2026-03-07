@@ -1,6 +1,7 @@
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use anyhow::Context;
 use anyhow::Error;
+use std::sync::atomic::Ordering;
 
 use tauri::{AppHandle, Manager, State};
 use tokio::sync::Mutex;
@@ -20,6 +21,7 @@ use {
 pub mod bulk_action_type;
 pub mod epg;
 pub mod log;
+pub mod recording;
 pub mod m3u;
 pub mod media_type;
 pub mod mpv;
@@ -113,6 +115,9 @@ pub fn run() {
             hide_channel,
             hide_group,
             remove_from_history,
+            start_recording,
+            stop_recording,
+            get_active_recordings,
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -147,6 +152,17 @@ pub fn run() {
                 let window = _app.get_webview_window("main").expect("no main window");
                 let _ = window.show();
                 let _ = window.set_focus();
+            }
+            tauri::RunEvent::ExitRequested { .. } => {
+                // Signal all background processes to stop so they don't become orphans
+                let state: State<Mutex<AppState>> = _app.state();
+                if let Ok(state) = state.try_lock() {
+                    state.notify_stop.store(true, Ordering::Relaxed);
+                    state.restream_stop_signal.store(true, Ordering::Relaxed);
+                    for rec in state.active_recordings.values() {
+                        rec.stop_signal.store(true, Ordering::Relaxed);
+                    }
+                }
             }
             _ => {}
         });
@@ -558,6 +574,36 @@ async fn cancel_play(
     state: State<'_, Mutex<AppState>>,
 ) -> Result<(), String> {
     mpv::cancel_play(source_id, channel_id.to_string(), state)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn start_recording(
+    channel: Channel,
+    state: State<'_, Mutex<AppState>>,
+    app: AppHandle,
+) -> Result<recording::RecordingInfo, String> {
+    recording::start_recording(channel, state, app)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn stop_recording(
+    recording_id: String,
+    state: State<'_, Mutex<AppState>>,
+) -> Result<String, String> {
+    recording::stop_recording(recording_id, state)
+        .await
+        .map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn get_active_recordings(
+    state: State<'_, Mutex<AppState>>,
+) -> Result<Vec<recording::RecordingInfo>, String> {
+    recording::get_active_recordings(state)
         .await
         .map_err(map_err_frontend)
 }
