@@ -22,6 +22,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::str::FromStr;
+use std::sync::Arc;
 use tokio::join;
 use url::Url;
 
@@ -33,6 +34,7 @@ const GET_SERIES_CATEGORIES: &str = "get_series_categories";
 const GET_LIVE_STREAM_CATEGORIES: &str = "get_live_categories";
 const GET_VOD_CATEGORIES: &str = "get_vod_categories";
 const GET_EPG: &str = "get_simple_data_table";
+const GET_SHORT_EPG: &str = "get_short_epg";
 const LIVE_STREAM_EXTENSION: &str = "ts";
 const NO_SEASON_NUMBER: i64 = -9999;
 
@@ -107,6 +109,20 @@ struct XtreamEPGItem {
     has_archive: u8,
     start: String,
     end: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct ShortEPGResponse {
+    #[serde(default)]
+    epg_listings: Vec<ShortEPGItem>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct ShortEPGItem {
+    #[serde(default)]
+    title: String,
+    #[serde(default)]
+    now_playing: u8,
 }
 
 fn build_xtream_url(source: &mut Source) -> Result<Url> {
@@ -587,4 +603,94 @@ fn get_timeshift_url(mut url: Url, start: String, end: String, stream_id: &str) 
         .append_pair("start", &start)
         .append_pair("duration", &duration);
     Ok(url.to_string())
+}
+
+pub async fn get_now_playing_batch(
+    channels: Vec<Channel>,
+) -> Result<HashMap<i64, String>> {
+    let mut by_source: HashMap<i64, Vec<Channel>> = HashMap::new();
+    for ch in channels {
+        if let (Some(source_id), Some(_stream_id)) = (ch.source_id, ch.stream_id) {
+            by_source.entry(source_id).or_default().push(ch);
+        }
+    }
+
+    let mut result: HashMap<i64, String> = HashMap::new();
+    let semaphore = Arc::new(tokio::sync::Semaphore::new(10));
+
+    for (source_id, channels) in by_source {
+        let source = sql::get_source_from_id(source_id)?;
+        let mut base_url = build_xtream_url(&mut source.clone())?;
+        let user_agent = get_user_agent_from_source(&source)?;
+        base_url.query_pairs_mut().append_pair("action", GET_SHORT_EPG);
+
+        let client = Client::builder().user_agent(&user_agent).build()?;
+
+        let mut handles = Vec::new();
+        for ch in channels {
+            let client = client.clone();
+            let mut url = base_url.clone();
+            let sem = semaphore.clone();
+            let channel_id = ch.id.unwrap_or(-1);
+            let stream_id = ch.stream_id.unwrap().to_string();
+
+            handles.push(tokio::spawn(async move {
+                let _permit = sem.acquire().await;
+
+                // Try get_short_epg first
+                url.query_pairs_mut()
+                    .append_pair("stream_id", &stream_id)
+                    .append_pair("limit", "2");
+                let mut title: Option<String> = match client.get(url.clone()).send().await {
+                    Ok(resp) => {
+                        let text = resp.text().await.unwrap_or_default();
+                        serde_json::from_str::<ShortEPGResponse>(&text).ok().and_then(|e| {
+                            let item = e.epg_listings.iter().find(|i| i.now_playing == 1)
+                                .or_else(|| e.epg_listings.first());
+                            item.and_then(|i| {
+                                BASE64_STANDARD.decode(&i.title).ok().and_then(|b| String::from_utf8(b).ok())
+                            })
+                        })
+                    },
+                    Err(_) => None,
+                };
+
+                // Fall back to full EPG if short EPG returned nothing
+                if title.is_none() {
+                    let mut full_url = url.clone();
+                    full_url.set_query(None);
+                    // Rebuild query params from the base URL parts
+                    let pairs: Vec<(String, String)> = url.query_pairs()
+                        .filter(|(k, _)| k != "action" && k != "limit")
+                        .map(|(k, v)| (k.to_string(), v.to_string()))
+                        .collect();
+                    full_url.query_pairs_mut().clear();
+                    for (k, v) in &pairs {
+                        full_url.query_pairs_mut().append_pair(k, v);
+                    }
+                    full_url.query_pairs_mut().append_pair("action", GET_EPG);
+                    title = match client.get(full_url).send().await {
+                        Ok(resp) => {
+                            resp.json::<XtreamEPG>().await.ok().and_then(|e| {
+                                e.epg_listings.into_iter().find(|i| i.now_playing == 1).and_then(|i| {
+                                    BASE64_STANDARD.decode(&i.title).ok().and_then(|b| String::from_utf8(b).ok())
+                                })
+                            })
+                        },
+                        Err(_) => None,
+                    };
+                }
+
+                (channel_id, title)
+            }));
+        }
+
+        for handle in handles {
+            if let Ok((id, Some(title))) = handle.await {
+                result.insert(id, title);
+            }
+        }
+    }
+
+    Ok(result)
 }

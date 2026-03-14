@@ -49,6 +49,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   @Input() channel?: Channel;
   @Input() id!: number;
   @Input() viewMode: number = 0;
+  @Input() nowPlaying: string = "";
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
   menuTopLeftPosition = { x: 0, y: 0 };
   showImage: boolean = true;

@@ -104,7 +104,8 @@
     </div>
     <div class="row gy-3" [@fade]="channelsVisible ? 'visible' : 'hidden'">
       <app-channel-tile [attr.id]="i == 0 ? 'first' : null" *ngFor="let channel of channels; let i = index"
-        class="col-lg-4 col-md-4" [id]="i" [channel]="channel" [viewMode]="viewType"></app-channel-tile>
+        class="col-lg-4 col-md-4" [id]="i" [channel]="channel" [viewMode]="viewType"
+        [nowPlaying]="nowPlayingMap.get(channel.id!) || ''"></app-channel-tile>
     </div>
   </div>
 

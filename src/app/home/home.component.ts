@@ -99,6 +99,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   loading = false;
   nodeStack: Stack = new Stack();
   showScrollTop = false;
+  nowPlayingMap: Map<number, string> = new Map();
 
   scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -283,6 +284,29 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.error.handleError(e);
     }
     this.loading = false;
+    this.fetchNowPlaying();
+  }
+
+  async fetchNowPlaying() {
+    const xtreamLive = this.channels.filter(
+      (c) =>
+        c.media_type == MediaType.livestream &&
+        c.source_id != null &&
+        this.memory.XtreamSourceIds.has(c.source_id!)
+    );
+    if (xtreamLive.length === 0) return;
+    try {
+      const data: Record<string, string> = await invoke("get_now_playing_batch", {
+        channels: xtreamLive,
+      });
+      const map = new Map<number, string>();
+      for (const [id, title] of Object.entries(data)) {
+        map.set(Number(id), title);
+      }
+      this.nowPlayingMap = map;
+    } catch (e) {
+      console.error("Failed to fetch now playing", e);
+    }
   }
 
   checkScrollTop() {

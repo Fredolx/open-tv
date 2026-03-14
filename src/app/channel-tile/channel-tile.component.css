@@ -23,6 +23,14 @@
   white-space: nowrap;
 }
 
+.channel-now-playing {
+  font-size: 0.75rem;
+  color: #8cb4ff;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .channel-source {
   font-size: 0.75rem;
   color: #adb5bd;
