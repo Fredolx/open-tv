@@ -9,7 +9,8 @@
   </div>
   <div class="channel-title-container d-flex flex-column justify-content-center">
     <div class="channel-title">{{ channel?.name }}</div>
-    <div class="channel-source">{{ getSourceName() }}</div>
+    <div *ngIf="nowPlaying" class="channel-now-playing">{{ nowPlaying }}</div>
+    <div *ngIf="!nowPlaying" class="channel-source">{{ getSourceName() }}</div>
   </div>
   <div class="ms-auto d-flex flex-column justify-content-center align-items-center h-100">
     <svg *ngIf="channel?.tv_archive === true" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
