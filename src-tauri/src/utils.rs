@@ -1,3 +1,4 @@
+use crate::player;
 use crate::types::{AppState, Channel, ChannelPreserve};
 use crate::{
     log::log,
@@ -10,6 +11,7 @@ use crate::{
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Local, Utc};
 use directories::ProjectDirs;
+use futures::future::join_all;
 use indexmap::IndexMap;
 use regex::Regex;
 use reqwest::{
@@ -349,6 +351,23 @@ pub fn get_user_agent_from_source(source: &Source) -> Result<String> {
         .filter(|s| !s.trim().is_empty())
         .unwrap_or(DEFAULT_USER_AGENT);
     Ok(user_agent.to_string())
+}
+
+pub async fn get_all_players() -> Vec<String> {
+    let checks = player::PLAYER_POSSIBLE_PATHS
+        .iter()
+        .map(|&path| async move {
+            tokio::fs::try_exists(path)
+                .await
+                .unwrap_or(false)
+                .then_some(path)
+        });
+    join_all(checks)
+        .await
+        .into_iter()
+        .flatten()
+        .map(String::from)
+        .collect()
 }
 
 #[cfg(test)]

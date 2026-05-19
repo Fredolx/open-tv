@@ -93,6 +93,7 @@ pub struct Settings {
     pub enable_hwdec: Option<bool>,
     pub always_ask_save: Option<bool>,
     pub enable_gpu: Option<bool>,
+    pub player: Option<String>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]

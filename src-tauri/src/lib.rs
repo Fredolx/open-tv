@@ -25,6 +25,7 @@ pub mod log;
 pub mod m3u;
 pub mod media_type;
 pub mod mpv;
+pub mod player;
 pub mod restream;
 pub mod settings;
 pub mod share;
@@ -568,4 +569,9 @@ async fn cancel_play(
 #[tauri::command]
 async fn get_all_expiries() -> Result<HashMap<i64, i64>, String> {
     xtream::get_all_expiries().await.map_err(map_err_frontend)
+}
+
+#[tauri::command]
+async fn get_all_players() -> Vec<String> {
+    utils::get_all_players().await
 }
