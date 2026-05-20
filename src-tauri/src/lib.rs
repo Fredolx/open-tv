@@ -116,7 +116,8 @@ pub fn run() {
             hide_channel,
             hide_group,
             remove_from_history,
-            get_all_expiries
+            get_all_expiries,
+            get_all_players
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
