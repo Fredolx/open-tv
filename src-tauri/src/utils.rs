@@ -353,24 +353,24 @@ pub fn get_user_agent_from_source(source: &Source) -> Result<String> {
     Ok(user_agent.to_string())
 }
 
-fn expand(path: &str) -> Option<PathBuf> {
-    let base = BaseDirs::new()?;
+fn expand(path: &str, base: Option<&BaseDirs>) -> Option<PathBuf> {
     if let Some(rest) = path.strip_prefix("~/").or_else(|| path.strip_prefix("~\\")) {
-        return Some(base.home_dir().join(rest));
+        return Some(base?.home_dir().join(rest));
     }
     if let Some(rest) = path.strip_prefix("%USERPROFILE%\\") {
-        return Some(base.home_dir().join(rest));
+        return Some(base?.home_dir().join(rest));
     }
     if let Some(rest) = path.strip_prefix("%LOCALAPPDATA%\\") {
-        return Some(base.data_local_dir().join(rest));
+        return Some(base?.data_local_dir().join(rest));
     }
     Some(PathBuf::from(path))
 }
 
 pub async fn get_all_players() -> Vec<String> {
+    let base = BaseDirs::new();
     let checks = player::PLAYER_POSSIBLE_PATHS
         .iter()
-        .filter_map(|p| expand(p))
+        .filter_map(|p| expand(p, base.as_ref()))
         .map(|path| async move {
             tokio::fs::try_exists(&path)
                 .await
