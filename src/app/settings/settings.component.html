@@ -38,15 +38,15 @@
     </div>
   </div>
 
-
   <div class="row mt-3 align-items-center">
     <div class="col-4">
-      <span [ngbTooltip]="
-          'The player to use'
-        ">Player</span>
+      <span ngbTooltip="The player to use">Player</span>
     </div>
     <div class="col">
-
+      <select (ngModelChange)="updateSettings()" [(ngModel)]="settings.player" class="form-control">
+        <option>mpv</option>
+        <option *ngFor="let player of players">{{player}}</option>
+      </select>
     </div>
   </div>
 
@@ -163,6 +163,8 @@
       </div>
     </div>
   </div>
+
+
 
   <div class="row mt-3 align-items-center">
     <div class="col-4">

@@ -10,7 +10,7 @@ use crate::{
 };
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Local, Utc};
-use directories::ProjectDirs;
+use directories::{BaseDirs, ProjectDirs};
 use futures::future::join_all;
 use indexmap::IndexMap;
 use regex::Regex;
@@ -353,21 +353,33 @@ pub fn get_user_agent_from_source(source: &Source) -> Result<String> {
     Ok(user_agent.to_string())
 }
 
+fn expand(path: &str, base: &BaseDirs) -> Option<PathBuf> {
+    if let Some(rest) = path.strip_prefix("~/").or_else(|| path.strip_prefix("~\\")) {
+        return Some(base.home_dir().join(rest));
+    }
+    if let Some(rest) = path.strip_prefix("%USERPROFILE%\\") {
+        return Some(base.home_dir().join(rest));
+    }
+    if let Some(rest) = path.strip_prefix("%LOCALAPPDATA%\\") {
+        return Some(base.data_local_dir().join(rest));
+    }
+    Some(PathBuf::from(path))
+}
+
 pub async fn get_all_players() -> Vec<String> {
+    let Some(base) = BaseDirs::new() else {
+        return Vec::new();
+    };
     let checks = player::PLAYER_POSSIBLE_PATHS
         .iter()
-        .map(|&path| async move {
-            tokio::fs::try_exists(path)
+        .filter_map(|p| expand(p, &base))
+        .map(|path| async move {
+            tokio::fs::try_exists(&path)
                 .await
                 .unwrap_or(false)
-                .then_some(path)
+                .then(|| path.to_string_lossy().into_owned())
         });
-    join_all(checks)
-        .await
-        .into_iter()
-        .flatten()
-        .map(String::from)
-        .collect()
+    join_all(checks).await.into_iter().flatten().collect()
 }
 
 #[cfg(test)]

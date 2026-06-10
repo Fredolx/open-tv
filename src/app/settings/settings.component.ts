@@ -34,6 +34,7 @@ export class SettingsComponent {
   sources: Source[] = [];
   expiries: Record<number, number> = {};
   sortTypes = SORT_TYPES;
+  players: Array<string> = []
   @ViewChild("mpvParams") mpvParams!: ElementRef;
 
   constructor(
@@ -75,8 +76,14 @@ export class SettingsComponent {
   ngOnInit(): void {
     this.getSettings();
     this.getSources();
+    this.getPlayers();
     if (this.memory.XtreamSourceIds.size > 0)
       this.getExpiries();
+  }
+  
+  async getPlayers() {
+    this.players = await invoke("get_all_players");
+    console.dir(this.players);
   }
 
   getSettings() {
@@ -92,6 +99,7 @@ export class SettingsComponent {
       if (this.settings.enable_hwdec == undefined) this.settings.enable_hwdec = true;
       if (this.settings.always_ask_save == undefined) this.settings.always_ask_save = false;
       if (this.settings.enable_gpu == undefined) this.settings.enable_gpu = false;
+      if (this.settings.player == undefined) this.settings.player = "mpv";
     });
   }
 

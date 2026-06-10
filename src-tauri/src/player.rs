@@ -1,6 +1,5 @@
 #[cfg(target_os = "windows")]
-pub const PLAYER_POSSIBLE_PATHS: [&str; 32] = [
-    "mpv",
+pub const PLAYER_POSSIBLE_PATHS: [&str; 26] = [
     r"C:\Program Files\mpv\mpv.exe",
     r"C:\Program Files (x86)\mpv\mpv.exe",
     r"C:\mpv\mpv.exe",
@@ -8,9 +7,7 @@ pub const PLAYER_POSSIBLE_PATHS: [&str; 32] = [
     r"C:\ProgramData\chocolatey\bin\mpv.exe",
     r"C:\ProgramData\chocolatey\lib\mpv\tools\mpv.exe",
     r"%USERPROFILE%\scoop\apps\mpv\current\mpv.exe",
-    r"%USERPROFILE%\scoop\shims\mpv.exe",
     r"C:\ProgramData\scoop\apps\mpv\current\mpv.exe",
-    r"C:\ProgramData\scoop\shims\mpv.exe",
     r"%LOCALAPPDATA%\Microsoft\WinGet\Links\mpv.exe",
     r"C:\msys64\mingw64\bin\mpv.exe",
     r"C:\msys64\ucrt64\bin\mpv.exe",
@@ -19,7 +16,6 @@ pub const PLAYER_POSSIBLE_PATHS: [&str; 32] = [
     r"C:\Program Files (x86)\mpv.net\mpvnet.exe",
     r"%LOCALAPPDATA%\Programs\mpv.net\mpvnet.exe",
     r"%USERPROFILE%\scoop\apps\mpv.net\current\mpvnet.exe",
-    r"%USERPROFILE%\scoop\shims\mpvnet.exe",
     r"C:\ProgramData\chocolatey\bin\mpvnet.exe",
     r"%LOCALAPPDATA%\Microsoft\WinGet\Links\mpvnet.exe",
     r"C:\Program Files\VideoLAN\VLC\vlc.exe",
@@ -28,15 +24,12 @@ pub const PLAYER_POSSIBLE_PATHS: [&str; 32] = [
     r"C:\ProgramData\chocolatey\bin\vlc.exe",
     r"C:\ProgramData\chocolatey\lib\vlc\tools\vlc.exe",
     r"%USERPROFILE%\scoop\apps\vlc\current\vlc.exe",
-    r"%USERPROFILE%\scoop\shims\vlc.exe",
     r"C:\ProgramData\scoop\apps\vlc\current\vlc.exe",
-    r"C:\ProgramData\scoop\shims\vlc.exe",
     r"%LOCALAPPDATA%\Microsoft\WinGet\Links\vlc.exe",
 ];
 
 #[cfg(target_os = "linux")]
-pub const PLAYER_POSSIBLE_PATHS: [&str; 31] = [
-    "mpv",
+pub const PLAYER_POSSIBLE_PATHS: [&str; 30] = [
     "/usr/bin/mpv",
     "/usr/local/bin/mpv",
     "/bin/mpv",
