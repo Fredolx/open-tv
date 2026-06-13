@@ -75,7 +75,10 @@ pub async fn play(
     });
 
     let settings = get_settings()?;
-    let player = settings.player.clone().unwrap_or(MPV_PATH.to_string());
+    let mut player = settings.player.clone().unwrap_or(MPV_PATH.to_string());
+    if player == "mpv" {
+        player = MPV_PATH.to_string();
+    }
     let is_vlc = player.ends_with("vlc") || player.ends_with("vlc.exe");
     let args = match is_vlc {
         true => get_vlc_args(&channel, record, record_path, &source, &settings)?,
