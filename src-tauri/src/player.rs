@@ -63,7 +63,7 @@ pub const PLAYER_POSSIBLE_PATHS: [&str; 30] = [
 ];
 
 #[cfg(target_os = "macos")]
-pub const PLAYER_POSSIBLE_PATHS: [&str; 23] = [
+pub const PLAYER_POSSIBLE_PATHS: [&str; 21] = [
     "/opt/homebrew/bin/mpv",
     "/usr/local/bin/mpv",
     "/opt/local/bin/mpv",
@@ -75,13 +75,11 @@ pub const PLAYER_POSSIBLE_PATHS: [&str; 23] = [
     "/nix/var/nix/profiles/default/bin/mpv",
     "/usr/bin/mpv",
     "~/.local/bin/mpv",
-    "/Applications/IINA.app/Contents/MacOS/iina-cli",
-    "~/Applications/IINA.app/Contents/MacOS/iina-cli",
+    "/Applications/IINA.app/Contents/MacOS/IINA",
+    "~/Applications/IINA.app/Contents/MacOS/IINA",
     "/usr/local/bin/iina",
-    "/opt/homebrew/bin/iina",
     "/Applications/VLC.app/Contents/MacOS/VLC",
     "~/Applications/VLC.app/Contents/MacOS/VLC",
-    "/opt/homebrew/bin/vlc",
     "/usr/local/bin/vlc",
     "/opt/local/bin/vlc",
     "/opt/pkg/bin/vlc",

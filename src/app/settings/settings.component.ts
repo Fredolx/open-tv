@@ -80,7 +80,7 @@ export class SettingsComponent {
     if (this.memory.XtreamSourceIds.size > 0)
       this.getExpiries();
   }
-  
+
   async getPlayers() {
     this.players = await invoke("get_all_players");
     console.dir(this.players);
@@ -89,6 +89,7 @@ export class SettingsComponent {
   getSettings() {
     invoke("get_settings").then((x) => {
       this.settings = x as Settings;
+      console.dir(this.settings);
       if (this.settings.use_stream_caching == undefined) this.settings.use_stream_caching = true;
       if (this.settings.default_view == undefined) this.settings.default_view = ViewMode.All;
       if (this.settings.volume == undefined) this.settings.volume = 100;

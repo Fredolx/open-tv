@@ -45,7 +45,7 @@
     <div class="col">
       <select (ngModelChange)="updateSettings()" [(ngModel)]="settings.player" class="form-control">
         <option value="mpv">mpv (built-in/from PATH)</option>
-        <option *ngFor="let player of players">{{player}}</option>
+        <option *ngFor="let player of players" [value]="player">{{player}}</option>
       </select>
     </div>
   </div>

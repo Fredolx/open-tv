@@ -76,13 +76,16 @@ pub async fn play(
 
     let settings = get_settings()?;
     let mut player = settings.player.clone().unwrap_or(MPV_PATH.to_string());
-    if player == "mpv" {
+    let player_path_exists = Path::new(&player).exists();
+    if player == "mpv" || !player_path_exists {
         player = MPV_PATH.to_string();
     }
-    let is_vlc = player.ends_with("vlc") || player.ends_with("vlc.exe");
+    eprintln!("using player: {}", player);
+    let is_vlc =
+        player.to_lowercase().ends_with("vlc") || player.to_lowercase().ends_with("vlc.exe");
     let args = match is_vlc {
         true => get_vlc_args(&channel, record, record_path, &source, &settings)?,
-        _ => get_mpv_args(&channel, record, record_path, &source, &settings)?,
+        _ => get_mpv_args(&channel, record, record_path, &source, &settings, &player)?,
     };
     eprintln!("with args: {:?}", args);
 
@@ -178,6 +181,7 @@ fn get_mpv_args(
     record_path: Option<String>,
     source: &Option<Source>,
     settings: &Settings,
+    player: &str,
 ) -> Result<Vec<String>> {
     let mut args = Vec::new();
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id?")?)?;
@@ -207,9 +211,10 @@ fn get_mpv_args(
             resolve_record_path(record_path, settings)?
         ));
     }
-    if OS == "macos" && *MPV_PATH != MPV_BIN_NAME {
+    if OS == "macos" {
         args.push(format!("{}{}", ARG_YTDLP_PATH, *YTDLP_PATH));
     }
+
     args.push(format!("{}{}", ARG_TITLE, channel.name));
     args.push(ARG_MSG_LEVEL.to_string());
     if channel.media_type == media_type::LIVESTREAM {
