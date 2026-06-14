@@ -85,7 +85,7 @@ pub async fn play(
         player.to_lowercase().ends_with("vlc") || player.to_lowercase().ends_with("vlc.exe");
     let args = match is_vlc {
         true => get_vlc_args(&channel, record, record_path, &source, &settings)?,
-        _ => get_mpv_args(&channel, record, record_path, &source, &settings, &player)?,
+        _ => get_mpv_args(&channel, record, record_path, &source, &settings)?,
     };
     eprintln!("with args: {:?}", args);
 
@@ -181,7 +181,6 @@ fn get_mpv_args(
     record_path: Option<String>,
     source: &Option<Source>,
     settings: &Settings,
-    player: &str,
 ) -> Result<Vec<String>> {
     let mut args = Vec::new();
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id?")?)?;
