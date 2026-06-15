@@ -149,19 +149,13 @@ fn get_play_args(
     let mut args = Vec::new();
     let settings = get_settings()?;
     let headers = sql::get_channel_headers_by_id(channel.id.context("no channel id?")?)?;
-    args.push(channel.url.clone().context("no url")?);
-    if channel.episode_num.is_some() {
-        for url in sql::find_all_episodes_after(channel)? {
-            args.push(url);
-        }
-        args.push(ARG_NO_RESUME_PLAYBACK.to_string());
-    }
+
+    // === SAFE: settings-controlled flags (before -- separator) ===
     if channel.media_type != media_type::LIVESTREAM {
         args.push(ARG_SAVE_POSITION_ON_QUIT.to_string());
     }
     if settings.use_stream_caching == Some(false) {
-        let stream_caching_arg = format!("{ARG_CACHE}{ARG_NO}",);
-        args.push(stream_caching_arg);
+        args.push(format!("{ARG_CACHE}{ARG_NO}"));
     }
     if settings.enable_hwdec.unwrap_or(true) {
         args.push(ARG_HWDEC.to_string());
@@ -202,6 +196,18 @@ fn get_play_args(
         let mut params = winsplit::split(&mpv_params);
         args.append(&mut params);
     }
+
+    args.push("--".to_string());
+
+    // === UNSAFE: user-controlled inputs (after -- separator) ===
+    args.push(channel.url.clone().context("no url")?);
+    if channel.episode_num.is_some() {
+        for url in sql::find_all_episodes_after(channel)? {
+            args.push(url);
+        }
+        args.push(ARG_NO_RESUME_PLAYBACK.to_string());
+    }
+
     Ok(args)
 }
 
