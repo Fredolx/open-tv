@@ -91,7 +91,7 @@ async fn start_web_server(
     let file_server = warp::fs::dir(restream_dir);
     let (tx, rx) = oneshot::channel::<bool>();
     let (_, server) =
-        warp::serve(file_server).bind_with_graceful_shutdown(([0, 0, 0, 0], port), async {
+        warp::serve(file_server).bind_with_graceful_shutdown(([127, 0, 0, 1], port), async {
             rx.await.ok();
         });
     let handle = tokio::spawn(server);
