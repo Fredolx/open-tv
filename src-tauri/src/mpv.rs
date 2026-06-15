@@ -213,10 +213,12 @@ fn set_headers(
     let headers = headers.unwrap_or_default();
     let mut headers_vec: Vec<String> = Vec::with_capacity(2);
     if let Some(origin) = headers.http_origin {
-        headers_vec.push(format!("{HTTP_ORIGIN}{origin}"));
+        let safe_origin = origin.replace('\r', "").replace('\n', "").replace(',', "");
+        headers_vec.push(format!("{HTTP_ORIGIN}{safe_origin}"));
     }
     if let Some(referrer) = headers.referrer {
-        headers_vec.push(format!("{HTTP_REFERRER}{referrer}"));
+        let safe_referrer = referrer.replace('\r', "").replace('\n', "").replace(',', "");
+        headers_vec.push(format!("{HTTP_REFERRER}{safe_referrer}"));
     }
     if let Some(user_agent) = headers
         .user_agent
