@@ -36,16 +36,18 @@ fn start_ffmpeg_listening(channel: Channel, restream_dir: PathBuf) -> Result<Chi
     let mut command = Command::new(get_bin(FFMPEG_BIN_NAME));
     if let Some(headers) = headers {
         if let Some(referrer) = headers.referrer {
+            let safe_referrer = referrer.replace('\r', "").replace('\n', "");
             command.arg("-headers");
-            command.arg(format!("Referer: {referrer}"));
+            command.arg(format!("Referer: {safe_referrer}"));
         }
         if let Some(user_agent) = headers.user_agent {
             command.arg("-headers");
             command.arg(format!("User-Agent: {user_agent}"));
         }
         if let Some(origin) = headers.http_origin {
+            let safe_origin = origin.replace('\r', "").replace('\n', "");
             command.arg("-headers");
-            command.arg(format!("Origin: {origin}"));
+            command.arg(format!("Origin: {safe_origin}"));
         }
         if let Some(ignore_ssl) = headers.ignore_ssl {
             if ignore_ssl {
