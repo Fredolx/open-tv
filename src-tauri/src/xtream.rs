@@ -202,7 +202,35 @@ where
 {
     let client = Client::builder().user_agent(user_agent).build()?;
     url.query_pairs_mut().append_pair("action", action);
-    let data = client.get(url).send().await?.json::<T>().await?;
+    let response = client.get(url).send().await?;
+    let status = response.status();
+    if !status.is_success() {
+        let body = response.text().await.unwrap_or_default();
+        return Err(anyhow!(
+            "Xtream API returned HTTP {} for action '{}'. Body preview: {}",
+            status.as_u16(),
+            action,
+            &body[..body.len().min(200)]
+        ));
+    }
+    let text = response.text().await?;
+    if text.is_empty() {
+        return Err(anyhow!("Xtream API returned empty body for action '{}'.", action));
+    }
+    // Check if the response is valid JSON before parsing
+    if !text.starts_with('{') && !text.starts_with('[') {
+        return Err(anyhow!(
+            "Xtream API returned non-JSON body for action '{}': {}",
+            action,
+            &text[..text.len().min(200)]
+        ));
+    }
+    let data = serde_json::from_str(&text).map_err(|e| anyhow!(
+        "Failed to parse JSON from Xtream API (action '{}'): {}. Body: {}",
+        action,
+        e,
+        &text[..text.len().min(200)]
+    ))?;
     Ok(data)
 }
 
@@ -596,7 +624,25 @@ async fn get_status(source: &mut Source) -> Result<(i64, XtreamStatus)> {
     let url = build_xtream_url(source)?;
     let user_agent = get_user_agent_from_source(&source)?;
     let client = Client::builder().user_agent(user_agent).build()?;
-    let data = client.get(url).send().await?.json::<XtreamStatus>().await?;
+    let response = client.get(url).send().await?;
+    let status = response.status();
+    if !status.is_success() {
+        let body = response.text().await.unwrap_or_default();
+        return Err(anyhow!(
+            "Xtream API returned HTTP {} in get_status. Body preview: {}",
+            status.as_u16(),
+            &body[..body.len().min(200)]
+        ));
+    }
+    let text = response.text().await?;
+    if text.is_empty() {
+        return Err(anyhow!("Xtream API returned empty body in get_status."));
+    }
+    let data = serde_json::from_str::<XtreamStatus>(&text).map_err(|e| anyhow!(
+        "Failed to parse XtreamStatus JSON: {}. Body: {}",
+        e,
+        &text[..text.len().min(200)]
+    ))?;
     Ok((source.id.context("no id")?, data))
 }
 
