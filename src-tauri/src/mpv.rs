@@ -72,6 +72,21 @@ pub async fn play(
         .stdout(Stdio::piped())
         .kill_on_drop(true)
         .spawn()?;
+    // Drain mpv's stdout while it runs. Reading it only after the process exits
+    // (the old behavior) lets a full 64KB pipe buffer block mpv on write forever,
+    // so cmd.wait() never returns and the backend deadlocks.
+    let stdout = cmd.stdout.take().context("no stdout")?;
+    let output = tokio::spawn(async move {
+        let mut lines = BufReader::new(stdout).lines();
+        let mut error = String::new();
+        while let Ok(Some(line)) = lines.next_line().await {
+            if !error.is_empty() {
+                error.push('\n');
+            }
+            error.push_str(&line);
+        }
+        error
+    });
     let token = CancellationToken::new();
     let channel_id = channel.id.context("no channel id")?;
     if let Some(source_id) = source.as_ref().and_then(|s| s.id) {
@@ -90,27 +105,11 @@ pub async fn play(
             if status.success() {
                 Ok(())
             } else {
-                let stdout = cmd.stdout.take();
-                if stdout.is_none() {
-                     Ok(())
+                let error = output.await.unwrap_or_default();
+                if error.is_empty() {
+                    Err(anyhow::anyhow!("Mpv encountered an unknown error"))
                 } else {
-                    let stdout = stdout.context("no stdout")?;
-                    let mut error: String = String::new();
-                    let mut lines = BufReader::new(stdout).lines();
-                    let mut first = true;
-                    while let Some(line) = lines.next_line().await? {
-                        error += &line;
-                        if !first {
-                            error += "\n";
-                        } else {
-                            first = false;
-                        }
-                    }
-                    if error != "" {
-                        Err(anyhow::anyhow!(error))
-                    } else {
-                        Err(anyhow::anyhow!("Mpv encountered an unknown error"))
-                    }
+                    Err(anyhow::anyhow!(error))
                 }
             }
         },
