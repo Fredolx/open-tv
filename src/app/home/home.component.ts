@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  NgZone,
   OnDestroy,
   ViewChild,
 } from "@angular/core";
@@ -104,12 +105,19 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // Stable identity for the channel grid so re-search/re-sort/load-more reuses
+  // existing tile DOM instead of destroying and rebuilding every tile.
+  trackByChannel(_index: number, channel: Channel): string | number {
+    return channel.id != null ? `${channel.media_type}-${channel.id}` : _index;
+  }
+
   constructor(
     private router: Router,
     public memory: MemoryService,
     public toast: ToastrService,
     private error: ErrorService,
     private modal: NgbModal,
+    private zone: NgZone,
   ) {
     this.getSources();
   }
@@ -285,29 +293,40 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.loading = false;
   }
 
-  checkScrollTop() {
-    const scrollPosition =
-      window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    this.showScrollTop = scrollPosition > 300;
-  }
+  // Scroll runs OUTSIDE the Angular zone and is throttled with rAF so that the
+  // dozens of scroll events per second don't each trigger an app-wide change
+  // detection pass (the main cause of scroll/mouse stutter while browsing).
+  // We only re-enter the zone when something the UI actually binds to changes.
+  private scrollTicking = false;
+  private onScroll = () => {
+    if (this.scrollTicking) return;
+    this.scrollTicking = true;
+    requestAnimationFrame(() => {
+      this.handleScroll();
+      this.scrollTicking = false;
+    });
+  };
 
-  async checkScrollEnd() {
+  private handleScroll() {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+    const showScrollTop = scrollTop > 300;
+    if (showScrollTop !== this.showScrollTop) {
+      // Re-enter Angular only when the scroll-to-top button visibility flips.
+      this.zone.run(() => (this.showScrollTop = showScrollTop));
+    }
     if (this.reachedMax === true || this.loading === true) return;
     const scrollHeight = document.documentElement.scrollHeight;
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const clientHeight = window.innerHeight || document.documentElement.clientHeight;
     if (scrollTop + clientHeight >= scrollHeight * 0.75) {
-      await this.loadMore();
+      // Re-enter Angular so the new page of channels renders.
+      this.zone.run(() => this.loadMore());
     }
   }
 
-  @HostListener("window:scroll", ["$event"])
-  async scroll(event: any) {
-    this.checkScrollTop();
-    await this.checkScrollEnd();
-  }
-
   ngAfterViewInit(): void {
+    this.zone.runOutsideAngular(() => {
+      window.addEventListener("scroll", this.onScroll, { passive: true });
+    });
     this.addEvents().then((_) => _);
     this.subscriptions.push(
       fromEvent(this.search.nativeElement, "keyup")
@@ -630,6 +649,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    window.removeEventListener("scroll", this.onScroll);
     this.subscriptions.forEach((x) => x.unsubscribe());
   }
 

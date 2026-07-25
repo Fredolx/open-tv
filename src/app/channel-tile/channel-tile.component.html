@@ -4,12 +4,12 @@
 }" [ngbTooltip]="channel?.name" triggers="hover" (click)="click()" class="channel d-inline-flex p-2 align-items-center"
   (contextmenu)="onRightClick($event)">
   <div class="image-container me-2">
-    <img (error)="showImage = false" class="channel-image" *ngIf="channel?.image && showImage"
-      src="{{ channel?.image }}" />
+    <img (error)="onError($event)" class="channel-image" *ngIf="channel?.image && showImage"
+      loading="lazy" decoding="async" src="{{ channel?.image }}" />
   </div>
   <div class="channel-title-container d-flex flex-column justify-content-center">
     <div class="channel-title">{{ channel?.name }}</div>
-    <div class="channel-source">{{ getSourceName() }}</div>
+    <div class="channel-source">{{ sourceName }}</div>
   </div>
   <div class="ms-auto d-flex flex-column justify-content-center align-items-center h-100">
     <svg *ngIf="channel?.tv_archive === true" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
