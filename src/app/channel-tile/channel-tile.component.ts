@@ -1,5 +1,7 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   Input,
@@ -36,6 +38,7 @@ import { writeText } from "@tauri-apps/plugin-clipboard-manager";
   selector: "app-channel-tile",
   templateUrl: "./channel-tile.component.html",
   styleUrl: "./channel-tile.component.css",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   constructor(
@@ -46,8 +49,21 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     private el: ElementRef,
     private renderer: Renderer2,
     private download: DownloadService,
+    private cdr: ChangeDetectorRef,
   ) { }
-  @Input() channel?: Channel;
+  private _channel?: Channel;
+  // Precomputed once when the channel input is set, so the template doesn't
+  // call a method binding on every change-detection cycle.
+  sourceName = "";
+  @Input() set channel(value: Channel | undefined) {
+    this._channel = value;
+    this.sourceName = value?.source_id
+      ? (this.memory.Sources.get(value.source_id)?.name ?? "")
+      : "";
+  }
+  get channel(): Channel | undefined {
+    return this._channel;
+  }
   @Input() id!: number;
   @Input() viewMode: number = 0;
   @ViewChild(MatMenuTrigger, { static: true }) matMenuTrigger!: MatMenuTrigger;
@@ -125,6 +141,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       if (!file) return;
     }
     this.starting = true;
+    this.cdr.markForCheck();
     this.memory.SetFocus.next(this.id);
     try {
       await invoke("play", { channel: this.channel, record: record, recordPath: file });
@@ -136,6 +153,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       this.error.handleError(e);
     });
     this.starting = false;
+    this.cdr.markForCheck();
   }
 
   onRightClick(event: MouseEvent) {
@@ -148,11 +166,13 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     this.menuTopLeftPosition.y = event.clientY;
     if (this.memory.currentContextMenu?.menuOpen) this.memory.currentContextMenu.closeMenu();
     this.memory.currentContextMenu = this.matMenuTrigger;
+    this.cdr.markForCheck();
     this.matMenuTrigger.openMenu();
   }
 
   onError(event: Event) {
     this.showImage = false;
+    this.cdr.markForCheck();
   }
 
   async favorite() {
@@ -175,6 +195,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
           this.fade = false;
         this.toastr.success(msg);
       }
+      this.cdr.markForCheck();
     } catch (e) {
       this.error.handleError(e, `Failed to add/remove "${this.channel?.name}" to/from favorites`);
     }
@@ -206,6 +227,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       this.channel!.hidden = hide;
       this.fade = this.viewMode == ViewMode.Hidden ? !hide : hide;
       this.toastr.success(`${msg} (updates on reload)`);
+      this.cdr.markForCheck();
     } catch (e) {
       this.error.handleError(e, `Failed to hide/unhide "${this.channel?.name}"`);
     }
@@ -233,11 +255,6 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
       !this.isCustom() &&
       this.memory.XtreamSourceIds.has(this.channel.source_id!)
     );
-  }
-
-  getSourceName(): string {
-    if (!this.channel?.source_id) return "";
-    return this.memory.Sources.get(this.channel.source_id)?.name || "";
   }
 
   async showEPGModal() {
