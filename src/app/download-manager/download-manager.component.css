@@ -25,6 +25,11 @@ button.btn-outline-light:hover {
   background-color: #2b2d30;
 }
 
+.queued {
+  color: #aaa;
+  font-style: italic;
+}
+
 .stop {
   width: 1.5rem;
   height: 1.5rem;
