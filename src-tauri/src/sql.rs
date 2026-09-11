@@ -1827,6 +1827,47 @@ pub fn find_all_episodes_after(channel: &Channel) -> Result<Vec<String>> {
         .collect())
 }
 
+pub fn get_season_episodes(season_id: i64) -> Result<Vec<Channel>> {
+    let sql = get_conn()?;
+    Ok(sql
+        .prepare(
+            r#"
+        SELECT * FROM channels
+        WHERE season_id = ?
+        AND media_type = ?
+        AND url IS NOT NULL
+        AND hidden = 0
+        ORDER BY episode_num, name
+      "#,
+        )?
+        .query_map(params![season_id, media_type::MOVIE], row_to_channel)?
+        .filter_map(Result::ok)
+        .collect())
+}
+
+pub fn get_series_episodes(series_id: i64, source_id: i64) -> Result<Vec<Channel>> {
+    let sql = get_conn()?;
+    Ok(sql
+        .prepare(
+            r#"
+        SELECT channels.* FROM channels
+        LEFT JOIN seasons ON seasons.id = channels.season_id
+        WHERE channels.series_id = ?
+        AND channels.source_id = ?
+        AND channels.media_type = ?
+        AND channels.url IS NOT NULL
+        AND channels.hidden = 0
+        ORDER BY seasons.season_number, channels.episode_num, channels.name
+      "#,
+        )?
+        .query_map(
+            params![series_id, source_id, media_type::MOVIE],
+            row_to_channel,
+        )?
+        .filter_map(Result::ok)
+        .collect())
+}
+
 pub fn update_source_last_updated(source_id: i64) -> Result<()> {
     let sql = get_conn()?;
     sql.execute(

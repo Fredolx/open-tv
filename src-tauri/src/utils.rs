@@ -74,6 +74,7 @@ pub async fn download(
     channel: Channel,
     download_id: &str,
     path: Option<String>,
+    directory: Option<String>,
 ) -> Result<()> {
     let source_id = channel.source_id.context("no source id provided")?;
     let source = sql::get_source_from_id(source_id)
@@ -119,7 +120,18 @@ pub async fn download(
     let mut downloaded = 0;
     let path = match path {
         Some(p) => p,
-        None => get_download_path(get_filename(name, url)?)?,
+        None => {
+            let filename = get_filename(name, url)?;
+            // Bulk downloads pick a directory once instead of a path per episode
+            match directory {
+                Some(dir) => {
+                    let mut dir = Path::new(&dir).to_path_buf();
+                    dir.push(filename);
+                    dir.to_string_lossy().to_string()
+                }
+                None => get_download_path(filename)?,
+            }
+        }
     };
     let mut file = tokio::fs::File::create(&path).await?;
     let mut send_threshold: f64 = 0.1;

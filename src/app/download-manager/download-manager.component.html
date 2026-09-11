@@ -1,6 +1,6 @@
 <div class="position-fixed bottom-0 end-0 m-3 shadow-sm rounded download-box" [class.collapsed]="isMinimized">
   <div class="d-flex justify-content-between align-items-center px-3 py-2 download-header">
-    <strong class="text-light">Downloads</strong>
+    <strong class="text-light">Downloads ({{ getDownloads().length }})</strong>
     <button class="btn btn-sm btn-outline-light" (click)="toggleMinimize()">
       <span *ngIf="isMinimized">
         <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
@@ -18,16 +18,20 @@
     </button>
   </div>
 
-  <div *ngIf="!isMinimized" class="p-3 d-grid gap-3">
+  <div *ngIf="!isMinimized" class="p-3 d-grid gap-3 download-list">
     <div *ngFor="let download of getDownloads()">
       <div class="d-flex justify-content-between text-light small mb-1">
         <span>{{ download.channel.name }}</span>
-        <span>{{ download.progress }}%</span>
+        <span *ngIf="isQueued(download)" class="queued">Queued</span>
+        <span *ngIf="!isQueued(download)">{{ download.progress }}%</span>
       </div>
       <div class="d-flex align-items-center">
         <div class="progress" style="height: 6px; width: 90%">
-          <div class="progress-bar bg-success" role="progressbar" [style.width.%]="download.progress"
-            [attr.aria-valuenow]="download.progress" aria-valuemin="0" aria-valuemax="100"></div>
+          <div *ngIf="isQueued(download)" class="progress-bar progress-bar-striped bg-secondary" role="progressbar"
+            style="width: 100%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+          <div *ngIf="!isQueued(download)" class="progress-bar bg-success" role="progressbar"
+            [style.width.%]="download.progress" [attr.aria-valuenow]="download.progress" aria-valuemin="0"
+            aria-valuemax="100"></div>
         </div>
         <svg fill="red" (click)="cancelDownload(download.id)" class="stop ms-3" xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24">

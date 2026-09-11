@@ -115,7 +115,9 @@ pub fn run() {
             hide_channel,
             hide_group,
             remove_from_history,
-            get_all_expiries
+            get_all_expiries,
+            get_season_episodes,
+            get_series_episodes
         ])
         .setup(|app| {
             app.manage(Mutex::new(AppState {
@@ -439,10 +441,21 @@ async fn download(
     channel: Channel,
     download_id: String,
     path: Option<String>,
+    directory: Option<String>,
 ) -> Result<(), String> {
-    utils::download(state.clone(), app, channel, &download_id, path)
+    utils::download(state.clone(), app, channel, &download_id, path, directory)
         .await
         .map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn get_season_episodes(season_id: i64) -> Result<Vec<Channel>, String> {
+    sql::get_season_episodes(season_id).map_err(map_err_frontend)
+}
+
+#[tauri::command(async)]
+fn get_series_episodes(series_id: i64, source_id: i64) -> Result<Vec<Channel>, String> {
+    sql::get_series_episodes(series_id, source_id).map_err(map_err_frontend)
 }
 
 #[tauri::command]

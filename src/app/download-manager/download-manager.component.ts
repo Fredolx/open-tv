@@ -17,6 +17,10 @@ export class DownloadManagerComponent implements OnInit {
     return Array.from(this.downloadService.Downloads.values());
   }
 
+  isQueued(download: Download) {
+    return this.downloadService.isQueued(download);
+  }
+
   toggleMinimize() {
     this.isMinimized = !this.isMinimized;
   }
