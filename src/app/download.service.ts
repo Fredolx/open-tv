@@ -6,7 +6,6 @@ import { ErrorService } from "./error.service";
 import { listen } from "@tauri-apps/api/event";
 import { Channel } from "./models/channel";
 
-/// Used when a channel has no source id, so those downloads still queue against each other
 const NO_SOURCE = -1;
 
 @Injectable({
@@ -76,7 +75,7 @@ export class DownloadService {
   }
 
   /// Queues a download and resolves once it completed, failed or got cancelled
-  async download(id: String, path?: string) {
+  async download(id: String, path?: string, directory?: string) {
     let download = this.Downloads.get(id);
     if (!download) {
       return;
@@ -86,10 +85,28 @@ export class DownloadService {
       return;
     }
     download.path = path;
+    download.directory = directory;
     let settled = new Promise<void>((resolve) => (download!.settle = resolve));
     this.queue.push(download);
     this.startNext();
     return settled;
+  }
+
+  async addBulkDownloads(channels: Channel[], directory?: string): Promise<number> {
+    let queued = 0;
+    for (let channel of channels) {
+      if (channel.id == undefined) {
+        continue;
+      }
+      let id = channel.id.toString();
+      if (this.Downloads.has(id)) {
+        continue;
+      }
+      let download = await this.addDownload(id, channel);
+      this.download(download.id, undefined, directory);
+      queued++;
+    }
+    return queued;
   }
 
   isQueued(download: Download) {
@@ -117,6 +134,7 @@ export class DownloadService {
         downloadId: download.id,
         channel: download.channel,
         path: download.path,
+        directory: download.directory,
       });
       this.error.success("Download completed successfully");
     } catch (e) {

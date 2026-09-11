@@ -24,7 +24,7 @@ import { RestreamModalComponent } from "../restream-modal/restream-modal.compone
 import { DownloadService } from "../download.service";
 import { Download } from "../models/download";
 import { Subscription, take } from "rxjs";
-import { save } from "@tauri-apps/plugin-dialog";
+import { open, save } from "@tauri-apps/plugin-dialog";
 import { CHANNEL_EXTENSION, GROUP_EXTENSION, RECORD_EXTENSION } from "../models/extensions";
 import { getDateFormatted, getExtension, sanitizeFileName } from "../utils";
 import { NodeType, fromMediaType } from "../models/nodeType";
@@ -139,7 +139,6 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   onRightClick(event: MouseEvent) {
-    if (this.channel?.media_type == MediaType.season) return;
     this.alreadyExistsInFav = this.channel!.favorite!;
     this.alreadyHidden = this.channel!.hidden!;
     this.downloading = this.isDownloading();
@@ -412,6 +411,69 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
 
   async cancelDownload() {
     await this.download.abortDownload(this.channel!.id!.toString());
+  }
+
+  isSeason() {
+    return this.channel?.media_type == MediaType.season;
+  }
+
+  isSeries() {
+    return this.channel?.media_type == MediaType.serie;
+  }
+
+  async downloadSeason() {
+    await this.bulkDownload("episodes", () =>
+      invoke<Channel[]>("get_season_episodes", { seasonId: this.channel!.id }),
+    );
+  }
+
+  async downloadSeries() {
+    if (!this.memory.SeriesRefreshed.has(this.channel!.id!)) {
+      try {
+        await invoke("get_episodes", { channel: this.channel });
+        this.memory.SeriesRefreshed.set(this.channel!.id!, true);
+      } catch (e) {
+        this.error.handleError(e, "Failed to fetch series");
+        return;
+      }
+    }
+    await this.bulkDownload("episodes", () =>
+      invoke<Channel[]>("get_series_episodes", {
+        seriesId: parseInt(this.channel!.url!),
+        sourceId: this.channel!.source_id,
+      }),
+    );
+  }
+
+  private async bulkDownload(entityName: string, getChannels: () => Promise<Channel[]>) {
+    let channels: Channel[];
+    try {
+      channels = await getChannels();
+    } catch (e) {
+      this.error.handleError(e, `Failed to fetch ${entityName}`);
+      return;
+    }
+    if (channels.length == 0) {
+      this.toastr.info(`No ${entityName} to download`);
+      return;
+    }
+    let directory = undefined;
+    if (this.memory.IsContainer || this.memory.AlwaysAskSave) {
+      directory = await open({
+        directory: true,
+        canCreateDirectories: true,
+        title: `Select where to download ${entityName}`,
+      });
+      if (!directory) {
+        return;
+      }
+    }
+    let queued = await this.download.addBulkDownloads(channels, directory ?? undefined);
+    if (queued == 0) {
+      this.toastr.info(`All ${entityName} are already downloading`);
+      return;
+    }
+    this.toastr.success(`Queued ${queued} ${queued == 1 ? "episode" : entityName}`);
   }
 
   getExistingDownload() {

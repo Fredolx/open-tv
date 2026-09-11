@@ -40,7 +40,8 @@
       <ng-container *ngIf="alreadyExistsInFav">Unfavorite</ng-container>
       <ng-container *ngIf="!alreadyExistsInFav">Favorite</ng-container>
     </button>
-    <button [hidden]="isCustom() || viewMode == viewModeEnum.History" mat-menu-item (click)="hide()"> <ng-container
+    <button [hidden]="isCustom() || isSeason() || viewMode == viewModeEnum.History" mat-menu-item (click)="hide()">
+      <ng-container
         *ngIf="alreadyHidden">Unhide</ng-container>
       <ng-container *ngIf="!alreadyHidden">Hide</ng-container>
     </button>
@@ -50,6 +51,12 @@
     </button>
     <button [hidden]="!isMovie() || !downloading" mat-menu-item (click)="cancelDownload()">
       Cancel download
+    </button>
+    <button [hidden]="!isSeason()" mat-menu-item (click)="downloadSeason()">
+      Download season
+    </button>
+    <button [hidden]="!isSeries()" mat-menu-item (click)="downloadSeries()">
+      Download all episodes
     </button>
     <button [hidden]="!showEPG()" mat-menu-item (click)="showEPGModal()">EPG</button>
     <button [hidden]="!isCustom()" mat-menu-item (click)="edit()">Edit</button>

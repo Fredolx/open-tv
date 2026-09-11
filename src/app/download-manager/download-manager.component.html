@@ -1,6 +1,6 @@
 <div class="position-fixed bottom-0 end-0 m-3 shadow-sm rounded download-box" [class.collapsed]="isMinimized">
   <div class="d-flex justify-content-between align-items-center px-3 py-2 download-header">
-    <strong class="text-light">Downloads</strong>
+    <strong class="text-light">Downloads ({{ getDownloads().length }})</strong>
     <button class="btn btn-sm btn-outline-light" (click)="toggleMinimize()">
       <span *ngIf="isMinimized">
         <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
@@ -18,7 +18,7 @@
     </button>
   </div>
 
-  <div *ngIf="!isMinimized" class="p-3 d-grid gap-3">
+  <div *ngIf="!isMinimized" class="p-3 d-grid gap-3 download-list">
     <div *ngFor="let download of getDownloads()">
       <div class="d-flex justify-content-between text-light small mb-1">
         <span>{{ download.channel.name }}</span>

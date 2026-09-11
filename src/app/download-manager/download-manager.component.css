@@ -25,6 +25,11 @@ button.btn-outline-light:hover {
   background-color: #2b2d30;
 }
 
+.download-list {
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
 .queued {
   color: #aaa;
   font-style: italic;

@@ -17,6 +17,8 @@ export class Download {
   status!: DownloadStatus;
   /// Where to save the file, picked before the download is queued
   path?: string;
+  /// Directory to save into, used by bulk downloads that pick a folder once
+  directory?: string;
   /// Resolves whatever called download(), once it finished, failed or got cancelled
   settle?: () => void;
 }
