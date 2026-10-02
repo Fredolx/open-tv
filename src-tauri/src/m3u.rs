@@ -29,6 +29,8 @@ static LOGO_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"tvg-logo="(?P<logo>[^"]*)""#).unwrap());
 static GROUP_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"group-title="(?P<group>[^"]*)""#).unwrap());
+static EPG_URL_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"(?:url-tvg|x-tvg-url)="(?P<url>[^"]*)""#).unwrap());
 
 static HTTP_ORIGIN_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"http-origin=(?P<origin>.+)"#).unwrap());
@@ -86,7 +88,11 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
             }
         };
         let l1_upper = l1.to_uppercase();
-        if l1_upper.starts_with("#EXTINF") {
+        if l1_upper.trim_start_matches('\u{feff}').starts_with("#EXTM3U") {
+            if let Some(epg_url) = get_epg_url_from_header(&l1) {
+                sql::set_source_epg_url_if_empty(&tx, processing.source_id, &epg_url)?;
+            }
+        } else if l1_upper.starts_with("#EXTINF") {
             try_commit_channel(&mut processing, &tx);
             processing.channel_line = Some(l1);
             processing.channel_headers_set = false;
@@ -112,6 +118,7 @@ pub fn read_m3u8(mut source: Source, wipe: bool) -> Result<()> {
     }
     sql::analyze(&tx)?;
     tx.commit()?;
+    crate::xmltv::delete_cache(processing.source_id);
     Ok(())
 }
 
@@ -210,6 +217,14 @@ fn extract_non_empty_capture(caps: Captures) -> Option<String> {
         .filter(|s| !s.trim().is_empty())
 }
 
+fn get_epg_url_from_header(line: &str) -> Option<String> {
+    EPG_URL_REGEX
+        .captures(line)
+        .and_then(extract_non_empty_capture)
+        .and_then(|x| x.split(',').next().map(|x| x.trim().to_string()))
+        .filter(|x| !x.is_empty())
+}
+
 fn set_http_headers(line: &str, headers: &mut ChannelHttpHeaders) -> bool {
     if let Some(origin) = HTTP_ORIGIN_REGEX
         .captures(&line)
@@ -286,6 +301,10 @@ fn get_channel_from_lines(
         season_id: None,
         episode_num: None,
         hidden: Some(false),
+        tvg_id: ID_REGEX
+            .captures(&first)
+            .and_then(extract_non_empty_capture)
+            .map(|x| x.trim().to_string()),
     };
     Ok(channel)
 }
@@ -304,7 +323,7 @@ mod test_m3u {
     use std::{env, time::Instant};
 
     use crate::{
-        m3u::{get_channel_from_lines, get_m3u8_from_link},
+        m3u::{get_channel_from_lines, get_epg_url_from_header, get_m3u8_from_link},
         types::Source,
     };
 
@@ -323,5 +342,21 @@ mod test_m3u {
         assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="Name Of Channel" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(true)).unwrap().name == "Name Of Channel");
         assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(true)).unwrap().name == "Id Of Channel");
         assert!(get_channel_from_lines(r#"#EXTINF:-1 tvg-id="Id Of Channel" tvg-name="" tvg-logo="http://myurl.local/amazing/stuff.png" group-title="|EU| FRANCE HEVC",Alt Name Of Channel"#.to_string(), "http://myurl.local/1111/1111.ts".to_string(), 0, Some(false)).unwrap().name == "Alt Name Of Channel");
+    }
+
+    #[test]
+    fn test_get_epg_url_from_header() {
+        assert_eq!(get_epg_url_from_header(r#"#EXTM3U url-tvg="http://a.local/epg.xml.gz""#), Some("http://a.local/epg.xml.gz".to_string()));
+        assert_eq!(get_epg_url_from_header(r#"#EXTM3U x-tvg-url="http://a.local/1.xml, http://a.local/2.xml""#), Some("http://a.local/1.xml".to_string()));
+        assert_eq!(get_epg_url_from_header(r#"#EXTM3U url-tvg="""#), None);
+        assert_eq!(get_epg_url_from_header("#EXTM3U"), None);
+    }
+
+    #[test]
+    fn test_get_channel_tvg_id() {
+        let channel = get_channel_from_lines(r#"#EXTINF:-1 tvg-id="bbc1.uk" tvg-name="BBC One",BBC One"#.to_string(), "http://myurl.local/1.ts".to_string(), 0, None).unwrap();
+        assert_eq!(channel.tvg_id, Some("bbc1.uk".to_string()));
+        let channel = get_channel_from_lines(r#"#EXTINF:-1 tvg-name="BBC One",BBC One"#.to_string(), "http://myurl.local/1.ts".to_string(), 0, None).unwrap();
+        assert_eq!(channel.tvg_id, None);
     }
 }

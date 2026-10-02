@@ -12,4 +12,5 @@ export class Channel {
   stream_id?: number;
   tv_archive?: boolean;
   hidden?: boolean;
+  tvg_id?: string;
 }

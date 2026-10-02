@@ -62,6 +62,13 @@
                     </div>
                 </div>
             </div>
+            <div *ngIf="source.source_type == sourceTypeEnum.M3U || source.source_type == sourceTypeEnum.M3ULink"
+                class="row mt-2 justify-content-center">
+                <div class="col-lg-6 col-md-8">
+                    <input autocomplete="off" name="epg-url" class="form-control" [(ngModel)]="source.epg_url"
+                        placeholder="EPG URL (optional, XMLTV)">
+                </div>
+            </div>
             <div *ngIf="source.source_type == sourceTypeEnum.Xtream">
                 <div class="row mt-2 justify-content-center">
                     <div class="col-lg-6 col-md-8">

@@ -122,6 +122,13 @@
             </div>
         </div>
     </div>
+    <div class="row mt-2"
+        *ngIf="editing && (source?.source_type == sourceTypeEnum.M3U || source?.source_type == sourceTypeEnum.M3ULink)">
+        <div class="col">
+            <input autocomplete="off" class="form-control form-control-sm" name="epg-url"
+                [(ngModel)]="editableSource.epg_url" placeholder="EPG URL (optional, XMLTV)">
+        </div>
+    </div>
     <div class="mt-3 d-flex flex-wrap gap-3 w-75">
         <button (click)="edit()" class="btn btn-primary d-inline-flex align-items-center" [disabled]="memory.Loading"
             *ngIf="source?.source_type != sourceTypeEnum.Custom && !editing">

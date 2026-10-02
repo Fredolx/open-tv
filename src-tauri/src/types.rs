@@ -33,6 +33,8 @@ pub struct Channel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub episode_num: Option<i64>,
     pub hidden: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tvg_id: Option<String>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize, Default)]
@@ -66,6 +68,7 @@ pub struct Source {
     pub stream_user_agent: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_updated: Option<i64>,
+    pub epg_url: Option<String>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
