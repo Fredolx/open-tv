@@ -11,6 +11,7 @@ import { MatMenuTrigger } from "@angular/material/menu";
 import { Channel } from "../models/channel";
 import { MemoryService } from "../memory.service";
 import { MediaType } from "../models/mediaType";
+import { SourceType } from "../models/sourceType";
 import { invoke } from "@tauri-apps/api/core";
 import { ToastrService } from "ngx-toastr";
 import { ErrorService } from "../error.service";
@@ -228,10 +229,11 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
   }
 
   showEPG(): boolean {
+    if (this.channel?.media_type != MediaType.livestream || this.isCustom()) return false;
+    if (this.memory.XtreamSourceIds.has(this.channel.source_id!)) return true;
+    const sourceType = this.memory.Sources.get(this.channel.source_id!)?.source_type;
     return (
-      this.channel?.media_type == MediaType.livestream &&
-      !this.isCustom() &&
-      this.memory.XtreamSourceIds.has(this.channel.source_id!)
+      (sourceType == SourceType.M3U || sourceType == SourceType.M3ULink) && !!this.channel.tvg_id
     );
   }
 
@@ -260,7 +262,7 @@ export class ChannelTileComponent implements OnDestroy, AfterViewInit {
     } catch (e) {
       this.error.handleError(
         e,
-        "Missing stream id. Please refresh your sources (Settings -> Refresh All) to enable the EPG feature",
+        "Failed to load EPG. Check the source's EPG URL, or refresh your sources (Settings -> Refresh All)",
       );
     }
   }

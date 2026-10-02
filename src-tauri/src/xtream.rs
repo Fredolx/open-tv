@@ -282,6 +282,7 @@ fn convert_xtream_live_to_channel(
         season_id: None,
         episode_num: None,
         hidden: Some(false),
+        tvg_id: None,
     })
 }
 
@@ -506,6 +507,7 @@ fn episode_to_channel(
         favorite: false,
         tv_archive: None,
         hidden: Some(false),
+        tvg_id: None,
     })
 }
 

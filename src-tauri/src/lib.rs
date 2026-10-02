@@ -34,6 +34,7 @@ pub mod sql;
 pub mod types;
 pub mod utils;
 pub mod view_type;
+pub mod xmltv;
 pub mod xtream;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -424,12 +425,21 @@ fn channel_exists(name: String, url: String, source_id: i64) -> Result<bool, Str
 
 #[tauri::command(async)]
 fn update_source(source: Source) -> Result<(), String> {
+    if let Some(id) = source.id {
+        xmltv::delete_cache(id);
+    }
     sql::update_source(source).map_err(map_err_frontend)
 }
 
 #[tauri::command]
 async fn get_epg(channel: Channel) -> Result<Vec<EPG>, String> {
-    xtream::get_epg(channel).await.map_err(map_err_frontend)
+    let source_id = channel.source_id.ok_or("No source id")?;
+    let source = sql::get_source_from_id(source_id).map_err(map_err_frontend)?;
+    match source.source_type {
+        source_type::M3U | source_type::M3U_LINK => xmltv::get_epg(channel).await,
+        _ => xtream::get_epg(channel).await,
+    }
+    .map_err(map_err_frontend)
 }
 
 #[tauri::command]

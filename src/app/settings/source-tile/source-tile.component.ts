@@ -120,6 +120,7 @@ export class SourceTileComponent {
       if (this.editableSource.user_agent == "") this.editableSource.user_agent = undefined;
       if (this.editableSource.stream_user_agent == "")
         this.editableSource.stream_user_agent = undefined;
+      this.editableSource.epg_url = this.editableSource.epg_url?.trim() || undefined;
       await invoke("update_source", { source: this.editableSource });
       this.source = this.editableSource;
       this.editing = false;

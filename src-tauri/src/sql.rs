@@ -234,6 +234,13 @@ fn apply_migrations() -> Result<()> {
               ANALYZE;
             "#,
         ),
+        M::up(
+            r#"
+              ALTER TABLE sources ADD COLUMN epg_url varchar(500);
+              ALTER TABLE channels ADD COLUMN tvg_id varchar(100);
+              ANALYZE;
+            "#,
+        ),
     ]);
     migrations.to_latest(&mut sql)?;
     Ok(())
@@ -259,8 +266,8 @@ pub fn create_or_find_source_by_name(tx: &Transaction, source: &Source) -> Resul
         return Ok(id);
     }
     tx.execute(
-    "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id, user_agent, max_streams, last_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id, source.user_agent, source.max_streams, chrono::Utc::now().timestamp()],
+    "INSERT INTO sources (name, source_type, url, username, password, use_tvg_id, user_agent, max_streams, last_updated, epg_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    params![source.name, source.source_type.clone() as u8, source.url, source.username, source.password, source.use_tvg_id, source.user_agent, source.max_streams, chrono::Utc::now().timestamp(), source.epg_url],
     )?;
     Ok(tx.last_insert_rowid())
 }
@@ -299,8 +306,8 @@ pub fn insert_season(tx: &Transaction, season: Season) -> Result<i64> {
 pub fn insert_channel(tx: &Transaction, channel: Channel) -> Result<()> {
     tx.execute(
         r#"
-INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id, tv_archive, season_id, episode_num)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO channels (name, group_id, image, url, source_id, media_type, series_id, favorite, stream_id, tv_archive, season_id, episode_num, tvg_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (name, source_id, url, series_id, season_id)
 DO UPDATE SET
     url = excluded.url,
@@ -309,7 +316,8 @@ DO UPDATE SET
     image = excluded.image,
     series_id = excluded.series_id,
     tv_archive = excluded.tv_archive,
-    season_id = excluded.season_id;
+    season_id = excluded.season_id,
+    tvg_id = excluded.tvg_id;
 "#,
         params![
             channel.name,
@@ -323,7 +331,8 @@ DO UPDATE SET
             channel.stream_id,
             channel.tv_archive,
             channel.season_id,
-            channel.episode_num
+            channel.episode_num,
+            channel.tvg_id
         ],
     )?;
     Ok(())
@@ -602,6 +611,7 @@ fn season_row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Er
         url: None,
         episode_num: None,
         hidden: Some(false),
+        tvg_id: None,
     })
 }
 
@@ -839,14 +849,14 @@ fn search_hidden(filters: Filters) -> Result<Vec<Channel>> {
 
     let sql_query = format!(
         r#"
-        SELECT id, image, name, series_id, source_id, stream_id, tv_archive, url, episode_num, hidden, media_type, NULL as group_id, NULL as season_id, favorite
+        SELECT id, image, name, series_id, source_id, stream_id, tv_archive, url, episode_num, hidden, media_type, NULL as group_id, NULL as season_id, favorite, tvg_id
         FROM channels
         WHERE ({})
         AND media_type IN ({})
         AND source_id IN ({})
         AND hidden = 1
         UNION ALL
-        SELECT id, image, name, NULL as series_id, source_id, NULL as stream_id, NULL as tv_archive, NULL as url, NULL as episode_num, hidden, 3 as media_type, NULL as group_id, NULL as season_id, 0 as favorite
+        SELECT id, image, name, NULL as series_id, source_id, NULL as stream_id, NULL as tv_archive, NULL as url, NULL as episode_num, hidden, 3 as media_type, NULL as group_id, NULL as season_id, 0 as favorite, NULL as tvg_id
         FROM groups
         WHERE ({})
         AND source_id IN ({})
@@ -992,6 +1002,7 @@ fn row_to_group(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         season_id: None,
         episode_num: None,
         hidden: row.get("hidden")?,
+        tvg_id: None,
     };
     Ok(channel)
 }
@@ -1013,6 +1024,7 @@ fn row_to_channel(row: &Row) -> std::result::Result<Channel, rusqlite::Error> {
         tv_archive: row.get("tv_archive")?,
         season_id: row.get("season_id")?,
         hidden: row.get("hidden")?,
+        tvg_id: row.get("tvg_id")?,
     };
     Ok(channel)
 }
@@ -1210,6 +1222,7 @@ fn row_to_source(row: &Row) -> std::result::Result<Source, rusqlite::Error> {
         max_streams: row.get("max_streams")?,
         stream_user_agent: row.get("stream_user_agent")?,
         last_updated: row.get("last_updated")?,
+        epg_url: row.get("epg_url")?,
     })
 }
 
@@ -1270,6 +1283,7 @@ pub fn get_custom_source(name: String) -> Source {
         max_streams: None,
         stream_user_agent: None,
         last_updated: None,
+        epg_url: None,
     }
 }
 
@@ -1534,6 +1548,7 @@ fn row_to_custom_channel(row: &Row) -> Result<CustomChannel, rusqlite::Error> {
             season_id: None,
             episode_num: None,
             hidden: Some(false),
+            tvg_id: None,
         },
         headers: Some(ChannelHttpHeaders {
             http_origin: row.get("http_origin")?,
@@ -1596,7 +1611,7 @@ pub fn update_source(source: Source) -> Result<()> {
     sql.execute(
         r#"
         UPDATE sources
-        SET username = ?, password = ?, url = ?, use_tvg_id = ?, user_agent = ?, max_streams = ?, stream_user_agent = ?
+        SET username = ?, password = ?, url = ?, use_tvg_id = ?, user_agent = ?, max_streams = ?, stream_user_agent = ?, epg_url = ?
         WHERE id = ?"#,
         params![
             source.username,
@@ -1606,8 +1621,17 @@ pub fn update_source(source: Source) -> Result<()> {
             source.user_agent,
             source.max_streams,
             source.stream_user_agent,
+            source.epg_url,
             source.id
         ],
+    )?;
+    Ok(())
+}
+
+pub fn set_source_epg_url_if_empty(tx: &Transaction, source_id: i64, epg_url: &str) -> Result<()> {
+    tx.execute(
+        "UPDATE sources SET epg_url = ? WHERE id = ? AND (epg_url IS NULL OR epg_url = '')",
+        params![epg_url, source_id],
     )?;
     Ok(())
 }

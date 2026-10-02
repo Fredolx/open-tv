@@ -13,4 +13,5 @@ export class Source {
   max_streams?: number;
   stream_user_agent?: string;
   last_updated?: number;
+  epg_url?: string;
 }
