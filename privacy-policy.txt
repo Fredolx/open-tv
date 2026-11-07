@@ -1,12 +1,7 @@
-Privacy Policy
+Privacy
 
-Lachapelle Software is committed to ensuring the privacy and security of our users' personal information. 
-This Privacy Policy outlines how we collect, use, and protect the information you provide when using our mobile application.
+Lily TV does not collect, send or share any information about you.
 
-Information Collection:
-
-We do not collect any personally identifiable information about you.
-
-Usage of Information:
-
-Since we do not collect any personal information, we do not use, store, or disclose any information about you.
+Your sources, logins, favourites, history and settings are stored only on your own computer.
+The app connects only to the IPTV providers, playlists and guide sources you add, to fetch
+channels, guides, logos and streams.
