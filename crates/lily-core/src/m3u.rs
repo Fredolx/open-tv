@@ -187,7 +187,7 @@ pub async fn get_m3u8_from_link(source: Source, wipe: bool) -> Result<()> {
     }
     let mut file = std::fs::File::create(get_tmp_path())?;
     while let Some(chunk) = response.chunk().await? {
-        file.write(&chunk)?;
+        file.write_all(&chunk)?;
     }
     read_m3u8(source, wipe)
 }

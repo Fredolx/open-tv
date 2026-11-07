@@ -3,7 +3,9 @@
 
 mod backend;
 mod browse;
+mod settings;
 mod shell;
+mod sources;
 
 use std::sync::Arc;
 

@@ -133,7 +133,7 @@ pub async fn download(
           chunk = response.chunk() => {
                match chunk {
                    Ok(Some(chunk)) => {
-                       if let Err(e) = file.write(&chunk).await {
+                       if let Err(e) = file.write_all(&chunk).await {
                            break Err(e.into());
                        }
                        downloaded += chunk.len() as u64;
