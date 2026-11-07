@@ -22,3 +22,16 @@ windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Secur
 
 [build-dependencies]
 winresource = "0.1"
+
+# Windows installer: fill packaging/deps (packaging/fetch-deps.ps1), then run
+# `cargo packager --release` from this folder.
+[package.metadata.packager]
+product-name = "Lily TV"
+identifier = "dev.lilytv.app"
+publisher = "Lily TV"
+before-packaging-command = "cargo build --release -p lily-tv"
+out-dir = "../../target/release"
+icons = ["assets/icon.ico"]
+formats = ["nsis"]
+# mpv/ffmpeg/yt-dlp are looked up in a deps folder next to the exe
+resources = [{ src = "../../packaging/deps/*", target = "deps" }]

@@ -67,7 +67,7 @@ TV's, for example to test against a copy.
 .\packaging\fetch-deps.ps1          # or -FromFredTV to copy them from an installed Fred TV
 cargo install cargo-packager --locked
 cd crates\lily-tv
-cargo packager --release            # target\release\Lily TV_<version>_x64-setup.exe
+cargo packager --release            # target\release\lily-tv_<version>_x64-setup.exe
 ```
 
 The installer bundles mpv, ffmpeg and yt-dlp in a `deps` folder beside `lily-tv.exe`.
