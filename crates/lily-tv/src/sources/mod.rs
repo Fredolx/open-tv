@@ -1,4 +1,5 @@
 mod add_source_form;
+mod edit_source_form;
 mod sources_view;
 
 pub use add_source_form::{AddSourceForm, SourceAdded};

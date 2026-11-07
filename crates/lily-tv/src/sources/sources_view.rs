@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use gpui_kit::component::{
-    ActiveTheme as _, Disableable as _, IconName, WindowExt as _,
+    ActiveTheme as _, Disableable as _, IconName, Selectable as _, WindowExt as _,
     button::{Button, ButtonVariant, ButtonVariants as _},
     h_flex,
     notification::Notification,
@@ -11,7 +11,10 @@ use gpui_kit::component::{
 use gpui_kit::{prelude::FluentBuilder as _, *};
 use lily_core::{source_type, sql, types::Source, utils};
 
-use super::add_source_form::{AddSourceForm, SourceAdded};
+use super::{
+    add_source_form::{AddSourceForm, SourceAdded},
+    edit_source_form::{EditSourceEvent, EditSourceForm},
+};
 use crate::backend::Backend;
 
 /// Emitted whenever the set of usable sources changes.
@@ -24,6 +27,8 @@ pub struct SourcesView {
     /// Source ids with a refresh in flight
     refreshing: HashSet<i64>,
     refreshing_all: bool,
+    /// The source being edited inline, with its form and subscription
+    editing: Option<(i64, Entity<EditSourceForm>, Subscription)>,
     _subscriptions: Vec<Subscription>,
 }
 
@@ -43,6 +48,7 @@ impl SourcesView {
             adding: false,
             refreshing: HashSet::new(),
             refreshing_all: false,
+            editing: None,
             _subscriptions: vec![subscription],
         };
         this.reload(window, cx);
@@ -89,6 +95,34 @@ impl SourcesView {
             });
         })
         .detach();
+    }
+
+    /// Opens the inline editor for a source, or closes it if it is already open.
+    fn toggle_edit(&mut self, source: Source, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(id) = source.id else {
+            return;
+        };
+        if self.editing.as_ref().is_some_and(|(open, _, _)| *open == id) {
+            self.editing = None;
+            cx.notify();
+            return;
+        }
+        let form = cx.new(|cx| EditSourceForm::new(source, window, cx));
+        let subscription = cx.subscribe_in(&form, window, |this, _, event: &EditSourceEvent, window, cx| {
+            this.editing = None;
+            if let EditSourceEvent::Saved { name, refreshed } = event {
+                let message = if *refreshed {
+                    format!("Saved “{name}” and refreshed its channels.")
+                } else {
+                    format!("Saved “{name}”.")
+                };
+                window.push_notification(Notification::success(message), cx);
+                this.changed(window, cx);
+            }
+            cx.notify();
+        });
+        self.editing = Some((id, form, subscription));
+        cx.notify();
     }
 
     fn set_enabled(&mut self, id: i64, enabled: bool, window: &mut Window, cx: &mut Context<Self>) {
@@ -187,14 +221,16 @@ impl SourcesView {
         let refreshable = source.source_type != source_type::CUSTOM;
         let enabled = source.enabled;
         let for_refresh = source.clone();
+        let for_edit = source.clone();
         let for_delete = source.clone();
-        h_flex()
-            .id(ElementId::Name(format!("source-{id}").into()))
+        let edit_form = self
+            .editing
+            .as_ref()
+            .filter(|(open, _, _)| *open == id)
+            .map(|(_, form, _)| form.clone());
+        let editing = edit_form.is_some();
+        let row = h_flex()
             .gap_3()
-            .p_3()
-            .rounded(cx.theme().radius)
-            .border_1()
-            .border_color(cx.theme().border)
             .child(
                 Switch::new(ElementId::Name(format!("source-{id}-enabled").into()))
                     .checked(enabled)
@@ -229,6 +265,16 @@ impl SourcesView {
                 )
             })
             .child(
+                Button::new(ElementId::Name(format!("source-{id}-edit").into()))
+                    .ghost()
+                    .icon(IconName::Settings2)
+                    .selected(editing)
+                    .tooltip(if editing { "Close editor" } else { "Edit source" })
+                    .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
+                        this.toggle_edit(for_edit.clone(), window, cx)
+                    })),
+            )
+            .child(
                 Button::new(ElementId::Name(format!("source-{id}-delete").into()))
                     .ghost()
                     .icon(IconName::Delete)
@@ -236,7 +282,18 @@ impl SourcesView {
                     .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
                         this.confirm_delete(&for_delete, window, cx)
                     })),
-            )
+            );
+        v_flex()
+            .id(ElementId::Name(format!("source-{id}").into()))
+            .gap_3()
+            .p_3()
+            .rounded(cx.theme().radius)
+            .border_1()
+            .border_color(cx.theme().border)
+            .child(row)
+            .when_some(edit_form, |el, form| {
+                el.child(div().pt_3().border_t_1().border_color(cx.theme().border).child(form))
+            })
     }
 }
 

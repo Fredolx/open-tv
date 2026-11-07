@@ -23,6 +23,20 @@ const KINDS: [(u8, &str); 3] = [
     (source_type::M3U, "M3U file"),
 ];
 
+/// Opens the system file dialog for an M3U playlist; resolves to its path, or None if cancelled.
+pub(super) fn prompt_for_playlist(cx: &mut App) -> impl Future<Output = Option<String>> + use<> {
+    let paths = cx.prompt_for_paths(PathPromptOptions {
+        files: true,
+        directories: false,
+        multiple: false,
+        prompt: Some("Choose an M3U playlist".into()),
+    });
+    async move {
+        let path = paths.await.ok()?.ok()??.into_iter().next()?;
+        Some(path.to_string_lossy().to_string())
+    }
+}
+
 /// Emitted once a source has been imported.
 pub struct SourceAdded;
 
@@ -58,19 +72,13 @@ impl AddSourceForm {
     }
 
     fn pick_file(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        let paths = cx.prompt_for_paths(PathPromptOptions {
-            files: true,
-            directories: false,
-            multiple: false,
-            prompt: Some("Choose an M3U playlist".into()),
-        });
+        let picked = prompt_for_playlist(cx);
         cx.spawn_in(window, async move |this, cx| {
-            let Some(path) = paths.await.ok().and_then(Result::ok).flatten().and_then(|p| p.into_iter().next())
-            else {
+            let Some(path) = picked.await else {
                 return;
             };
             _ = this.update(cx, |this, cx| {
-                this.file = Some(path.to_string_lossy().to_string());
+                this.file = Some(path);
                 this.error = None;
                 cx.notify();
             });
