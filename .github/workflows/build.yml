@@ -16,10 +16,39 @@ jobs:
       - name: Test
         run: cargo test --workspace
       - name: Clippy (app)
-        run: cargo clippy -p lily-tv -- -D warnings
-      - name: Build release
-        run: cargo build --release -p lily-tv
+        run: cargo clippy -p lily-tv --no-deps -- -D warnings
+      - name: Fetch mpv, ffmpeg and yt-dlp
+        shell: pwsh
+        run: ./packaging/fetch-deps.ps1
+      - name: Build installer
+        working-directory: crates/lily-tv
+        run: |
+          cargo install cargo-packager --locked
+          cargo packager --release
       - uses: actions/upload-artifact@v4
         with:
-          name: lily-tv-windows
-          path: target/release/lily-tv.exe
+          name: lily-tv-windows-installer
+          path: target/release/*-setup.exe
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GPUI build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc g++ clang pkg-config libfontconfig-dev libwayland-dev \
+            libxkbcommon-x11-dev libx11-xcb-dev libvulkan1
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace
+      - run: cargo build --release -p lily-tv
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace
+      - run: cargo build --release -p lily-tv
