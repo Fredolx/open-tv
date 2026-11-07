@@ -38,6 +38,7 @@ where
         .subscribe(&editor, cx, move |_, event: &EditorEvent, window, cx| {
             window.close_dialog(cx);
             if matches!(event, EditorEvent::Saved) {
+                window.push_notification(Notification::success("Saved."), cx);
                 on_saved(window, cx);
             }
         })

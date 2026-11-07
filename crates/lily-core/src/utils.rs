@@ -320,10 +320,11 @@ pub fn is_container() -> bool {
     std::env::var("container").is_ok()
 }
 
+/// Asks for the database to be deleted on the next start; the caller restarts the app.
 pub fn create_nuke_request() -> Result<()> {
     let path = get_nuke_path()?;
     File::create(path)?;
-    std::process::exit(0);
+    Ok(())
 }
 
 fn get_nuke_path() -> Result<PathBuf> {

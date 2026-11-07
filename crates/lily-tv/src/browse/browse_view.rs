@@ -1,8 +1,8 @@
 use std::{collections::HashSet, rc::Rc, time::Duration};
 
 use gpui_kit::component::{
-    ActiveTheme as _, IconName, IndexPath, Sizable as _, WindowExt as _,
-    button::{Button, ButtonVariant, ButtonVariants as _, Toggle},
+    ActiveTheme as _, IconName, IndexPath, Selectable as _, Sizable as _, WindowExt as _,
+    button::{Button, ButtonVariant, ButtonVariants as _},
     h_flex,
     input::{Input, InputEvent, InputState},
     kbd::Kbd,
@@ -616,11 +616,9 @@ impl BrowseView {
                         ),
                     )
                     .child(
-                        Toggle::new("keywords")
-                            .small()
-                            .label("Words in any order")
-                            .checked(self.model.use_keywords())
-                            .on_click(cx.listener(|this, _: &bool, window, cx| {
+                        filter_button("keywords", "Words in any order", self.model.use_keywords())
+                            .tooltip("Match every word anywhere in the name, instead of the exact phrase")
+                            .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
                                 this.model.toggle_keywords();
                                 this.reload(window, cx);
                             })),
@@ -647,11 +645,8 @@ impl BrowseView {
                             .gap_1()
                             .children(MEDIA.iter().map(|(media, label)| {
                                 let media = *media;
-                                Toggle::new(ElementId::Name(format!("media-{media}").into()))
-                                    .small()
-                                    .label(*label)
-                                    .checked(self.model.shows_media_type(media))
-                                    .on_click(cx.listener(move |this, _: &bool, window, cx| {
+                                filter_button(format!("media-{media}"), *label, self.model.shows_media_type(media))
+                                    .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
                                         this.toggle_media(media, window, cx)
                                     }))
                             }))
@@ -734,6 +729,16 @@ impl BrowseView {
                 }),
         )
     }
+}
+
+/// An on/off filter: outlined when off, selected with a check mark when on.
+fn filter_button(id: impl Into<SharedString>, label: &'static str, on: bool) -> Button {
+    Button::new(ElementId::Name(id.into()))
+        .small()
+        .outline()
+        .selected(on)
+        .when(on, |b| b.icon(IconName::Check))
+        .label(label)
 }
 
 fn ids_of_type(sources: &[Source], kind: u8) -> HashSet<i64> {

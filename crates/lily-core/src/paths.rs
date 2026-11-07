@@ -20,16 +20,24 @@ fn project_dirs() -> ProjectDirs {
     ProjectDirs::from("dev", "fredol", "open-tv").expect("no home directory to store data in")
 }
 
+/// The database folder, created if missing.
 pub fn data_dir() -> PathBuf {
-    match override_dir() {
+    ensure(match override_dir() {
         Some(dir) => dir.join("data"),
         None => project_dirs().data_dir().to_owned(),
-    }
+    })
 }
 
+/// The cache folder (logs, temporary playlists, restream segments), created if missing.
 pub fn cache_dir() -> PathBuf {
-    match override_dir() {
+    ensure(match override_dir() {
         Some(dir) => dir.join("cache"),
         None => project_dirs().cache_dir().to_owned(),
-    }
+    })
+}
+
+fn ensure(dir: PathBuf) -> PathBuf {
+    // callers report a clearer error when they try to use a folder that couldn't be made
+    let _ = std::fs::create_dir_all(&dir);
+    dir
 }
