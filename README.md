@@ -1,11 +1,14 @@
+<p align="center"><img src="crates/lily-tv/assets/logo.png" alt="Lily TV logo: a golden retriever" width="160"></p>
+
 # Lily TV
 
 A native IPTV player built in Rust with [GPUI](https://www.gpui.rs/) (via
 [gpui-kit](https://gpui-kit.com)).
 
-The channel database lives in `%APPDATA%\lilytv\lily-tv\data\db.sqlite` on Windows. Channels,
-groups and sources can be shared as `.otv`, `.otvg` and `.otvp` files, and favourites backed
-up as `.otvf`.
+The channel database lives in `%APPDATA%\lilytv\lily-tv\data\db.sqlite` on Windows. On its
+first start Lily TV copies over the database from the app's previous data folder, if there
+is one, so existing sources, favourites and history carry over. Channels, groups and sources
+can be shared as `.otv`, `.otvg` and `.otvp` files, and favourites backed up as `.otvf`.
 
 ## Features
 
@@ -79,6 +82,9 @@ macOS.
 - `crates/lily-tv`: the GPUI application, one module per feature (`browse`, `guide`,
   `sources`, `custom`, `downloads`, `restream`, `settings`) plus the window shell and
   Windows desktop integration
+- `packaging`: the installer's dependency script, and `logo/make_logo.py`, which draws the
+  logo and writes `crates/lily-tv/assets/icon.png`, `icon.ico` and `logo.png`
+  (`python packaging/logo/make_logo.py <out-dir>`, needs Pillow)
 
 ## License
 
