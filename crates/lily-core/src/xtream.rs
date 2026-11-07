@@ -615,3 +615,45 @@ pub async fn get_all_expiries() -> Result<HashMap<i64, i64>> {
         .collect();
     Ok(statuses)
 }
+
+/// Normalizes a user-typed Xtream server address the way the setup screen always has:
+/// assume http when no scheme is given, and point a bare host at `/player_api.php`.
+pub fn normalize_xtream_url(input: &str) -> Result<String> {
+    let input = input.trim();
+    let with_scheme = if input.starts_with("http://") || input.starts_with("https://") {
+        input.to_string()
+    } else {
+        format!("http://{input}")
+    };
+    let mut url = Url::parse(&with_scheme).context("invalid Xtream URL")?;
+    if url.path() == "/" {
+        url.set_path("/player_api.php");
+    }
+    Ok(url.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_xtream_url;
+
+    #[test]
+    fn adds_scheme_and_api_path_to_bare_host() {
+        assert_eq!(
+            normalize_xtream_url(" example.com:8080 ").unwrap(),
+            "http://example.com:8080/player_api.php"
+        );
+    }
+
+    #[test]
+    fn keeps_explicit_path_and_scheme() {
+        assert_eq!(
+            normalize_xtream_url("https://example.com/custom/player_api.php").unwrap(),
+            "https://example.com/custom/player_api.php"
+        );
+    }
+
+    #[test]
+    fn rejects_garbage() {
+        assert!(normalize_xtream_url("http://").is_err());
+    }
+}

@@ -3,6 +3,15 @@ name = "lily-tv"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
+description = "Lily TV: a native IPTV player built with GPUI"
 
 [dependencies]
+anyhow = "1.0.104"
+gpui-kit = "0.9.0"
+# Must match the GPUI snapshot gpui-kit 0.9.0 pins (gpui-pre =0.3.11)
+reqwest_client = { package = "gpui-pre-reqwest-client", version = "=0.3.11" }
 lily-core = { path = "../lily-core" }
+tokio = { version = "1.54.1", features = ["rt-multi-thread"] }
+
+[build-dependencies]
+winresource = "0.1"
