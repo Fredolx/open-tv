@@ -13,7 +13,6 @@ use crate::{
     view_type,
 };
 use anyhow::{Context, Result, anyhow};
-use directories::ProjectDirs;
 use r2d2::{Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::{OptionalExtension, Row, Transaction, params, params_from_iter};
@@ -33,10 +32,7 @@ fn create_connection_pool() -> Pool<SqliteConnectionManager> {
 }
 
 fn get_and_create_sqlite_db_path() -> String {
-    let mut path = ProjectDirs::from("dev", "fredol", "open-tv")
-        .unwrap()
-        .data_dir()
-        .to_owned();
+    let mut path = crate::paths::data_dir();
     if !path.exists() {
         std::fs::create_dir_all(&path).unwrap();
     }
@@ -1834,4 +1830,21 @@ pub fn update_source_last_updated(source_id: i64) -> Result<()> {
         params![chrono::Utc::now().timestamp(), source_id],
     )?;
     Ok(())
+}
+
+/// Names of the given groups, for labelling channels in search results.
+pub fn get_group_names(ids: &[i64]) -> Result<HashMap<i64, String>> {
+    if ids.is_empty() {
+        return Ok(HashMap::new());
+    }
+    let sql = get_conn()?;
+    let query = format!(
+        "SELECT id, name FROM groups WHERE id IN ({})",
+        generate_placeholders(ids.len())
+    );
+    let names = sql
+        .prepare(&query)?
+        .query_map(rusqlite::params_from_iter(ids), |row| Ok((row.get(0)?, row.get(1)?)))?
+        .collect::<std::result::Result<HashMap<i64, String>, _>>()?;
+    Ok(names)
 }

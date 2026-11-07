@@ -3,6 +3,12 @@
 
 mod backend;
 mod browse;
+mod custom;
+mod downloads;
+mod file_prompts;
+mod guide;
+mod naming;
+mod restream;
 mod settings;
 mod shell;
 mod sources;
@@ -19,13 +25,17 @@ fn main() -> anyhow::Result<()> {
         lily_core::log::log(format!("Failed to delete db after nuke request: {e:?}"));
     }
     lily_core::sql::create_or_initialize_db()?;
+    let startup_settings = lily_core::settings::get_settings().ok();
 
     gpui_kit::application()
         .with_assets(gpui_kit::assets::Assets)
-        .run(|cx| {
+        .run(move |cx| {
             gpui_kit::init(cx);
             Theme::change(ThemeMode::Dark, None, cx);
+            settings::apply_zoom(startup_settings.as_ref().and_then(|s| s.zoom), cx);
             backend::Backend::init(cx);
+            downloads::Downloads::init(cx);
+            restream::Restream::init(cx);
             browse::init(cx);
             // channel logos are remote images
             match reqwest_client::ReqwestClient::user_agent(APP_NAME) {

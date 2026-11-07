@@ -5,6 +5,7 @@ pub mod log;
 pub mod m3u;
 pub mod media_type;
 pub mod mpv;
+pub mod paths;
 pub mod restream;
 pub mod settings;
 pub mod share;

@@ -1,21 +1,29 @@
-use std::collections::HashSet;
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
 
 use gpui_kit::component::{
     ActiveTheme as _, Disableable as _, IconName, Selectable as _, WindowExt as _,
     button::{Button, ButtonVariant, ButtonVariants as _},
     h_flex,
+    menu::{DropdownMenu as _, PopupMenuItem},
     notification::Notification,
     switch::Switch,
     v_flex,
 };
 use gpui_kit::{prelude::FluentBuilder as _, *};
-use lily_core::{source_type, sql, types::Source, utils};
+use lily_core::{source_type, sql, types::Source, utils, xtream};
 
 use super::{
     add_source_form::{AddSourceForm, SourceAdded},
     edit_source_form::{EditSourceEvent, EditSourceForm},
 };
-use crate::backend::Backend;
+use crate::{
+    backend::Backend,
+    custom, file_prompts,
+    naming::{FAVORITES_EXTENSION, sanitize_file_name},
+};
 
 /// Emitted whenever the set of usable sources changes.
 pub struct SourcesChanged;
@@ -29,6 +37,8 @@ pub struct SourcesView {
     refreshing_all: bool,
     /// The source being edited inline, with its form and subscription
     editing: Option<(i64, Entity<EditSourceForm>, Subscription)>,
+    /// Xtream account expiry (unix time) by source id
+    expiries: HashMap<i64, i64>,
     _subscriptions: Vec<Subscription>,
 }
 
@@ -49,10 +59,106 @@ impl SourcesView {
             refreshing: HashSet::new(),
             refreshing_all: false,
             editing: None,
+            expiries: HashMap::new(),
             _subscriptions: vec![subscription],
         };
         this.reload(window, cx);
+        this.load_expiries(window, cx);
         this
+    }
+
+    /// Asks each Xtream provider when the account expires; slow, so done separately.
+    fn load_expiries(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        let request = Backend::run(cx, |_| xtream::get_all_expiries());
+        cx.spawn_in(window, async move |this, cx| {
+            if let Ok(expiries) = request.await {
+                _ = this.update(cx, |this, cx| {
+                    this.expiries = expiries;
+                    cx.notify();
+                });
+            }
+        })
+        .detach();
+    }
+
+    /// Callback that refreshes this list and the browse screen after a change elsewhere.
+    fn on_changed(&self, cx: &mut Context<Self>) -> Rc<dyn Fn(&mut Window, &mut App)> {
+        let view = cx.entity().downgrade();
+        Rc::new(move |window, cx| {
+            _ = view.update(cx, |this, cx| this.changed(window, cx));
+        })
+    }
+
+    fn backup_favorites(&mut self, source: &Source, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(id) = source.id else {
+            return;
+        };
+        let name = format!("{}_favourites.{FAVORITES_EXTENSION}", sanitize_file_name(&source.name));
+        let picked = file_prompts::save_file(cx, None, &name);
+        cx.spawn_in(window, async move |this, cx| {
+            let Some(path) = picked.await else {
+                return;
+            };
+            let message = format!("Favourites saved to {path}");
+            _ = this.update_in(cx, |this, window, cx| {
+                this.apply_with_message(
+                    "Couldn't back up favourites",
+                    message,
+                    move || utils::backup_favs(id, path),
+                    window,
+                    cx,
+                )
+            });
+        })
+        .detach();
+    }
+
+    fn restore_favorites(&mut self, source: &Source, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(id) = source.id else {
+            return;
+        };
+        let picked = file_prompts::open_file(cx, "Choose a favourites backup (.otvf)");
+        cx.spawn_in(window, async move |this, cx| {
+            let Some(path) = picked.await else {
+                return;
+            };
+            _ = this.update_in(cx, |this, window, cx| {
+                this.apply_with_message(
+                    "Couldn't restore favourites",
+                    "Favourites restored.".to_string(),
+                    move || utils::restore_favs(id, path),
+                    window,
+                    cx,
+                )
+            });
+        })
+        .detach();
+    }
+
+    /// Like [`Self::apply`], with a success notification.
+    fn apply_with_message<F>(
+        &mut self,
+        failure: &'static str,
+        success: String,
+        op: F,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) where
+        F: FnOnce() -> lily_core::anyhow::Result<()> + Send + 'static,
+    {
+        let request = Backend::blocking(cx, op);
+        cx.spawn_in(window, async move |this, cx| {
+            let result = request.await;
+            _ = this.update_in(cx, |this, window, cx| {
+                let note = match result {
+                    Ok(()) => Notification::success(success),
+                    Err(e) => Notification::error(format!("{e:#}")).title(failure),
+                };
+                window.push_notification(note, cx);
+                this.changed(window, cx);
+            });
+        })
+        .detach();
     }
 
     /// Re-reads the source list, e.g. after a refresh started elsewhere.
@@ -218,6 +324,16 @@ impl SourcesView {
             .and_then(|ts| utils::get_local_time(ts).ok())
             .map(|t| format!("Updated {}", t.format("%-d %b %Y, %H:%M")))
             .unwrap_or_else(|| "Never refreshed".to_string());
+        let expires = self
+            .expiries
+            .get(&id)
+            .and_then(|ts| utils::get_local_time(*ts).ok())
+            .map(|t| format!(" · Account expires {}", t.format("%-d %b %Y")))
+            .unwrap_or_default();
+        let is_custom = source.source_type == source_type::CUSTOM;
+        let menu_source = source.clone();
+        let on_changed = self.on_changed(cx);
+        let entity = cx.entity().downgrade();
         let refreshable = source.source_type != source_type::CUSTOM;
         let enabled = source.enabled;
         let for_refresh = source.clone();
@@ -248,7 +364,7 @@ impl SourcesView {
                         div()
                             .text_sm()
                             .text_color(cx.theme().muted_foreground)
-                            .child(format!("{kind} · {updated}")),
+                            .child(format!("{kind} · {updated}{expires}")),
                     ),
             )
             .when(refreshable, |el| {
@@ -273,6 +389,42 @@ impl SourcesView {
                     .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
                         this.toggle_edit(for_edit.clone(), window, cx)
                     })),
+            )
+            .child(
+                Button::new(ElementId::Name(format!("source-{id}-more").into()))
+                    .ghost()
+                    .icon(IconName::EllipsisVertical)
+                    .tooltip("More")
+                    .dropdown_menu(move |menu, _, _| {
+                        let source = menu_source.clone();
+                        let menu = if is_custom {
+                            let (a, b, c) = (on_changed.clone(), on_changed.clone(), on_changed.clone());
+                            let share = source.clone();
+                            menu.item(PopupMenuItem::new("Add channel…").on_click(move |_, window, cx| {
+                                custom::add_channel(id, a.clone(), window, cx)
+                            }))
+                            .item(PopupMenuItem::new("Add group…").on_click(move |_, window, cx| {
+                                custom::add_group(id, b.clone(), window, cx)
+                            }))
+                            .item(PopupMenuItem::new("Import into this source…").on_click(move |_, window, cx| {
+                                custom::import(Some(id), None, c.clone(), window, cx)
+                            }))
+                            .item(PopupMenuItem::new("Share source…").on_click(move |_, window, cx| {
+                                custom::share_source(share.clone(), window, cx)
+                            }))
+                            .separator()
+                        } else {
+                            menu
+                        };
+                        let (backup, restore) = (source.clone(), source.clone());
+                        let (e1, e2) = (entity.clone(), entity.clone());
+                        menu.item(PopupMenuItem::new("Back up favourites…").on_click(move |_, window, cx| {
+                            _ = e1.update(cx, |this, cx| this.backup_favorites(&backup, window, cx));
+                        }))
+                        .item(PopupMenuItem::new("Restore favourites…").on_click(move |_, window, cx| {
+                            _ = e2.update(cx, |this, cx| this.restore_favorites(&restore, window, cx));
+                        }))
+                    }),
             )
             .child(
                 Button::new(ElementId::Name(format!("source-{id}-delete").into()))

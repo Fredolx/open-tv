@@ -193,10 +193,7 @@ pub async fn get_m3u8_from_link(source: Source, wipe: bool) -> Result<()> {
 }
 
 fn get_tmp_path() -> String {
-    let mut path = directories::ProjectDirs::from("dev", "fredol", "open-tv")
-        .unwrap()
-        .cache_dir()
-        .to_owned();
+    let mut path = crate::paths::cache_dir();
     if !path.exists() {
         std::fs::create_dir_all(&path).unwrap();
     }

@@ -1,6 +1,6 @@
 use gpui_kit::component::{
-    ActiveTheme as _, Disableable as _, IndexPath, WindowExt as _,
-    button::{Button, ButtonVariants as _},
+    ActiveTheme as _, Disableable as _, IconName, IndexPath, WindowExt as _,
+    button::{Button, ButtonVariant, ButtonVariants as _},
     form::{Field, Form},
     h_flex,
     input::{Input, InputState},
@@ -10,9 +10,9 @@ use gpui_kit::component::{
     v_flex,
 };
 use gpui_kit::{prelude::FluentBuilder as _, *};
-use lily_core::{settings, sort_type, types::Settings, view_type};
+use lily_core::{settings, sort_type, types::Settings, utils, view_type};
 
-use crate::backend::Backend;
+use crate::{backend::Backend, file_prompts};
 
 const VIEWS: [(u8, &str); 4] = [
     (view_type::ALL, "All"),
@@ -25,6 +25,8 @@ const SORTS: [(u8, &str); 3] = [
     (sort_type::ALPHABETICAL_ASC, "A to Z"),
     (sort_type::ALPHABETICAL_DESC, "Z to A"),
 ];
+const ZOOMS: [u16; 8] = [75, 90, 100, 110, 125, 150, 175, 200];
+const DEFAULT_RESTREAM_PORT: u16 = 3000;
 
 /// Editable copy of the stored settings; fields without a control round-trip untouched.
 pub struct SettingsView {
@@ -37,6 +39,12 @@ pub struct SettingsView {
     hwdec: bool,
     gpu: bool,
     refresh_on_start: bool,
+    /// None means the default Videos/open-tv folder
+    recording_path: Option<String>,
+    always_ask_save: bool,
+    restream_port: Entity<InputState>,
+    zoom: Entity<SelectState<Vec<SharedString>>>,
+    tray: bool,
     saving: bool,
     error: Option<SharedString>,
 }
@@ -69,6 +77,14 @@ impl SettingsView {
             hwdec: true,
             gpu: false,
             refresh_on_start: false,
+            recording_path: None,
+            always_ask_save: false,
+            restream_port: cx.new(|cx| InputState::new(window, cx).placeholder(DEFAULT_RESTREAM_PORT.to_string())),
+            zoom: cx.new(|cx| {
+                let labels = ZOOMS.iter().map(|z| SharedString::from(format!("{z}%"))).collect();
+                SelectState::new(labels, Some(IndexPath::new(2)), window, cx)
+            }),
+            tray: true,
             saving: false,
             error: None,
         };
@@ -106,6 +122,14 @@ impl SettingsView {
         self.hwdec = settings.enable_hwdec.unwrap_or(true);
         self.gpu = settings.enable_gpu.unwrap_or(false);
         self.refresh_on_start = settings.refresh_on_start.unwrap_or(false);
+        self.recording_path = settings.recording_path.clone();
+        self.always_ask_save = settings.always_ask_save.unwrap_or(false);
+        self.tray = settings.enable_tray_icon.unwrap_or(true);
+        let port = settings.restream_port.map(|p| p.to_string()).unwrap_or_default();
+        self.restream_port.update(cx, |input, cx| input.set_value(port, window, cx));
+        let zoom = ZOOMS.iter().position(|z| Some(*z) == settings.zoom).unwrap_or(2);
+        self.zoom
+            .update(cx, |select, cx| select.set_selected_index(Some(IndexPath::new(zoom)), window, cx));
         self.loaded = Some(settings);
     }
 
@@ -134,6 +158,21 @@ impl SettingsView {
         settings.enable_hwdec = Some(self.hwdec);
         settings.enable_gpu = Some(self.gpu);
         settings.refresh_on_start = Some(self.refresh_on_start);
+        settings.recording_path = self.recording_path.clone();
+        settings.always_ask_save = Some(self.always_ask_save);
+        settings.enable_tray_icon = Some(self.tray);
+        let port = self.restream_port.read(cx).value().trim().to_string();
+        settings.restream_port = match port.parse::<u16>() {
+            Ok(p) if p >= 1024 => Some(p),
+            _ if port.is_empty() => None,
+            _ => return Err("Re-stream port must be a number from 1024 to 65535.".into()),
+        };
+        settings.zoom = self
+            .zoom
+            .read(cx)
+            .selected_index(cx)
+            .and_then(|ix| ZOOMS.get(ix.row))
+            .copied();
         Ok(settings)
     }
 
@@ -160,6 +199,7 @@ impl SettingsView {
                 this.saving = false;
                 match result {
                     Ok(()) => {
+                        super::apply_zoom(stored.zoom, cx);
                         this.loaded = Some(stored);
                         window.push_notification(Notification::success("Settings saved."), cx);
                     }
@@ -169,6 +209,44 @@ impl SettingsView {
             });
         })
         .detach();
+    }
+
+    fn pick_recording_folder(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        let picked = file_prompts::open_folder(cx, "Choose where recordings and downloads go");
+        cx.spawn_in(window, async move |this, cx| {
+            if let Some(folder) = picked.await {
+                _ = this.update(cx, |this, cx| {
+                    this.recording_path = Some(folder);
+                    cx.notify();
+                });
+            }
+        })
+        .detach();
+    }
+
+    /// Fred TV's "Delete everything": the database is removed on the next start.
+    fn confirm_reset(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        window.open_alert_dialog(cx, |alert, _, _| {
+            alert
+                .title("Delete everything?")
+                .description(
+                    "All sources, channels, favourites, history and settings are deleted and Lily TV restarts. \
+                     Fred TV shares this data, so it is cleared there too. This can't be undone.",
+                )
+                .confirm()
+                .ok_text("Delete everything")
+                .ok_variant(ButtonVariant::Danger)
+                .on_ok(|_, window, cx| {
+                    match utils::create_nuke_request() {
+                        Ok(()) => cx.restart(),
+                        Err(e) => window.push_notification(
+                            Notification::error(format!("{e:#}")).title("Couldn't reset"),
+                            cx,
+                        ),
+                    }
+                    true
+                })
+        });
     }
 
     fn switch(
@@ -194,6 +272,7 @@ impl SettingsView {
 impl Render for SettingsView {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let saving = self.saving;
+        let recording_path = self.recording_path.clone();
         v_flex()
             .id("settings")
             .size_full()
@@ -252,6 +331,71 @@ impl Render for SettingsView {
                         self.refresh_on_start,
                         |this, v| this.refresh_on_start = v,
                         cx,
+                    ))
+                    .child(
+                        Field::new()
+                            .label("Recordings and downloads")
+                            .child(
+                                h_flex()
+                                    .gap_2()
+                                    .child(
+                                        div()
+                                            .flex_1()
+                                            .min_w_0()
+                                            .truncate()
+                                            .text_color(cx.theme().muted_foreground)
+                                            .child(
+                                                recording_path
+                                                    .clone()
+                                                    .unwrap_or_else(|| "Default (Videos\\open-tv)".to_string()),
+                                            ),
+                                    )
+                                    .child(
+                                        Button::new("recording-folder")
+                                            .outline()
+                                            .icon(IconName::FolderOpen)
+                                            .label("Choose…")
+                                            .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
+                                                this.pick_recording_folder(window, cx)
+                                            })),
+                                    )
+                                    .when(recording_path.is_some(), |el| {
+                                        el.child(
+                                            Button::new("recording-default")
+                                                .ghost()
+                                                .label("Use default")
+                                                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                                                    this.recording_path = None;
+                                                    cx.notify();
+                                                })),
+                                        )
+                                    }),
+                            ),
+                    )
+                    .child(self.switch(
+                        "ask-save",
+                        "Always ask where to save recordings and downloads",
+                        self.always_ask_save,
+                        |this, v| this.always_ask_save = v,
+                        cx,
+                    ))
+                    .child(
+                        Field::new()
+                            .label("Re-stream port")
+                            .description("Other devices connect to this port when you re-stream.")
+                            .child(div().w_24().child(Input::new(&self.restream_port))),
+                    )
+                    .child(
+                        Field::new()
+                            .label("Zoom")
+                            .child(div().w_32().child(Select::new(&self.zoom))),
+                    )
+                    .child(self.switch(
+                        "tray",
+                        "Keep running in the system tray when the window is closed",
+                        self.tray,
+                        |this, v| this.tray = v,
+                        cx,
                     )),
             )
             .when_some(self.error.clone(), |el, error| {
@@ -266,6 +410,25 @@ impl Render for SettingsView {
                         .disabled(saving || self.loaded.is_none())
                         .on_click(cx.listener(|this, _: &ClickEvent, window, cx| this.save(window, cx))),
                 ),
+            )
+            .child(
+                v_flex()
+                    .mt_6()
+                    .pt_4()
+                    .gap_2()
+                    .border_t_1()
+                    .border_color(cx.theme().border)
+                    .child(div().text_color(cx.theme().danger).child("Danger zone"))
+                    .child(
+                        h_flex().child(
+                            Button::new("delete-everything")
+                                .danger()
+                                .label("Delete everything…")
+                                .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
+                                    this.confirm_reset(window, cx)
+                                })),
+                        ),
+                    ),
             )
     }
 }

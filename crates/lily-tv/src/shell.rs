@@ -5,11 +5,18 @@ use gpui_kit::component::{
     spinner::Spinner, tab::TabBar, v_flex,
 };
 use gpui_kit::*;
-use lily_core::{settings, sql, types::Settings, utils};
+use lily_core::{
+    epg,
+    events::CoreEvent,
+    settings, source_type, sql,
+    types::{Settings, Source},
+    utils,
+};
 
 use crate::{
-    backend::Backend,
+    backend::{Backend, EventBus},
     browse::{BrowseModel, BrowseView},
+    downloads::DownloadsBar,
     settings::SettingsView,
     sources::{AddSourceForm, SourceAdded, SourcesChanged, SourcesView},
 };
@@ -32,15 +39,33 @@ struct Main {
 
 pub struct Shell {
     screen: Screen,
+    downloads: Entity<DownloadsBar>,
     refreshed_on_start: bool,
+    reminders_armed: bool,
+    _events: Subscription,
     _subscriptions: Vec<Subscription>,
 }
 
 impl Shell {
     pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
+        let bus = Backend::bus(cx);
+        let events = cx.subscribe_in(&bus, window, |_, _: &Entity<EventBus>, event: &CoreEvent, window, cx| {
+            if let CoreEvent::EpgLive { title, channel_name } = event {
+                window.push_notification(
+                    Notification::info(format!("Watch on {channel_name}"))
+                        .title(format!("Starting now: {title}"))
+                        .autohide(false)
+                        .in_app_and_system(),
+                    cx,
+                );
+            }
+        });
         let mut this = Self {
             screen: Screen::Loading,
+            downloads: cx.new(DownloadsBar::new),
             refreshed_on_start: false,
+            reminders_armed: false,
+            _events: events,
             _subscriptions: Vec::new(),
         };
         this.load(window, cx);
@@ -61,8 +86,12 @@ impl Shell {
                 match result {
                     Ok((false, _, _)) => this.show_setup(window, cx),
                     Ok((true, enabled, settings)) => {
-                        let ids = enabled.iter().filter_map(|s| s.id).collect();
-                        this.show_main(ids, &settings, window, cx);
+                        let has_xtream = enabled.iter().any(|s| s.source_type == source_type::XTREAM);
+                        this.show_main(enabled, &settings, window, cx);
+                        if has_xtream && !this.reminders_armed {
+                            this.reminders_armed = true;
+                            this.arm_reminders(cx);
+                        }
                         if settings.refresh_on_start == Some(true) && !this.refreshed_on_start {
                             this.refreshed_on_start = true;
                             this.refresh_all_on_start(window, cx);
@@ -87,12 +116,25 @@ impl Shell {
         self.screen = Screen::Setup(form);
     }
 
-    fn show_main(&mut self, source_ids: Vec<i64>, settings: &Settings, window: &mut Window, cx: &mut Context<Self>) {
+    /// Re-arms guide reminders saved in an earlier session.
+    fn arm_reminders(&mut self, cx: &mut Context<Self>) {
+        let request = Backend::run_with_events(cx, |state, events| async move {
+            epg::on_start_check_epg(&state, events).await
+        });
+        cx.spawn(async move |_, _| {
+            if let Err(e) = request.await {
+                lily_core::log::log(format!("restore reminders: {e:?}"));
+            }
+        })
+        .detach();
+    }
+
+    fn show_main(&mut self, sources: Vec<Source>, settings: &Settings, window: &mut Window, cx: &mut Context<Self>) {
         let page = match &self.screen {
             Screen::Main(main) => main.page,
             _ => 0,
         };
-        let browse = Self::new_browse(source_ids, settings, window, cx);
+        let browse = Self::new_browse(sources, settings, window, cx);
         let sources = cx.new(|cx| SourcesView::new(window, cx));
         let settings_view = cx.new(|cx| SettingsView::new(window, cx));
         self._subscriptions = vec![cx.subscribe_in(&sources, window, |this, _, _: &SourcesChanged, window, cx| {
@@ -107,13 +149,14 @@ impl Shell {
     }
 
     fn new_browse(
-        source_ids: Vec<i64>,
+        sources: Vec<Source>,
         settings: &Settings,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Entity<BrowseView> {
-        let model = BrowseModel::new(source_ids, settings.default_view, settings.default_sort);
-        cx.new(|cx| BrowseView::new(model, window, cx))
+        let ids = sources.iter().filter_map(|s| s.id).collect();
+        let model = BrowseModel::new(ids, settings.default_view, settings.default_sort);
+        cx.new(|cx| BrowseView::new(model, &sources, window, cx))
     }
 
     /// Sources changed: browse needs the new source list. Deleting the last source
@@ -130,8 +173,7 @@ impl Shell {
                     Ok((false, _, _)) => this.show_setup(window, cx),
                     Ok((true, enabled, settings)) => {
                         if let Screen::Main(main) = &mut this.screen {
-                            let ids = enabled.iter().filter_map(|s| s.id).collect();
-                            main.browse = Self::new_browse(ids, &settings, window, cx);
+                            main.browse = Self::new_browse(enabled, &settings, window, cx);
                         }
                     }
                     Err(e) => window.push_notification(
@@ -187,7 +229,7 @@ impl Shell {
             )
     }
 
-    fn render_main(main: &Main, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_main(main: &Main, downloads: &Entity<DownloadsBar>, cx: &mut Context<Self>) -> impl IntoElement {
         let content = match main.page {
             1 => main.sources.clone().into_any_element(),
             2 => main.settings.clone().into_any_element(),
@@ -215,6 +257,7 @@ impl Shell {
                     ),
             )
             .child(div().flex_1().min_h_0().child(content))
+            .child(downloads.clone())
     }
 }
 
@@ -235,7 +278,7 @@ impl Render for Shell {
                 .child(message.clone())
                 .into_any_element(),
             Screen::Setup(form) => Self::render_setup(form, cx).into_any_element(),
-            Screen::Main(main) => Self::render_main(main, cx).into_any_element(),
+            Screen::Main(main) => Self::render_main(main, &self.downloads, cx).into_any_element(),
         };
         div()
             .size_full()

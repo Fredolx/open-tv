@@ -96,6 +96,21 @@ impl BrowseModel {
         self.filters.view_type = view;
     }
 
+    pub fn use_keywords(&self) -> bool {
+        self.filters.use_keywords
+    }
+
+    /// Switches between matching the exact phrase and all words in any order.
+    pub fn toggle_keywords(&mut self) {
+        self.filters.use_keywords = !self.filters.use_keywords;
+    }
+
+    /// Bulk actions apply to everything the current filters match; inside a series
+    /// (before picking a season) there is nothing they can act on.
+    pub fn can_bulk_update(&self) -> bool {
+        !(self.filters.series_id.is_some() && self.filters.season.is_none())
+    }
+
     pub fn set_sort(&mut self, sort: u8) {
         self.filters.sort = sort;
     }

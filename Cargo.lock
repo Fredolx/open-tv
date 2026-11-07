@@ -3636,6 +3636,8 @@ name = "lily-tv"
 version = "2.0.0"
 dependencies = [
  "anyhow",
+ "chrono",
+ "futures",
  "gpui-kit",
  "gpui-pre-reqwest-client",
  "lily-core",

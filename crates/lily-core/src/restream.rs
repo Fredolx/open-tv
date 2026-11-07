@@ -143,10 +143,7 @@ fn get_playlist_dir(mut folder: PathBuf) -> String {
 }
 
 fn get_restream_folder() -> Result<PathBuf> {
-    let mut path = directories::ProjectDirs::from("dev", "fredol", "open-tv")
-        .context("can't find project folder")?
-        .cache_dir()
-        .to_owned();
+    let mut path = crate::paths::cache_dir();
     path.push("restream");
     if !path.exists() {
         std::fs::create_dir_all(&path).unwrap();

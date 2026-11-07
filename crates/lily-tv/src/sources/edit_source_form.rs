@@ -10,7 +10,6 @@ use gpui_kit::component::{
 use gpui_kit::{prelude::FluentBuilder as _, *};
 use lily_core::{source_type, sql, types::Source, utils, xtream};
 
-use super::add_source_form::prompt_for_playlist;
 use crate::backend::Backend;
 
 /// Placeholder shown for an empty fetch user agent; the backend falls back to it.
@@ -76,7 +75,7 @@ impl EditSourceForm {
     }
 
     fn pick_file(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        let picked = prompt_for_playlist(cx);
+        let picked = crate::file_prompts::open_file(cx, "Choose an M3U playlist");
         cx.spawn_in(window, async move |this, cx| {
             let Some(path) = picked.await else {
                 return;

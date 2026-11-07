@@ -7,6 +7,8 @@ description = "Lily TV: a native IPTV player built with GPUI"
 
 [dependencies]
 anyhow = "1.0.104"
+chrono = "0.4.45"
+futures = "0.3.34"
 gpui-kit = "0.9.0"
 # Must match the GPUI snapshot gpui-kit 0.9.0 pins (gpui-pre =0.3.11)
 reqwest_client = { package = "gpui-pre-reqwest-client", version = "=0.3.11" }

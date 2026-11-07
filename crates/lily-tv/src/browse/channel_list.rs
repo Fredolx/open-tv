@@ -1,24 +1,36 @@
 //! Virtualized channel list: owns the loaded rows and paging; the browse view owns
-//! the filters and decides what a confirmed row means.
+//! the filters and decides what a confirmed row or a menu action means.
+
+use std::rc::Rc;
 
 use gpui_kit::component::{
+    ActiveTheme as _, Icon, IconName, IndexPath, Sizable as _,
     button::{Button, ButtonVariants as _},
-    ActiveTheme as _, Icon, IconName, IndexPath, Sizable as _, h_flex,
+    h_flex,
     list::{ListDelegate, ListItem, ListState},
+    menu::{ContextMenuExt as _, DropdownMenu as _, PopupMenu, PopupMenuItem},
     v_flex,
 };
 use gpui_kit::{prelude::FluentBuilder as _, *};
-use lily_core::{media_type, sql, types::{Channel, Filters}};
+use lily_core::{
+    media_type, sql,
+    types::{Channel, Filters},
+};
 
+use super::row_actions::{self, RowAction, RowContext};
 use crate::backend::Backend;
 
 /// The backend pages by 36 rows and stores the page number in a u8.
 const PAGE_SIZE: usize = 36;
 const MAX_PAGE: u8 = u8::MAX;
 
+pub type RowActionHandler = Rc<dyn Fn(RowAction, Channel, &mut Window, &mut App)>;
+
 pub struct ChannelListDelegate {
     rows: Vec<Channel>,
     filters: Option<Filters>,
+    context: RowContext,
+    on_action: Option<RowActionHandler>,
     /// Bumped on every new search so late pages from an old search are dropped
     revision: u64,
     loading_first: bool,
@@ -34,6 +46,8 @@ impl ChannelListDelegate {
         Self {
             rows: Vec::new(),
             filters: None,
+            context: RowContext::default(),
+            on_action: None,
             revision: 0,
             loading_first: false,
             loading_more: false,
@@ -44,28 +58,34 @@ impl ChannelListDelegate {
         }
     }
 
+    pub fn on_action(mut self, handler: RowActionHandler) -> Self {
+        self.on_action = Some(handler);
+        self
+    }
+
     pub fn row(&self, ix: IndexPath) -> Option<&Channel> {
         self.rows.get(ix.row)
     }
 
+    pub fn context_mut(&mut self) -> &mut RowContext {
+        &mut self.context
+    }
+
     /// Flips a row's favourite flag right away and reverts it if saving fails.
-    fn toggle_favorite(&mut self, ix: IndexPath, cx: &mut Context<ListState<Self>>) {
-        let Some(row) = self.rows.get_mut(ix.row) else {
-            return;
-        };
-        let Some(id) = row.id else {
+    pub fn toggle_favorite(&mut self, channel_id: i64, cx: &mut Context<ListState<Self>>) {
+        let Some(row) = self.find_row_mut(channel_id) else {
             return;
         };
         let favorite = !row.favorite;
         row.favorite = favorite;
         cx.notify();
-        let save = Backend::blocking(cx, move || sql::favorite_channel(id, favorite));
+        let save = Backend::blocking(cx, move || sql::favorite_channel(channel_id, favorite));
         cx.spawn(async move |list, cx| {
             if let Err(e) = save.await {
-                lily_core::log::log(format!("favourite {id}: {e:?}"));
+                lily_core::log::log(format!("favourite {channel_id}: {e:?}"));
                 _ = list.update(cx, |list, cx| {
                     let this = list.delegate_mut();
-                    if let Some(row) = this.rows.iter_mut().find(|r| r.id == Some(id) && is_favoritable(r.media_type)) {
+                    if let Some(row) = this.find_row_mut(channel_id) {
                         row.favorite = !favorite;
                     }
                     this.error = Some("Couldn't save the favourite.".into());
@@ -74,6 +94,12 @@ impl ChannelListDelegate {
             }
         })
         .detach();
+    }
+
+    fn find_row_mut(&mut self, channel_id: i64) -> Option<&mut Channel> {
+        self.rows
+            .iter_mut()
+            .find(|r| r.id == Some(channel_id) && is_favoritable(r.media_type))
     }
 
     /// Replaces the results with the first page for `filters`.
@@ -90,7 +116,7 @@ impl ChannelListDelegate {
 
     fn fetch(&mut self, filters: Filters, append: bool, cx: &mut Context<ListState<Self>>) {
         let revision = self.revision;
-        let request = Backend::blocking(cx, move || sql::search(filters));
+        let request = Backend::blocking(cx, move || search_with_group_names(filters));
         self._load_task = Some(cx.spawn(async move |list, cx| {
             let result = request.await;
             _ = list.update(cx, |list, cx| {
@@ -156,6 +182,45 @@ impl ChannelListDelegate {
                 .into_any_element(),
         }
     }
+
+    /// Adds the row's actions to a menu; shared by the "more" button and right-click.
+    fn build_menu(
+        menu: PopupMenu,
+        channel: &Channel,
+        context: &RowContext,
+        handler: &Option<RowActionHandler>,
+    ) -> PopupMenu {
+        let Some(handler) = handler.clone() else {
+            return menu;
+        };
+        row_actions::actions_for(channel, context)
+            .into_iter()
+            .fold(menu, |menu, action| {
+                let handler = handler.clone();
+                let channel = channel.clone();
+                menu.item(
+                    PopupMenuItem::new(row_actions::label(action, &channel))
+                        .on_click(move |_, window, cx| handler(action, channel.clone(), window, cx)),
+                )
+            })
+    }
+}
+
+/// One page of results with each channel's group name filled in.
+fn search_with_group_names(filters: Filters) -> lily_core::anyhow::Result<Vec<Channel>> {
+    let mut page = sql::search(filters)?;
+    let mut ids: Vec<i64> = page
+        .iter()
+        .filter(|c| c.media_type != media_type::GROUP)
+        .filter_map(|c| c.group_id)
+        .collect();
+    ids.sort_unstable();
+    ids.dedup();
+    let names = sql::get_group_names(&ids)?;
+    for channel in page.iter_mut().filter(|c| c.media_type != media_type::GROUP) {
+        channel.group = channel.group_id.and_then(|id| names.get(&id).cloned());
+    }
+    Ok(page)
 }
 
 fn is_favoritable(media: u8) -> bool {
@@ -185,31 +250,35 @@ impl ListDelegate for ChannelListDelegate {
         _: &mut Window,
         cx: &mut Context<ListState<Self>>,
     ) -> Option<Self::Item> {
-        let channel = self.rows.get(ix.row)?;
+        let channel = self.rows.get(ix.row)?.clone();
         // ids are only unique per table, so qualify them by kind
-        let id = SharedString::from(format!(
-            "row-{}-{}",
-            channel.media_type,
-            channel.id.unwrap_or_default()
-        ));
-        let subtitle = match (kind_label(channel.media_type), channel.group.as_deref()) {
-            (Some(kind), Some(group)) => format!("{kind} · {group}"),
-            (Some(kind), None) => kind.to_string(),
-            (None, Some(group)) => group.to_string(),
-            (None, None) => String::new(),
-        };
+        let id = format!("row-{}-{}", channel.media_type, channel.id.unwrap_or_default());
+        let mut subtitle: Vec<String> = Vec::new();
+        subtitle.extend(kind_label(channel.media_type).map(str::to_string));
+        subtitle.extend(channel.group.clone());
+        if channel.tv_archive == Some(true) {
+            subtitle.push("Catch-up".to_string());
+        }
+        if channel.hidden == Some(true) {
+            subtitle.push("Hidden".to_string());
+        }
+        let subtitle = subtitle.join(" · ");
         let favorite = channel.favorite;
         let can_favorite = is_favoritable(channel.media_type);
-        let star_id = SharedString::from(format!("{id}-fav"));
-        Some(
-            ListItem::new(ElementId::Name(id))
-                .py_1()
-                .selected(self.selected == Some(ix))
-                .child(
-                    h_flex()
+        let has_actions = self.on_action.is_some()
+            && !row_actions::actions_for(&channel, &self.context).is_empty();
+        let channel_id = channel.id;
+
+        let (menu_channel, menu_context, menu_handler) =
+            (channel.clone(), self.context.clone(), self.on_action.clone());
+        let (ctx_channel, ctx_context, ctx_handler) =
+            (channel.clone(), self.context.clone(), self.on_action.clone());
+
+        let body = h_flex()
+                        .id(ElementId::Name(format!("{id}-body").into()))
                         .gap_3()
                         .w_full()
-                        .child(Self::render_logo(channel, cx))
+                        .child(Self::render_logo(&channel, cx))
                         .child(
                             v_flex()
                                 .flex_1()
@@ -227,7 +296,7 @@ impl ListDelegate for ChannelListDelegate {
                         )
                         .when(can_favorite, |el| {
                             el.child(
-                                Button::new(ElementId::Name(star_id))
+                                Button::new(ElementId::Name(format!("{id}-fav").into()))
                                     .ghost()
                                     .small()
                                     .icon(if favorite { IconName::StarFill } else { IconName::Star })
@@ -236,11 +305,38 @@ impl ListDelegate for ChannelListDelegate {
                                     .on_click(cx.listener(move |list, _: &ClickEvent, _, cx| {
                                         // the row itself would otherwise start playing
                                         cx.stop_propagation();
-                                        list.delegate_mut().toggle_favorite(ix, cx);
+                                        if let Some(id) = channel_id {
+                                            list.delegate_mut().toggle_favorite(id, cx);
+                                        }
                                     })),
                             )
-                        }),
-                ),
+                        })
+                        .when(has_actions, |el| {
+                            el.child(
+                                Button::new(ElementId::Name(format!("{id}-more").into()))
+                                    .ghost()
+                                    .small()
+                                    .icon(IconName::EllipsisVertical)
+                                    .tooltip("More actions")
+                                    .on_click(|_, _, cx| cx.stop_propagation())
+                                    .dropdown_menu(move |menu, _, _| {
+                                        Self::build_menu(menu, &menu_channel, &menu_context, &menu_handler)
+                                    }),
+                            )
+                        });
+        let body = if has_actions {
+            body.context_menu(move |menu, _, _| {
+                Self::build_menu(menu, &ctx_channel, &ctx_context, &ctx_handler)
+            })
+            .into_any_element()
+        } else {
+            body.into_any_element()
+        };
+        Some(
+            ListItem::new(ElementId::Name(id.into()))
+                .py_1()
+                .selected(self.selected == Some(ix))
+                .child(body),
         )
     }
 
