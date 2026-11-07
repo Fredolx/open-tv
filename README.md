@@ -88,6 +88,17 @@ macOS.
 
 ## License
 
-GPL-2.0, inherited from Fred TV (see `LICENSE`). Note that GPUI and gpui-kit are
-Apache-2.0, which the FSF considers incompatible with GPL-2.0-only; resolve this before
-distributing binaries.
+Lily TV is a modified version of [Fred TV](https://github.com/Fredolx/open-tv) (formerly
+Open TV) by [Fredolx](https://github.com/Fredolx), and like it is licensed under the GNU
+General Public License, version 2 (see `LICENSE`).
+
+Changes from Fred TV, made in November 2026:
+
+- The Tauri + Angular user interface was replaced by a native one written with GPUI
+  (`crates/lily-tv`)
+- Fred TV's Rust backend was moved into `crates/lily-core` and adapted to run without
+  Tauri; dependencies were updated
+- The app was renamed to Lily TV, with its own data folder, logo and installer
+
+Note that GPUI and gpui-kit are Apache-2.0, which the FSF considers incompatible with
+GPL-2.0-only; resolve this before distributing binaries.
