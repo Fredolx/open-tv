@@ -4,6 +4,7 @@
 mod backend;
 mod browse;
 mod custom;
+mod desktop;
 mod downloads;
 mod file_prompts;
 mod guide;
@@ -24,6 +25,10 @@ fn main() -> anyhow::Result<()> {
     if let Err(e) = lily_core::utils::check_nuke() {
         lily_core::log::log(format!("Failed to delete db after nuke request: {e:?}"));
     }
+    // a second launch just brings the running window forward
+    let Some(instance) = desktop::SingleInstance::claim() else {
+        return Ok(());
+    };
     lily_core::sql::create_or_initialize_db()?;
     let startup_settings = lily_core::settings::get_settings().ok();
 
@@ -53,10 +58,26 @@ fn main() -> anyhow::Result<()> {
                 window_min_size: Some(size(px(640.), px(420.))),
                 ..Default::default()
             };
-            gpui_kit::open_window(options, cx, |window, cx| {
+            let tray = startup_settings.as_ref().and_then(|s| s.enable_tray_icon).unwrap_or(true);
+            let (window, _) = gpui_kit::open_window(options, cx, |window, cx| {
                 cx.new(|cx| shell::Shell::new(window, cx))
             })
             .expect("failed to open window");
+            let raw = window
+                .update(cx, |_, window, cx| {
+                    desktop::install_tray(tray, window, cx);
+                    desktop::window_raw(window)
+                })
+                .ok()
+                .flatten();
+            instance.on_activate(
+                move |_| {
+                    if let Some(raw) = raw {
+                        desktop::show_window(raw);
+                    }
+                },
+                cx,
+            );
             cx.activate(true);
         });
     Ok(())
