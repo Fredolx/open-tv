@@ -105,10 +105,10 @@ impl GuidePanel {
                     Ok(list) => {
                         // open on today, or the first day with data if today has none
                         let days = days_with_programmes(&list);
-                        if !days.contains(&this.day) {
-                            if let Some(first) = days.first() {
-                                this.day = *first;
-                            }
+                        if !days.contains(&this.day)
+                            && let Some(first) = days.first()
+                        {
+                            this.day = *first;
                         }
                         Load::Loaded(list)
                     }

@@ -175,10 +175,10 @@ impl AddSourceForm {
                 Request::Custom(name) => Some(name.clone()),
                 Request::Import { name, .. } => name.clone(),
             };
-            if let Some(name) = name {
-                if sql::source_name_exists(&name)? {
-                    bail!("A source called “{name}” already exists.");
-                }
+            if let Some(name) = name
+                && sql::source_name_exists(&name)?
+            {
+                bail!("A source called “{name}” already exists.");
             }
             match request {
                 Request::Custom(name) => custom::create_source(name),

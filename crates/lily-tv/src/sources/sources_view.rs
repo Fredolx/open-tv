@@ -82,7 +82,7 @@ impl SourcesView {
     }
 
     /// Callback that refreshes this list and the browse screen after a change elsewhere.
-    fn on_changed(&self, cx: &mut Context<Self>) -> Rc<dyn Fn(&mut Window, &mut App)> {
+    fn on_changed(&self, cx: &mut Context<Self>) -> custom::Done {
         let view = cx.entity().downgrade();
         Rc::new(move |window, cx| {
             _ = view.update(cx, |this, cx| this.changed(window, cx));

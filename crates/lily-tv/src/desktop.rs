@@ -113,8 +113,7 @@ mod windows_impl {
                 }
             })
             .detach();
-            // the handles live for the rest of the process
-            std::mem::forget(self);
+            // the handles are never closed, so the mutex stays held for the life of the process
         }
     }
 

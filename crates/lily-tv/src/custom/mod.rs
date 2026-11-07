@@ -27,7 +27,8 @@ pub enum EditorEvent {
     Cancelled,
 }
 
-type Done = Rc<dyn Fn(&mut Window, &mut App)>;
+/// Called on the UI thread once a change has been saved.
+pub type Done = Rc<dyn Fn(&mut Window, &mut App)>;
 
 /// Shows `editor` in a dialog that closes when it saves or cancels; `on_saved` runs after a save.
 fn open_editor<E>(title: &'static str, editor: Entity<E>, on_saved: Done, window: &mut Window, cx: &mut App)
@@ -199,5 +200,5 @@ fn run<F>(
 
 /// Creates an empty custom source.
 pub fn create_source(name: String) -> Result<()> {
-    sql::do_tx(|tx| sql::create_or_find_source_by_name(tx, &mut sql::get_custom_source(name)).map(|_| ()))
+    sql::do_tx(|tx| sql::create_or_find_source_by_name(tx, &sql::get_custom_source(name)).map(|_| ()))
 }

@@ -44,12 +44,12 @@ impl Downloads {
         let downloads = cx.new(|cx| Self {
             items: Vec::new(),
             _progress: cx.subscribe(&bus, |this: &mut Self, _: Entity<EventBus>, event: &CoreEvent, cx: &mut Context<Self>| {
-                if let CoreEvent::DownloadProgress { download_id, progress } = event {
-                    if let Some(item) = this.items.iter_mut().find(|d| &d.id == download_id) {
-                        item.progress = *progress;
-                        cx.emit(DownloadsChanged);
-                        cx.notify();
-                    }
+                if let CoreEvent::DownloadProgress { download_id, progress } = event
+                    && let Some(item) = this.items.iter_mut().find(|d| &d.id == download_id)
+                {
+                    item.progress = *progress;
+                    cx.emit(DownloadsChanged);
+                    cx.notify();
                 }
             }),
         });

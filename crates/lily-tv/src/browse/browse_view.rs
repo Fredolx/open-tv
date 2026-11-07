@@ -109,7 +109,7 @@ pub fn init(cx: &mut App) {
 /// What mpv is doing, shown in the status bar.
 enum Playback {
     Idle,
-    Playing { channel: Channel, recording: bool },
+    Playing { channel: Box<Channel>, recording: bool },
 }
 
 pub struct BrowseView {
@@ -273,7 +273,7 @@ impl BrowseView {
             return;
         }
         match self.model.activate(&row) {
-            Activation::Play(channel) => self.play(channel, false, None, window, cx),
+            Activation::Play(channel) => self.play(*channel, false, None, window, cx),
             Activation::Entered(NodeKind::Series) => {
                 self.set_search_text("", window, cx);
                 self.open_series(row, window, cx);
@@ -336,12 +336,14 @@ impl BrowseView {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        if let Playback::Playing { channel: current, .. } = &self.playback {
-            if current.id == channel.id && current.url == channel.url && !record {
-                return;
-            }
+        if let Playback::Playing { channel: current, .. } = &self.playback
+            && current.id == channel.id
+            && current.url == channel.url
+            && !record
+        {
+            return;
         }
-        self.playback = Playback::Playing { channel: channel.clone(), recording: record };
+        self.playback = Playback::Playing { channel: Box::new(channel.clone()), recording: record };
         cx.notify();
 
         let id = channel.id;
@@ -349,10 +351,10 @@ impl BrowseView {
         let name = channel.name.clone();
         let session = Backend::run(cx, move |state| async move {
             // remembered for History even if mpv later fails to open the stream
-            if let Some(id) = channel.id.filter(|id| *id >= 0) {
-                if let Err(e) = sql::add_last_watched(id) {
-                    lily_core::log::log(format!("{e:?}"));
-                }
+            if let Some(id) = channel.id.filter(|id| *id >= 0)
+                && let Err(e) = sql::add_last_watched(id)
+            {
+                lily_core::log::log(format!("{e:?}"));
             }
             mpv::play(channel, record, record_path, &state).await
         });
@@ -395,7 +397,7 @@ impl BrowseView {
     }
 
     fn on_row_action(&mut self, action: RowAction, row: Channel, window: &mut Window, cx: &mut Context<Self>) {
-        let refresh: Rc<dyn Fn(&mut Window, &mut App)> = {
+        let refresh: custom::Done = {
             let view = cx.entity().downgrade();
             Rc::new(move |window, cx| {
                 _ = view.update(cx, |this, cx| this.reload(window, cx));
@@ -645,7 +647,7 @@ impl BrowseView {
                             .gap_1()
                             .children(MEDIA.iter().map(|(media, label)| {
                                 let media = *media;
-                                filter_button(format!("media-{media}"), *label, self.model.shows_media_type(media))
+                                filter_button(format!("media-{media}"), label, self.model.shows_media_type(media))
                                     .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
                                         this.toggle_media(media, window, cx)
                                     }))

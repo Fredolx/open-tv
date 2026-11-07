@@ -32,7 +32,7 @@ pub enum Activation {
     /// The row is a container; the filters now point inside it.
     Entered(NodeKind),
     /// The row is something mpv can play.
-    Play(Channel),
+    Play(Box<Channel>),
 }
 
 pub struct BrowseModel {
@@ -138,10 +138,10 @@ impl BrowseModel {
                 channel.url.as_deref().and_then(|u| u.parse().ok()),
             ),
             media_type::SEASON => (NodeKind::Season, channel.id),
-            _ => return Activation::Play(channel.clone()),
+            _ => return Activation::Play(Box::new(channel.clone())),
         };
         let Some(id) = id else {
-            return Activation::Play(channel.clone());
+            return Activation::Play(Box::new(channel.clone()));
         };
         self.stack.push(Node {
             id,
@@ -224,7 +224,7 @@ mod tests {
     fn playable_rows_do_not_change_navigation() {
         let mut model = BrowseModel::new(vec![1], None, None);
         let live = row(5, media_type::LIVESTREAM, Some("http://x/1.ts"), 1);
-        assert_eq!(model.activate(&live), Activation::Play(live.clone()));
+        assert_eq!(model.activate(&live), Activation::Play(Box::new(live.clone())));
         assert!(model.stack().is_empty());
     }
 
