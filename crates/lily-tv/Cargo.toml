@@ -1,0 +1,8 @@
+[package]
+name = "lily-tv"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+lily-core = { path = "../lily-core" }

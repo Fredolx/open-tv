@@ -8,7 +8,6 @@ use chrono::Local;
 
 use std::sync::LazyLock;
 use std::{env::consts::OS, path::Path, process::Stdio};
-use tauri::State;
 use tokio::sync::Mutex;
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
@@ -44,7 +43,7 @@ pub async fn play(
     channel: Channel,
     record: bool,
     record_path: Option<String>,
-    state: State<'_, Mutex<AppState>>,
+    state: &Mutex<AppState>,
 ) -> Result<()> {
     eprintln!(
         "{} playing",
@@ -131,7 +130,7 @@ pub async fn play(
 pub async fn cancel_play(
     source_id: i64,
     key: String,
-    state: State<'_, Mutex<AppState>>,
+    state: &Mutex<AppState>,
 ) -> Result<()> {
     log::log(format!("Cancelling play for channel: {}", key));
     let token = crate::utils::remove_from_play_stop(state, &source_id, &key).await?;

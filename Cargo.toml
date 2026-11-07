@@ -1,0 +1,13 @@
+[workspace]
+resolver = "3"
+members = ["crates/lily-core", "crates/lily-tv"]
+
+[workspace.package]
+version = "2.0.0"
+edition = "2024"
+rust-version = "1.91.1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

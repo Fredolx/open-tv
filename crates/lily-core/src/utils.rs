@@ -1,3 +1,4 @@
+use crate::events::{CoreEvent, EventSink};
 use crate::types::{AppState, Channel, ChannelPreserve};
 use crate::{
     log::log,
@@ -23,7 +24,6 @@ use std::{
     path::{Path, PathBuf},
     sync::LazyLock,
 };
-use tauri::{AppHandle, Emitter, State};
 use tokio::io::AsyncWriteExt;
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
@@ -69,8 +69,8 @@ pub fn get_local_time(timestamp: i64) -> Result<DateTime<Local>> {
 }
 
 pub async fn download(
-    state: State<'_, Mutex<AppState>>,
-    app: AppHandle,
+    state: &Mutex<AppState>,
+    events: EventSink,
     channel: Channel,
     download_id: &str,
     path: Option<String>,
@@ -141,7 +141,7 @@ pub async fn download(
                            let progress: f64 = (downloaded as f64 / total_size as f64) * 100.0;
                            let progress = (progress * 10.0).trunc() / 10.0;
                            if progress > send_threshold {
-                               let _ = app.emit(&format!("progress-{}", download_id), progress);
+                               events(CoreEvent::DownloadProgress { download_id: download_id.to_string(), progress });
                                send_threshold = progress + 0.1 as f64;
                            }
                        }
@@ -171,7 +171,7 @@ pub async fn download(
 }
 
 pub async fn remove_from_play_stop(
-    state: State<'_, Mutex<AppState>>,
+    state: &Mutex<AppState>,
     source_id: &i64,
     key: &str,
 ) -> Result<Option<CancellationToken>> {
@@ -183,7 +183,7 @@ pub async fn remove_from_play_stop(
     Ok(map.shift_remove(key))
 }
 
-pub async fn handle_max_streams(source: &Source, state: &State<'_, Mutex<AppState>>) -> Result<()> {
+pub async fn handle_max_streams(source: &Source, state: &Mutex<AppState>) -> Result<()> {
     let max_streams = source.max_streams.unwrap_or(1);
     let mut guard = state.lock().await;
     let channels = guard
@@ -207,7 +207,7 @@ pub async fn insert_play_token(
     source_id: i64,
     key: String,
     token: CancellationToken,
-    state: &State<'_, Mutex<AppState>>,
+    state: &Mutex<AppState>,
 ) -> Result<()> {
     let mut guard = state.lock().await;
     if guard.play_stop.get(&source_id).is_none() {
@@ -266,6 +266,13 @@ fn get_bin_from_deps(bin: &str) -> String {
     path.pop();
     path.push("deps");
     path.push(bin);
+    if OS == "windows" && !path.with_extension("exe").exists() {
+        // dev builds have no deps folder next to the exe: borrow an installed Fred TV's
+        let installed = Path::new(r"C:\Program Files\Fred TV\deps").join(bin);
+        if installed.with_extension("exe").exists() {
+            return installed.to_string_lossy().to_string();
+        }
+    }
     return path.to_string_lossy().to_string();
 }
 
