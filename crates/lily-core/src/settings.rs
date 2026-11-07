@@ -100,7 +100,7 @@ pub fn get_default_record_path() -> Result<String> {
         .video_dir()
         .context("No videos dir in ~, please set a recording path in Settings")?
         .to_owned();
-    path.push("open-tv");
+    path.push("Lily TV");
     std::fs::create_dir_all(&path)?;
     Ok(path.to_string_lossy().to_string())
 }

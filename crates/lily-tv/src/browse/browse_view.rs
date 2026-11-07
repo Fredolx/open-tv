@@ -262,7 +262,7 @@ impl BrowseView {
                 };
                 self.activate(row, window, cx);
             }
-            // Esc in the list goes up one level, like Backspace/Esc in Fred TV
+            // Esc in the list goes up one level, like Backspace
             ListEvent::Cancel => self.go_back(window, cx),
             ListEvent::Select(_) => {}
         }

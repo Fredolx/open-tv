@@ -1,5 +1,5 @@
 //! Browse state without any UI: the search filters plus the drill-down stack
-//! (category -> series -> season), matching how Fred TV's home screen navigates.
+//! (category -> series -> season).
 
 use lily_core::{
     media_type,
@@ -90,7 +90,7 @@ impl BrowseModel {
         self.filters.query = Some(query.to_string());
     }
 
-    /// Switching views starts from the top level, like picking a tab in Fred TV.
+    /// Switching views starts from the top level.
     pub fn set_view(&mut self, view: u8) {
         self.leave_all_nodes();
         self.filters.view_type = view;

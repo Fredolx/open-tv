@@ -24,7 +24,7 @@ enum Kind {
     M3uFile,
     /// An empty source to fill with your own channels
     Custom,
-    /// A source shared from Lily TV or Fred TV (.otvp)
+    /// A source shared from Lily TV (.otvp)
     ImportFile,
 }
 

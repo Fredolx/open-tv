@@ -264,7 +264,7 @@ impl ListDelegate for ChannelListDelegate {
         }
         let subtitle = subtitle.join(" · ");
         let favorite = channel.favorite;
-        // the star follows the menu: no favouriting from History, as in Fred TV
+        // the star follows the menu: no favouriting from History
         let can_favorite = row_actions::actions_for(&channel, &self.context).contains(&RowAction::ToggleFavorite);
         let has_actions = self.on_action.is_some()
             && !row_actions::actions_for(&channel, &self.context).is_empty();

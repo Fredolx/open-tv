@@ -1,15 +1,15 @@
 # Puts mpv, ffmpeg and yt-dlp into packaging\deps for the Windows installer.
 #
-#   .\packaging\fetch-deps.ps1             download the latest builds (what CI does)
-#   .\packaging\fetch-deps.ps1 -FromFredTV  copy them from an installed Fred TV instead
-param([switch]$FromFredTV)
+#   .\packaging\fetch-deps.ps1                 download the latest builds (what CI does)
+#   .\packaging\fetch-deps.ps1 -FromInstalled  copy them from an installed Lily TV instead
+param([switch]$FromInstalled)
 
 $ErrorActionPreference = 'Stop'
 $deps = Join-Path $PSScriptRoot 'deps'
 New-Item -ItemType Directory -Force -Path $deps | Out-Null
 
-if ($FromFredTV) {
-    $installed = 'C:\Program Files\Fred TV\deps'
+if ($FromInstalled) {
+    $installed = 'C:\Program Files\Lily TV\deps'
     foreach ($file in 'mpv.exe', 'vulkan-1.dll', 'ffmpeg.exe', 'yt-dlp.exe') {
         Copy-Item (Join-Path $installed $file) $deps -Force
     }

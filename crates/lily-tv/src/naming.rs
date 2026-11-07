@@ -1,4 +1,4 @@
-//! File names and extensions, kept compatible with Fred TV's exports.
+//! File names and extensions for exported channels, groups and sources.
 
 pub const CHANNEL_EXTENSION: &str = "otv";
 pub const GROUP_EXTENSION: &str = "otvg";

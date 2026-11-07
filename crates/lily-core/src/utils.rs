@@ -34,7 +34,7 @@ const MACOS_POTENTIAL_PATHS: [&str; 3] = [
     "/usr/local/bin",    // Homebrew on AMD64 Mac
 ];
 
-const DEFAULT_USER_AGENT: &str = "Fred TV";
+const DEFAULT_USER_AGENT: &str = "Lily TV";
 
 static ILLEGAL_CHARS_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"[<>:"/\\|?*\x00-\x1F]"#).unwrap());
@@ -266,8 +266,8 @@ fn get_bin_from_deps(bin: &str) -> String {
     path.push("deps");
     path.push(bin);
     if OS == "windows" && !path.with_extension("exe").exists() {
-        // dev builds have no deps folder next to the exe: borrow an installed Fred TV's
-        let installed = Path::new(r"C:\Program Files\Fred TV\deps").join(bin);
+        // dev builds have no deps folder next to the exe: borrow the installed app's
+        let installed = Path::new(r"C:\Program Files\Lily TV\deps").join(bin);
         if installed.with_extension("exe").exists() {
             return installed.to_string_lossy().to_string();
         }

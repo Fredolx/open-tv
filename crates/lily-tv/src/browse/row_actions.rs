@@ -1,4 +1,4 @@
-//! Which actions a result row offers, following Fred TV's tile menu.
+//! Which actions a result row offers, depending on its type and the current view.
 
 use std::collections::HashSet;
 

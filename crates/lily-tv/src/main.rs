@@ -22,6 +22,9 @@ use gpui_kit::*;
 const APP_NAME: &str = "Lily TV";
 
 fn main() -> anyhow::Result<()> {
+    if let Err(e) = lily_core::paths::adopt_previous_data() {
+        lily_core::log::log(format!("Failed to copy the previous channel database: {e:?}"));
+    }
     if let Err(e) = lily_core::utils::check_nuke() {
         lily_core::log::log(format!("Failed to delete db after nuke request: {e:?}"));
     }

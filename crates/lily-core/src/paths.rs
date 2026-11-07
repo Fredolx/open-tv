@@ -1,6 +1,5 @@
 //! Where the database, logs and caches live.
 //!
-//! By default these are Fred TV's folders, so both apps share one channel database.
 //! Setting `LILY_TV_DIR` moves everything under that folder instead, which keeps a
 //! test or second profile away from the real data.
 
@@ -17,7 +16,7 @@ fn override_dir() -> Option<PathBuf> {
 }
 
 fn project_dirs() -> ProjectDirs {
-    ProjectDirs::from("dev", "fredol", "open-tv").expect("no home directory to store data in")
+    ProjectDirs::from("dev", "lilytv", "lily-tv").expect("no home directory to store data in")
 }
 
 /// The database folder, created if missing.
@@ -34,6 +33,28 @@ pub fn cache_dir() -> PathBuf {
         Some(dir) => dir.join("cache"),
         None => project_dirs().cache_dir().to_owned(),
     })
+}
+
+/// On the very first start, copies the channel database over from the folder the app used
+/// before it was renamed, so sources, favourites and history carry over. Runs only while the
+/// data folder doesn't exist yet, so a later "Delete everything" doesn't bring old data back.
+pub fn adopt_previous_data() -> std::io::Result<()> {
+    if override_dir().is_some() {
+        return Ok(());
+    }
+    let dir = project_dirs().data_dir().to_owned();
+    if dir.exists() {
+        return Ok(());
+    }
+    let Some(previous) = ProjectDirs::from("dev", "fredol", "open-tv") else {
+        return Ok(());
+    };
+    let db = previous.data_dir().join(crate::sql::DB_NAME);
+    if db.exists() {
+        std::fs::create_dir_all(&dir)?;
+        std::fs::copy(db, dir.join(crate::sql::DB_NAME))?;
+    }
+    Ok(())
 }
 
 fn ensure(dir: PathBuf) -> PathBuf {

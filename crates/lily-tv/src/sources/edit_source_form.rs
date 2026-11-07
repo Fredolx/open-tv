@@ -13,7 +13,7 @@ use lily_core::{source_type, sql, types::Source, utils, xtream};
 use crate::backend::Backend;
 
 /// Placeholder shown for an empty fetch user agent; the backend falls back to it.
-const DEFAULT_USER_AGENT: &str = "Fred TV";
+const DEFAULT_USER_AGENT: &str = "Lily TV";
 
 pub enum EditSourceEvent {
     /// Saved; `refreshed` says whether channels were re-fetched to apply new details.
@@ -21,7 +21,7 @@ pub enum EditSourceEvent {
     Cancelled,
 }
 
-/// Inline editor for an existing source, covering the fields Fred TV let you change.
+/// Inline editor for an existing source, covering every field that can change after adding it.
 pub struct EditSourceForm {
     original: Source,
     url: Entity<InputState>,

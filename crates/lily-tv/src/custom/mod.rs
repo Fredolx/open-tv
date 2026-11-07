@@ -131,7 +131,7 @@ pub fn share_source(source: Source, window: &mut Window, cx: &mut App) {
 
 /// Imports a shared channel, group or source file. `into` None creates a new source.
 pub fn import(into: Option<i64>, name_override: Option<String>, on_done: Done, window: &mut Window, cx: &mut App) {
-    let picked = file_prompts::open_file(cx, "Choose a Lily TV / Fred TV export (.otv, .otvg, .otvp)");
+    let picked = file_prompts::open_file(cx, "Choose a Lily TV export (.otv, .otvg, .otvp)");
     window
         .spawn(cx, async move |cx| {
             let Some(path) = picked.await else {

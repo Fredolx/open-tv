@@ -1,13 +1,11 @@
 # Lily TV
 
-A native IPTV player built with [GPUI](https://www.gpui.rs/) (via [gpui-kit](https://gpui-kit.com)),
-forked from [Fred TV / Open TV](https://github.com/Fredolx/open-tv). The Tauri + Angular
-frontend has been replaced by a native Rust UI; the IPTV backend is Fred TV's.
+A native IPTV player built in Rust with [GPUI](https://www.gpui.rs/) (via
+[gpui-kit](https://gpui-kit.com)).
 
-Lily TV reads and writes the same channel database as Fred TV
-(`%APPDATA%\fredol\open-tv\data\db.sqlite` on Windows), so sources, favourites, history and
-reminders carry over in both directions, and its export files (`.otv`, `.otvg`, `.otvp`,
-`.otvf`) are interchangeable with Fred TV's.
+The channel database lives in `%APPDATA%\lilytv\lily-tv\data\db.sqlite` on Windows. Channels,
+groups and sources can be shared as `.otv`, `.otvg` and `.otvp` files, and favourites backed
+up as `.otvf`.
 
 ## Features
 
@@ -56,15 +54,15 @@ cargo test --workspace
 
 Playback needs `mpv` (and `ffmpeg`/`yt-dlp` for recording, re-streaming and some streams).
 On Windows they are looked up on `PATH`, then in a `deps` folder next to the executable,
-then in an installed Fred TV's `C:\Program Files\Fred TV\deps`.
+then in an installed Lily TV's `C:\Program Files\Lily TV\deps`.
 
-Set `LILY_TV_DIR` to keep the database and caches in another folder instead of sharing Fred
-TV's, for example to test against a copy.
+Set `LILY_TV_DIR` to keep the database and caches in another folder, for example to test
+against a copy.
 
 ### Windows installer
 
 ```
-.\packaging\fetch-deps.ps1          # or -FromFredTV to copy them from an installed Fred TV
+.\packaging\fetch-deps.ps1          # or -FromInstalled to copy them from an installed Lily TV
 cargo install cargo-packager --locked
 cd crates\lily-tv
 cargo packager --release            # target\release\lily-tv_<version>_x64-setup.exe
@@ -76,7 +74,7 @@ macOS.
 
 ## Layout
 
-- `crates/lily-core`: Fred TV's backend without Tauri: sources (M3U/Xtream), the SQLite
+- `crates/lily-core`: the backend: sources (M3U/Xtream), the SQLite
   channel database, mpv playback, EPG, restream, sharing
 - `crates/lily-tv`: the GPUI application, one module per feature (`browse`, `guide`,
   `sources`, `custom`, `downloads`, `restream`, `settings`) plus the window shell and

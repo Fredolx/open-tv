@@ -39,7 +39,7 @@ pub struct SettingsView {
     hwdec: bool,
     gpu: bool,
     refresh_on_start: bool,
-    /// None means the default Videos/open-tv folder
+    /// None means the default Videos/Lily TV folder
     recording_path: Option<String>,
     always_ask_save: bool,
     restream_port: Entity<InputState>,
@@ -224,14 +224,14 @@ impl SettingsView {
         .detach();
     }
 
-    /// Fred TV's "Delete everything": the database is removed on the next start.
+    /// "Delete everything": the database is removed on the next start.
     fn confirm_reset(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         window.open_alert_dialog(cx, |alert, _, _| {
             alert
                 .title("Delete everything?")
                 .description(
                     "All sources, channels, favourites, history and settings are deleted and Lily TV restarts. \
-                     Fred TV shares this data, so it is cleared there too. This can't be undone.",
+                     This can't be undone.",
                 )
                 .confirm()
                 .ok_text("Delete everything")
@@ -347,7 +347,7 @@ impl Render for SettingsView {
                                             .child(
                                                 recording_path
                                                     .clone()
-                                                    .unwrap_or_else(|| "Default (Videos\\open-tv)".to_string()),
+                                                    .unwrap_or_else(|| "Default (Videos\\Lily TV)".to_string()),
                                             ),
                                     )
                                     .child(
